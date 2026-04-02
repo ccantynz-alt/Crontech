@@ -13,6 +13,7 @@ import {
   type ComputeTier,
 } from "@back-to-the-future/ai-core";
 import { ComponentSchema } from "@back-to-the-future/schemas";
+import { ragRoutes } from "./rag-routes";
 
 // ── Input Schemas ─────────────────────────────────────────────────
 
@@ -52,6 +53,9 @@ const SiteBuilderInputSchema = z.object({
 // ── Route Definitions ─────────────────────────────────────────────
 
 export const aiRoutes = new Hono();
+
+// Mount RAG sub-routes at /ai/rag/*
+aiRoutes.route("/rag", ragRoutes);
 
 /**
  * POST /ai/chat
