@@ -25,6 +25,11 @@ Thumbs.db
 # Bun
 bun.lockb
 
+# Local databases
+*.db
+*.db-shm
+*.db-wal
+
 # Turbo
 .turbo/
 
