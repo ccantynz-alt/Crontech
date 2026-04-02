@@ -50,6 +50,24 @@
 - Edge-first. Cloud is the fallback, not the default.
 - Zero HTML. Components only. The browser is a render target, not a document viewer.
 - If we can run it on the client GPU for free, we do. Every token we don't pay for is a weapon.
+- **Continuous evolution WITHOUT downtime.** The Sentinel system scans 24/7 for faster tech. When found, it auto-integrates via blue-green deploy + canary rollout. The system NEVER goes down. NO runtime abstraction layers — they cost speed. Swaps happen at deploy-time, not runtime.
+
+**CRITICAL: Hot-Swap Architecture (Zero Downtime, Zero Speed Penalty)**
+
+The platform must continuously evolve — absorbing faster technologies the moment they emerge — without EVER going down or slowing down. The architecture for this:
+
+1. **Sentinel scans continuously** (separate service, never touches the hot path)
+2. **When faster tech is found**: automated PR is created with the swap
+3. **CI runs full benchmark suite** — new tech must be measurably faster
+4. **Blue-green deploy**: new version runs alongside old. Zero downtime.
+5. **Canary rollout**: 5% traffic → measure → 25% → 50% → 100%
+6. **Automatic rollback**: if any metric degrades, instant rollback to previous version
+
+**WHY NO ABSTRACTION LAYER:** An abstraction layer (e.g., "database adapter" pattern) adds runtime indirection. Every indirection adds latency. We reject this. Instead:
+- Swap at build/deploy time, not runtime
+- Direct imports, direct calls, maximum speed
+- The deploy pipeline IS the swap mechanism
+- Feature flags gate the rollout, not runtime adapters
 
 ---
 
