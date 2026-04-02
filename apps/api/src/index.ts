@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 import { appRouter } from "./trpc/router";
 import { createContext } from "./trpc/context";
+import { aiRoutes } from "./ai/routes";
 
 const app = new Hono().basePath("/api");
 
@@ -11,6 +12,9 @@ app.get("/health", (c) => {
     timestamp: new Date().toISOString(),
   });
 });
+
+// Mount AI routes (raw Hono -- streaming works better outside tRPC)
+app.route("/ai", aiRoutes);
 
 app.use("/trpc/*", async (c) => {
   const response = await fetchRequestHandler({
