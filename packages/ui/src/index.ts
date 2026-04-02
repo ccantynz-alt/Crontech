@@ -13,3 +13,5 @@ export { Textarea } from "./components/Textarea";
 export { Spinner } from "./components/Spinner";
 export { Tooltip } from "./components/Tooltip";
 export { Separator } from "./components/Separator";
+export { ComponentRenderer, PageRenderer } from "./renderer";
+export type { ComponentRendererProps, PageRendererProps } from "./renderer";
