@@ -1,3 +1,6 @@
+// ── Telemetry MUST be initialized before any other imports ───────
+import { shutdown as shutdownTelemetry, telemetryMiddleware } from "./telemetry";
+
 import { Hono } from "hono";
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 import { appRouter } from "./trpc/router";
@@ -6,6 +9,9 @@ import { aiRoutes } from "./ai/routes";
 import { wsApp, websocket, sseApp } from "./realtime";
 
 const app = new Hono().basePath("/api");
+
+// OpenTelemetry tracing on every request
+app.use("*", telemetryMiddleware);
 
 app.get("/health", (c) => {
   return c.json({
@@ -47,5 +53,15 @@ if (typeof Bun !== "undefined" && Bun.serve) {
   console.log(`  WebSocket: ws://localhost:${port}/api/ws`);
   console.log(`  SSE: http://localhost:${port}/api/realtime/events/:roomId`);
 }
+
+// ── Graceful shutdown ────────────────────────────────────────────
+const handleShutdown = async (): Promise<void> => {
+  console.log("Shutting down — flushing telemetry…");
+  await shutdownTelemetry();
+  process.exit(0);
+};
+
+process.on("SIGINT", handleShutdown);
+process.on("SIGTERM", handleShutdown);
 
 export default app;

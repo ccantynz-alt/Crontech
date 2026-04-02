@@ -13,6 +13,7 @@ import {
   type ComputeTier,
 } from "@back-to-the-future/ai-core";
 import { ComponentSchema } from "@back-to-the-future/schemas";
+import { traceAICall } from "../telemetry";
 
 // ── Input Schemas ─────────────────────────────────────────────────
 
@@ -73,12 +74,18 @@ aiRoutes.post("/chat", async (c) => {
   const providerEnv = readProviderEnv();
   const model = getModelForTier(computeTier as ComputeTier, providerEnv);
 
-  const result = streamText({
-    model,
-    messages: messages as ModelMessage[],
-    maxOutputTokens: maxTokens,
-    temperature,
-  });
+  const result = await traceAICall(
+    "ai.chat",
+    { model: String((model as { modelId?: string }).modelId ?? "unknown"), computeTier, maxTokens, temperature },
+    async () => {
+      return streamText({
+        model,
+        messages: messages as ModelMessage[],
+        maxOutputTokens: maxTokens,
+        temperature,
+      });
+    },
+  );
 
   return result.toTextStreamResponse({
     headers: {
@@ -114,16 +121,22 @@ aiRoutes.post("/generate-ui", async (c) => {
   });
 
   try {
-    const { object } = await generateObject({
-      model,
-      schema: UIOutputSchema,
-      prompt: `Generate a UI layout using ONLY these components: Button, Input, Card, Stack, Text, Modal.
+    const { object } = await traceAICall(
+      "ai.generate-ui",
+      { model: String((model as { modelId?: string }).modelId ?? "unknown"), computeTier },
+      async () => {
+        return generateObject({
+          model,
+          schema: UIOutputSchema,
+          prompt: `Generate a UI layout using ONLY these components: Button, Input, Card, Stack, Text, Modal.
 
 User request: ${description}
 
 Compose a clean, well-structured component tree. Use Stack for layout, Card for grouping, Text for headings and content, Button for actions, Input for form fields.`,
-      temperature: 0.7,
-    });
+          temperature: 0.7,
+        });
+      },
+    );
 
     return c.json({ success: true, ui: object });
   } catch (error) {
@@ -152,13 +165,19 @@ aiRoutes.post("/site-builder", async (c) => {
 
   const { messages, computeTier, maxTokens, temperature } = parsed.data;
 
-  const result = streamSiteBuilder(messages as ModelMessage[], {
-    computeTier: computeTier as ComputeTier,
-    providerEnv: readProviderEnv(),
-    maxTokens,
-    temperature,
-    maxSteps: 5,
-  });
+  const result = await traceAICall(
+    "ai.site-builder",
+    { computeTier, maxTokens, temperature, maxSteps: 5 },
+    async () => {
+      return streamSiteBuilder(messages as ModelMessage[], {
+        computeTier: computeTier as ComputeTier,
+        providerEnv: readProviderEnv(),
+        maxTokens,
+        temperature,
+        maxSteps: 5,
+      });
+    },
+  );
 
   return result.toTextStreamResponse({
     headers: {
