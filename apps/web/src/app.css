@@ -32,6 +32,37 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
+/* ── Performance: contain & content-visibility ────────────────────── */
+
+.layout-content,
+.builder-chat,
+.builder-preview,
+.preview-canvas,
+.sidebar {
+  contain: layout style;
+}
+
+.page-padded,
+.grid-3,
+.builder-chat-messages,
+.preview-placeholder {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 500px;
+}
+
+.loading-spinner {
+  will-change: transform;
+}
+
+.nav-link,
+.sidebar {
+  will-change: background-color, color;
+}
+
+.user-menu-dropdown {
+  will-change: opacity, transform;
+}
+
 /* ── Reset & Base ──────────────────────────────────────────────────── */
 
 *,
