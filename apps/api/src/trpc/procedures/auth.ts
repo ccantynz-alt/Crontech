@@ -1,0 +1,402 @@
+import { z } from "zod";
+import { TRPCError } from "@trpc/server";
+import { eq } from "drizzle-orm";
+import { router, publicProcedure, protectedProcedure } from "../init";
+import { users, credentials } from "@back-to-the-future/db";
+import {
+  generateRegistrationOpts,
+  verifyRegistration,
+  generateAuthenticationOpts,
+  verifyAuthentication,
+} from "../../auth/webauthn";
+import type {
+  RegistrationResponseJSON,
+  AuthenticationResponseJSON,
+} from "../../auth/webauthn";
+import { createSession, deleteSession } from "../../auth/session";
+
+// In-memory challenge store with TTL cleanup.
+// In production, replace with Redis or a DB-backed store.
+const challengeStore = new Map<
+  string,
+  { challenge: string; expiresAt: number }
+>();
+
+const CHALLENGE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
+function storeChallenge(key: string, challenge: string): void {
+  challengeStore.set(key, {
+    challenge,
+    expiresAt: Date.now() + CHALLENGE_TTL_MS,
+  });
+}
+
+function consumeChallenge(key: string): string | null {
+  const entry = challengeStore.get(key);
+  if (!entry) return null;
+
+  challengeStore.delete(key);
+
+  if (Date.now() > entry.expiresAt) return null;
+
+  return entry.challenge;
+}
+
+// Periodic cleanup of expired challenges
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, entry] of challengeStore) {
+    if (now > entry.expiresAt) {
+      challengeStore.delete(key);
+    }
+  }
+}, 60_000);
+
+function generateId(): string {
+  return crypto.randomUUID();
+}
+
+const registrationResponseSchema = z.object({
+  id: z.string(),
+  rawId: z.string(),
+  response: z.object({
+    attestationObject: z.string(),
+    clientDataJSON: z.string(),
+    transports: z.array(z.string()).optional(),
+    publicKeyAlgorithm: z.number().optional(),
+    publicKey: z.string().optional(),
+    authenticatorData: z.string().optional(),
+  }),
+  authenticatorAttachment: z
+    .enum(["cross-platform", "platform"])
+    .optional(),
+  clientExtensionResults: z.record(z.unknown()),
+  type: z.literal("public-key"),
+});
+
+const authenticationResponseSchema = z.object({
+  id: z.string(),
+  rawId: z.string(),
+  response: z.object({
+    authenticatorData: z.string(),
+    clientDataJSON: z.string(),
+    signature: z.string(),
+    userHandle: z.string().optional(),
+  }),
+  authenticatorAttachment: z
+    .enum(["cross-platform", "platform"])
+    .optional(),
+  clientExtensionResults: z.record(z.unknown()),
+  type: z.literal("public-key"),
+});
+
+export const authRouter = router({
+  register: router({
+    start: publicProcedure
+      .input(
+        z.object({
+          email: z.string().email(),
+          displayName: z.string().min(1).max(255),
+        }),
+      )
+      .mutation(async ({ input, ctx }) => {
+        const { email, displayName } = input;
+
+        // Check if user already exists
+        const existing = await ctx.db
+          .select()
+          .from(users)
+          .where(eq(users.email, email))
+          .limit(1);
+
+        let user: { id: string; email: string; displayName: string };
+
+        const existingUser = existing[0];
+        if (existingUser) {
+          user = {
+            id: existingUser.id,
+            email: existingUser.email,
+            displayName: existingUser.displayName,
+          };
+        } else {
+          const id = generateId();
+          await ctx.db.insert(users).values({
+            id,
+            email,
+            displayName,
+          });
+          user = { id, email, displayName };
+        }
+
+        // Get existing credentials for exclusion
+        const existingCreds = await ctx.db
+          .select({
+            id: credentials.id,
+            credentialId: credentials.credentialId,
+            transports: credentials.transports,
+          })
+          .from(credentials)
+          .where(eq(credentials.userId, user.id));
+
+        const options = await generateRegistrationOpts(user, existingCreds);
+
+        // Store challenge keyed by user ID
+        storeChallenge(`reg:${user.id}`, options.challenge);
+
+        return {
+          options,
+          userId: user.id,
+        };
+      }),
+
+    finish: publicProcedure
+      .input(
+        z.object({
+          userId: z.string().uuid(),
+          response: registrationResponseSchema,
+        }),
+      )
+      .mutation(async ({ input, ctx }) => {
+        const { userId, response } = input;
+
+        const expectedChallenge = consumeChallenge(`reg:${userId}`);
+        if (!expectedChallenge) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message:
+              "Registration challenge expired or not found. Please restart registration.",
+          });
+        }
+
+        const verification = await verifyRegistration(
+          response as unknown as RegistrationResponseJSON,
+          expectedChallenge,
+        );
+
+        if (!verification.verified || !verification.registrationInfo) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Registration verification failed.",
+          });
+        }
+
+        const { credential, credentialDeviceType, credentialBackedUp } =
+          verification.registrationInfo;
+
+        const transports = response.response.transports;
+
+        // Store the credential
+        const credentialRecord = {
+          id: generateId(),
+          userId,
+          credentialId: credential.id,
+          publicKey: Buffer.from(credential.publicKey),
+          counter: credential.counter,
+          deviceType: credentialDeviceType as "singleDevice" | "multiDevice",
+          backedUp: credentialBackedUp,
+          transports: transports ? JSON.stringify(transports) : null,
+        };
+
+        await ctx.db.insert(credentials).values(credentialRecord);
+
+        // Create session
+        const token = await createSession(userId, ctx.db);
+
+        return {
+          verified: true,
+          token,
+        };
+      }),
+  }),
+
+  login: router({
+    start: publicProcedure
+      .input(
+        z
+          .object({
+            email: z.string().email().optional(),
+          })
+          .optional(),
+      )
+      .mutation(async ({ input, ctx }) => {
+        const email = input?.email;
+        let allowCredentials:
+          | { id: string; credentialId: string; transports: string | null }[]
+          | undefined;
+        let userId: string | undefined;
+
+        if (email) {
+          const userResult = await ctx.db
+            .select()
+            .from(users)
+            .where(eq(users.email, email))
+            .limit(1);
+
+          const foundUser = userResult[0];
+          if (!foundUser) {
+            throw new TRPCError({
+              code: "NOT_FOUND",
+              message: "User not found.",
+            });
+          }
+
+          userId = foundUser.id;
+
+          allowCredentials = await ctx.db
+            .select({
+              id: credentials.id,
+              credentialId: credentials.credentialId,
+              transports: credentials.transports,
+            })
+            .from(credentials)
+            .where(eq(credentials.userId, userId));
+
+          if (allowCredentials.length === 0) {
+            throw new TRPCError({
+              code: "NOT_FOUND",
+              message: "No passkeys registered for this user.",
+            });
+          }
+        }
+
+        const options = await generateAuthenticationOpts(allowCredentials);
+
+        // Store challenge - use userId if known, otherwise use the challenge itself as key
+        const challengeKey = userId
+          ? `auth:${userId}`
+          : `auth:discoverable:${options.challenge}`;
+        storeChallenge(challengeKey, options.challenge);
+
+        return {
+          options,
+          userId: userId ?? null,
+        };
+      }),
+
+    finish: publicProcedure
+      .input(
+        z.object({
+          userId: z.string().uuid().nullable(),
+          response: authenticationResponseSchema,
+        }),
+      )
+      .mutation(async ({ input, ctx }) => {
+        const { response } = input;
+        let { userId } = input;
+
+        // Look up the credential by credentialId
+        const credentialResult = await ctx.db
+          .select()
+          .from(credentials)
+          .where(eq(credentials.credentialId, response.id))
+          .limit(1);
+
+        const storedCredential = credentialResult[0];
+        if (!storedCredential) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Credential not found.",
+          });
+        }
+
+        // If userId was not provided (discoverable credential flow), use the credential's userId
+        if (!userId) {
+          userId = storedCredential.userId;
+        }
+
+        // Verify the userId matches the credential
+        if (storedCredential.userId !== userId) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Credential does not belong to this user.",
+          });
+        }
+
+        // Try to consume the challenge
+        let expectedChallenge = consumeChallenge(`auth:${userId}`);
+        if (!expectedChallenge) {
+          // Try discoverable key challenges
+          for (const [key] of challengeStore) {
+            if (key.startsWith("auth:discoverable:")) {
+              expectedChallenge = consumeChallenge(key);
+              if (expectedChallenge) break;
+            }
+          }
+        }
+
+        if (!expectedChallenge) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message:
+              "Authentication challenge expired or not found. Please restart login.",
+          });
+        }
+
+        const verification = await verifyAuthentication(
+          response as unknown as AuthenticationResponseJSON,
+          {
+            credentialId: storedCredential.credentialId,
+            publicKey: new Uint8Array(storedCredential.publicKey),
+            counter: storedCredential.counter,
+            transports: storedCredential.transports,
+          },
+          expectedChallenge,
+        );
+
+        if (!verification.verified) {
+          throw new TRPCError({
+            code: "UNAUTHORIZED",
+            message: "Authentication verification failed.",
+          });
+        }
+
+        // Update the credential counter
+        await ctx.db
+          .update(credentials)
+          .set({
+            counter: verification.authenticationInfo.newCounter,
+          })
+          .where(eq(credentials.id, storedCredential.id));
+
+        // Create session
+        const token = await createSession(userId, ctx.db);
+
+        return {
+          verified: true,
+          token,
+          userId,
+        };
+      }),
+  }),
+
+  logout: protectedProcedure.mutation(async ({ ctx }) => {
+    if (ctx.sessionToken) {
+      await deleteSession(ctx.sessionToken, ctx.db);
+    }
+    return { success: true };
+  }),
+
+  me: protectedProcedure.query(async ({ ctx }) => {
+    const userResult = await ctx.db
+      .select({
+        id: users.id,
+        email: users.email,
+        displayName: users.displayName,
+        role: users.role,
+        createdAt: users.createdAt,
+      })
+      .from(users)
+      .where(eq(users.id, ctx.userId))
+      .limit(1);
+
+    const user = userResult[0];
+    if (!user) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "User not found.",
+      });
+    }
+
+    return user;
+  }),
+});
