@@ -8,6 +8,10 @@ import { createContext } from "./trpc/context";
 import { aiRoutes } from "./ai/routes";
 import { wsApp, websocket, sseApp } from "./realtime";
 import {
+  requestIdMiddleware,
+  corsMiddleware,
+  loggerMiddleware,
+  earlyHintsMiddleware,
   compressMiddleware,
   securityHeaders,
   serverTimingMiddleware,
@@ -15,6 +19,9 @@ import {
   cacheDynamic,
   cachePrivate,
   noCache,
+  apiRateLimit,
+  authRateLimit,
+  aiRateLimit,
 } from "./middleware";
 import { inngestApp } from "./workflows/serve";
 
@@ -22,24 +29,41 @@ const app = new Hono().basePath("/api");
 
 // ── Global middleware (order matters) ────────────────────────────
 
-// 1. Server-Timing — must be first to capture total request time
+// 1. Request ID — everything else references it
+app.use("*", requestIdMiddleware);
+
+// 2. Server-Timing — must be early to capture total request time
 app.use("*", serverTimingMiddleware());
 
-// 2. OpenTelemetry tracing on every request
+// 3. CORS — must run before any response is sent
+app.use("*", corsMiddleware);
+
+// 4. Structured JSON logger (skips /health)
+app.use("*", loggerMiddleware);
+
+// 5. Early Hints for HTML-accepting GET requests
+app.use("*", earlyHintsMiddleware);
+
+// 6. OpenTelemetry tracing on every request
 app.use("*", telemetryMiddleware);
 
-// 3. Security headers on every response
+// 7. Security headers on every response
 app.use("*", securityHeaders());
 
-// 4. Compression — gzip for JSON/text responses
+// 8. Compression — gzip for JSON/text responses
 app.use("*", compressMiddleware());
 
-// 5. ETag generation for conditional responses (saves bandwidth)
+// 9. ETag generation for conditional responses (saves bandwidth)
 app.use("*", etagMiddleware());
+
+// ── Per-route rate limiting ─────────────────────────────────────
+app.use("/trpc/auth.*", authRateLimit);
+app.use("/ai/*", aiRateLimit);
+app.use("*", apiRateLimit);
 
 // ── Routes ───────────────────────────────────────────────────────
 
-// Health check — cacheable, public, 60s TTL
+// Health check — cacheable, 60s TTL
 app.use("/health", cacheDynamic);
 app.get("/health", (c) => {
   return c.json({
@@ -52,7 +76,7 @@ app.get("/health", (c) => {
 app.use("/ai/*", noCache);
 app.route("/ai", aiRoutes);
 
-// tRPC — private cache for authenticated, dynamic for public reads
+// tRPC — private cache for authenticated responses
 app.use("/trpc/*", cachePrivate);
 app.use("/trpc/*", async (c) => {
   const response = await fetchRequestHandler({
@@ -64,14 +88,14 @@ app.use("/trpc/*", async (c) => {
   return response;
 });
 
-// Inngest durable workflows — AI pipelines, video processing, site building
+// Inngest durable workflows
 app.route("/", inngestApp);
 
-// Real-Time: WebSocket upgrade at /api/ws — never cache
+// Real-Time: WebSocket — never cache
 app.use("/ws", noCache);
 app.route("/", wsApp);
 
-// Real-Time: SSE + REST endpoints — never cache
+// Real-Time: SSE + REST — never cache
 app.use("/realtime/*", noCache);
 app.route("/", sseApp);
 
