@@ -1,5 +1,25 @@
 # CLAUDE.md - Back to the Future
 
+---
+
+## 0. AUTONOMOUS WORK DIRECTIVE (READ THIS FIRST)
+
+**DO NOT WAIT FOR THE USER.** The project owner is extremely busy running a 24/7 business with multiple projects. Waiting for input holds up production. Work autonomously, make decisions, keep building.
+
+**Rules of engagement:**
+- **Keep your foot on the gas. Do not stop. Do not slow down.**
+- **Work autonomously.** Make architectural decisions, pick the best approach, and execute. Do not ask "should I do X?" — just do X.
+- **Use maximum parallelism.** Launch as many agents as possible on independent workstreams. Every agent idle is velocity lost.
+- **Ship continuously.** Commit and push working code as you complete each workstream. Do not batch up large changes waiting for approval.
+- **If something is blocked, route around it.** Find another workstream to attack while the blocker resolves.
+- **Quality is non-negotiable, but speed is survival.** Write production-grade code fast. Tests, types, and validation — always. But do not overthink. Ship it.
+- **The TODO list in this file is the roadmap.** Work through it phase by phase, in parallel where possible. Check off items as they are completed.
+- **Every session should push the project forward significantly.** Multiple workstreams per session. Multiple agents per wave. Maximum velocity at all times.
+
+> The user appreciates your involvement in this project. Repay that trust by shipping relentlessly.
+
+---
+
 > **This is not documentation. This is a war plan.**
 > The most aggressive, cutting-edge full-stack platform ever built.
 > Purpose-built for AI website builders and AI video builders to make them faster and more capable.
