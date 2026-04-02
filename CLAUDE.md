@@ -672,6 +672,52 @@ This platform works on EVERY device and integrates with EVERYTHING. No exception
 
 > **If it exists, we integrate with it. If it doesn't have an API, we build an adapter.**
 
+### 5C.4 Legal-Specific Integrations
+
+| Integration | Purpose | Approach |
+|---|---|---|
+| **PACER / CM/ECF** | Federal court filing and docket access | Via CourtDrive or PacerPro APIs (normalized, handles court-specific variations) |
+| **Clio** | Case management (largest market share, open API, 250+ integrations) | Priority #1 case management connector |
+| **PracticePanther / MyCase** | Case management alternatives | REST API integration |
+| **Relativity / Everlaw** | E-discovery platforms | REST API connectors |
+| **LexisNexis** | Legal research (Cognitive APIs, entity resolution, PII redaction) | OAuth + REST API via Developer Portal |
+| **Westlaw** | Legal research (2M+ legislative records, 500K+ case reports) | REST API via Thomson Reuters Developer Portal |
+| **iManage / NetDocuments** | Legal document management | API integration with ethical wall support |
+| **Prevail CheckMate** | Real-time deposition transcription + LLM streaming | API integration |
+| **Epiq Narrate** | Real-time transcription, auto exhibit numbering, contradiction detection | API integration |
+
+### 5C.5 Enterprise SSO & Identity
+
+- **WorkOS** (or equivalent) for enterprise SSO -- handles SAML + OIDC + SCIM without building from scratch
+- **SAML 2.0** is mandatory for AmLaw 200 firms -- cannot be skipped
+- **SCIM** is now a must-have for enterprise procurement (automated provisioning/deprovisioning)
+- The complete enterprise stack: **SSO + SCIM + Audit Logs** -- SSO alone is insufficient
+
+### 5C.6 Internationalization
+
+- **i18next** for multi-language support (SolidJS compatible)
+- **RTL layout support** (Arabic, Hebrew) via CSS logical properties
+- **Locale-sensitive formatting** -- dates, times, numbers (legally significant in documents)
+- **Multi-script rendering** -- English + Mandarin in same document
+- **Court interpreter support** -- real-time translation overlays
+- **Certified translation tracking** -- chain of custody for translated documents
+
+### 5C.7 Print & Court Filing
+
+- **CSS @media print + @page** for court-compliant document formatting
+- **Per-jurisdiction templates** -- federal, state, local court rules vary significantly
+- **HTML-to-PDF pipeline** via headless Chrome for pixel-perfect output
+- Specific typefaces (Century Schoolbook, Times New Roman), exact point sizes, margins, line spacing
+- Non-compliance risks **court rejection** -- this is not optional
+
+### 5C.8 Compliance Documentation
+
+- **VPAT 2.5** required before selling to government-serving law firms or court systems
+- Covers Section 508 (U.S.), EN 301 549 (EU), and WCAG
+- Must be completed by third-party auditor with remediation plan
+
+---
+
 ## 6. DEVELOPMENT RULES & CONVENTIONS
 
 These are not guidelines. These are laws. Break them and the build breaks. That is by design.
