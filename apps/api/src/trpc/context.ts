@@ -1,11 +1,26 @@
 import type { Context } from "hono";
+import { db } from "@back-to-the-future/db";
+import type { createClient } from "@back-to-the-future/db";
+import { getUserIdFromHeader } from "../auth/middleware";
+
+type Database = typeof db;
 
 export interface TRPCContext {
-  db: Record<string, unknown>;
+  db: Database;
+  userId: string | null;
+  sessionToken: string | null;
 }
 
-export function createContext(_c: Context): TRPCContext {
+export async function createContext(c: Context): Promise<TRPCContext> {
+  const userId = await getUserIdFromHeader(c);
+
+  const authHeader = c.req.header("Authorization");
+  const sessionToken =
+    authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
+
   return {
-    db: {},
+    db,
+    userId,
+    sessionToken,
   };
 }

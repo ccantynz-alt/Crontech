@@ -3,10 +3,11 @@ import { drizzle } from "drizzle-orm/libsql";
 import * as schema from "./schema";
 
 export function createClient(url: string, authToken?: string) {
-  const client = createLibSQLClient({
-    url,
-    authToken,
-  });
+  const clientConfig: Parameters<typeof createLibSQLClient>[0] = { url };
+  if (authToken) {
+    clientConfig.authToken = authToken;
+  }
+  const client = createLibSQLClient(clientConfig);
 
   return drizzle(client, { schema });
 }

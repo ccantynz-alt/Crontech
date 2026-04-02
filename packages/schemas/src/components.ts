@@ -94,9 +94,119 @@ export const ModalSchema = z.object({
     title: z.string(),
     description: z.string().optional(),
     open: z.boolean().default(false),
-    size: z.enum(["sm", "md", "lg", "xl", "full"]).default("md"),
+    size: z.enum(["sm", "md", "lg", "xl"]).default("md"),
   }),
   children: z.array(z.lazy((): z.ZodType => ComponentSchema)).optional(),
+});
+
+export const BadgeVariant = z.enum([
+  "default",
+  "success",
+  "warning",
+  "error",
+  "info",
+]);
+
+export const BadgeSchema = z.object({
+  component: z.literal("Badge"),
+  props: z.object({
+    variant: BadgeVariant.default("default"),
+    size: z.enum(["sm", "md"]).default("md"),
+    label: z.string(),
+  }),
+});
+
+export const AlertVariant = z.enum(["info", "success", "warning", "error"]);
+
+export const AlertSchema = z.object({
+  component: z.literal("Alert"),
+  props: z.object({
+    variant: AlertVariant.default("info"),
+    title: z.string().optional(),
+    description: z.string().optional(),
+    dismissible: z.boolean().default(false),
+  }),
+  children: z.array(z.lazy((): z.ZodType => ComponentSchema)).optional(),
+});
+
+export const AvatarSchema = z.object({
+  component: z.literal("Avatar"),
+  props: z.object({
+    src: z.string().optional(),
+    alt: z.string().optional(),
+    initials: z.string().optional(),
+    size: z.enum(["sm", "md", "lg"]).default("md"),
+  }),
+});
+
+export const TabItemSchema = z.object({
+  id: z.string(),
+  label: z.string(),
+  disabled: z.boolean().optional(),
+});
+
+export const TabsSchema = z.object({
+  component: z.literal("Tabs"),
+  props: z.object({
+    items: z.array(TabItemSchema).min(1),
+    defaultTab: z.string().optional(),
+  }),
+});
+
+export const SelectOptionSchema = z.object({
+  value: z.string(),
+  label: z.string(),
+  disabled: z.boolean().optional(),
+});
+
+export const SelectSchema = z.object({
+  component: z.literal("Select"),
+  props: z.object({
+    options: z.array(SelectOptionSchema).min(1),
+    value: z.string().optional(),
+    placeholder: z.string().optional(),
+    label: z.string().optional(),
+    error: z.string().optional(),
+    disabled: z.boolean().default(false),
+    name: z.string().optional(),
+  }),
+});
+
+export const TextareaSchema = z.object({
+  component: z.literal("Textarea"),
+  props: z.object({
+    label: z.string().optional(),
+    error: z.string().optional(),
+    placeholder: z.string().optional(),
+    rows: z.number().int().positive().default(3),
+    resize: z.enum(["none", "vertical", "horizontal", "both"]).default("vertical"),
+    required: z.boolean().default(false),
+    disabled: z.boolean().default(false),
+    name: z.string().optional(),
+  }),
+});
+
+export const SpinnerSchema = z.object({
+  component: z.literal("Spinner"),
+  props: z.object({
+    size: z.enum(["sm", "md", "lg"]).default("md"),
+  }),
+});
+
+export const TooltipSchema = z.object({
+  component: z.literal("Tooltip"),
+  props: z.object({
+    content: z.string(),
+    position: z.enum(["top", "bottom", "left", "right"]).default("top"),
+  }),
+  children: z.array(z.lazy((): z.ZodType => ComponentSchema)).optional(),
+});
+
+export const SeparatorSchema = z.object({
+  component: z.literal("Separator"),
+  props: z.object({
+    orientation: z.enum(["horizontal", "vertical"]).default("horizontal"),
+  }),
 });
 
 // ── Component Registry (Union of all components) ───────────────────
@@ -109,6 +219,15 @@ export const ComponentSchema: z.ZodType = z.discriminatedUnion("component", [
   StackSchema,
   TextSchema,
   ModalSchema,
+  BadgeSchema,
+  AlertSchema,
+  AvatarSchema,
+  TabsSchema,
+  SelectSchema,
+  TextareaSchema,
+  SpinnerSchema,
+  TooltipSchema,
+  SeparatorSchema,
 ]);
 
 export type Button = z.infer<typeof ButtonSchema>;
@@ -117,6 +236,15 @@ export type Card = z.infer<typeof CardSchema>;
 export type Stack = z.infer<typeof StackSchema>;
 export type Text = z.infer<typeof TextSchema>;
 export type Modal = z.infer<typeof ModalSchema>;
+export type Badge = z.infer<typeof BadgeSchema>;
+export type Alert = z.infer<typeof AlertSchema>;
+export type Avatar = z.infer<typeof AvatarSchema>;
+export type Tabs = z.infer<typeof TabsSchema>;
+export type Select = z.infer<typeof SelectSchema>;
+export type Textarea = z.infer<typeof TextareaSchema>;
+export type Spinner = z.infer<typeof SpinnerSchema>;
+export type Tooltip = z.infer<typeof TooltipSchema>;
+export type Separator = z.infer<typeof SeparatorSchema>;
 export type Component = z.infer<typeof ComponentSchema>;
 
 // ── Component Catalog (for AI agent discovery) ─────────────────────
@@ -128,6 +256,15 @@ export const ComponentCatalog = {
   Stack: StackSchema,
   Text: TextSchema,
   Modal: ModalSchema,
+  Badge: BadgeSchema,
+  Alert: AlertSchema,
+  Avatar: AvatarSchema,
+  Tabs: TabsSchema,
+  Select: SelectSchema,
+  Textarea: TextareaSchema,
+  Spinner: SpinnerSchema,
+  Tooltip: TooltipSchema,
+  Separator: SeparatorSchema,
 } as const;
 
 export type ComponentName = keyof typeof ComponentCatalog;
