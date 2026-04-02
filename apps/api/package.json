@@ -11,10 +11,12 @@
     "format": "biome format . --write"
   },
   "dependencies": {
-    "hono": "^4.7.0",
-    "@trpc/server": "^11.0.0",
-    "@back-to-the-future/schemas": "workspace:*",
     "@back-to-the-future/db": "workspace:*",
+    "@back-to-the-future/schemas": "workspace:*",
+    "@simplewebauthn/server": "13.3.0",
+    "@trpc/server": "^11.0.0",
+    "drizzle-orm": "0.38",
+    "hono": "^4.7.0",
     "zod": "^3.24.0"
   },
   "devDependencies": {
