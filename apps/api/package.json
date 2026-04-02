@@ -15,6 +15,7 @@
     "@trpc/server": "^11.0.0",
     "@back-to-the-future/schemas": "workspace:*",
     "@back-to-the-future/db": "workspace:*",
+    "drizzle-orm": "^0.38",
     "zod": "^3.24.0"
   },
   "devDependencies": {
