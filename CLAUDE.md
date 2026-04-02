@@ -230,6 +230,42 @@ This is not an "AI features" section. AI is the circulatory system. Every techno
 
 ---
 
+### COMPETITIVE AUDIT ADDITIONS (April 2026)
+
+Technologies identified through competitive audit to maintain 80%+ lead. **Integrate these.**
+
+#### Frontend — New Weapons
+
+| Technology | Role | Why Add It |
+|---|---|---|
+| **View Transitions API** | Native page transitions | Zero-JS page transitions. Chrome/Edge stable. SolidStart compatible. Free UX upgrade. |
+| **Speculation Rules API** | Browser-native prefetching | Chrome-native prerendering. Complements AI-driven prefetching for predictable navigation. |
+| **WebCodecs API** | Video encode/decode | Low-level browser video pipeline. More control than FFmpeg.wasm, less overhead. Critical for video builder. |
+| **Chrome Built-in AI APIs** | Tier-0 inference | Prompt API, Summarizer, Translator — free, zero-download, in Chrome 130+. Use before WebLLM for supported tasks. |
+| **ONNX Runtime Web (WebGPU)** | Alternative ML inference | Benchmark against Transformers.js — faster for certain model architectures. |
+
+#### Backend — New Weapons
+
+| Technology | Role | Why Add It |
+|---|---|---|
+| **Inngest** | Durable workflows | TypeScript-native durable execution. Perfect for AI pipelines, video processing, multi-step agents. Replaces fragile queue systems. |
+| **PartyKit (Cloudflare)** | Serverless real-time | Real-time infrastructure on Workers. Aligns perfectly with Cloudflare stack. Potential Yjs+Durable Objects replacement. |
+| **Hyperdrive** | DB connection pooling | Cloudflare's connection pooler for Neon PostgreSQL. Eliminates cold-connect latency at edge. |
+| **DuckDB** | In-process analytics | OLAP engine for analytics queries. Complements Turso (OLTP) and Neon. Parquet/CSV native. |
+| **vLLM** | LLM inference server | Fastest open-source inference via PagedAttention. Deploy on Modal GPUs for heavy workloads. |
+
+#### Monitor List (Not Yet Actionable)
+
+| Technology | Status |
+|---|---|
+| Ollama | Good for local dev model serving |
+| Orillusion | WebGPU-native 3D engine — evaluate vs R3F |
+| ConnectRPC | gRPC over HTTP/1.1 — useful when Axum services ship |
+| Automerge 2.0 | Rust-core CRDTs — monitor vs Yjs |
+| SGLang | Structured generation inference — evaluate vs vLLM |
+
+---
+
 ## 4. ARCHITECTURE (THE WAR MACHINE)
 
 This is the engine that makes everything else possible. Every decision here was made to maximize speed, minimize cost, and put AI at the center of every operation. No compromises. No legacy baggage.
