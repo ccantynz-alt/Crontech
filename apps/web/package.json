@@ -1,0 +1,25 @@
+{
+  "name": "@back-to-the-future/web",
+  "type": "module",
+  "scripts": {
+    "dev": "vinxi dev --port 3000",
+    "build": "vinxi build",
+    "start": "vinxi start",
+    "check": "tsc --noEmit",
+    "lint": "biome check .",
+    "format": "biome format . --write"
+  },
+  "dependencies": {
+    "@back-to-the-future/schemas": "workspace:*",
+    "@back-to-the-future/ui": "workspace:*",
+    "@solidjs/meta": "^0.29.4",
+    "@solidjs/router": "^0.15.3",
+    "@solidjs/start": "^1.1.0",
+    "solid-js": "^1.9.5",
+    "vinxi": "^0.5.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.0",
+    "typescript": "^5.7.3"
+  }
+}

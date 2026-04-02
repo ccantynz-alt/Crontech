@@ -1,0 +1,24 @@
+{
+  "name": "@back-to-the-future/api",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "bun run --hot src/index.ts",
+    "build": "bun build src/index.ts --outdir dist --target bun",
+    "test": "bun test",
+    "check": "tsc --noEmit",
+    "lint": "biome check .",
+    "format": "biome format . --write"
+  },
+  "dependencies": {
+    "hono": "^4.7.0",
+    "@trpc/server": "^11.0.0",
+    "@back-to-the-future/schemas": "workspace:*",
+    "@back-to-the-future/db": "workspace:*",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0",
+    "@types/bun": "^1.2.0"
+  }
+}
