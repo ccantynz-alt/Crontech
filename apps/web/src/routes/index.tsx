@@ -1,22 +1,41 @@
 import { Title } from "@solidjs/meta";
-import { Button } from "@back-to-the-future/ui";
+import { A } from "@solidjs/router";
+import { Show } from "solid-js";
+import { Button, Stack, Text } from "@back-to-the-future/ui";
+import { useAuth } from "../stores";
 
-export default function Home() {
+export default function Home(): ReturnType<typeof Stack> {
+  const auth = useAuth();
+
   return (
-    <main class="mx-auto max-w-7xl px-8 py-8">
+    <Stack direction="vertical" align="center" justify="center" class="hero">
       <Title>Back to the Future</Title>
-      <div class="flex min-h-[80vh] flex-col items-center justify-center gap-4 text-center">
-        <h1 class="text-6xl font-extrabold leading-tight tracking-tight text-gray-950">
-          Back to the Future
-        </h1>
-        <p class="text-2xl font-medium text-gray-600">
-          The most advanced full-stack platform
-        </p>
-        <p class="max-w-xl text-lg text-gray-500">
-          AI-native. Edge-first. Zero-HTML. Self-evolving.
-        </p>
-        <Button>Get Started</Button>
-      </div>
-    </main>
+      <Text variant="h1" weight="bold" align="center" class="heading">
+        Back to the Future
+      </Text>
+      <Text variant="body" align="center" class="tagline">
+        The most advanced full-stack platform
+      </Text>
+      <Text variant="body" align="center" class="description">
+        AI-native. Edge-first. Zero-HTML. Self-evolving.
+      </Text>
+      <Stack direction="horizontal" gap="md" justify="center">
+        <Show
+          when={auth.isAuthenticated()}
+          fallback={
+            <A href="/register">
+              <Button variant="primary" size="lg">Get Started</Button>
+            </A>
+          }
+        >
+          <A href="/dashboard">
+            <Button variant="primary" size="lg">Go to Dashboard</Button>
+          </A>
+        </Show>
+        <A href="/about">
+          <Button variant="outline" size="lg">Learn More</Button>
+        </A>
+      </Stack>
+    </Stack>
   );
 }
