@@ -7,6 +7,12 @@ import {
   useContext,
 } from "solid-js";
 import type { User } from "@back-to-the-future/schemas";
+import {
+  registerPasskey,
+  loginWithPasskey,
+  verifySession,
+  logoutSession,
+} from "../lib/webauthn";
 
 // ── Auth State Types ──────────────────────────────────────────────────
 
@@ -15,7 +21,7 @@ interface AuthState {
   isAuthenticated: Accessor<boolean>;
   isLoading: Accessor<boolean>;
   error: Accessor<string | null>;
-  login: (email: string, credential?: PublicKeyCredential) => Promise<void>;
+  login: (email?: string) => Promise<void>;
   logout: () => Promise<void>;
   register: (email: string, displayName: string) => Promise<void>;
   checkSession: () => Promise<void>;
@@ -79,32 +85,17 @@ export function AuthProvider(props: { children: JSX.Element }): JSX.Element {
     }
   });
 
-  const getApiUrl = (): string => {
-    if (typeof window !== "undefined") {
-      const meta = import.meta as unknown as Record<string, Record<string, string> | undefined>;
-      return meta.env?.VITE_PUBLIC_API_URL ?? "http://localhost:3001";
-    }
-    return "http://localhost:3001";
-  };
-
-  const login = async (email: string, _credential?: PublicKeyCredential): Promise<void> => {
+  const login = async (email?: string): Promise<void> => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${getApiUrl()}/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
+      // Perform the full WebAuthn passkey authentication ceremony
+      const { token } = await loginWithPasskey(email);
+      setStorageItem(SESSION_TOKEN_KEY, token);
 
-      if (!response.ok) {
-        const body = await response.json().catch(() => ({ message: "Login failed" }));
-        throw new Error(body.message ?? "Login failed");
-      }
-
-      const data: { token: string; user: User } = await response.json();
-      setStorageItem(SESSION_TOKEN_KEY, data.token);
-      setCurrentUser(data.user);
+      // Fetch the full user profile from the server
+      const user = await verifySession(token);
+      setCurrentUser(user as User);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Login failed";
       setError(message);
@@ -120,15 +111,7 @@ export function AuthProvider(props: { children: JSX.Element }): JSX.Element {
     try {
       const token = getStorageItem(SESSION_TOKEN_KEY);
       if (token) {
-        await fetch(`${getApiUrl()}/auth/logout`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }).catch(() => {
-          // Best-effort logout on server -- always clear local state
-        });
+        await logoutSession(token);
       }
     } finally {
       removeStorageItem(SESSION_TOKEN_KEY);
@@ -142,20 +125,13 @@ export function AuthProvider(props: { children: JSX.Element }): JSX.Element {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${getApiUrl()}/auth/register`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, displayName }),
-      });
+      // Perform the full WebAuthn passkey registration ceremony
+      const { token } = await registerPasskey(email, displayName);
+      setStorageItem(SESSION_TOKEN_KEY, token);
 
-      if (!response.ok) {
-        const body = await response.json().catch(() => ({ message: "Registration failed" }));
-        throw new Error(body.message ?? "Registration failed");
-      }
-
-      const data: { token: string; user: User } = await response.json();
-      setStorageItem(SESSION_TOKEN_KEY, data.token);
-      setCurrentUser(data.user);
+      // Fetch the full user profile from the server
+      const user = await verifySession(token);
+      setCurrentUser(user as User);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Registration failed";
       setError(message);
@@ -175,21 +151,14 @@ export function AuthProvider(props: { children: JSX.Element }): JSX.Element {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${getApiUrl()}/auth/session`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (!response.ok) {
-        removeStorageItem(SESSION_TOKEN_KEY);
-        removeStorageItem(USER_CACHE_KEY);
-        setCurrentUser(null);
-        return;
-      }
-
-      const data: { user: User } = await response.json();
-      setCurrentUser(data.user);
+      // Verify the stored token against the API
+      const user = await verifySession(token);
+      setCurrentUser(user as User);
     } catch {
-      // Network error -- keep cached user if available
+      // Token is invalid or expired -- clear local state
+      removeStorageItem(SESSION_TOKEN_KEY);
+      removeStorageItem(USER_CACHE_KEY);
+      setCurrentUser(null);
     } finally {
       setIsLoading(false);
     }
