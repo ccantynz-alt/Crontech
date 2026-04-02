@@ -7,6 +7,7 @@ import { appRouter } from "./trpc/router";
 import { createContext } from "./trpc/context";
 import { aiRoutes } from "./ai/routes";
 import { wsApp, websocket, sseApp } from "./realtime";
+import { inngestApp } from "./workflows/serve";
 
 const app = new Hono().basePath("/api");
 
@@ -32,6 +33,9 @@ app.use("/trpc/*", async (c) => {
   });
   return response;
 });
+
+// Inngest durable workflows — AI pipelines, video processing, site building
+app.route("/", inngestApp);
 
 // Real-Time: WebSocket upgrade at /api/ws
 app.route("/", wsApp);
