@@ -18,7 +18,7 @@
     "@simplewebauthn/server": "13.3.0",
     "@trpc/server": "^11.0.0",
     "ai": "^6.0.0",
-    "drizzle-orm": "^0.38",
+    "drizzle-orm": "^0.45",
     "hono": "^4.7.0",
     "zod": "^3.24.0"
   },
