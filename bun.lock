@@ -51,6 +51,7 @@
         "y-protocols": "^1",
         "y-websocket": "^2",
         "yjs": "^13",
+        "zod": "^3.24.0",
       },
       "devDependencies": {
         "@axe-core/playwright": "^4.10.0",
@@ -135,6 +136,9 @@
     },
     "services/sentinel": {
       "name": "@back-to-the-future/sentinel",
+      "dependencies": {
+        "zod": "^3.24.0",
+      },
       "devDependencies": {
         "typescript": "^5.8.0",
       },

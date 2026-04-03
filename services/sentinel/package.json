@@ -6,7 +6,9 @@
     "start": "bun run src/index.ts",
     "check": "tsc --noEmit"
   },
-  "dependencies": {},
+  "dependencies": {
+    "zod": "^3.24.0"
+  },
   "devDependencies": {
     "typescript": "^5.8.0"
   }

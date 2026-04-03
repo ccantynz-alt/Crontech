@@ -2,9 +2,18 @@ import { Hono } from "hono";
 import { streamSSE } from "hono/streaming";
 import { z } from "zod";
 import { roomManager } from "./rooms";
+import { SSE_KEEPALIVE_INTERVAL_MS, SSE_RETRY_MS } from "./types";
 
 /**
  * Server-Sent Events route for server-to-client streaming.
+ *
+ * Hardened with:
+ * - Connection pool limits enforced via RoomManager
+ * - Backpressure handling (slow clients are disconnected gracefully)
+ * - Retry header sent on initial connection so clients auto-reconnect
+ * - Event type routing with typed SSE event names
+ * - Keep-alive pings to prevent proxy/load-balancer timeouts
+ * - Proper cleanup on disconnect, error, and abort
  *
  * SSE is used as an alternative to WebSockets for:
  * - AI response streaming
@@ -26,18 +35,44 @@ sseApp.get("/realtime/events/:roomId", async (c) => {
 
   const roomId = roomIdResult.data;
 
+  // Accept an optional Last-Event-ID header for resumption.
+  // The in-memory implementation does not replay missed events.
+  // Production Durable Objects will use this to replay from the
+  // last acknowledged event ID.
+  // eslint-disable-next-line -- reserved for production replay logic
+  void c.req.header("Last-Event-ID");
+
   return streamSSE(
     c,
     async (stream) => {
-      // Create a TransformStream to bridge RoomManager push -> SSE stream
+      // Create a TransformStream to bridge RoomManager push -> SSE stream.
       const { readable, writable } = new TransformStream<string, string>();
       const writer = writable.getWriter();
       const controller = new AbortController();
 
-      // Register this SSE connection with the room manager
-      roomManager.addSSESubscriber(roomId, writer, controller);
+      // Register this SSE connection with the room manager (enforces pool limits).
+      const subscribeResult = roomManager.addSSESubscriber(
+        roomId,
+        writer,
+        controller,
+      );
 
-      // Send initial connection event
+      if (!subscribeResult.success) {
+        await stream.writeSSE({
+          event: "error",
+          data: JSON.stringify({
+            type: "error",
+            code: "rate_limited",
+            message:
+              subscribeResult.error ?? "SSE connection limit reached",
+          }),
+          id: String(Date.now()),
+        });
+        return;
+      }
+
+      // Send retry hint so the browser's EventSource will auto-reconnect
+      // at the desired interval if the connection drops.
       await stream.writeSSE({
         event: "update",
         data: JSON.stringify({
@@ -47,28 +82,37 @@ sseApp.get("/realtime/events/:roomId", async (c) => {
           timestamp: new Date().toISOString(),
         }),
         id: String(Date.now()),
+        retry: SSE_RETRY_MS,
       });
 
-      // Keep-alive: send a comment every 15 seconds to prevent proxy timeouts
+      // Keep-alive: send a ping event periodically to prevent proxy timeouts.
       const keepAliveInterval = setInterval(async () => {
         try {
           await stream.writeSSE({
-            event: "update",
-            data: JSON.stringify({ type: "keepalive" }),
+            event: "keepalive",
+            data: JSON.stringify({ type: "keepalive", timestamp: Date.now() }),
             id: String(Date.now()),
           });
         } catch {
           clearInterval(keepAliveInterval);
         }
-      }, 15_000);
+      }, SSE_KEEPALIVE_INTERVAL_MS);
 
-      // Read from the transform stream and forward to SSE
+      // Abort the reader when the controller fires (e.g. room cleanup).
+      controller.signal.addEventListener("abort", () => {
+        clearInterval(keepAliveInterval);
+        reader.cancel().catch(() => {
+          // Already cancelled
+        });
+      });
+
+      // Read from the transform stream and forward to SSE.
       const reader = readable.getReader();
       try {
-        while (true) {
+        while (!controller.signal.aborted) {
           const { done, value } = await reader.read();
           if (done) break;
-          // The value is already formatted as SSE by RoomManager
+          // The value is already formatted as SSE by RoomManager.pushToSSESubscribers
           await stream.write(value);
         }
       } catch {
@@ -85,16 +129,20 @@ sseApp.get("/realtime/events/:roomId", async (c) => {
       }
     },
     async (_error, stream) => {
-      // Error handler: notify client and close gracefully
-      await stream.writeSSE({
-        event: "notification",
-        data: JSON.stringify({
-          type: "error",
-          code: "internal_error",
-          message: "Stream encountered an error",
-        }),
-        id: String(Date.now()),
-      });
+      // Error handler: notify client and close gracefully.
+      try {
+        await stream.writeSSE({
+          event: "error",
+          data: JSON.stringify({
+            type: "error",
+            code: "internal_error",
+            message: "Stream encountered an error",
+          }),
+          id: String(Date.now()),
+        });
+      } catch {
+        // Stream already closed
+      }
     },
   );
 });
@@ -115,12 +163,13 @@ sseApp.get("/realtime/rooms/:roomId/users", (c) => {
 
 /**
  * GET /realtime/stats
- * Server stats: active rooms and connected users.
+ * Server stats: active rooms, connected users, SSE subscribers.
  */
 sseApp.get("/realtime/stats", (c) => {
   return c.json({
     rooms: roomManager.getRoomCount(),
     users: roomManager.getTotalUserCount(),
+    sseSubscribers: roomManager.getTotalSSESubscriberCount(),
     timestamp: new Date().toISOString(),
   });
 });

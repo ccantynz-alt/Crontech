@@ -32,7 +32,8 @@
     "vinxi": "^0.5.3",
     "y-protocols": "^1",
     "y-websocket": "^2",
-    "yjs": "^13"
+    "yjs": "^13",
+    "zod": "^3.24.0"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.10.0",

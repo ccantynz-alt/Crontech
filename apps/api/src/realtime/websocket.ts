@@ -1,7 +1,8 @@
 import { Hono } from "hono";
 import { createBunWebSocket } from "hono/bun";
 import type { ServerWebSocket } from "bun";
-import { ClientMessage } from "./types";
+import { ClientMessage, WS_MAX_MESSAGE_SIZE } from "./types";
+import type { ErrorCode } from "./types";
 import { roomManager } from "./rooms";
 
 const { upgradeWebSocket, websocket } = createBunWebSocket<ServerWebSocket>();
@@ -9,12 +10,17 @@ const { upgradeWebSocket, websocket } = createBunWebSocket<ServerWebSocket>();
 /**
  * WebSocket route handler for real-time bidirectional communication.
  *
- * Clients connect to /ws and exchange JSON messages validated by Zod schemas.
- * All room management, cursor sharing, and presence updates flow through here.
+ * Hardened with:
+ * - Zod validation on every incoming message
+ * - Per-connection sliding-window rate limiting
+ * - Message size enforcement
+ * - Ping/pong heartbeat with server-side timestamping
+ * - Graceful cleanup on disconnect and error
+ * - Typed error codes for every rejection reason
  */
 const wsApp = new Hono();
 
-/** Track which userId owns each WebSocket so we can clean up on close */
+/** Track which userId owns each WebSocket so we can clean up on close. */
 const wsUserMap = new WeakMap<WebSocket, string>();
 
 wsApp.get(
@@ -23,30 +29,39 @@ wsApp.get(
     return {
       onOpen(_event, ws) {
         // Connection opened. User must send join_room to participate.
-        // Send a pong immediately to confirm connection is alive.
+        // Send an initial pong to confirm the connection is alive.
         const raw = ws.raw as unknown as WebSocket;
-        try {
-          raw.send(JSON.stringify({ type: "pong" }));
-        } catch {
-          // Best effort
-        }
+        trySend(raw, { type: "pong", timestamp: Date.now() });
       },
 
       onMessage(event, ws) {
         const raw = ws.raw as unknown as WebSocket;
-        const data =
+
+        // ── Message size check ──────────────────────────────────
+        const rawData =
           typeof event.data === "string"
             ? event.data
             : new TextDecoder().decode(event.data as ArrayBuffer);
 
+        if (rawData.length > WS_MAX_MESSAGE_SIZE) {
+          sendError(
+            raw,
+            "message_too_large",
+            `Message exceeds maximum size of ${WS_MAX_MESSAGE_SIZE} bytes`,
+          );
+          return;
+        }
+
+        // ── JSON parse ──────────────────────────────────────────
         let parsed: unknown;
         try {
-          parsed = JSON.parse(data);
+          parsed = JSON.parse(rawData);
         } catch {
           sendError(raw, "invalid_message", "Malformed JSON");
           return;
         }
 
+        // ── Schema validation ───────────────────────────────────
         const result = ClientMessage.safeParse(parsed);
         if (!result.success) {
           sendError(
@@ -57,34 +72,41 @@ wsApp.get(
           return;
         }
 
+        // ── Rate limiting ───────────────────────────────────────
+        const userId = wsUserMap.get(raw);
+        const messageUserId = extractUserId(result.data);
+        const effectiveUserId = userId ?? messageUserId;
+
+        if (effectiveUserId && !roomManager.checkRateLimit(effectiveUserId)) {
+          sendError(
+            raw,
+            "rate_limited",
+            "Too many messages. Please slow down.",
+          );
+          return;
+        }
+
         handleClientMessage(raw, result.data);
       },
 
       onClose(_event, ws) {
         const raw = ws.raw as unknown as WebSocket;
-        const userId = wsUserMap.get(raw);
-        if (userId) {
-          roomManager.removeUserFromAllRooms(userId);
-          wsUserMap.delete(raw);
-        }
+        cleanupConnection(raw);
       },
 
       onError(_event, ws) {
         const raw = ws.raw as unknown as WebSocket;
-        const userId = wsUserMap.get(raw);
-        if (userId) {
-          roomManager.removeUserFromAllRooms(userId);
-          wsUserMap.delete(raw);
-        }
+        cleanupConnection(raw);
       },
     };
   }),
 );
 
+// ── Message Handling ──────────────────────────────────────────────────
+
 function handleClientMessage(ws: WebSocket, message: ClientMessage): void {
   switch (message.type) {
     case "join_room": {
-      // Track this WS -> userId mapping
       wsUserMap.set(ws, message.userId);
 
       const result = roomManager.joinRoom(
@@ -95,19 +117,23 @@ function handleClientMessage(ws: WebSocket, message: ClientMessage): void {
       );
 
       if (!result.success) {
-        sendError(ws, "room_not_found", result.error ?? "Failed to join room");
+        const code: ErrorCode =
+          result.error?.includes("full") === true
+            ? "room_full"
+            : result.error?.includes("more than") === true
+              ? "too_many_rooms"
+              : "room_not_found";
+        sendError(ws, code, result.error ?? "Failed to join room");
       }
       break;
     }
 
     case "leave_room": {
       roomManager.leaveRoom(message.roomId, message.userId);
-      ws.send(
-        JSON.stringify({
-          type: "room_left",
-          roomId: message.roomId,
-        }),
-      );
+      trySend(ws, {
+        type: "room_left",
+        roomId: message.roomId,
+      });
       break;
     }
 
@@ -152,32 +178,47 @@ function handleClientMessage(ws: WebSocket, message: ClientMessage): void {
       if (userId) {
         roomManager.recordPing(userId);
       }
-      try {
-        ws.send(JSON.stringify({ type: "pong" }));
-      } catch {
-        // Connection already closed
-      }
+      trySend(ws, { type: "pong", timestamp: Date.now() });
       break;
     }
   }
 }
 
-function sendError(
-  ws: WebSocket,
-  code: "invalid_message" | "room_not_found" | "unauthorized" | "rate_limited" | "internal_error",
-  message: string,
-): void {
+// ── Helpers ──────────────────────────────────────────────────────────
+
+function cleanupConnection(ws: WebSocket): void {
+  const userId = wsUserMap.get(ws);
+  if (userId) {
+    roomManager.removeUserFromAllRooms(userId);
+    wsUserMap.delete(ws);
+  }
+}
+
+function extractUserId(message: ClientMessage): string | undefined {
+  if ("userId" in message) {
+    return message.userId;
+  }
+  return undefined;
+}
+
+/**
+ * Attempt to send a JSON payload to a WebSocket.
+ * Silently catches errors from closed connections.
+ */
+function trySend(ws: WebSocket, data: Record<string, unknown>): void {
   try {
-    ws.send(
-      JSON.stringify({
-        type: "error",
-        code,
-        message,
-      }),
-    );
+    ws.send(JSON.stringify(data));
   } catch {
     // Connection already closed
   }
+}
+
+function sendError(ws: WebSocket, code: ErrorCode, message: string): void {
+  trySend(ws, {
+    type: "error",
+    code,
+    message,
+  });
 }
 
 export { wsApp, websocket };

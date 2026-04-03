@@ -1,4 +1,14 @@
-import type { RoomUser, ServerMessage } from "./types";
+import type { RoomUser, ServerMessage, SSESubscriber, RateLimitBucket } from "./types";
+import {
+  WS_MAX_USERS_PER_ROOM,
+  WS_MAX_ROOMS_PER_CONNECTION,
+  SSE_MAX_SUBSCRIBERS_PER_ROOM,
+  SSE_MAX_TOTAL_SUBSCRIBERS,
+  HEARTBEAT_TIMEOUT_MS,
+  HEARTBEAT_CHECK_INTERVAL_MS,
+  WS_RATE_LIMIT_MAX,
+  WS_RATE_LIMIT_WINDOW_MS,
+} from "./types";
 
 /**
  * In-memory room manager for real-time collaboration.
@@ -6,36 +16,78 @@ import type { RoomUser, ServerMessage } from "./types";
  * This is an in-process implementation suitable for single-server deployments
  * and development. Production deployments will replace this with Cloudflare
  * Durable Objects for globally distributed, persistent room state.
+ *
+ * Hardened with:
+ * - Per-connection rate limiting (sliding window)
+ * - Room capacity enforcement
+ * - Per-connection room count limits
+ * - SSE connection pool limits with backpressure
+ * - Dead connection sweeping via heartbeat
  */
 export class RoomManager {
   /** roomId -> Map<userId, RoomUser> */
   private rooms: Map<string, Map<string, RoomUser>> = new Map();
 
-  /** SSE subscribers: roomId -> Set<WritableStreamDefaultWriter> */
-  private sseSubscribers: Map<
-    string,
-    Set<{ writer: WritableStreamDefaultWriter<string>; controller: AbortController }>
-  > = new Map();
+  /** SSE subscribers: roomId -> Set<SSESubscriber> */
+  private sseSubscribers: Map<string, Set<SSESubscriber>> = new Map();
 
-  /** Maximum users per room */
-  private static readonly MAX_USERS_PER_ROOM = 100;
+  /** Per-connection rate limit buckets keyed by userId. */
+  private rateLimitBuckets: Map<string, RateLimitBucket> = new Map();
 
-  /** Heartbeat timeout in milliseconds (30 seconds) */
-  private static readonly HEARTBEAT_TIMEOUT_MS = 30_000;
+  /** Total active SSE subscribers across all rooms. */
+  private totalSSESubscribers = 0;
 
-  /** Heartbeat check interval */
+  /** Heartbeat check interval handle. */
   private heartbeatInterval: ReturnType<typeof setInterval> | null = null;
 
   constructor() {
     this.startHeartbeatCheck();
   }
 
+  // ── Rate Limiting ─────────────────────────────────────────────────
+
+  /**
+   * Check whether a user is within their rate limit.
+   * Returns `true` if the message is allowed, `false` if rate-limited.
+   */
+  checkRateLimit(userId: string): boolean {
+    const now = Date.now();
+    let bucket = this.rateLimitBuckets.get(userId);
+
+    if (!bucket) {
+      bucket = { timestamps: [] };
+      this.rateLimitBuckets.set(userId, bucket);
+    }
+
+    // Evict timestamps outside the sliding window
+    const windowStart = now - WS_RATE_LIMIT_WINDOW_MS;
+    bucket.timestamps = bucket.timestamps.filter((t) => t > windowStart);
+
+    if (bucket.timestamps.length >= WS_RATE_LIMIT_MAX) {
+      return false;
+    }
+
+    bucket.timestamps.push(now);
+    return true;
+  }
+
+  // ── Room Join / Leave ─────────────────────────────────────────────
+
   joinRoom(
     roomId: string,
     userId: string,
     ws: WebSocket,
     metadata?: RoomUser["metadata"],
-  ): { success: boolean; error?: string } {
+  ): { success: boolean; error?: string | undefined } {
+    // Enforce per-connection room limit
+    const currentRoomCount = this.getUserRoomCount(userId);
+    if (currentRoomCount >= WS_MAX_ROOMS_PER_CONNECTION) {
+      return {
+        success: false,
+        error: `Cannot join more than ${WS_MAX_ROOMS_PER_CONNECTION} rooms simultaneously`,
+      };
+    }
+
     let room = this.rooms.get(roomId);
 
     if (!room) {
@@ -43,12 +95,13 @@ export class RoomManager {
       this.rooms.set(roomId, room);
     }
 
-    if (room.size >= RoomManager.MAX_USERS_PER_ROOM) {
+    // Allow rejoining the same room (replaces connection)
+    const existing = room.get(userId);
+    if (!existing && room.size >= WS_MAX_USERS_PER_ROOM) {
       return { success: false, error: "Room is full" };
     }
 
     // If user already in room with a different WS, close the old one
-    const existing = room.get(userId);
     if (existing) {
       try {
         existing.ws.close(1000, "Replaced by new connection");
@@ -64,6 +117,7 @@ export class RoomManager {
       presence: { status: "active" },
       cursor: undefined,
       lastPing: Date.now(),
+      roomCount: currentRoomCount + (existing ? 0 : 1),
     };
 
     room.set(userId, user);
@@ -100,7 +154,13 @@ export class RoomManager {
     const room = this.rooms.get(roomId);
     if (!room) return;
 
+    const user = room.get(userId);
     room.delete(userId);
+
+    // Decrement room count across all remaining entries for this user
+    if (user) {
+      this.decrementUserRoomCount(userId);
+    }
 
     // Notify remaining users
     this.broadcast(roomId, {
@@ -126,7 +186,11 @@ export class RoomManager {
         this.leaveRoom(roomId, userId);
       }
     }
+    // Clean up rate limit bucket
+    this.rateLimitBuckets.delete(userId);
   }
+
+  // ── Broadcasting ──────────────────────────────────────────────────
 
   broadcast(
     roomId: string,
@@ -153,6 +217,8 @@ export class RoomManager {
     this.pushToSSESubscribers(roomId, message);
   }
 
+  // ── Queries ───────────────────────────────────────────────────────
+
   getRoomUsers(
     roomId: string,
   ): Array<{
@@ -171,6 +237,8 @@ export class RoomManager {
       cursor: u.cursor,
     }));
   }
+
+  // ── Presence & Cursors ────────────────────────────────────────────
 
   updatePresence(
     roomId: string,
@@ -256,19 +324,44 @@ export class RoomManager {
     }
   }
 
-  // ── SSE Subscriber Management ─────────────────────────────────
+  // ── SSE Subscriber Management ─────────────────────────────────────
 
   addSSESubscriber(
     roomId: string,
     writer: WritableStreamDefaultWriter<string>,
     controller: AbortController,
-  ): void {
+  ): { success: boolean; error?: string | undefined } {
+    // Enforce global SSE pool limit
+    if (this.totalSSESubscribers >= SSE_MAX_TOTAL_SUBSCRIBERS) {
+      return {
+        success: false,
+        error: "Server SSE connection pool exhausted",
+      };
+    }
+
     let subscribers = this.sseSubscribers.get(roomId);
     if (!subscribers) {
       subscribers = new Set();
       this.sseSubscribers.set(roomId, subscribers);
     }
-    subscribers.add({ writer, controller });
+
+    // Enforce per-room SSE limit
+    if (subscribers.size >= SSE_MAX_SUBSCRIBERS_PER_ROOM) {
+      return {
+        success: false,
+        error: "Room SSE subscriber limit reached",
+      };
+    }
+
+    const sub: SSESubscriber = {
+      writer,
+      controller,
+      connectedAt: Date.now(),
+    };
+    subscribers.add(sub);
+    this.totalSSESubscribers++;
+
+    return { success: true };
   }
 
   removeSSESubscriber(
@@ -281,6 +374,7 @@ export class RoomManager {
     for (const sub of subscribers) {
       if (sub.writer === writer) {
         subscribers.delete(sub);
+        this.totalSSESubscribers = Math.max(0, this.totalSSESubscribers - 1);
         break;
       }
     }
@@ -290,6 +384,11 @@ export class RoomManager {
     }
   }
 
+  /**
+   * Push a server message to all SSE subscribers of a room.
+   * Handles backpressure by dropping messages to slow subscribers
+   * rather than blocking the entire broadcast.
+   */
   private pushToSSESubscribers(roomId: string, message: ServerMessage): void {
     const subscribers = this.sseSubscribers.get(roomId);
     if (!subscribers || subscribers.size === 0) return;
@@ -297,27 +396,36 @@ export class RoomManager {
     const eventType = this.serverMessageToSSEEvent(message.type);
     const ssePayload = `event: ${eventType}\ndata: ${JSON.stringify(message)}\nid: ${Date.now()}\n\n`;
 
-    const deadSubscribers: Array<{
-      writer: WritableStreamDefaultWriter<string>;
-      controller: AbortController;
-    }> = [];
+    const deadSubscribers: SSESubscriber[] = [];
 
     for (const sub of subscribers) {
       try {
-        void sub.writer.write(ssePayload);
+        // Use write() but do not await -- fire-and-forget for backpressure.
+        // If the writer's internal buffer is full, the promise rejects
+        // and we mark the subscriber as dead.
+        void sub.writer.write(ssePayload).catch(() => {
+          deadSubscribers.push(sub);
+        });
       } catch {
         deadSubscribers.push(sub);
       }
     }
 
-    for (const dead of deadSubscribers) {
-      subscribers.delete(dead);
+    // Cleanup dead subscribers asynchronously
+    if (deadSubscribers.length > 0) {
+      for (const dead of deadSubscribers) {
+        subscribers.delete(dead);
+        this.totalSSESubscribers = Math.max(0, this.totalSSESubscribers - 1);
+        try {
+          dead.controller.abort();
+        } catch {
+          // Already aborted
+        }
+      }
     }
   }
 
-  private serverMessageToSSEEvent(
-    type: ServerMessage["type"],
-  ): string {
+  private serverMessageToSSEEvent(type: ServerMessage["type"]): string {
     switch (type) {
       case "cursor_update":
         return "cursor";
@@ -342,6 +450,7 @@ export class RoomManager {
     if (!subscribers) return;
 
     for (const sub of subscribers) {
+      this.totalSSESubscribers = Math.max(0, this.totalSSESubscribers - 1);
       try {
         sub.controller.abort();
         void sub.writer.close();
@@ -352,7 +461,7 @@ export class RoomManager {
     this.sseSubscribers.delete(roomId);
   }
 
-  // ── Heartbeat / Dead Connection Cleanup ───────────────────────
+  // ── Heartbeat / Dead Connection Cleanup ───────────────────────────
 
   private startHeartbeatCheck(): void {
     this.heartbeatInterval = setInterval(() => {
@@ -362,7 +471,7 @@ export class RoomManager {
       for (const [roomId, room] of this.rooms) {
         for (const [userId, user] of room) {
           const elapsed = now - user.lastPing;
-          if (elapsed > RoomManager.HEARTBEAT_TIMEOUT_MS) {
+          if (elapsed > HEARTBEAT_TIMEOUT_MS) {
             deadUsers.push({ roomId, userId });
           }
         }
@@ -380,7 +489,16 @@ export class RoomManager {
         }
         this.leaveRoom(roomId, userId);
       }
-    }, 10_000);
+
+      // Periodically prune stale rate limit buckets
+      const windowStart = now - WS_RATE_LIMIT_WINDOW_MS;
+      for (const [userId, bucket] of this.rateLimitBuckets) {
+        bucket.timestamps = bucket.timestamps.filter((t) => t > windowStart);
+        if (bucket.timestamps.length === 0) {
+          this.rateLimitBuckets.delete(userId);
+        }
+      }
+    }, HEARTBEAT_CHECK_INTERVAL_MS);
   }
 
   /**
@@ -407,9 +525,11 @@ export class RoomManager {
       this.cleanupSSESubscribers(roomId);
     }
     this.sseSubscribers.clear();
+    this.rateLimitBuckets.clear();
+    this.totalSSESubscribers = 0;
   }
 
-  // ── Stats ─────────────────────────────────────────────────────
+  // ── Stats ─────────────────────────────────────────────────────────
 
   getRoomCount(): number {
     return this.rooms.size;
@@ -422,7 +542,32 @@ export class RoomManager {
     }
     return count;
   }
+
+  getTotalSSESubscriberCount(): number {
+    return this.totalSSESubscribers;
+  }
+
+  // ── Helpers ───────────────────────────────────────────────────────
+
+  private getUserRoomCount(userId: string): number {
+    let count = 0;
+    for (const room of this.rooms.values()) {
+      if (room.has(userId)) {
+        count++;
+      }
+    }
+    return count;
+  }
+
+  private decrementUserRoomCount(userId: string): void {
+    for (const room of this.rooms.values()) {
+      const user = room.get(userId);
+      if (user && user.roomCount > 0) {
+        user.roomCount--;
+      }
+    }
+  }
 }
 
-/** Singleton room manager instance */
+/** Singleton room manager instance. */
 export const roomManager = new RoomManager();
