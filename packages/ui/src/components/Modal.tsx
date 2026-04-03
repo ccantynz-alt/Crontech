@@ -12,7 +12,7 @@ export interface ModalProps {
 }
 
 export function Modal(props: ModalProps): JSX.Element {
-  const [local, rest] = splitProps(props, [
+  const [local] = splitProps(props, [
     "open",
     "title",
     "description",
@@ -24,11 +24,10 @@ export function Modal(props: ModalProps): JSX.Element {
 
   return (
     <Dialog
-      open={local.open}
-      onOpenChange={(isOpen) => {
+      open={local.open === true}
+      onOpenChange={(isOpen: boolean) => {
         if (!isOpen) local.onClose?.();
       }}
-      {...rest}
     >
       <Dialog.Portal>
         <Dialog.Overlay

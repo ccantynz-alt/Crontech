@@ -1,4 +1,5 @@
-import { type JSX, Show, splitProps, createSignal } from "solid-js";
+import { type JSX, splitProps } from "solid-js";
+import { Tooltip as KobalteTooltip } from "@kobalte/core/tooltip";
 
 export interface TooltipProps {
   content: string;
@@ -15,26 +16,21 @@ export function Tooltip(props: TooltipProps): JSX.Element {
     "children",
   ]);
 
-  const [visible, setVisible] = createSignal(false);
-
   return (
-    <div
-      class={`tooltip-wrapper ${local.class ?? ""}`}
-      onMouseEnter={() => setVisible(true)}
-      onMouseLeave={() => setVisible(false)}
-      onFocusIn={() => setVisible(true)}
-      onFocusOut={() => setVisible(false)}
-      {...rest}
-    >
-      {local.children}
-      <Show when={visible()}>
-        <div
+    <KobalteTooltip placement={local.position ?? "top"} {...rest}>
+      <KobalteTooltip.Trigger
+        class={`tooltip-wrapper ${local.class ?? ""}`}
+        as="span"
+      >
+        {local.children}
+      </KobalteTooltip.Trigger>
+      <KobalteTooltip.Portal>
+        <KobalteTooltip.Content
           class={`tooltip tooltip-${local.position ?? "top"}`}
-          role="tooltip"
         >
           {local.content}
-        </div>
-      </Show>
-    </div>
+        </KobalteTooltip.Content>
+      </KobalteTooltip.Portal>
+    </KobalteTooltip>
   );
 }

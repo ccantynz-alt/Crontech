@@ -16,7 +16,7 @@ export interface TabsProps {
 }
 
 export function Tabs(props: TabsProps): JSX.Element {
-  const [local, rest] = splitProps(props, [
+  const [local] = splitProps(props, [
     "items",
     "defaultTab",
     "class",
@@ -28,14 +28,13 @@ export function Tabs(props: TabsProps): JSX.Element {
       defaultValue={local.defaultTab ?? local.items[0]?.id ?? ""}
       onChange={(value) => local.onChange?.(value)}
       class={`tabs ${local.class ?? ""}`}
-      {...rest}
     >
       <KobalteTabs.List class="tabs-list">
         <For each={local.items}>
           {(tab) => (
             <KobalteTabs.Trigger
               value={tab.id}
-              disabled={tab.disabled}
+              disabled={tab.disabled === true}
               class="tab-trigger"
             >
               {tab.label}

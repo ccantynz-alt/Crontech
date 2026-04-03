@@ -7,7 +7,8 @@
     "./typescript": "./tsconfig.base.json",
     "./biome": "./biome.json",
     "./otel": "./src/otel.ts",
-    "./feature-flags": "./src/feature-flags.ts"
+    "./feature-flags": "./src/feature-flags.ts",
+    "./a11y": "./src/a11y.ts"
   },
   "devDependencies": {
     "@opentelemetry/api": "^1.9.0",

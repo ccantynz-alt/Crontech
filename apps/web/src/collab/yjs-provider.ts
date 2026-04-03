@@ -4,13 +4,7 @@
 
 import * as Y from "yjs";
 import { WebsocketProvider } from "y-websocket";
-// Awareness type is re-exported by WebsocketProvider; use inline
-// interface to avoid needing @types/y-protocols.
-interface Awareness {
-  getStates(): Map<number, Record<string, unknown>>;
-  on(event: string, callback: (...args: unknown[]) => void): void;
-  off(event: string, callback: (...args: unknown[]) => void): void;
-}
+import type { Awareness } from "y-protocols/awareness";
 
 export interface CollabSession {
   doc: Y.Doc;

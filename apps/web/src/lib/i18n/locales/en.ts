@@ -65,5 +65,6 @@ export const en = {
   "builder.components": "Components",
 } as const;
 
-export type Dictionary = typeof en;
-export type DictionaryKey = keyof Dictionary;
+/** Dictionary type: same keys as English, but values are any string */
+export type DictionaryKey = keyof typeof en;
+export type Dictionary = Record<DictionaryKey, string>;

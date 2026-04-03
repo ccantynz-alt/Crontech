@@ -3,6 +3,7 @@ import { initTelemetry } from "@back-to-the-future/config/otel";
 initTelemetry("back-to-the-future-api");
 
 import { Hono } from "hono";
+import { swaggerUI } from "@hono/swagger-ui";
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 import { appRouter } from "./trpc/router";
 import { createContext } from "./trpc/context";
@@ -10,6 +11,7 @@ import { aiRoutes } from "./ai/routes";
 import { wsApp, websocket, sseApp } from "./realtime";
 import { rateLimiter } from "./middleware/rate-limit";
 import { telemetryMiddleware } from "./middleware/telemetry";
+import { openApiDocument } from "./docs/openapi";
 
 const app = new Hono().basePath("/api");
 
@@ -21,6 +23,18 @@ app.use("*", rateLimiter({ limit: 100, windowMs: 60_000 }));
 
 // Stricter rate limit on auth endpoints: 10 requests per minute per IP
 app.use("/auth/*", rateLimiter({ limit: 10, windowMs: 60_000 }));
+
+// ── API Documentation ────────────────────────────────────────────
+app.get("/openapi.json", (c) => {
+  return c.json(openApiDocument);
+});
+
+app.get(
+  "/docs",
+  swaggerUI({
+    url: "/api/openapi.json",
+  }),
+);
 
 app.get("/health", (c) => {
   return c.json({
