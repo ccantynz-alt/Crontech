@@ -1,0 +1,8 @@
+{
+  "name": "@back-to-the-future/gpu-workers",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "tsc --noEmit"
+  }
+}

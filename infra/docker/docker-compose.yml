@@ -1,0 +1,85 @@
+version: "3.8"
+
+networks:
+  observability:
+    driver: bridge
+
+volumes:
+  grafana-data:
+  loki-data:
+  tempo-data:
+  mimir-data:
+
+services:
+  grafana:
+    image: grafana/grafana:latest
+    container_name: btf-grafana
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+    networks:
+      - observability
+    depends_on:
+      - loki
+      - tempo
+      - mimir
+
+  loki:
+    image: grafana/loki:latest
+    container_name: btf-loki
+    ports:
+      - "3100:3100"
+    volumes:
+      - loki-data:/loki
+      - ./loki/config.yml:/etc/loki/local-config.yaml
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - observability
+
+  tempo:
+    image: grafana/tempo:latest
+    container_name: btf-tempo
+    ports:
+      - "4317:4317"
+      - "4318:4318"
+    volumes:
+      - tempo-data:/tmp/tempo
+      - ./tempo/config.yml:/etc/tempo/config.yaml
+    command: -config.file=/etc/tempo/config.yaml
+    networks:
+      - observability
+
+  mimir:
+    image: grafana/mimir:latest
+    container_name: btf-mimir
+    ports:
+      - "9009:9009"
+    volumes:
+      - mimir-data:/data/mimir
+      - ./mimir/config.yml:/etc/mimir/config.yaml
+    command: -config.file=/etc/mimir/config.yaml -target=all
+    networks:
+      - observability
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    container_name: btf-otel-collector
+    ports:
+      - "4320:4317"
+      - "4321:4318"
+    volumes:
+      - ./otel-collector/config.yml:/etc/otelcol-contrib/config.yaml
+    command: --config=/etc/otelcol-contrib/config.yaml
+    networks:
+      - observability
+    depends_on:
+      - loki
+      - tempo
+      - mimir

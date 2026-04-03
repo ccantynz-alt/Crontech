@@ -209,6 +209,58 @@ export const SeparatorSchema = z.object({
   }),
 });
 
+// ── Legal-Specific Component Schemas ─────────────────────────────
+
+export const TimelineEventTypeEnum = z.enum([
+  "event",
+  "filing",
+  "hearing",
+  "deadline",
+]);
+
+export const TimelineEventSchema = z.object({
+  id: z.string(),
+  date: z.string(),
+  title: z.string(),
+  description: z.string().optional(),
+  type: TimelineEventTypeEnum.default("event"),
+});
+
+export const TimelineSchema = z.object({
+  component: z.literal("Timeline"),
+  props: z.object({
+    events: z.array(TimelineEventSchema).min(1),
+  }),
+});
+
+export const ExhibitTypeEnum = z.enum(["pdf", "image", "video", "audio"]);
+
+export const ExhibitViewerSchema = z.object({
+  component: z.literal("ExhibitViewer"),
+  props: z.object({
+    src: z.string(),
+    type: ExhibitTypeEnum,
+    title: z.string().optional(),
+    exhibitNumber: z.string().optional(),
+  }),
+});
+
+export const CustodyEntrySchema = z.object({
+  id: z.string(),
+  timestamp: z.string(),
+  action: z.string(),
+  actor: z.string(),
+  signature: z.string().optional(),
+  hash: z.string().optional(),
+});
+
+export const ChainOfCustodySchema = z.object({
+  component: z.literal("ChainOfCustody"),
+  props: z.object({
+    entries: z.array(CustodyEntrySchema).min(1),
+  }),
+});
+
 // ── Component Registry (Union of all components) ───────────────────
 // This is the master schema. AI agents use this to validate any component tree.
 
@@ -228,6 +280,9 @@ export const ComponentSchema: z.ZodType = z.discriminatedUnion("component", [
   SpinnerSchema,
   TooltipSchema,
   SeparatorSchema,
+  TimelineSchema,
+  ExhibitViewerSchema,
+  ChainOfCustodySchema,
 ]);
 
 export type Button = z.infer<typeof ButtonSchema>;
@@ -245,6 +300,11 @@ export type Textarea = z.infer<typeof TextareaSchema>;
 export type Spinner = z.infer<typeof SpinnerSchema>;
 export type Tooltip = z.infer<typeof TooltipSchema>;
 export type Separator = z.infer<typeof SeparatorSchema>;
+export type Timeline = z.infer<typeof TimelineSchema>;
+export type TimelineEvent = z.infer<typeof TimelineEventSchema>;
+export type ExhibitViewer = z.infer<typeof ExhibitViewerSchema>;
+export type ChainOfCustody = z.infer<typeof ChainOfCustodySchema>;
+export type CustodyEntry = z.infer<typeof CustodyEntrySchema>;
 export type Component = z.infer<typeof ComponentSchema>;
 
 // ── Component Catalog (for AI agent discovery) ─────────────────────
@@ -265,6 +325,9 @@ export const ComponentCatalog = {
   Spinner: SpinnerSchema,
   Tooltip: TooltipSchema,
   Separator: SeparatorSchema,
+  Timeline: TimelineSchema,
+  ExhibitViewer: ExhibitViewerSchema,
+  ChainOfCustody: ChainOfCustodySchema,
 } as const;
 
 export type ComponentName = keyof typeof ComponentCatalog;

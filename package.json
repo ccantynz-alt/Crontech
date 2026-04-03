@@ -23,5 +23,8 @@
     "lefthook": "^1.11.0",
     "turbo": "^2"
   },
-  "packageManager": "bun@1.3.9"
+  "packageManager": "bun@1.3.9",
+  "overrides": {
+    "@types/babel__standalone": "npm:@types/babel__core@^7"
+  }
 }

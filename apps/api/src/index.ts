@@ -15,6 +15,7 @@ import { privacyHeaders } from "./middleware/privacy";
 import { createGDPRHandler } from "./privacy/gdpr";
 import { openApiDocument } from "./docs/openapi";
 import { getSSOConfig, createSSOHandler } from "./auth/sso";
+import { videoRoutes } from "./video/routes";
 
 const app = new Hono().basePath("/api");
 
@@ -51,6 +52,9 @@ app.get("/health", (c) => {
 
 // Mount AI routes (raw Hono -- streaming works better outside tRPC)
 app.route("/ai", aiRoutes);
+
+// Mount video processing routes
+app.route("/video", videoRoutes);
 
 // Mount GDPR privacy routes
 app.route("/privacy", createGDPRHandler());

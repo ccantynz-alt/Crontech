@@ -103,6 +103,7 @@ function Sidebar(props: SidebarProps): JSX.Element {
         <nav class="sidebar-nav">
           <NavLink href="/dashboard" label="Dashboard" />
           <NavLink href="/builder" label="AI Builder" />
+          <NavLink href="/video" label="Video" />
           <NavLink href="/about" label="About" />
         </nav>
       </Show>
@@ -132,6 +133,7 @@ export function Layout(props: LayoutProps): JSX.Element {
             <Show when={auth.isAuthenticated()}>
               <NavLink href="/dashboard" label="Dashboard" />
               <NavLink href="/builder" label="Builder" />
+              <NavLink href="/video" label="Video" />
             </Show>
             <NavLink href="/about" label="About" />
           </nav>

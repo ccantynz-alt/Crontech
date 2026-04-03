@@ -294,6 +294,29 @@ function getComponentDefaults(
           orientation: "horizontal",
         },
       };
+    case "Timeline":
+      return {
+        component: "Timeline",
+        props: {
+          events: [{ id: "1", date: new Date().toISOString().split("T")[0] ?? "", title: description || "Event" }],
+        },
+      };
+    case "ExhibitViewer":
+      return {
+        component: "ExhibitViewer",
+        props: {
+          src: "",
+          type: "image",
+          title: description || "Exhibit",
+        },
+      };
+    case "ChainOfCustody":
+      return {
+        component: "ChainOfCustody",
+        props: {
+          entries: [{ id: "1", timestamp: new Date().toISOString(), action: description || "Received", actor: "System" }],
+        },
+      };
     default: {
       const _exhaustive: never = componentName;
       throw new Error(`Unknown component: ${String(_exhaustive)}`);

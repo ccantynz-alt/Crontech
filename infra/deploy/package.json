@@ -1,0 +1,16 @@
+{
+  "name": "@back-to-the-future/deploy",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "./src/canary.ts",
+  "exports": {
+    ".": "./src/canary.ts"
+  },
+  "scripts": {
+    "check": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5"
+  }
+}
