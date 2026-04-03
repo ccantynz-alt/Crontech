@@ -1,7 +1,7 @@
 import { Title } from "@solidjs/meta";
 import { For } from "solid-js";
 import { A } from "@solidjs/router";
-import { Button, Card, Stack, Text } from "@back-to-the-future/ui";
+import { Button, Card, Stack, Text } from "@cronix/ui";
 
 // ── Feature Card ──────────────────────────────────────────────────────
 
@@ -59,11 +59,11 @@ export default function AboutPage(): ReturnType<typeof Stack> {
 
   return (
     <Stack direction="vertical" gap="xl" class="page-padded">
-      <Title>About - Back to the Future</Title>
+      <Title>About - Cronix</Title>
 
       <Stack direction="vertical" gap="md" align="center" class="about-hero">
         <Text variant="h1" weight="bold" align="center">
-          Back to the Future
+          Cronix
         </Text>
         <Text variant="body" align="center" class="about-subtitle text-muted">
           The most advanced full-stack platform purpose-built for AI website builders and AI video builders.

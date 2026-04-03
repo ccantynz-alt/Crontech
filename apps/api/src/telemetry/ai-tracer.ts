@@ -5,7 +5,7 @@
 
 import { trace, SpanKind, SpanStatusCode } from "@opentelemetry/api";
 
-const tracer = trace.getTracer("back-to-the-future-ai", "0.0.1");
+const tracer = trace.getTracer("cronix-ai", "0.0.1");
 
 /** Attributes that can be recorded on an AI span. */
 export interface AISpanAttributes {

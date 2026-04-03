@@ -1,7 +1,7 @@
 import { Title } from "@solidjs/meta";
 import { A } from "@solidjs/router";
 import { createResource, For, Show, Suspense } from "solid-js";
-import { Button, Card, Stack, Text } from "@back-to-the-future/ui";
+import { Button, Card, Stack, Text } from "@cronix/ui";
 import { ProtectedRoute } from "../components/ProtectedRoute";
 import { useAuth } from "../stores";
 import { trpc } from "../lib/trpc";
@@ -96,7 +96,7 @@ export default function DashboardPage(): ReturnType<typeof ProtectedRoute> {
 
   return (
     <ProtectedRoute>
-      <Title>Dashboard - Back to the Future</Title>
+      <Title>Dashboard - Cronix</Title>
       <Stack direction="vertical" gap="lg" class="page-padded">
         <Stack direction="vertical" gap="xs">
           <Text variant="h1" weight="bold">

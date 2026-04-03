@@ -1,7 +1,7 @@
 import { initTRPC, TRPCError } from "@trpc/server";
 import type { TRPCContext } from "./context";
 
-import type * as _schema from "@back-to-the-future/db";
+import type * as _schema from "@cronix/db";
 
 export type { TRPCContext };
 

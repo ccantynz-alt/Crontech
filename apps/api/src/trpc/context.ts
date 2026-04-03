@@ -1,6 +1,6 @@
 import type { Context } from "hono";
-import { db } from "@back-to-the-future/db";
-import type { createClient } from "@back-to-the-future/db";
+import { db } from "@cronix/db";
+import type { createClient } from "@cronix/db";
 import { getUserIdFromHeader } from "../auth/middleware";
 
 type Database = typeof db;

@@ -138,7 +138,7 @@ export const siteBuildWorkflow = inngest.createFunction(
     // Step 4: Validate output against Zod schemas
     const validation = await step.run("validate-output", async () => {
       // TODO: Import and validate against actual component Zod schemas
-      // from @back-to-the-future/schemas
+      // from @cronix/schemas
       const errors: Array<{
         page: string;
         component: string;

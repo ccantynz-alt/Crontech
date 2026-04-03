@@ -1,6 +1,6 @@
 import { eq, and, gt } from "drizzle-orm";
-import { sessions } from "@back-to-the-future/db";
-import type { createClient } from "@back-to-the-future/db";
+import { sessions } from "@cronix/db";
+import type { createClient } from "@cronix/db";
 
 type Database = ReturnType<typeof createClient>;
 

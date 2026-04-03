@@ -1,7 +1,7 @@
 import type { JSX } from "solid-js";
 import { Show, createSignal } from "solid-js";
 import { useLocation } from "@solidjs/router";
-import { Button, Text } from "@back-to-the-future/ui";
+import { Button, Text } from "@cronix/ui";
 import { useAuth, useTheme } from "../stores";
 import { TransitionLink } from "./TransitionLink";
 

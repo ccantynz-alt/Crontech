@@ -11,7 +11,7 @@ import {
 } from "@opentelemetry/semantic-conventions";
 import type { MiddlewareHandler } from "hono";
 
-const tracer = trace.getTracer("back-to-the-future-api", "0.0.1");
+const tracer = trace.getTracer("cronix-api", "0.0.1");
 
 /**
  * Hono middleware that wraps every request in an OpenTelemetry span.

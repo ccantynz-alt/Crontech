@@ -1,6 +1,6 @@
 import { Title } from "@solidjs/meta";
 import { For, Show, createEffect, createSignal } from "solid-js";
-import { Button, Card, Input, Stack, Text } from "@back-to-the-future/ui";
+import { Button, Card, Input, Stack, Text } from "@cronix/ui";
 import { ProtectedRoute } from "../components/ProtectedRoute";
 import { useChat, type ChatMessage } from "../stores/chat";
 
@@ -125,7 +125,7 @@ export default function BuilderPage(): ReturnType<typeof ProtectedRoute> {
 
   return (
     <ProtectedRoute>
-      <Title>AI Builder - Back to the Future</Title>
+      <Title>AI Builder - Cronix</Title>
       <div class="builder-layout">
         <div class="builder-chat">
           <Stack direction="vertical" gap="none" class="builder-chat-inner">

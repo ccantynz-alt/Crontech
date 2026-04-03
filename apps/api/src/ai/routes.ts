@@ -11,8 +11,8 @@ import {
   readProviderEnv,
   streamSiteBuilder,
   type ComputeTier,
-} from "@back-to-the-future/ai-core";
-import { ComponentSchema } from "@back-to-the-future/schemas";
+} from "@cronix/ai-core";
+import { ComponentSchema } from "@cronix/schemas";
 import { traceAICall } from "../telemetry";
 import { ragRoutes } from "./rag-routes";
 

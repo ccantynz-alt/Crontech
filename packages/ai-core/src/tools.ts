@@ -8,7 +8,7 @@ import {
   ComponentSchema,
   type ComponentName,
   ComponentCatalog,
-} from "@back-to-the-future/schemas";
+} from "@cronix/schemas";
 
 // ── searchContent ─────────────────────────────────────────────────
 // Searches indexed content using the RAG pipeline's vector store.

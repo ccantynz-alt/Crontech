@@ -1,5 +1,5 @@
 {
-  "name": "@back-to-the-future/web",
+  "name": "@cronix/web",
   "type": "module",
   "scripts": {
     "dev": "vinxi dev --port 3000",
@@ -11,9 +11,9 @@
     "deploy": "wrangler pages deploy .output/public"
   },
   "dependencies": {
-    "@back-to-the-future/ai-core": "workspace:*",
-    "@back-to-the-future/schemas": "workspace:*",
-    "@back-to-the-future/ui": "workspace:*",
+    "@cronix/ai-core": "workspace:*",
+    "@cronix/schemas": "workspace:*",
+    "@cronix/ui": "workspace:*",
     "@simplewebauthn/browser": "13.3.0",
     "@solidjs/meta": "^0.29.4",
     "@solidjs/router": "^0.15.3",

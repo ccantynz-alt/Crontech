@@ -1,6 +1,6 @@
 import { type JSX, For, Show, createMemo } from "solid-js";
-import { ComponentSchema } from "@back-to-the-future/schemas";
-import type { Component as ComponentConfig } from "@back-to-the-future/schemas";
+import { ComponentSchema } from "@cronix/schemas";
+import type { Component as ComponentConfig } from "@cronix/schemas";
 import { ComponentRenderer } from "./ComponentRenderer";
 
 export interface PageRendererProps {

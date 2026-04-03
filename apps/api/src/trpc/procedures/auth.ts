@@ -2,7 +2,7 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { eq } from "drizzle-orm";
 import { router, publicProcedure, protectedProcedure } from "../init";
-import { users, credentials } from "@back-to-the-future/db";
+import { users, credentials } from "@cronix/db";
 import {
   generateRegistrationOpts,
   verifyRegistration,

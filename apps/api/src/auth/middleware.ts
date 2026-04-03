@@ -1,7 +1,7 @@
 import { createMiddleware } from "hono/factory";
 import type { Context } from "hono";
 import { validateSession } from "./session";
-import { db } from "@back-to-the-future/db";
+import { db } from "@cronix/db";
 
 export interface AuthEnv {
   Variables: {

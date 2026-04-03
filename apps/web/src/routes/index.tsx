@@ -1,7 +1,7 @@
 import { Title } from "@solidjs/meta";
 import { A } from "@solidjs/router";
 import { Show } from "solid-js";
-import { Button, Stack, Text } from "@back-to-the-future/ui";
+import { Button, Stack, Text } from "@cronix/ui";
 import { useAuth } from "../stores";
 
 export default function Home(): ReturnType<typeof Stack> {
@@ -9,9 +9,9 @@ export default function Home(): ReturnType<typeof Stack> {
 
   return (
     <Stack direction="vertical" align="center" justify="center" class="hero">
-      <Title>Back to the Future</Title>
+      <Title>Cronix</Title>
       <Text variant="h1" weight="bold" align="center" class="heading">
-        Back to the Future
+        Cronix
       </Text>
       <Text variant="body" align="center" class="tagline">
         The most advanced full-stack platform

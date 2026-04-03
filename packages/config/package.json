@@ -1,5 +1,5 @@
 {
-  "name": "@back-to-the-future/config",
+  "name": "@cronix/config",
   "version": "0.0.1",
   "private": true,
   "exports": {

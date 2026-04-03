@@ -9,13 +9,13 @@
       },
     },
     "apps/api": {
-      "name": "@back-to-the-future/api",
+      "name": "@cronix/api",
       "version": "0.0.1",
       "dependencies": {
         "@ai-sdk/openai": "^3.0.0",
-        "@back-to-the-future/ai-core": "workspace:*",
-        "@back-to-the-future/db": "workspace:*",
-        "@back-to-the-future/schemas": "workspace:*",
+        "@cronix/ai-core": "workspace:*",
+        "@cronix/db": "workspace:*",
+        "@cronix/schemas": "workspace:*",
         "@opentelemetry/api": "1.9.1",
         "@opentelemetry/exporter-metrics-otlp-http": "0.214.0",
         "@opentelemetry/exporter-trace-otlp-http": "0.214.0",
@@ -39,11 +39,11 @@
       },
     },
     "apps/web": {
-      "name": "@back-to-the-future/web",
+      "name": "@cronix/web",
       "dependencies": {
-        "@back-to-the-future/ai-core": "workspace:*",
-        "@back-to-the-future/schemas": "workspace:*",
-        "@back-to-the-future/ui": "workspace:*",
+        "@cronix/ai-core": "workspace:*",
+        "@cronix/schemas": "workspace:*",
+        "@cronix/ui": "workspace:*",
         "@simplewebauthn/browser": "13.3.0",
         "@solidjs/meta": "^0.29.4",
         "@solidjs/router": "^0.15.3",
@@ -62,11 +62,11 @@
       },
     },
     "packages/ai-core": {
-      "name": "@back-to-the-future/ai-core",
+      "name": "@cronix/ai-core",
       "version": "0.0.1",
       "dependencies": {
         "@ai-sdk/openai": "^3.0.0",
-        "@back-to-the-future/schemas": "workspace:*",
+        "@cronix/schemas": "workspace:*",
         "ai": "^6.0.0",
         "zod": "^3.24.0",
       },
@@ -75,11 +75,11 @@
       },
     },
     "packages/config": {
-      "name": "@back-to-the-future/config",
+      "name": "@cronix/config",
       "version": "0.0.1",
     },
     "packages/db": {
-      "name": "@back-to-the-future/db",
+      "name": "@cronix/db",
       "version": "0.0.1",
       "dependencies": {
         "@libsql/client": "^0.14",
@@ -91,7 +91,7 @@
       },
     },
     "packages/schemas": {
-      "name": "@back-to-the-future/schemas",
+      "name": "@cronix/schemas",
       "version": "0.0.1",
       "dependencies": {
         "zod": "^3",
@@ -101,10 +101,10 @@
       },
     },
     "packages/ui": {
-      "name": "@back-to-the-future/ui",
+      "name": "@cronix/ui",
       "version": "0.0.1",
       "dependencies": {
-        "@back-to-the-future/schemas": "workspace:*",
+        "@cronix/schemas": "workspace:*",
         "solid-js": "^1.9",
       },
       "devDependencies": {
@@ -159,20 +159,6 @@
 
     "@babel/types": ["@babel/types@7.29.0", "", { "dependencies": { "@babel/helper-string-parser": "^7.27.1", "@babel/helper-validator-identifier": "^7.28.5" } }, "sha512-LwdZHpScM4Qz8Xw2iKSzS+cfglZzJGvofQICy7W7v4caru4EaAmyUuO6BGrbyQ2mYV11W0U8j5mBhd14dd3B0A=="],
 
-    "@back-to-the-future/ai-core": ["@back-to-the-future/ai-core@workspace:packages/ai-core"],
-
-    "@back-to-the-future/api": ["@back-to-the-future/api@workspace:apps/api"],
-
-    "@back-to-the-future/config": ["@back-to-the-future/config@workspace:packages/config"],
-
-    "@back-to-the-future/db": ["@back-to-the-future/db@workspace:packages/db"],
-
-    "@back-to-the-future/schemas": ["@back-to-the-future/schemas@workspace:packages/schemas"],
-
-    "@back-to-the-future/ui": ["@back-to-the-future/ui@workspace:packages/ui"],
-
-    "@back-to-the-future/web": ["@back-to-the-future/web@workspace:apps/web"],
-
     "@bufbuild/protobuf": ["@bufbuild/protobuf@2.11.0", "", {}, "sha512-sBXGT13cpmPR5BMgHE6UEEfEaShh5Ror6rfN3yEK5si7QVrtZg8LEPQb0VVhiLRUslD2yLnXtnRzG035J/mZXQ=="],
 
     "@cloudflare/kv-asset-handler": ["@cloudflare/kv-asset-handler@0.4.2", "", {}, "sha512-SIOD2DxrRRwQ+jgzlXCqoEFiKOFqaPjhnNTGKXSRLvp1HiOvapLaFG2kEr9dYQTYe8rKrd9uvDUzmAITeNyaHQ=="],
@@ -188,6 +174,20 @@
     "@cloudflare/workerd-linux-arm64": ["@cloudflare/workerd-linux-arm64@1.20260401.1", "", { "os": "linux", "cpu": "arm64" }, "sha512-UgkzpMzVWM/bwbo3vjCTg2aoKfGcUhiEoQoDdo6RGWvbHRJyLVZ4VQCG9ZcISiztkiS2ICCoYOtPy6M/lV6Gcw=="],
 
     "@cloudflare/workerd-windows-64": ["@cloudflare/workerd-windows-64@1.20260401.1", "", { "os": "win32", "cpu": "x64" }, "sha512-HBLzcQF5iF4Qv20tQ++pG7xs3OsCnaIbc+GAi6fmhUKZhvmzvml/jwrQzLJ+MPm0cQo41K5OO/U3T4S8tvJetQ=="],
+
+    "@cronix/ai-core": ["@cronix/ai-core@workspace:packages/ai-core"],
+
+    "@cronix/api": ["@cronix/api@workspace:apps/api"],
+
+    "@cronix/config": ["@cronix/config@workspace:packages/config"],
+
+    "@cronix/db": ["@cronix/db@workspace:packages/db"],
+
+    "@cronix/schemas": ["@cronix/schemas@workspace:packages/schemas"],
+
+    "@cronix/ui": ["@cronix/ui@workspace:packages/ui"],
+
+    "@cronix/web": ["@cronix/web@workspace:apps/web"],
 
     "@cspotcode/source-map-support": ["@cspotcode/source-map-support@0.8.1", "", { "dependencies": { "@jridgewell/trace-mapping": "0.3.9" } }, "sha512-IchNf6dN4tHoMFIn/7OE8LWZ19Y6q/67Bmf6vnGREv8RSbBVb9LPJxEcnwrcwX6ixSvaiGoomAUvu4YSxXrVgw=="],
 

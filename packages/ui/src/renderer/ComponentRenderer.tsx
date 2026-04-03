@@ -1,5 +1,5 @@
 import { type JSX, For, Show, Switch, Match } from "solid-js";
-import type { Component as ComponentConfig, Tabs as TabsConfig } from "@back-to-the-future/schemas";
+import type { Component as ComponentConfig, Tabs as TabsConfig } from "@cronix/schemas";
 import { Button } from "../components/Button";
 import { Input } from "../components/Input";
 import { Card } from "../components/Card";

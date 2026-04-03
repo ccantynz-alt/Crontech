@@ -6,7 +6,7 @@ import {
   createSignal,
   useContext,
 } from "solid-js";
-import type { User } from "@back-to-the-future/schemas";
+import type { User } from "@cronix/schemas";
 import { trpc } from "../lib/trpc";
 import {
   registerPasskey,

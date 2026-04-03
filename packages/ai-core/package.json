@@ -1,5 +1,5 @@
 {
-  "name": "@back-to-the-future/ai-core",
+  "name": "@cronix/ai-core",
   "version": "0.0.1",
   "private": true,
   "type": "module",
@@ -12,7 +12,7 @@
     "test": "bun test"
   },
   "dependencies": {
-    "@back-to-the-future/schemas": "workspace:*",
+    "@cronix/schemas": "workspace:*",
     "@ai-sdk/openai": "^3.0.0",
     "ai": "^6.0.0",
     "zod": "^3.24.0"

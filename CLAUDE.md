@@ -816,7 +816,7 @@ These are not guidelines. These are laws. Break them and the build breaks. That 
 ### 6.2 File Structure
 
 ```
-back-to-the-future/
+cronix/
 ├── CLAUDE.md                    # This file - the war plan
 ├── apps/
 │   ├── web/                     # SolidStart web application

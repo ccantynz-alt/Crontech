@@ -1,5 +1,5 @@
 {
-  "name": "back-to-the-future",
+  "name": "cronix",
   "private": true,
   "workspaces": [
     "apps/*",

@@ -1,7 +1,7 @@
 import { Title } from "@solidjs/meta";
 import { A, useNavigate } from "@solidjs/router";
 import { Show, createSignal } from "solid-js";
-import { Button, Card, Input, Stack, Text } from "@back-to-the-future/ui";
+import { Button, Card, Input, Stack, Text } from "@cronix/ui";
 import { useAuth } from "../stores";
 
 export default function RegisterPage(): ReturnType<typeof Stack> {
@@ -38,7 +38,7 @@ export default function RegisterPage(): ReturnType<typeof Stack> {
 
   return (
     <Stack direction="vertical" align="center" justify="center" class="page-center">
-      <Title>Register - Back to the Future</Title>
+      <Title>Register - Cronix</Title>
       <Card class="auth-card" padding="lg">
         <Stack direction="vertical" gap="lg" align="center">
           <Text variant="h2" weight="bold" align="center">

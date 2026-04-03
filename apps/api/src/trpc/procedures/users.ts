@@ -1,11 +1,11 @@
 import { z } from "zod";
 import { eq, desc, gt, sql } from "drizzle-orm";
 import { router, publicProcedure } from "../init";
-import { users } from "@back-to-the-future/db";
+import { users } from "@cronix/db";
 import {
   CreateUserInput,
   PaginationInput,
-} from "@back-to-the-future/schemas";
+} from "@cronix/schemas";
 
 const UpdateUserInput = z.object({
   id: z.string().uuid(),

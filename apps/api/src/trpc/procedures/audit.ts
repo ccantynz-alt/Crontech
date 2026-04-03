@@ -1,8 +1,8 @@
 import { z } from "zod";
 import { eq, and, desc, gt, sql } from "drizzle-orm";
 import { router, publicProcedure } from "../init";
-import { auditLogs } from "@back-to-the-future/db";
-import { PaginationInput } from "@back-to-the-future/schemas";
+import { auditLogs } from "@cronix/db";
+import { PaginationInput } from "@cronix/schemas";
 
 export const auditRouter = router({
   list: publicProcedure.input(PaginationInput).query(async ({ ctx, input }) => {

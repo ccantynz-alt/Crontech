@@ -11,7 +11,7 @@ export default function App() {
     <Router
       root={(props) => (
         <MetaProvider>
-          <Title>Back to the Future</Title>
+          <Title>Cronix</Title>
           <ThemeProvider>
             <AuthProvider>
               <Layout>

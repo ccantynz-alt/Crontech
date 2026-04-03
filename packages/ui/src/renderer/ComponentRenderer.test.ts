@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { ComponentSchema } from "@back-to-the-future/schemas";
+import { ComponentSchema } from "@cronix/schemas";
 
 /**
  * Tests for the generative UI renderer.

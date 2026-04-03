@@ -17,7 +17,7 @@ try {
 
   const isDev = process.env.NODE_ENV !== "production";
   const serviceName =
-    process.env.OTEL_SERVICE_NAME ?? "back-to-the-future-api";
+    process.env.OTEL_SERVICE_NAME ?? "cronix-api";
 
   // Resource construction — handle varying export shapes across versions
   const Resource = resources.Resource ?? resources.default?.Resource;

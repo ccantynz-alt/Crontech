@@ -7,7 +7,7 @@ import { z } from "zod";
 import {
   RAGPipeline,
   setSearchPipeline,
-} from "@back-to-the-future/ai-core";
+} from "@cronix/ai-core";
 
 // ── Shared RAG Pipeline Instance ─────────────────────────────────
 // Single instance shared across all routes and the searchContent tool.

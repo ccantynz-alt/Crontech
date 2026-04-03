@@ -1,5 +1,5 @@
 {
-  "name": "@back-to-the-future/ui",
+  "name": "@cronix/ui",
   "version": "0.0.1",
   "private": true,
   "type": "module",
@@ -12,7 +12,7 @@
     "test": "bun test"
   },
   "dependencies": {
-    "@back-to-the-future/schemas": "workspace:*",
+    "@cronix/schemas": "workspace:*",
     "solid-js": "^1.9"
   },
   "devDependencies": {

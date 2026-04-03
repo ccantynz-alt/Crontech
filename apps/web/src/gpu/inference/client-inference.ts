@@ -6,7 +6,7 @@
 import {
   type DeviceCapabilities,
   computeTierRouter,
-} from "@back-to-the-future/ai-core";
+} from "@cronix/ai-core";
 import { detectWebGPU, getComputeTier } from "../webgpu-detect";
 import type { GPUCapabilities, GPUComputeTier } from "../webgpu-detect";
 
