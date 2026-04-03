@@ -12,6 +12,8 @@
   },
   "dependencies": {
     "@cronix/ai-core": "workspace:*",
+    "@huggingface/transformers": "^3.4.0",
+    "@mlc-ai/web-llm": "^0.2.78",
     "@cronix/collab": "workspace:*",
     "@cronix/schemas": "workspace:*",
     "@cronix/ui": "workspace:*",

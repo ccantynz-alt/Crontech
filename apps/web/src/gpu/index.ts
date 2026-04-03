@@ -28,6 +28,12 @@ export {
   type InferenceResult,
 } from "./inference/client-inference";
 
+// ── Device Capabilities (for compute router) ──────────────────────
+export {
+  detectGPUCapabilities,
+  type ExtendedDeviceCapabilities,
+} from "./detect";
+
 // ── Chrome Built-in AI ──────────────────────────────────────────────
 export {
   isChromeAIAvailable,
