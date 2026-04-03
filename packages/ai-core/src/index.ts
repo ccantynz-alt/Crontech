@@ -30,3 +30,36 @@ export {
   type SiteBuilderConfig,
   type PageLayout,
 } from "./agents/site-builder";
+
+export {
+  createQdrantClient,
+  ensureCollection,
+  upsertVectors,
+  searchSimilar,
+  deleteVectors,
+  checkQdrantHealth,
+  type QdrantConfig,
+  type VectorPoint,
+  type SearchOptions,
+  type SearchHit,
+} from "./vector/qdrant";
+
+export {
+  RAGPipeline,
+  createRAGPipeline,
+  ContentDocumentSchema,
+  RAGQuerySchema,
+  type ContentDocument,
+  type RAGQuery,
+  type RAGResult,
+  type EmbedFunction,
+} from "./rag/pipeline";
+
+export {
+  describeComponentCatalog,
+  buildGenerativeUIPrompt,
+  validateComponentTree,
+  processGenerativeUIOutput,
+  type GenerativeUIRequest,
+  type GenerativeUIResult,
+} from "./generative-ui/renderer";

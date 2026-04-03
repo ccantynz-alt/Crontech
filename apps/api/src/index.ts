@@ -4,13 +4,64 @@ import { appRouter } from "./trpc/router";
 import { createContext } from "./trpc/context";
 import { aiRoutes } from "./ai/routes";
 import { wsApp, websocket, sseApp } from "./realtime";
+import { initTelemetry, httpRequestCount, httpRequestDuration } from "./telemetry";
+import { getAllFlags, isFeatureEnabled } from "./feature-flags";
+import { checkNeonHealth } from "@back-to-the-future/db/neon";
+import { checkQdrantHealth } from "@back-to-the-future/ai-core";
+
+// Initialize OpenTelemetry (no-op if OTEL_EXPORTER_OTLP_ENDPOINT not set)
+const telemetry = initTelemetry();
 
 const app = new Hono().basePath("/api");
+
+// ── Request Telemetry Middleware ──────────────────────────────────────
+app.use("*", async (c, next) => {
+  const start = performance.now();
+  httpRequestCount.add(1, { method: c.req.method, path: c.req.path });
+  await next();
+  const duration = performance.now() - start;
+  httpRequestDuration.record(duration, {
+    method: c.req.method,
+    path: c.req.path,
+    status: c.res.status,
+  });
+});
 
 app.get("/health", (c) => {
   return c.json({
     status: "ok",
     timestamp: new Date().toISOString(),
+  });
+});
+
+// ── Extended Health Check (all services) ─────────────────────────────
+app.get("/health/full", async (c) => {
+  const [neon, qdrant] = await Promise.allSettled([
+    checkNeonHealth(),
+    checkQdrantHealth(),
+  ]);
+
+  return c.json({
+    status: "ok",
+    timestamp: new Date().toISOString(),
+    services: {
+      neon: neon.status === "fulfilled" ? neon.value : { status: "error", error: "check failed" },
+      qdrant: qdrant.status === "fulfilled" ? qdrant.value : { status: "error", error: "check failed" },
+    },
+  });
+});
+
+// ── Feature Flags Endpoints ──────────────────────────────────────────
+app.get("/flags", (c) => {
+  return c.json({ flags: getAllFlags() });
+});
+
+app.get("/flags/:key", (c) => {
+  const key = c.req.param("key");
+  const userId = c.req.query("userId");
+  return c.json({
+    key,
+    enabled: isFeatureEnabled(key, userId),
   });
 });
 

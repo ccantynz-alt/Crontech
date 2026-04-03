@@ -117,71 +117,28 @@ function getComponentDefaults(
   componentName: ComponentName,
   description: string,
 ): Record<string, unknown> {
-  switch (componentName) {
-    case "Button":
-      return {
-        component: "Button",
-        props: {
-          variant: "primary",
-          size: "md",
-          disabled: false,
-          loading: false,
-          label: description || "Click me",
-        },
-      };
-    case "Input":
-      return {
-        component: "Input",
-        props: {
-          type: "text",
-          placeholder: description || "Enter text...",
-          name: description.toLowerCase().replace(/\s+/g, "-") || "input",
-          required: false,
-          disabled: false,
-        },
-      };
-    case "Card":
-      return {
-        component: "Card",
-        props: {
-          title: description || "Card Title",
-          padding: "md",
-        },
-      };
-    case "Stack":
-      return {
-        component: "Stack",
-        props: {
-          direction: "vertical",
-          gap: "md",
-          align: "stretch",
-          justify: "start",
-        },
-      };
-    case "Text":
-      return {
-        component: "Text",
-        props: {
-          content: description || "Text content",
-          variant: "body",
-          weight: "normal",
-          align: "left",
-        },
-      };
-    case "Modal":
-      return {
-        component: "Modal",
-        props: {
-          title: description || "Modal Title",
-          size: "md",
-          open: false,
-        },
-      };
-    default: {
-      const _exhaustive: never = componentName;
-      throw new Error(`Unknown component: ${String(_exhaustive)}`);
-    }
-  }
+  const label = description || componentName;
+  const name = description.toLowerCase().replace(/\s+/g, "-") || "field";
+
+  const defaults: Record<ComponentName, Record<string, unknown>> = {
+    Button: { component: "Button", props: { variant: "primary", size: "md", disabled: false, loading: false, label } },
+    Input: { component: "Input", props: { type: "text", placeholder: label, name, required: false, disabled: false } },
+    Card: { component: "Card", props: { title: label, padding: "md" } },
+    Stack: { component: "Stack", props: { direction: "vertical", gap: "md", align: "stretch", justify: "start" } },
+    Text: { component: "Text", props: { content: label, variant: "body", weight: "normal", align: "left" } },
+    Modal: { component: "Modal", props: { title: label, size: "md", open: false } },
+    Badge: { component: "Badge", props: { variant: "default", size: "md", label } },
+    Alert: { component: "Alert", props: { variant: "info", title: label } },
+    Avatar: { component: "Avatar", props: { initials: label.slice(0, 2).toUpperCase(), size: "md" } },
+    Tabs: { component: "Tabs", props: { items: [{ id: "tab-1", label: "Tab 1" }, { id: "tab-2", label: "Tab 2" }] } },
+    Select: { component: "Select", props: { options: [{ value: "1", label: "Option 1" }, { value: "2", label: "Option 2" }], placeholder: label } },
+    Textarea: { component: "Textarea", props: { placeholder: label, rows: 3, resize: "vertical" } },
+    Spinner: { component: "Spinner", props: { size: "md" } },
+    Tooltip: { component: "Tooltip", props: { content: label, position: "top" } },
+    Separator: { component: "Separator", props: { orientation: "horizontal" } },
+  };
+
+  return defaults[componentName];
 }
 
 // ── analyzeCode ───────────────────────────────────────────────────
