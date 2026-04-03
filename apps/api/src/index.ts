@@ -13,6 +13,11 @@ import {
   getApprovalRequest,
   approveRequest,
   rejectRequest,
+  getMCPTools,
+  getMCPResources,
+  handleMCPToolCall,
+  handleMCPResourceRead,
+  listComponents,
 } from "@back-to-the-future/ai-core";
 
 // Initialize OpenTelemetry (no-op if OTEL_EXPORTER_OTLP_ENDPOINT not set)
@@ -95,6 +100,23 @@ app.post("/approvals/:id/reject", async (c) => {
   const result = rejectRequest(c.req.param("id"), body.rejectedBy ?? "unknown");
   if (!result) return c.json({ error: "Request not found or expired" }, 404);
   return c.json(result);
+});
+
+// ── MCP Component Catalog Endpoints ─────────────────────────────────
+app.get("/mcp/tools", (c) => c.json({ tools: getMCPTools() }));
+app.get("/mcp/resources", (c) => c.json({ resources: getMCPResources() }));
+app.get("/mcp/components", (c) => c.json(listComponents()));
+
+app.post("/mcp/tools/call", async (c) => {
+  const body = await c.req.json() as { name: string; arguments: Record<string, unknown> };
+  const result = handleMCPToolCall(body.name, body.arguments ?? {});
+  return c.json({ result });
+});
+
+app.get("/mcp/resources/:uri{.+}", (c) => {
+  const uri = `btf://${c.req.param("uri")}`;
+  const result = handleMCPResourceRead(uri);
+  return c.json({ result });
 });
 
 // Mount AI routes (raw Hono -- streaming works better outside tRPC)

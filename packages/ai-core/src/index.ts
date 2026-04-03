@@ -86,3 +86,27 @@ export {
   ApprovalRequestSchema,
   type ApprovalRequest,
 } from "./agents/approval";
+
+export {
+  siteBuilderAgent,
+  codeReviewerAgent,
+  contentWriterAgent,
+  mastraAgents,
+  searchContentTool,
+  generateComponentTool,
+  analyzeCodeTool,
+  type MastraAgentId,
+} from "./agents/mastra-agents";
+
+export {
+  listComponents,
+  getComponentSchema,
+  validateComponent,
+  validateComponentTree as validateComponentTreeMCP,
+  getMCPTools,
+  getMCPResources,
+  handleMCPToolCall,
+  handleMCPResourceRead,
+  type MCPTool,
+  type MCPResource,
+} from "./mcp/component-server";

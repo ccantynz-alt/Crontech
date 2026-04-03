@@ -10,10 +10,12 @@
     "format": "biome format . --write"
   },
   "dependencies": {
-    "@back-to-the-future/api": "workspace:*",
     "@back-to-the-future/ai-core": "workspace:*",
+    "@back-to-the-future/api": "workspace:*",
     "@back-to-the-future/schemas": "workspace:*",
     "@back-to-the-future/ui": "workspace:*",
+    "@json-render/core": "0.16.0",
+    "@json-render/solid": "0.16.0",
     "@simplewebauthn/browser": "13.3.0",
     "@solidjs/meta": "^0.29.4",
     "@solidjs/router": "^0.15.3",
