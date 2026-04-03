@@ -14,7 +14,7 @@ interface JoinRoomMsg {
   type: "join_room";
   roomId: string;
   userId: string;
-  metadata?: { displayName?: string; color?: string };
+  metadata?: { displayName?: string | undefined; color?: string | undefined };
 }
 
 interface LeaveRoomMsg {
@@ -36,7 +36,7 @@ interface CursorMoveMsg {
   userId: string;
   x: number;
   y: number;
-  target?: string;
+  target?: string | undefined;
 }
 
 interface PresenceUpdateMsg {
@@ -44,7 +44,7 @@ interface PresenceUpdateMsg {
   roomId: string;
   userId: string;
   status: "active" | "idle" | "away";
-  data?: Record<string, unknown>;
+  data?: Record<string, unknown> | undefined;
 }
 
 interface PingMsg {
@@ -66,8 +66,8 @@ interface RoomJoinedMsg {
   roomId: string;
   users: Array<{
     userId: string;
-    metadata?: { displayName?: string; color?: string };
-    presence?: { status: "active" | "idle" | "away"; data?: Record<string, unknown> };
+    metadata?: { displayName?: string | undefined; color?: string | undefined } | undefined;
+    presence?: { status: "active" | "idle" | "away"; data?: Record<string, unknown> | undefined } | undefined;
   }>;
 }
 
