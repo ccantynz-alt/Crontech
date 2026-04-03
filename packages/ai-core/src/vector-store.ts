@@ -47,6 +47,16 @@ function client(): QdrantClient {
 }
 
 /**
+ * List all Qdrant collections.
+ * Returns an array of collection names.
+ */
+export async function listCollections(): Promise<string[]> {
+  const qdrant = client();
+  const result = await qdrant.getCollections();
+  return result.collections.map((c) => c.name);
+}
+
+/**
  * Initialize a Qdrant collection with the given vector size.
  * Uses cosine distance by default (best for normalized embeddings).
  * No-ops if the collection already exists.

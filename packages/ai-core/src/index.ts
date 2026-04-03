@@ -23,6 +23,7 @@ export {
 } from "./tools";
 
 export {
+  listCollections,
   initCollection,
   upsertVectors,
   searchVectors,
@@ -39,6 +40,47 @@ export {
   type SiteBuilderConfig,
   type PageLayout,
 } from "./agents/site-builder";
+
+export {
+  chunkText,
+  ChunkOptionsSchema,
+  TextChunkSchema,
+  type ChunkOptions,
+  type TextChunk,
+  createEmbeddingProvider,
+  DevEmbeddingProvider,
+  OpenAIEmbeddingProvider,
+  LocalEmbeddingProvider,
+  EmbeddingResultSchema,
+  type EmbeddingProvider,
+  type EmbeddingProviderName,
+  type EmbeddingResult,
+  indexContent,
+  retrieveContext,
+  generateWithContext,
+  ragQuery,
+  ContentMetadataSchema,
+  RetrieveOptionsSchema,
+  RetrievedChunkSchema,
+  IndexContentInputSchema,
+  QueryInputSchema,
+  GenerateWithContextInputSchema,
+  type ContentMetadata,
+  type RetrieveOptions,
+  type RetrievedChunk,
+  type RAGPipelineConfig,
+} from "./rag";
+
+export {
+  streamComponents,
+  type ComponentStreamEvent,
+  type ComponentStartEvent,
+  type ComponentUpdateEvent,
+  type ComponentCompleteEvent,
+  type ComponentErrorEvent,
+  type StreamDoneEvent,
+  type ComponentStreamConfig,
+} from "./streaming/component-stream";
 
 export {
   classifyRisk,
@@ -67,3 +109,32 @@ export {
   type OrchestratorConfig,
   type OrchestratorResult,
 } from "./agents/orchestrator";
+
+export {
+  streamWebsiteBuilder,
+  buildWebsite,
+  generatePage,
+  analyzeIntent,
+  refineWebsite,
+  WEBSITE_BUILDER_SYSTEM_PROMPT,
+  websiteBuilderTools,
+  PageComponentsSchema,
+  type WebsiteBuilderConfig,
+  type BuilderEvent,
+  type BuildPhase,
+  type BuildResult,
+  type Intent,
+  type LayoutSection,
+  type PageComponents,
+} from "./agents/website-builder";
+
+export {
+  layoutPage,
+  addSection,
+  updateStyles,
+  layoutTools,
+  type PageLayoutResult,
+  type PageSection,
+  type SectionSlot,
+  type LayoutToolName,
+} from "./agents/tools/layout";

@@ -1,0 +1,28 @@
+{
+  "budgets": [
+    {
+      "name": "Initial JS",
+      "pattern": ".output/public/**/*.js",
+      "maxSize": "50KB",
+      "maxSizeBytes": 51200,
+      "compression": "gzip"
+    },
+    {
+      "name": "CSS",
+      "pattern": ".output/public/**/*.css",
+      "maxSize": "20KB",
+      "maxSizeBytes": 20480,
+      "compression": "gzip"
+    },
+    {
+      "name": "Total (JS + CSS)",
+      "patterns": [
+        ".output/public/**/*.js",
+        ".output/public/**/*.css"
+      ],
+      "maxSize": "100KB",
+      "maxSizeBytes": 102400,
+      "compression": "gzip"
+    }
+  ]
+}

@@ -5,7 +5,8 @@
   "type": "module",
   "main": "./src/index.ts",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./streaming": "./src/streaming/index.ts"
   },
   "scripts": {
     "check": "tsc --noEmit",

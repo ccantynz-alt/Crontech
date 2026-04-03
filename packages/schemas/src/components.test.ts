@@ -433,17 +433,18 @@ describe("ComponentSchema", () => {
 // ── ComponentCatalog ─────────────────────────────────────────────────
 
 describe("ComponentCatalog", () => {
-  test("contains all 15 components", () => {
+  test("contains all 18 components", () => {
     const names = Object.keys(ComponentCatalog);
     const expected = [
       "Button", "Input", "Card", "Stack", "Text", "Modal",
       "Badge", "Alert", "Avatar", "Tabs", "Select",
       "Textarea", "Spinner", "Tooltip", "Separator",
+      "Timeline", "ExhibitViewer", "ChainOfCustody",
     ];
     for (const name of expected) {
       expect(names).toContain(name);
     }
-    expect(names.length).toBe(15);
+    expect(names.length).toBe(18);
   });
 
   test("each catalog entry is a Zod schema that parses correctly", () => {
@@ -463,6 +464,9 @@ describe("ComponentCatalog", () => {
       Spinner: { component: "Spinner", props: {} },
       Tooltip: { component: "Tooltip", props: { content: "tip" } },
       Separator: { component: "Separator", props: {} },
+      Timeline: { component: "Timeline", props: { events: [{ id: "1", date: "2024-01-01", title: "Event" }] } },
+      ExhibitViewer: { component: "ExhibitViewer", props: { src: "/img.png", type: "image", title: "Exhibit" } },
+      ChainOfCustody: { component: "ChainOfCustody", props: { entries: [{ id: "1", timestamp: "2024-01-01T00:00:00Z", action: "Received", actor: "System" }] } },
     };
     for (const [name, schema] of Object.entries(ComponentCatalog)) {
       const result = schema.safeParse(samples[name]);

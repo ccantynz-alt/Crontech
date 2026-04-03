@@ -27,3 +27,32 @@ export {
   type OrchestratorConfig,
   type OrchestratorResult,
 } from "./orchestrator";
+
+export {
+  streamWebsiteBuilder,
+  buildWebsite,
+  generatePage,
+  analyzeIntent,
+  refineWebsite,
+  WEBSITE_BUILDER_SYSTEM_PROMPT,
+  websiteBuilderTools,
+  PageComponentsSchema,
+  type WebsiteBuilderConfig,
+  type BuilderEvent,
+  type BuildPhase,
+  type BuildResult,
+  type Intent,
+  type LayoutSection,
+  type PageComponents,
+} from "./website-builder";
+
+export {
+  layoutPage,
+  addSection,
+  updateStyles,
+  layoutTools,
+  type PageLayoutResult,
+  type PageSection,
+  type SectionSlot,
+  type LayoutToolName,
+} from "./tools/layout";

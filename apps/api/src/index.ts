@@ -8,13 +8,21 @@ import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 import { appRouter } from "./trpc/router";
 import { createContext } from "./trpc/context";
 import { aiRoutes } from "./ai/routes";
+import { streamUIRoutes } from "./ai/stream";
+import { builderRoutes } from "./ai/builder-routes";
+import { ragRoutes } from "./ai/rag-routes";
 import { wsApp, websocket, sseApp } from "./realtime";
 import { rateLimiter } from "./middleware/rate-limit";
 import { telemetryMiddleware } from "./middleware/telemetry";
 import { privacyHeaders } from "./middleware/privacy";
+import { securityHeaders, csrfProtection } from "./middleware/security";
+import { sanitizeMiddleware } from "./middleware/sanitize";
+import { corsMiddleware } from "./middleware/cors";
+import { cspReportRoutes } from "./security/csp-report";
 import { createGDPRHandler } from "./privacy/gdpr";
 import { openApiDocument } from "./docs/openapi";
 import { getSSOConfig, createSSOHandler } from "./auth/sso";
+import { passkeyRoutes } from "./auth/passkey";
 import { videoRoutes } from "./video/routes";
 
 const app = new Hono().basePath("/api");
@@ -22,8 +30,31 @@ const app = new Hono().basePath("/api");
 // Trace every request with OpenTelemetry
 app.use("*", telemetryMiddleware);
 
+// CORS -- must run before other middleware so preflight is handled early
+app.use("*", corsMiddleware());
+
+// Comprehensive security headers (CSP, HSTS, X-Frame-Options, etc.)
+app.use("*", securityHeaders());
+
 // Privacy and security response headers (GDPR compliance)
 app.use("*", privacyHeaders());
+
+// Input sanitization -- blocks SQL injection / path traversal patterns
+app.use("*", sanitizeMiddleware());
+
+// CSRF protection (double-submit cookie) -- skip safe methods & specific paths
+app.use(
+  "*",
+  csrfProtection({
+    excludePaths: [
+      "/api/security/csp-report",
+      "/api/health",
+      "/api/trpc",
+      "/api/openapi.json",
+      "/api/docs",
+    ],
+  }),
+);
 
 // Global rate limit: 100 requests per minute per IP
 app.use("*", rateLimiter({ limit: 100, windowMs: 60_000 }));
@@ -50,8 +81,23 @@ app.get("/health", (c) => {
   });
 });
 
+// Mount CSP violation reporting endpoint
+app.route("/security", cspReportRoutes);
+
 // Mount AI routes (raw Hono -- streaming works better outside tRPC)
 app.route("/ai", aiRoutes);
+
+// Mount generative UI streaming routes (SSE)
+app.route("/ai", streamUIRoutes);
+
+// Mount AI website builder routes (SSE streaming)
+app.route("/ai", builderRoutes);
+
+// Mount RAG pipeline routes
+app.route("/ai/rag", ragRoutes);
+
+// Mount Passkey/WebAuthn authentication routes
+app.route("/auth/passkey", passkeyRoutes);
 
 // Mount video processing routes
 app.route("/video", videoRoutes);
