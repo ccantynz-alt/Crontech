@@ -14,7 +14,8 @@
     "format": "turbo format",
     "check": "turbo check",
     "clean": "turbo clean",
-    "a11y": "bunx @axe-core/cli --exit"
+    "a11y": "bunx @axe-core/cli --exit",
+    "load-test": "k6 run infra/load-tests/api-load.js"
   },
   "devDependencies": {
     "@axe-core/cli": "^4.10.0",
