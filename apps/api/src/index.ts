@@ -11,12 +11,17 @@ import { aiRoutes } from "./ai/routes";
 import { wsApp, websocket, sseApp } from "./realtime";
 import { rateLimiter } from "./middleware/rate-limit";
 import { telemetryMiddleware } from "./middleware/telemetry";
+import { privacyHeaders } from "./middleware/privacy";
+import { createGDPRHandler } from "./privacy/gdpr";
 import { openApiDocument } from "./docs/openapi";
 
 const app = new Hono().basePath("/api");
 
 // Trace every request with OpenTelemetry
 app.use("*", telemetryMiddleware);
+
+// Privacy and security response headers (GDPR compliance)
+app.use("*", privacyHeaders());
 
 // Global rate limit: 100 requests per minute per IP
 app.use("*", rateLimiter({ limit: 100, windowMs: 60_000 }));
@@ -45,6 +50,9 @@ app.get("/health", (c) => {
 
 // Mount AI routes (raw Hono -- streaming works better outside tRPC)
 app.route("/ai", aiRoutes);
+
+// Mount GDPR privacy routes
+app.route("/privacy", createGDPRHandler());
 
 // ── Enterprise SSO ──────────────────────────────────────────────
 import { getSSOConfig, createSSOHandler } from "./auth/sso";

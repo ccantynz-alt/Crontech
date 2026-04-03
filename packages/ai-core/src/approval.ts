@@ -3,8 +3,6 @@
 // Ensures destructive or high-impact actions require human approval
 // before execution, while low-risk operations proceed automatically.
 
-import { z } from "zod";
-
 // ── Risk Level ───────────────────────────────────────────────────
 
 export type RiskLevel = "low" | "medium" | "high" | "critical";
