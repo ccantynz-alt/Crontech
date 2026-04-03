@@ -38,7 +38,6 @@
         "zod": "^3.24.0",
       },
       "devDependencies": {
-        "@cloudflare/workers-types": "^4.20241230.0",
         "@types/bun": "^1.2.0",
         "typescript": "^5.7.0",
         "wrangler": "4.80.0",
@@ -138,6 +137,7 @@
       "dependencies": {
         "@cronix/schemas": "workspace:*",
         "solid-js": "^1.9",
+        "zod": "^3",
       },
       "devDependencies": {
         "typescript": "^5",
