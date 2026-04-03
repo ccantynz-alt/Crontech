@@ -56,3 +56,27 @@ export {
   type RAGQueryResult,
   type RAGPipelineConfig,
 } from "./rag";
+
+// ── Agent Graph ─────────────────────────────────────────────────
+export { StateGraph, createAgentGraph, createInitialState } from "./agents/graph";
+
+// ── Agent Nodes ─────────────────────────────────────────────────
+export { plannerNode } from "./agents/nodes/planner";
+export { executorNode } from "./agents/nodes/executor";
+export { reviewerNode } from "./agents/nodes/reviewer";
+export { responderNode } from "./agents/nodes/responder";
+export type { AgentGraphConfig } from "./agents/graph";
+
+// ── Agent Types ─────────────────────────────────────────────────
+export {
+  AgentStateSchema,
+  PlanStepSchema,
+  StepResultSchema,
+  AgentEventSchema,
+} from "./agents/types";
+export type { AgentState, PlanStep, StepResult, AgentEvent, AgentConfig } from "./agents/types";
+
+// ── Specialist Agents ───────────────────────────────────────────
+export { runTechScout, streamTechScout, TechScoutInputSchema } from "./agents/specialists/tech-scout";
+export { runSiteArchitect, streamSiteArchitect, SiteArchitectInputSchema } from "./agents/specialists/site-architect";
+export { runVideoDirector, streamVideoDirector, VideoDirectorInputSchema } from "./agents/specialists/video-director";

@@ -15,6 +15,7 @@ import {
 import { ComponentSchema } from "@cronix/schemas";
 import { traceAICall } from "../telemetry";
 import { ragRoutes } from "./rag-routes";
+import { agentRoutes } from "./agent-routes";
 
 // ── Input Schemas ─────────────────────────────────────────────────
 
@@ -57,6 +58,7 @@ export const aiRoutes = new Hono();
 
 // Mount RAG sub-routes at /ai/rag/*
 aiRoutes.route("/rag", ragRoutes);
+aiRoutes.route("/agents", agentRoutes);
 
 /**
  * POST /ai/chat
