@@ -23,6 +23,7 @@ import {
 import type { ComputeTier } from "../compute-tier";
 import { searchContent, generateComponent } from "../tools";
 import { layoutPage, addSection, updateStyles } from "./tools/layout";
+import type { ApprovalGate } from "../approval";
 
 // ── Types ───────────────────────────────────────────────────────
 
@@ -32,6 +33,7 @@ export interface WebsiteBuilderConfig {
   maxTokens?: number;
   temperature?: number;
   maxSteps?: number;
+  approvalGate?: ApprovalGate;
 }
 
 /** A streaming event emitted by the builder during generation. */
@@ -284,12 +286,13 @@ export async function* buildWebsite(
 ): AsyncGenerator<BuilderEvent> {
   const resolvedConfig: Required<
     Pick<WebsiteBuilderConfig, "computeTier" | "maxTokens" | "temperature" | "maxSteps">
-  > & Pick<WebsiteBuilderConfig, "providerEnv"> = {
+  > & Pick<WebsiteBuilderConfig, "providerEnv" | "approvalGate"> = {
     computeTier: config?.computeTier ?? DEFAULT_CONFIG.computeTier,
     maxTokens: config?.maxTokens ?? DEFAULT_CONFIG.maxTokens,
     temperature: config?.temperature ?? DEFAULT_CONFIG.temperature,
     maxSteps: config?.maxSteps ?? DEFAULT_CONFIG.maxSteps,
     ...(config?.providerEnv !== undefined ? { providerEnv: config.providerEnv } : {}),
+    ...(config?.approvalGate !== undefined ? { approvalGate: config.approvalGate } : {}),
   };
 
   // Phase 1: Analyze intent
@@ -309,6 +312,34 @@ export async function* buildWebsite(
     phase: "planning",
     message: `Planning a ${intent.pageType} page: "${intent.title}"`,
   };
+
+  // Phase 1.5: Request human approval if an approval gate is configured
+  if (resolvedConfig.approvalGate) {
+    yield {
+      type: "status",
+      phase: "planning",
+      message: "Awaiting human approval...",
+    };
+
+    const decision = await resolvedConfig.approvalGate.requestApproval(
+      "generate_website",
+      "generatePage",
+      {
+        pageType: intent.pageType,
+        title: intent.title,
+        sectionCount: intent.sections.length,
+      },
+      `Generate a ${intent.pageType} page: "${intent.title}" with ${intent.sections.length} section(s)`,
+    );
+
+    if (!decision.approved) {
+      yield {
+        type: "error",
+        message: `Build rejected by ${decision.approvedBy}: ${decision.reason ?? "No reason provided"}`,
+      };
+      return;
+    }
+  }
 
   // Phase 2: Generate page via structured output (complete component tree)
   yield { type: "status", phase: "generating", message: "Generating components..." };

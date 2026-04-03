@@ -11,6 +11,7 @@ import { aiRoutes } from "./ai/routes";
 import { streamUIRoutes } from "./ai/stream";
 import { builderRoutes } from "./ai/builder-routes";
 import { ragRoutes } from "./ai/rag-routes";
+import { approvalRoutes } from "./ai/approval-routes";
 import { wsApp, websocket, sseApp } from "./realtime";
 import { rateLimiter } from "./middleware/rate-limit";
 import { telemetryMiddleware } from "./middleware/telemetry";
@@ -24,6 +25,7 @@ import { openApiDocument } from "./docs/openapi";
 import { getSSOConfig, createSSOHandler } from "./auth/sso";
 import { passkeyRoutes } from "./auth/passkey";
 import { videoRoutes } from "./video/routes";
+import { graphqlRouter } from "./graphql";
 
 const app = new Hono().basePath("/api");
 
@@ -52,6 +54,7 @@ app.use(
       "/api/trpc",
       "/api/openapi.json",
       "/api/docs",
+      "/api/graphql",
     ],
   }),
 );
@@ -96,11 +99,17 @@ app.route("/ai", builderRoutes);
 // Mount RAG pipeline routes
 app.route("/ai/rag", ragRoutes);
 
+// Mount AI approval routes (human-in-the-loop)
+app.route("/ai", approvalRoutes);
+
 // Mount Passkey/WebAuthn authentication routes
 app.route("/auth/passkey", passkeyRoutes);
 
 // Mount video processing routes
 app.route("/video", videoRoutes);
+
+// Mount GraphQL API for external consumers (GraphiQL playground on GET)
+app.route("/graphql", graphqlRouter);
 
 // Mount GDPR privacy routes
 app.route("/privacy", createGDPRHandler());
@@ -138,5 +147,6 @@ Bun.serve({
 console.log(`API server running on http://localhost:${port}`);
 console.log(`  WebSocket: ws://localhost:${port}/api/ws`);
 console.log(`  SSE: http://localhost:${port}/api/realtime/events/:roomId`);
+console.log(`  GraphQL: http://localhost:${port}/api/graphql`);
 
 export default app;

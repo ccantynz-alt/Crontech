@@ -2,6 +2,28 @@ export { computeTierRouter, type ComputeTier, type DeviceCapabilities } from "./
 export type { ModelRequirements } from "./compute-tier";
 
 export {
+  routeComputation,
+  type ComputeTask,
+  type ComputeTaskKind,
+  type LatencySensitivity,
+  type ComputeRoutingDecision,
+} from "./compute-router";
+
+export {
+  executeOnTier,
+  executeOnTierStreaming,
+  registerTierHandler,
+  unregisterTierHandler,
+  ComputeExhaustionError,
+  type ComputeInput,
+  type ComputeOutput,
+  type ComputeMessage,
+  type StreamCallback,
+  type TierHandler,
+  type TierResult,
+} from "./compute-executor";
+
+export {
   readProviderEnv,
   getModelForTier,
   getFallbackModel,

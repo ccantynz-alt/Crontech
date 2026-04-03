@@ -3,6 +3,7 @@ import { Show, createSignal } from "solid-js";
 import { A, useLocation } from "@solidjs/router";
 import { Button, Text } from "@back-to-the-future/ui";
 import { useAuth, useTheme } from "../stores";
+import { SmartLink } from "./SmartLink";
 
 // ── Nav Link ──────────────────────────────────────────────────────────
 
@@ -16,12 +17,13 @@ function NavLink(props: NavLinkProps): JSX.Element {
   const isActive = (): boolean => location.pathname === props.href;
 
   return (
-    <A
+    <SmartLink
       href={props.href}
       class={`nav-link ${isActive() ? "nav-link-active" : ""}`}
+      showLoadingIndicator={false}
     >
       {props.label}
-    </A>
+    </SmartLink>
   );
 }
 

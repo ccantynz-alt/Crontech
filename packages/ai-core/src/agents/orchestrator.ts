@@ -19,6 +19,7 @@ import { generateObject, generateText } from "ai";
 import { ComponentSchema } from "@back-to-the-future/schemas";
 import { getDefaultModel, type AIProviderEnv } from "../providers";
 import { allTools } from "../tools";
+import { type ApprovalGate } from "../approval";
 
 // ── State Schema ─────────────────────────────────────────────────
 
@@ -125,6 +126,7 @@ export interface OrchestratorConfig {
   providerEnv?: AIProviderEnv;
   maxRetries?: number;
   qualityThreshold?: number;
+  approvalGate?: ApprovalGate;
 }
 
 const DEFAULT_MAX_RETRIES = 2;
@@ -202,6 +204,31 @@ function createBuilderNode(config: OrchestratorConfig) {
         status: "failed",
         messages: [new AIMessage("Builder: No plan available. Cannot proceed.")],
       };
+    }
+
+    // If an approval gate is configured, request approval before building
+    if (config.approvalGate) {
+      const stepSummary = plan.steps
+        .map((s) => `${s.action}${s.componentType ? ` (${s.componentType})` : ""}`)
+        .join(", ");
+
+      const decision = await config.approvalGate.requestApproval(
+        "build_components",
+        "generateComponent",
+        { goal: plan.goal, stepCount: plan.steps.length, steps: stepSummary },
+        `Build ${plan.steps.length} component(s) for: ${plan.goal}`,
+      );
+
+      if (!decision.approved) {
+        return {
+          status: "failed",
+          messages: [
+            new AIMessage(
+              `Builder: Build rejected by ${decision.approvedBy}. Reason: ${decision.reason ?? "No reason provided"}`,
+            ),
+          ],
+        };
+      }
     }
 
     // Build a prompt that includes the plan steps and any review feedback
@@ -357,10 +384,11 @@ export function createOrchestratorGraph(
   config?: OrchestratorConfig,
 ) {
   const providerEnv = config?.providerEnv;
-  const resolvedConfig: Required<Pick<OrchestratorConfig, "maxRetries" | "qualityThreshold">> & Pick<OrchestratorConfig, "providerEnv"> = {
+  const resolvedConfig: Required<Pick<OrchestratorConfig, "maxRetries" | "qualityThreshold">> & Pick<OrchestratorConfig, "providerEnv" | "approvalGate"> = {
     maxRetries: config?.maxRetries ?? DEFAULT_MAX_RETRIES,
     qualityThreshold: config?.qualityThreshold ?? DEFAULT_QUALITY_THRESHOLD,
     ...(providerEnv ? { providerEnv } : {}),
+    ...(config?.approvalGate ? { approvalGate: config.approvalGate } : {}),
   };
 
   const graph = new StateGraph(OrchestratorState)

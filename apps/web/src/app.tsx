@@ -4,6 +4,7 @@ import { FileRoutes } from "@solidjs/start/router";
 import { Suspense, onMount } from "solid-js";
 import { isServer } from "solid-js/web";
 import { AuthProvider, ThemeProvider } from "./stores";
+import { NavigationProvider } from "./lib/navigation";
 import { Layout } from "./components/Layout";
 import "./app.css";
 
@@ -32,9 +33,11 @@ export default function App() {
           <Title>Back to the Future</Title>
           <ThemeProvider>
             <AuthProvider>
-              <Layout>
-                <Suspense>{props.children}</Suspense>
-              </Layout>
+              <NavigationProvider>
+                <Layout>
+                  <Suspense>{props.children}</Suspense>
+                </Layout>
+              </NavigationProvider>
             </AuthProvider>
           </ThemeProvider>
         </MetaProvider>
