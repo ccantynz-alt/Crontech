@@ -46,6 +46,14 @@ app.get("/health", (c) => {
 // Mount AI routes (raw Hono -- streaming works better outside tRPC)
 app.route("/ai", aiRoutes);
 
+// ── Enterprise SSO ──────────────────────────────────────────────
+import { getSSOConfig, createSSOHandler } from "./auth/sso";
+
+const ssoConfig = getSSOConfig();
+if (ssoConfig) {
+  app.route("/sso", createSSOHandler(ssoConfig));
+}
+
 app.use("/trpc/*", async (c) => {
   const response = await fetchRequestHandler({
     endpoint: "/api/trpc",

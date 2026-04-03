@@ -1,0 +1,98 @@
+/* ── Court-Compliant Print Styles ─────────────────────────────────── */
+
+@media print {
+  /* Page setup: 1-inch margins, page numbering */
+  @page {
+    margin: 1in;
+    @bottom-center {
+      content: "Page " counter(page) " of " counter(pages);
+      font-family: "Times New Roman", Times, serif;
+      font-size: 10pt;
+    }
+  }
+
+  /* Base typography: Times New Roman, 12pt, double-spaced */
+  body {
+    font-family: "Times New Roman", Times, serif !important;
+    font-size: 12pt !important;
+    line-height: 2 !important;
+    color: #000 !important;
+    background: #fff !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Force black text on white background for all elements */
+  * {
+    color: #000 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  /* Hide navigation, sidebar, and interactive elements */
+  .navbar,
+  .sidebar,
+  .theme-toggle,
+  .user-menu,
+  .builder-chat,
+  .preview-toolbar,
+  .loading-screen,
+  .loading-spinner,
+  nav,
+  button,
+  [role="navigation"],
+  [role="complementary"] {
+    display: none !important;
+  }
+
+  /* Show URLs after links */
+  a[href]::after {
+    content: " (" attr(href) ")";
+    font-size: 10pt;
+    font-style: italic;
+    word-break: break-all;
+  }
+
+  /* Do not show URLs for internal/anchor links */
+  a[href^="#"]::after,
+  a[href^="javascript:"]::after {
+    content: "";
+  }
+
+  /* Prevent page breaks inside important content blocks */
+  .card,
+  table,
+  pre,
+  code,
+  blockquote,
+  figure,
+  img,
+  tr,
+  .alert {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Headings should not be orphaned at bottom of page */
+  h1, h2, h3, h4, h5, h6 {
+    page-break-after: avoid;
+    break-after: avoid;
+  }
+
+  /* Ensure content area takes full width */
+  .layout-body,
+  .layout-content,
+  .page-padded,
+  .page-center {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Builder layout becomes single column */
+  .builder-layout {
+    display: block !important;
+  }
+}

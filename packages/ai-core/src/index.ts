@@ -41,6 +41,16 @@ export {
 } from "./agents/site-builder";
 
 export {
+  classifyRisk,
+  createApprovalGate,
+  type RiskLevel,
+  type ApprovalRequest,
+  type ApprovalDecision,
+  type ApprovalCallback,
+  type ApprovalGate,
+} from "./approval";
+
+export {
   createOrchestratorGraph,
   runOrchestrator,
   OrchestratorState,
