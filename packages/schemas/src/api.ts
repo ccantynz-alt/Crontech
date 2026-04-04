@@ -6,7 +6,7 @@ export const UserSchema = z.object({
   id: z.string().uuid(),
   email: z.string().email(),
   displayName: z.string().min(1).max(100),
-  role: z.enum(["admin", "editor", "viewer"]),
+  role: z.enum(["owner", "admin", "editor", "viewer", "billing_admin"]),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
 });
@@ -16,7 +16,7 @@ export type User = z.infer<typeof UserSchema>;
 export const CreateUserInput = z.object({
   email: z.string().email(),
   displayName: z.string().min(1).max(100),
-  role: z.enum(["admin", "editor", "viewer"]).default("viewer"),
+  role: z.enum(["owner", "admin", "editor", "viewer", "billing_admin"]).default("viewer"),
 });
 
 export type CreateUserInputType = z.infer<typeof CreateUserInput>;

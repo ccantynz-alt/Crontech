@@ -11,7 +11,7 @@ const UpdateUserInput = z.object({
   id: z.string().uuid(),
   email: z.string().email().optional(),
   displayName: z.string().min(1).max(100).optional(),
-  role: z.enum(["admin", "editor", "viewer"]).optional(),
+  role: z.enum(["owner", "admin", "editor", "viewer", "billing_admin"]).optional(),
 });
 
 export const usersRouter = router({

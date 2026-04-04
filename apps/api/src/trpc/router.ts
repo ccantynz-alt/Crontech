@@ -7,6 +7,8 @@ import { billingRouter } from "./procedures/billing";
 import { projectsRouter } from "./procedures/projects";
 import { assetsRouter } from "./procedures/assets";
 import { flagsRouter } from "./procedures/flags";
+import { rbacRouter } from "./procedures/rbac";
+import { auditEnhancedRouter } from "./procedures/audit-enhanced";
 
 export const appRouter = router({
   health: publicProcedure.query(() => {
@@ -26,6 +28,8 @@ export const appRouter = router({
   projects: projectsRouter,
   assets: assetsRouter,
   flags: flagsRouter,
+  rbac: rbacRouter,
+  auditEnhanced: auditEnhancedRouter,
 });
 
 export type AppRouter = typeof appRouter;

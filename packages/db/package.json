@@ -8,7 +8,8 @@
     ".": "./src/index.ts",
     "./schema": "./src/schema.ts",
     "./neon-schema": "./src/neon-schema.ts",
-    "./neon-client": "./src/neon-client.ts"
+    "./neon-client": "./src/neon-client.ts",
+    "./rbac-schema": "./src/rbac-schema.ts"
   },
   "scripts": {
     "check": "tsc --noEmit",
