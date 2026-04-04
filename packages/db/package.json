@@ -18,12 +18,12 @@
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
-    "@libsql/client": "^0.14",
+    "@libsql/client": "^0.17",
     "@neondatabase/serverless": "1.0.2",
-    "drizzle-orm": "^0.38"
+    "drizzle-orm": "^0.45"
   },
   "devDependencies": {
-    "drizzle-kit": "^0.30",
+    "drizzle-kit": "^0.31",
     "typescript": "^5"
   }
 }
