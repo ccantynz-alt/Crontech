@@ -23,26 +23,21 @@ const SITE_BUILDER_SYSTEM_PROMPT = `You are the Back to the Future Site Builder 
 ## Component Catalog
 You have access to the following validated UI components:
 
-${Object.entries(ComponentCatalog)
-  .map(([name]) => {
-    switch (name) {
-      case "Button":
-        return `- **Button**: Interactive button. Variants: default, primary, secondary, destructive, outline, ghost, link. Sizes: sm, md, lg, icon. Props: variant, size, disabled, loading, label, onClick.`;
-      case "Input":
-        return `- **Input**: Text input field. Types: text, email, password, number, search, tel, url. Props: type, placeholder, label, required, disabled, error, name.`;
-      case "Card":
-        return `- **Card**: Content container. Props: title, description, padding (none/sm/md/lg). Can contain children components.`;
-      case "Stack":
-        return `- **Stack**: Layout container. Direction: horizontal/vertical. Gap: none/xs/sm/md/lg/xl. Align: start/center/end/stretch. Justify: start/center/end/between/around. Can contain children.`;
-      case "Text":
-        return `- **Text**: Text display. Variants: h1, h2, h3, h4, body, caption, code. Weight: normal/medium/semibold/bold. Align: left/center/right.`;
-      case "Modal":
-        return `- **Modal**: Dialog overlay. Size: sm/md/lg/xl/full. Props: title, description, open. Can contain children.`;
-      default:
-        return `- **${name}**: Available component.`;
-    }
-  })
-  .join("\n")}
+- **Button**: Interactive button. Variants: default, primary, secondary, destructive, outline, ghost, link. Sizes: sm, md, lg, icon. Props: variant, size, disabled, loading, label, onClick.
+- **Input**: Text input field. Types: text, email, password, number, search, tel, url. Props: type, placeholder, label, required, disabled, error, name.
+- **Card**: Content container. Props: title, description, padding (none/sm/md/lg). Can contain children components.
+- **Stack**: Layout container. Direction: horizontal/vertical. Gap: none/xs/sm/md/lg/xl. Align: start/center/end/stretch. Justify: start/center/end/between/around. Can contain children.
+- **Text**: Text display. Props: content (the text), variant (h1/h2/h3/h4/body/caption/code), weight (normal/medium/semibold/bold), align (left/center/right).
+- **Modal**: Dialog overlay. Props: title, description, open, size (sm/md/lg/xl). Can contain children.
+- **Badge**: Status indicator. Variants: default, success, warning, error, info. Sizes: sm, md. Props: variant, size, label.
+- **Alert**: Notification banner. Variants: info, success, warning, error. Props: variant, title, description, dismissible. Can contain children.
+- **Avatar**: User avatar. Props: src, alt, initials, size (sm/md/lg).
+- **Tabs**: Tab navigation. Props: items (array of {id, label, disabled?}), defaultTab.
+- **Select**: Dropdown select. Props: options (array of {value, label, disabled?}), value, placeholder, label, error, disabled, name.
+- **Textarea**: Multi-line text input. Props: label, error, placeholder, rows, resize (none/vertical/horizontal/both), required, disabled, name.
+- **Spinner**: Loading spinner. Props: size (sm/md/lg).
+- **Tooltip**: Hover tooltip. Props: content, position (top/bottom/left/right). Can contain children.
+- **Separator**: Visual divider. Props: orientation (horizontal/vertical).
 
 ## Rules
 1. ALWAYS use components from the catalog. Never suggest raw HTML.
@@ -134,7 +129,9 @@ export async function generatePageLayout(
   const { object } = await generateObject({
     model,
     schema: PageLayoutSchema,
-    prompt: `Generate a page layout for the following description. Use only components from the catalog (Button, Input, Card, Stack, Text, Modal). Compose them into a well-structured page.
+    prompt: `Generate a page layout for the following description. Use components from the catalog: Button, Input, Card, Stack, Text, Modal, Badge, Alert, Avatar, Tabs, Select, Textarea, Spinner, Tooltip, Separator.
+
+Use Stack for layout structure, Card for content grouping, Text for headings/body, Button for actions. Nest components properly — Stack and Card accept children.
 
 Description: ${description}`,
     temperature,

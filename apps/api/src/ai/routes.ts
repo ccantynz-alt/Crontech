@@ -10,6 +10,7 @@ import {
   getModelForTier,
   readProviderEnv,
   streamSiteBuilder,
+  generatePageLayout,
   type ComputeTier,
 } from "@back-to-the-future/ai-core";
 import { ComponentSchema } from "@back-to-the-future/schemas";
@@ -33,6 +34,12 @@ const ChatInputSchema = z.object({
 const GenerateUIInputSchema = z.object({
   description: z.string().min(1, "Description is required"),
   computeTier: z.enum(["client", "edge", "cloud"]).default("cloud"),
+});
+
+const GenerateLayoutInputSchema = z.object({
+  description: z.string().min(1, "Description is required"),
+  computeTier: z.enum(["client", "edge", "cloud"]).default("cloud"),
+  temperature: z.number().min(0).max(2).default(0.7),
 });
 
 const SiteBuilderInputSchema = z.object({
@@ -122,11 +129,11 @@ aiRoutes.post("/generate-ui", async (c) => {
     const { object } = await generateObject({
       model,
       schema: UIOutputSchema,
-      prompt: `Generate a UI layout using ONLY these components: Button, Input, Card, Stack, Text, Modal.
+      prompt: `Generate a UI layout using these components: Button, Input, Card, Stack, Text, Modal, Badge, Alert, Avatar, Tabs, Select, Textarea, Spinner, Tooltip, Separator.
 
 User request: ${description}
 
-Compose a clean, well-structured component tree. Use Stack for layout, Card for grouping, Text for headings and content, Button for actions, Input for form fields.`,
+Compose a clean, well-structured component tree. Use Stack for layout, Card for grouping, Text for headings/content, Button for actions, Input for form fields. Nest components properly — Stack and Card accept children arrays.`,
       temperature: 0.7,
     });
 
@@ -134,6 +141,40 @@ Compose a clean, well-structured component tree. Use Stack for layout, Card for 
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "UI generation failed";
+    return c.json({ error: message }, 500);
+  }
+});
+
+/**
+ * POST /ai/generate-layout
+ * Generate a full PageLayout (title + description + component tree) from
+ * a natural language description. Returns structured JSON suitable for
+ * the deploy pipeline (generateSiteFiles → bundleSite → deploy).
+ */
+aiRoutes.post("/generate-layout", async (c) => {
+  const body = await c.req.json();
+  const parsed = GenerateLayoutInputSchema.safeParse(body);
+
+  if (!parsed.success) {
+    return c.json(
+      { error: "Invalid input", details: parsed.error.flatten() },
+      400,
+    );
+  }
+
+  const { description, computeTier, temperature } = parsed.data;
+
+  try {
+    const layout = await generatePageLayout(description, {
+      computeTier: computeTier as ComputeTier,
+      providerEnv: readProviderEnv(),
+      temperature,
+    });
+
+    return c.json({ success: true, layout });
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Layout generation failed";
     return c.json({ error: message }, 500);
   }
 });

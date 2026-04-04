@@ -1038,3 +1038,130 @@ Launching is not winning. Staying ahead is winning. This never ends.
 > AI-native. Edge-first. Zero-HTML. Self-evolving.
 > Nobody has built this before. Nobody will catch us once we launch.
 > The future does not wait. Neither do we.
+
+---
+
+## 8. UNIVERSAL PROJECT GOVERNANCE
+
+### PRIME DIRECTIVE
+Priority hierarchy: **Security > Correctness > UX > Performance > Maintainability > Convention**
+
+Fix broken things immediately without asking. Be brutally honest — flag problems, never sugarcoat.
+
+### AUTONOMOUS FIX POLICY
+
+**Fix without asking:** type errors, broken tests, security vulns, dead code, middleware leaks, missing error handling.
+
+**NEVER do without asking:** delete files, force push, modify CI/CD, change dependencies, alter DB schemas.
+
+### RESEARCH BEFORE BUILDING
+
+- Before adding any dependency: search for alternatives, check bundle size, check maintenance status, check license.
+- Before implementing any major pattern: research current best practices, check if the framework has a built-in solution.
+- Before choosing any architecture: verify it is the current industry standard, not legacy.
+
+### SECURITY POSTURE (ZERO TOLERANCE)
+
+- OWASP Top 10 awareness on every change
+- Input validation at all system boundaries (Zod)
+- Never expose secrets, hashes, tokens, or internal errors in responses
+- Auth middleware scoped to exact route prefixes, never wildcard
+- Rate limit all public endpoints
+- HMAC-verify all webhook signatures
+- Security headers on all responses
+- No `eval()`, no `dangerouslySetInnerHTML`, no raw SQL interpolation
+- Session tokens: httpOnly, secure, sameSite
+- If you spot a vulnerability, fix it IMMEDIATELY — this is Priority #0
+
+### LEGAL & LICENSE COMPLIANCE
+
+- Check license of every dependency before adding
+- No GPL/AGPL in MIT/Apache projects without explicit approval
+- No copy-pasting code without checking license
+- No AI-generated code that reproduces copyrighted material
+- Maintain LICENSE file, keep attribution in NOTICE if required
+
+### CODE HEALTH
+
+- No dead code — if unused, delete it completely
+- No TODO/FIXME/HACK in production — do it now or do not
+- No backwards-compatibility shims — change the code directly
+- No premature abstractions — 3 similar lines > 1 unnecessary helper
+- No speculative features — build what is asked, nothing more
+- No suppressed warnings — fix the root cause
+- Functions under 50 lines, files under 500 lines (guidelines)
+
+### QUALITY GATES (must pass before EVERY commit)
+
+- TypeScript: `npx tsc --noEmit` + `bun test`
+- If any gate fails, fix it — never commit broken code
+
+### GIT DISCIPLINE
+
+- Conventional commits: `feat:`, `fix:`, `chore:`, `docs:`, `refactor:`, `test:`, `perf:`
+- Atomic commits — one logical change per commit
+- Never force push
+- Never skip hooks (`--no-verify`)
+- Never commit secrets, `.env` files, credentials, or large binaries
+- Commit message explains WHY, not WHAT
+
+### ERROR HANDLING
+
+- Never crash — catch at boundaries, return structured errors
+- Never return raw 500s — always return a useful error message
+- Log errors with context (what failed, what input caused it)
+- Graceful degradation over hard failure
+
+### PERFORMANCE
+
+- Measure before optimizing — no premature optimization
+- Lazy load what is not needed immediately
+- Monitor bundle size for frontend code
+- Database queries: use indexes, avoid N+1, use prepared statements
+
+### TESTING
+
+- Every new endpoint/function needs at least one happy path + one error test
+- Mock external dependencies, never hit real APIs in tests
+- Tests must be deterministic — no flaky tests
+- Test the behavior, not the implementation
+
+### STAY 80-90% AHEAD OF THE MARKET
+
+- Before implementing ANY feature: research the current state of the art — what are the top 3 products doing? Then build BETTER.
+- Before choosing ANY tool/library/framework: verify it is the CURRENT market leader with forward momentum.
+- When a new technology trend emerges: evaluate immediately for adoption.
+- Proactively suggest upgrades: new major versions, emerging standards (MCP, OAuth 2.1, HTTP/3).
+- Flag any tech in the stack that is losing momentum.
+- The bar is not "good enough" — the bar is best-in-class.
+- Default to the cutting edge: edge runtimes over traditional servers, streaming over polling, native APIs over polyfills.
+
+### DEPENDENCY HEALTH
+
+- Before adding: check download trends, last publish date, open issues count, license
+- Flag any dependency not updated in 12+ months
+- Flag any dependency with known CVEs
+- Prefer dependencies backed by companies or foundations over solo maintainers for critical paths
+- Regularly suggest upgrades when new major versions ship
+
+### INCIDENT RESPONSE
+
+- Security vulnerability found: fix it in the current session, do not defer
+- Breaking change detected after upgrade: roll back first, investigate second
+- Data could be lost: stop and confirm with the user before proceeding
+- Third-party service is down: implement graceful fallback, never crash
+
+### ACCESSIBILITY & INTERNATIONALIZATION
+
+- All user-facing UI must be keyboard-navigable
+- All images need alt text, all forms need labels
+- Color alone must never convey meaning — use icons/text too
+- Use semantic HTML elements (within SolidJS JSX)
+- Design for i18n from day 1 — no hardcoded strings in components
+
+### OBSERVABILITY
+
+- Every API endpoint should log: method, path, status code, latency
+- Every error should include a correlation ID for tracing
+- Health check endpoint required at `/health`
+- Structured logging (JSON) over free-text logs
