@@ -73,6 +73,65 @@ describe("tRPC hello procedure", () => {
   });
 });
 
+// ── Templates endpoints ─────────────────────────────────────────────
+
+describe("GET /api/templates", () => {
+  test("returns all templates", async () => {
+    const res = await app.request("/api/templates");
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.templates).toBeDefined();
+    expect(body.templates.length).toBeGreaterThanOrEqual(4);
+  });
+
+  test("each template has required fields", async () => {
+    const res = await app.request("/api/templates");
+    const body = await res.json();
+    for (const t of body.templates) {
+      expect(t.id).toBeDefined();
+      expect(t.name).toBeDefined();
+      expect(t.description).toBeDefined();
+      expect(t.category).toBeDefined();
+      expect(t.layout).toBeDefined();
+      expect(t.layout.components).toBeDefined();
+    }
+  });
+
+  test("filters by category", async () => {
+    const res = await app.request("/api/templates?category=landing");
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.templates.length).toBeGreaterThanOrEqual(1);
+    for (const t of body.templates) {
+      expect(t.category).toBe("landing");
+    }
+  });
+
+  test("returns empty array for unknown category", async () => {
+    const res = await app.request("/api/templates?category=nonexistent");
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.templates).toEqual([]);
+  });
+});
+
+describe("GET /api/templates/:id", () => {
+  test("returns a specific template", async () => {
+    const res = await app.request("/api/templates/landing-page");
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.template.id).toBe("landing-page");
+    expect(body.template.name).toBe("Landing Page");
+  });
+
+  test("returns 404 for unknown template", async () => {
+    const res = await app.request("/api/templates/nonexistent");
+    expect(res.status).toBe(404);
+    const body = await res.json();
+    expect(body.error).toBeDefined();
+  });
+});
+
 // ── 404 handling ─────────────────────────────────────────────────────
 
 describe("unknown routes", () => {

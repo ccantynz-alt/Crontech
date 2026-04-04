@@ -20,6 +20,9 @@ import {
   handleMCPToolCall,
   handleMCPResourceRead,
   listComponents,
+  SITE_TEMPLATES,
+  getTemplate,
+  getTemplatesByCategory,
 } from "@back-to-the-future/ai-core";
 
 // Initialize OpenTelemetry (no-op if OTEL_EXPORTER_OTLP_ENDPOINT not set)
@@ -126,6 +129,22 @@ app.get("/mcp/resources/:uri{.+}", (c) => {
   const uri = `btf://${c.req.param("uri")}`;
   const result = handleMCPResourceRead(uri);
   return c.json({ result });
+});
+
+// ── Site Templates Endpoints ─────────────────────────────────────────
+app.get("/templates", (c) => {
+  const category = c.req.query("category");
+  if (category) {
+    const templates = getTemplatesByCategory(category as "landing" | "portfolio" | "business" | "blog" | "saas" | "minimal");
+    return c.json({ templates });
+  }
+  return c.json({ templates: SITE_TEMPLATES });
+});
+
+app.get("/templates/:id", (c) => {
+  const template = getTemplate(c.req.param("id"));
+  if (!template) return c.json({ error: "Template not found" }, 404);
+  return c.json({ template });
 });
 
 // Mount AI routes (raw Hono -- streaming works better outside tRPC)

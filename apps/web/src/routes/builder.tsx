@@ -1,8 +1,9 @@
 import { Title } from "@solidjs/meta";
-import { createEffect, createSignal, For, Show } from "solid-js";
+import { createEffect, createSignal, createResource, For, Show } from "solid-js";
 import type { JSX } from "solid-js";
 import {
   Button,
+  Card,
   Input,
   Stack,
   Text,
@@ -28,6 +29,14 @@ interface PageLayout {
   title: string;
   description: string;
   components: UIComponent[];
+}
+
+interface SiteTemplate {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  layout: PageLayout;
 }
 
 type DeployStatus = "idle" | "creating" | "deploying" | "success" | "failed";
@@ -142,6 +151,52 @@ async function fetchGenerateLayout(
   return data.layout;
 }
 
+async function fetchTemplates(): Promise<SiteTemplate[]> {
+  try {
+    const response = await fetch(`${getApiUrl()}/api/templates`);
+    if (!response.ok) return [];
+    const data = (await response.json()) as { templates: SiteTemplate[] };
+    return data.templates;
+  } catch {
+    return [];
+  }
+}
+
+// ── Template Card ────────────────────────────────────────────────────
+
+function TemplateCard(props: {
+  template: SiteTemplate;
+  onSelect: (template: SiteTemplate) => void;
+}): JSX.Element {
+  const categoryColor = (): "info" | "success" | "warning" | "default" => {
+    switch (props.template.category) {
+      case "landing": return "info";
+      case "portfolio": return "success";
+      case "saas": return "warning";
+      default: return "default";
+    }
+  };
+
+  return (
+    <Card padding="md" class="cursor-pointer transition-colors hover:border-blue-500">
+      <Stack direction="vertical" gap="sm">
+        <Stack direction="horizontal" gap="sm" align="center" justify="between">
+          <Text variant="h4" weight="semibold">{props.template.name}</Text>
+          <Badge variant={categoryColor()} size="sm" label={props.template.category} />
+        </Stack>
+        <Text variant="caption" class="text-zinc-400">{props.template.description}</Text>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => props.onSelect(props.template)}
+        >
+          Use Template
+        </Button>
+      </Stack>
+    </Card>
+  );
+}
+
 // ── Chat Bubble ──────────────────────────────────────────────────────
 
 function ChatBubble(props: { message: ChatMessage }): JSX.Element {
@@ -204,6 +259,25 @@ export default function BuilderPage(): JSX.Element {
   const [deployStatus, setDeployStatus] = createSignal<DeployStatus>("idle");
   const [deployUrl, setDeployUrl] = createSignal<string | null>(null);
   const [deployError, setDeployError] = createSignal<string | null>(null);
+
+  // Template state
+  const [templates] = createResource(fetchTemplates);
+
+  const handleSelectTemplate = (template: SiteTemplate): void => {
+    setPageLayout(template.layout);
+    if (!siteName()) {
+      setSiteName(template.name);
+    }
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: `template-${Date.now()}`,
+        role: "assistant",
+        content: `Template "${template.name}" loaded: ${template.description}. You can see it in the preview. Ask me to customize it!`,
+        timestamp: Date.now(),
+      },
+    ]);
+  };
 
   // Ref for scrolling chat to bottom
   let chatContainerRef: HTMLDivElement | undefined;
@@ -544,14 +618,37 @@ export default function BuilderPage(): JSX.Element {
               <Show
                 when={pageLayout()}
                 fallback={
-                  <div class="flex min-h-[300px] flex-col items-center justify-center gap-3 p-8">
-                    <Text variant="h3" class="text-zinc-600">
-                      Preview Area
+                  <div class="flex min-h-[300px] flex-col items-center justify-center gap-4 p-8">
+                    <Text variant="h3" class="text-zinc-500">
+                      Start Building
                     </Text>
-                    <Text variant="body" class="text-center text-zinc-600">
-                      Describe your website in the chat, then click "Generate
-                      Layout" to see it rendered here.
+                    <Text variant="body" class="text-center text-zinc-500">
+                      Describe your website in the chat and click "Generate Layout", or pick a template below.
                     </Text>
+
+                    <Show when={templates()?.length}>
+                      <Separator orientation="horizontal" />
+                      <Text variant="h4" weight="semibold" class="text-zinc-400">
+                        Quick Start Templates
+                      </Text>
+                      <div class="grid w-full grid-cols-1 gap-3 sm:grid-cols-2">
+                        <For each={templates()}>
+                          {(template) => (
+                            <TemplateCard
+                              template={template}
+                              onSelect={handleSelectTemplate}
+                            />
+                          )}
+                        </For>
+                      </div>
+                    </Show>
+
+                    <Show when={templates.loading}>
+                      <Stack direction="horizontal" gap="sm" align="center">
+                        <Spinner size="sm" />
+                        <Text variant="caption" class="text-zinc-500">Loading templates...</Text>
+                      </Stack>
+                    </Show>
                   </div>
                 }
               >

@@ -111,6 +111,14 @@ export {
   type MCPResource,
 } from "./mcp/component-server";
 
+// ── Templates ──────────────────────────────────────────────────────
+export {
+  SITE_TEMPLATES,
+  getTemplate,
+  getTemplatesByCategory,
+  type SiteTemplate,
+} from "./templates";
+
 // ── Deploy ──────────────────────────────────────────────────────────
 export {
   deployToCloudflarePages,
