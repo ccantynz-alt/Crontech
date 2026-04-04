@@ -509,15 +509,33 @@ export default function BuilderPage(): JSX.Element {
             <Text variant="h3" weight="bold">
               AI Website Builder
             </Text>
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={handleGenerateLayout}
-              loading={isGeneratingLayout()}
-              disabled={!getLastUserMessage() || isGeneratingLayout()}
-            >
-              Generate Layout
-            </Button>
+            <Stack direction="horizontal" gap="xs">
+              <Show when={pageLayout()}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setPageLayout(null);
+                    setSiteId(null);
+                    setSiteName("");
+                    setDeployStatus("idle");
+                    setDeployUrl(null);
+                    setDeployError(null);
+                  }}
+                >
+                  Reset
+                </Button>
+              </Show>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={handleGenerateLayout}
+                loading={isGeneratingLayout()}
+                disabled={!getLastUserMessage() || isGeneratingLayout()}
+              >
+                Generate Layout
+              </Button>
+            </Stack>
           </div>
 
           {/* Chat Messages */}
