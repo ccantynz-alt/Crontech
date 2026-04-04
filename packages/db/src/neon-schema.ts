@@ -1,61 +1,68 @@
-import { sqliteTable, text, integer, blob } from "drizzle-orm/sqlite-core";
+import {
+  pgTable,
+  text,
+  timestamp,
+  boolean,
+  integer,
+  uuid,
+} from "drizzle-orm/pg-core";
 
 // ── Users ───────────────────────────────────────────────────────────
 
-export const users = sqliteTable("users", {
-  id: text("id").primaryKey(),
+export const users = pgTable("users", {
+  id: uuid("id").primaryKey().defaultRandom(),
   email: text("email").notNull().unique(),
   displayName: text("display_name").notNull(),
   role: text("role", { enum: ["admin", "editor", "viewer"] })
     .notNull()
     .default("viewer"),
-  createdAt: integer("created_at", { mode: "timestamp" })
+  createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
-    .$defaultFn(() => new Date()),
-  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
     .notNull()
-    .$defaultFn(() => new Date()),
+    .defaultNow(),
 });
 
 // ── Credentials (WebAuthn/Passkey) ──────────────────────────────────
 
-export const credentials = sqliteTable("credentials", {
-  id: text("id").primaryKey(),
-  userId: text("user_id")
+export const credentials = pgTable("credentials", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
   credentialId: text("credential_id").notNull().unique(),
-  publicKey: blob("public_key", { mode: "buffer" }).notNull(),
+  publicKey: text("public_key").notNull(), // base64-encoded
   counter: integer("counter").notNull().default(0),
   deviceType: text("device_type", {
     enum: ["singleDevice", "multiDevice"],
   }).notNull(),
-  backedUp: integer("backed_up", { mode: "boolean" }).notNull().default(false),
-  transports: text("transports"),
-  createdAt: integer("created_at", { mode: "timestamp" })
+  backedUp: boolean("backed_up").notNull().default(false),
+  transports: text("transports"), // JSON string
+  createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
-    .$defaultFn(() => new Date()),
+    .defaultNow(),
 });
 
 // ── Sessions ────────────────────────────────────────────────────────
 
-export const sessions = sqliteTable("sessions", {
-  id: text("id").primaryKey(),
-  userId: text("user_id")
+export const sessions = pgTable("sessions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
   token: text("token").notNull().unique(),
-  expiresAt: integer("expires_at", { mode: "timestamp" }).notNull(),
-  createdAt: integer("created_at", { mode: "timestamp" })
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
-    .$defaultFn(() => new Date()),
+    .defaultNow(),
 });
 
 // ── Audit Logs ──────────────────────────────────────────────────────
 
-export const auditLogs = sqliteTable("audit_logs", {
-  id: text("id").primaryKey(),
-  userId: text("user_id").references(() => users.id, { onDelete: "set null" }),
+export const auditLogs = pgTable("audit_logs", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").references(() => users.id, { onDelete: "set null" }),
   action: text("action", {
     enum: ["CREATE", "READ", "UPDATE", "DELETE", "EXPORT", "SIGN"],
   }).notNull(),
@@ -63,16 +70,16 @@ export const auditLogs = sqliteTable("audit_logs", {
   detail: text("detail"),
   ip: text("ip"),
   userAgent: text("user_agent"),
-  createdAt: integer("created_at", { mode: "timestamp" })
+  createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
-    .$defaultFn(() => new Date()),
+    .defaultNow(),
 });
 
 // ── Sites ───────────────────────────────────────────────────────────
 
-export const sites = sqliteTable("sites", {
-  id: text("id").primaryKey(),
-  userId: text("user_id")
+export const sites = pgTable("sites", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
@@ -87,22 +94,22 @@ export const sites = sqliteTable("sites", {
   })
     .notNull()
     .default("draft"),
-  createdAt: integer("created_at", { mode: "timestamp" })
+  createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
-    .$defaultFn(() => new Date()),
-  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
     .notNull()
-    .$defaultFn(() => new Date()),
+    .defaultNow(),
 });
 
 // ── Deployments ─────────────────────────────────────────────────────
 
-export const deployments = sqliteTable("deployments", {
-  id: text("id").primaryKey(),
-  siteId: text("site_id")
+export const deployments = pgTable("deployments", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  siteId: uuid("site_id")
     .notNull()
     .references(() => sites.id, { onDelete: "cascade" }),
-  userId: text("user_id")
+  userId: uuid("user_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
   cloudflareDeploymentId: text("cloudflare_deployment_id"),
@@ -112,7 +119,7 @@ export const deployments = sqliteTable("deployments", {
     .notNull()
     .default("pending"),
   url: text("url"),
-  createdAt: integer("created_at", { mode: "timestamp" })
+  createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
-    .$defaultFn(() => new Date()),
+    .defaultNow(),
 });

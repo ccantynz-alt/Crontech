@@ -1,5 +1,13 @@
 # CLAUDE.md - Back to the Future
 
+> **ABSOLUTE RULE: NEVER STOP. NEVER PAUSE. NEVER WAIT FOR PERMISSION.**
+> When given a task, execute it to completion. Do not stop to summarize progress.
+> Do not stop to ask "should I continue?" Do not take your foot off the accelerator.
+> The user is busy with other projects and cannot babysit. If a subtask fails,
+> fix it and keep going. If research is needed, do it inline — do not launch
+> background agents that timeout. Write code, write documents, commit, push.
+> The only acceptable stopping point is DONE. Ship it.
+
 > **This is not documentation. This is a war plan.**
 > The most aggressive, cutting-edge full-stack platform ever built.
 > Purpose-built for AI website builders and AI video builders to make them faster and more capable.

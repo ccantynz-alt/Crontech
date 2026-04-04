@@ -3,7 +3,9 @@ import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 import { appRouter } from "./trpc/router";
 import { createContext } from "./trpc/context";
 import { aiRoutes } from "./ai/routes";
+import { deployRoutes } from "./deploy/routes";
 import { wsApp, websocket, sseApp } from "./realtime";
+import { securityHeaders, corsMiddleware, rateLimitMiddleware } from "./middleware/security";
 import { initTelemetry, httpRequestCount, httpRequestDuration } from "./telemetry";
 import { getAllFlags, isFeatureEnabled } from "./feature-flags";
 import { checkNeonHealth } from "@back-to-the-future/db/neon";
@@ -24,6 +26,13 @@ import {
 const telemetry = initTelemetry();
 
 const app = new Hono().basePath("/api");
+
+// ── Security Middleware ──────────────────────────────────────────────
+app.use("*", securityHeaders());
+app.use("*", corsMiddleware(["*"]));
+app.use("/api/ai/*", rateLimitMiddleware("ai"));
+app.use("/api/auth/*", rateLimitMiddleware("auth"));
+app.use("/api/deploy/*", rateLimitMiddleware("standard"));
 
 // ── Request Telemetry Middleware ──────────────────────────────────────
 app.use("*", async (c, next) => {
@@ -121,6 +130,9 @@ app.get("/mcp/resources/:uri{.+}", (c) => {
 
 // Mount AI routes (raw Hono -- streaming works better outside tRPC)
 app.route("/ai", aiRoutes);
+
+// Mount deployment routes
+app.route("/deploy", deployRoutes);
 
 app.use("/trpc/*", async (c) => {
   const response = await fetchRequestHandler({

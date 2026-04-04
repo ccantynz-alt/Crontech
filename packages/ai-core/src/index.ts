@@ -110,3 +110,33 @@ export {
   type MCPTool,
   type MCPResource,
 } from "./mcp/component-server";
+
+// ── Deploy ──────────────────────────────────────────────────────────
+export {
+  deployToCloudflarePages,
+  createProject,
+  setCustomDomain,
+  getDeploymentStatus,
+  CloudflareDeployError,
+} from "./deploy/cloudflare-pages";
+export {
+  generateSiteFiles,
+  generateIndexHtml,
+  generatePackageJson,
+  bundleSite,
+} from "./deploy/site-generator";
+
+// ── Security ────────────────────────────────────────────────────────
+export { RateLimiter, RATE_LIMIT_PRESETS, type RateLimitPreset } from "./security/rate-limiter";
+export {
+  sanitizeHTML,
+  sanitizeSQL,
+  sanitizeXSS,
+  validateURL,
+  sanitizeInput,
+} from "./security/input-sanitizer";
+export {
+  filterAIOutput,
+  addContentProvenance,
+} from "./security/content-filter";
+export { AuditTrail } from "./security/audit-trail";
