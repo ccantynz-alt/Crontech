@@ -4,11 +4,11 @@
 // lookup, billing, knowledge base search, and escalation.
 // All responses streamed via SSE.
 
-import { streamText, type CoreMessage } from "ai";
+import { streamText, tool, stepCountIs, type ModelMessage } from "ai";
 import { anthropic } from "@ai-sdk/anthropic";
 import { z } from "zod";
 import { eq, and, gte, desc, sql } from "drizzle-orm";
-import { db, users, subscriptions, usageRecords } from "@cronix/db";
+import { db, users, subscriptions, usageRecords, auditLogs } from "@cronix/db";
 import { QdrantPipeline } from "@cronix/ai-core";
 import { getStripe } from "../billing/stripe";
 import { PLANS } from "../billing/plans";
@@ -56,13 +56,13 @@ function getSupportPipeline(): QdrantPipeline {
 // ── Tool Definitions ───────────────────────────────────────────
 
 const supportTools = {
-  lookupUser: {
+  lookupUser: tool({
     description:
       "Look up a user's profile, plan, and account status by user ID.",
-    parameters: z.object({
+    inputSchema: z.object({
       userId: z.string().describe("The user ID to look up"),
     }),
-    execute: async ({ userId }: { userId: string }) => {
+    execute: async ({ userId }) => {
       const result = await db
         .select()
         .from(users)
@@ -82,15 +82,15 @@ const supportTools = {
         createdAt: user.createdAt,
       };
     },
-  },
+  }),
 
-  lookupSubscription: {
+  lookupSubscription: tool({
     description:
       "Get Stripe subscription details including current plan, status, and billing dates.",
-    parameters: z.object({
+    inputSchema: z.object({
       userId: z.string().describe("The user ID to look up subscription for"),
     }),
-    execute: async ({ userId }: { userId: string }) => {
+    execute: async ({ userId }) => {
       const result = await db
         .select()
         .from(subscriptions)
@@ -99,7 +99,11 @@ const supportTools = {
 
       const sub = result[0];
       if (!sub) {
-        return { plan: "free", status: "active", message: "No subscription found — user is on the free plan." };
+        return {
+          plan: "free",
+          status: "active",
+          message: "No subscription found — user is on the free plan.",
+        };
       }
 
       const planId = (sub.plan ?? "free") as PlanId;
@@ -109,7 +113,9 @@ const supportTools = {
         plan: planId,
         planName: plan.name,
         status: sub.status,
-        stripeSubscriptionId: sub.stripeSubscriptionId ? "***" + sub.stripeSubscriptionId.slice(-4) : null,
+        stripeSubscriptionId: sub.stripeSubscriptionId
+          ? "***" + sub.stripeSubscriptionId.slice(-4)
+          : null,
         currentPeriodStart: sub.currentPeriodStart,
         currentPeriodEnd: sub.currentPeriodEnd,
         cancelAtPeriodEnd: sub.cancelAtPeriodEnd,
@@ -117,15 +123,15 @@ const supportTools = {
         features: plan.features,
       };
     },
-  },
+  }),
 
-  lookupUsage: {
+  lookupUsage: tool({
     description:
       "Get current usage for a user (AI tokens, video minutes, storage) in the current billing period.",
-    parameters: z.object({
+    inputSchema: z.object({
       userId: z.string().describe("The user ID to look up usage for"),
     }),
-    execute: async ({ userId }: { userId: string }) => {
+    execute: async ({ userId }) => {
       const subResult = await db
         .select()
         .from(subscriptions)
@@ -169,15 +175,15 @@ const supportTools = {
         periodEnd: sub?.currentPeriodEnd ?? null,
       };
     },
-  },
+  }),
 
-  lookupInvoices: {
+  lookupInvoices: tool({
     description:
       "Get recent invoices and payment status from Stripe for a user.",
-    parameters: z.object({
+    inputSchema: z.object({
       userId: z.string().describe("The user ID to look up invoices for"),
     }),
-    execute: async ({ userId }: { userId: string }) => {
+    execute: async ({ userId }) => {
       const subResult = await db
         .select()
         .from(subscriptions)
@@ -186,7 +192,7 @@ const supportTools = {
 
       const sub = subResult[0];
       if (!sub?.stripeCustomerId) {
-        return { invoices: [], message: "No billing account found." };
+        return { invoices: [] as unknown[], message: "No billing account found." };
       }
 
       try {
@@ -205,28 +211,33 @@ const supportTools = {
             amountPaid: inv.amount_paid,
             currency: inv.currency,
             periodStart: inv.period_start
-              ? new Date(inv.period_start * 1000)
+              ? new Date(inv.period_start * 1000).toISOString()
               : null,
             periodEnd: inv.period_end
-              ? new Date(inv.period_end * 1000)
+              ? new Date(inv.period_end * 1000).toISOString()
               : null,
             invoicePdf: inv.invoice_pdf,
-            createdAt: inv.created ? new Date(inv.created * 1000) : null,
+            createdAt: inv.created
+              ? new Date(inv.created * 1000).toISOString()
+              : null,
           })),
         };
       } catch {
-        return { invoices: [], message: "Unable to retrieve invoices from Stripe." };
+        return {
+          invoices: [] as unknown[],
+          message: "Unable to retrieve invoices from Stripe.",
+        };
       }
     },
-  },
+  }),
 
-  searchKnowledgeBase: {
+  searchKnowledgeBase: tool({
     description:
       "Semantic search over the Cronix docs and FAQ knowledge base. Use for answering product questions, troubleshooting, and general help.",
-    parameters: z.object({
+    inputSchema: z.object({
       query: z.string().describe("The search query"),
     }),
-    execute: async ({ query }: { query: string }) => {
+    execute: async ({ query }) => {
       try {
         const pipeline = getSupportPipeline();
         const results = await pipeline.semanticSearch(
@@ -237,7 +248,10 @@ const supportTools = {
         );
 
         if (results.length === 0) {
-          return { results: [], message: "No relevant knowledge base articles found." };
+          return {
+            results: [] as unknown[],
+            message: "No relevant knowledge base articles found.",
+          };
         }
 
         return {
@@ -248,21 +262,21 @@ const supportTools = {
           })),
         };
       } catch {
-        return { results: [], message: "Knowledge base search unavailable." };
+        return {
+          results: [] as unknown[],
+          message: "Knowledge base search unavailable.",
+        };
       }
     },
-  },
+  }),
 
-  lookupRecentErrors: {
+  lookupRecentErrors: tool({
     description:
       "Get recent errors or issues for a user's account from the audit log.",
-    parameters: z.object({
+    inputSchema: z.object({
       userId: z.string().describe("The user ID to look up errors for"),
     }),
-    execute: async ({ userId }: { userId: string }) => {
-      // Import audit logs dynamically to avoid circular deps
-      const { auditLogs } = await import("@cronix/db");
-
+    execute: async ({ userId }) => {
       const errors = await db
         .select()
         .from(auditLogs)
@@ -285,16 +299,16 @@ const supportTools = {
         count: errors.length,
       };
     },
-  },
+  }),
 
-  applyPromoCode: {
+  applyPromoCode: tool({
     description:
       "Apply a promotional code to a user's account. Returns success or failure.",
-    parameters: z.object({
+    inputSchema: z.object({
       userId: z.string().describe("The user ID to apply the promo code to"),
       code: z.string().describe("The promotional code to apply"),
     }),
-    execute: async ({ userId, code }: { userId: string; code: string }) => {
+    execute: async ({ userId, code }) => {
       const subResult = await db
         .select()
         .from(subscriptions)
@@ -303,12 +317,15 @@ const supportTools = {
 
       const sub = subResult[0];
       if (!sub?.stripeCustomerId) {
-        return { success: false, message: "No billing account found. User needs an active subscription first." };
+        return {
+          success: false,
+          message:
+            "No billing account found. User needs an active subscription first.",
+        };
       }
 
       try {
         const stripe = getStripe();
-        // Retrieve the promotion code from Stripe
         const promoCodes = await stripe.promotionCodes.list({
           code,
           active: true,
@@ -317,10 +334,12 @@ const supportTools = {
 
         const promoCode = promoCodes.data[0];
         if (!promoCode) {
-          return { success: false, message: `Promo code "${code}" is invalid or expired.` };
+          return {
+            success: false,
+            message: `Promo code "${code}" is invalid or expired.`,
+          };
         }
 
-        // Apply the coupon to the customer
         await stripe.customers.update(sub.stripeCustomerId, {
           coupon: promoCode.coupon.id,
         });
@@ -335,19 +354,29 @@ const supportTools = {
               : "Discount applied",
         };
       } catch {
-        return { success: false, message: "Failed to apply promo code. Please try again or contact support." };
+        return {
+          success: false,
+          message:
+            "Failed to apply promo code. Please try again or contact support.",
+        };
       }
     },
-  },
+  }),
 
-  extendTrial: {
+  extendTrial: tool({
     description:
       "Extend a user's free trial period by a specified number of days.",
-    parameters: z.object({
-      userId: z.string().describe("The user ID to extend the trial for"),
-      days: z.number().min(1).max(90).describe("Number of days to extend the trial"),
+    inputSchema: z.object({
+      userId: z
+        .string()
+        .describe("The user ID to extend the trial for"),
+      days: z
+        .number()
+        .min(1)
+        .max(90)
+        .describe("Number of days to extend the trial"),
     }),
-    execute: async ({ userId, days }: { userId: string; days: number }) => {
+    execute: async ({ userId, days }) => {
       const subResult = await db
         .select()
         .from(subscriptions)
@@ -356,17 +385,26 @@ const supportTools = {
 
       const sub = subResult[0];
       if (!sub?.stripeSubscriptionId) {
-        return { success: false, message: "No active subscription found to extend trial for." };
+        return {
+          success: false,
+          message: "No active subscription found to extend trial for.",
+        };
       }
 
       if (sub.status !== "trialing") {
-        return { success: false, message: `Cannot extend trial — subscription status is "${sub.status}", not "trialing".` };
+        return {
+          success: false,
+          message: `Cannot extend trial — subscription status is "${sub.status}", not "trialing".`,
+        };
       }
 
       try {
         const stripe = getStripe();
-        const stripeSub = await stripe.subscriptions.retrieve(sub.stripeSubscriptionId);
-        const currentEnd = stripeSub.trial_end ?? Math.floor(Date.now() / 1000);
+        const stripeSub = await stripe.subscriptions.retrieve(
+          sub.stripeSubscriptionId,
+        );
+        const currentEnd =
+          stripeSub.trial_end ?? Math.floor(Date.now() / 1000);
         const newEnd = currentEnd + days * 86400;
 
         await stripe.subscriptions.update(sub.stripeSubscriptionId, {
@@ -379,45 +417,49 @@ const supportTools = {
           newTrialEnd: new Date(newEnd * 1000).toISOString(),
         };
       } catch {
-        return { success: false, message: "Failed to extend trial. Please escalate to a human agent." };
+        return {
+          success: false,
+          message:
+            "Failed to extend trial. Please escalate to a human agent.",
+        };
       }
     },
-  },
+  }),
 
-  escalateToHuman: {
+  escalateToHuman: tool({
     description:
       "Escalate the conversation to a human support agent with a context summary.",
-    parameters: z.object({
+    inputSchema: z.object({
       reason: z.string().describe("Why this needs human attention"),
-      summary: z.string().describe("Summary of the conversation and issue so far"),
+      summary: z
+        .string()
+        .describe("Summary of the conversation and issue so far"),
     }),
-    execute: async ({ reason, summary }: { reason: string; summary: string }) => {
+    execute: async ({ reason, summary }) => {
       return {
         escalated: true,
-        message: "This conversation has been escalated to a human support agent. They will review the context and follow up shortly.",
+        message:
+          "This conversation has been escalated to a human support agent. They will review the context and follow up shortly.",
         reason,
         summary,
       };
     },
-  },
+  }),
 
-  createTicket: {
-    description:
-      "Create a support ticket for tracking and follow-up.",
-    parameters: z.object({
-      userId: z.string().describe("The user ID to create the ticket for"),
-      category: z.string().describe("Ticket category (billing, technical, account, feature_request, bug)"),
+  createTicket: tool({
+    description: "Create a support ticket for tracking and follow-up.",
+    inputSchema: z.object({
+      userId: z
+        .string()
+        .describe("The user ID to create the ticket for"),
+      category: z
+        .string()
+        .describe(
+          "Ticket category (billing, technical, account, feature_request, bug)",
+        ),
       summary: z.string().describe("Brief summary of the issue"),
     }),
-    execute: async ({
-      userId,
-      category,
-      summary,
-    }: {
-      userId: string;
-      category: string;
-      summary: string;
-    }) => {
+    execute: async ({ userId, category, summary }) => {
       const ticketId = `tkt_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 
       return {
@@ -429,13 +471,13 @@ const supportTools = {
         message: `Support ticket ${ticketId} created. Our team will review it and follow up.`,
       };
     },
-  },
+  }),
 };
 
 // ── Agent Runner ───────────────────────────────────────────────
 
 export interface SupportChatOptions {
-  messages: CoreMessage[];
+  messages: ModelMessage[];
   userId?: string | null;
   sessionId: string;
   maxTokens?: number;
@@ -461,8 +503,8 @@ export function runSupportAgent(options: SupportChatOptions) {
     system: systemPrompt,
     messages,
     tools: supportTools,
-    maxSteps: 8,
-    maxTokens: maxTokens,
+    stopWhen: stepCountIs(8),
+    maxOutputTokens: maxTokens,
     temperature: 0.3,
   });
 }

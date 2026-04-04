@@ -8,7 +8,7 @@
 
 import { Hono } from "hono";
 import { z } from "zod";
-import { eq, desc } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { db } from "@cronix/db";
 import {
   supportConversations,
@@ -18,7 +18,7 @@ import {
 } from "@cronix/db";
 import { runSupportAgent } from "./support-agent";
 import { traceAICall } from "../telemetry";
-import type { CoreMessage } from "ai";
+import type { ModelMessage } from "ai";
 
 // ── Input Schemas ──────────────────────────────────────────────
 
@@ -76,15 +76,20 @@ supportRoutes.post("/chat", async (c) => {
     .where(eq(supportConversations.sessionId, sessionId))
     .limit(1);
 
+  let conversationId: string;
+
   if (!existing[0]) {
+    conversationId = crypto.randomUUID();
     await db.insert(supportConversations).values({
-      id: crypto.randomUUID(),
+      id: conversationId,
       userId: userId ?? null,
       sessionId,
       status: "active",
       createdAt: new Date(),
       updatedAt: new Date(),
     });
+  } else {
+    conversationId = existing[0].id;
   }
 
   // Persist the latest user message
@@ -92,13 +97,7 @@ supportRoutes.post("/chat", async (c) => {
   if (latestUserMsg && latestUserMsg.role === "user") {
     await db.insert(supportMessages).values({
       id: crypto.randomUUID(),
-      conversationId: existing[0]?.id ?? (
-        await db
-          .select({ id: supportConversations.id })
-          .from(supportConversations)
-          .where(eq(supportConversations.sessionId, sessionId))
-          .limit(1)
-      )[0]!.id,
+      conversationId,
       role: "user",
       content: latestUserMsg.content,
       createdAt: new Date(),
@@ -110,24 +109,15 @@ supportRoutes.post("/chat", async (c) => {
     { sessionId, hasUserId: !!userId, messageCount: messages.length },
     async () => {
       return runSupportAgent({
-        messages: messages as CoreMessage[],
+        messages: messages as ModelMessage[],
         userId: userId ?? null,
         sessionId,
       });
     },
   );
 
-  // Collect the full text for storage after streaming completes
-  const conversationRecord = existing[0] ?? (
-    await db
-      .select()
-      .from(supportConversations)
-      .where(eq(supportConversations.sessionId, sessionId))
-      .limit(1)
-  )[0];
-
-  // Use the AI SDK data stream protocol for SSE
-  const response = result.toDataStreamResponse({
+  // Use the AI SDK text stream protocol for SSE
+  const response = result.toTextStreamResponse({
     headers: {
       "Cache-Control": "no-cache",
       Connection: "keep-alive",
@@ -135,24 +125,27 @@ supportRoutes.post("/chat", async (c) => {
   });
 
   // Save assistant response asynchronously after stream finishes
-  result.text.then(async (fullText: string) => {
-    if (conversationRecord && fullText) {
-      await db.insert(supportMessages).values({
-        id: crypto.randomUUID(),
-        conversationId: conversationRecord.id,
-        role: "assistant",
-        content: fullText,
-        createdAt: new Date(),
-      });
+  void (async () => {
+    try {
+      const fullText = await result.text;
+      if (fullText) {
+        await db.insert(supportMessages).values({
+          id: crypto.randomUUID(),
+          conversationId,
+          role: "assistant",
+          content: fullText,
+          createdAt: new Date(),
+        });
 
-      await db
-        .update(supportConversations)
-        .set({ updatedAt: new Date() })
-        .where(eq(supportConversations.id, conversationRecord.id));
+        await db
+          .update(supportConversations)
+          .set({ updatedAt: new Date() })
+          .where(eq(supportConversations.id, conversationId));
+      }
+    } catch {
+      // Best-effort persistence — don't crash the stream
     }
-  }).catch(() => {
-    // Best-effort persistence — don't crash the stream
-  });
+  })();
 
   return response;
 });
@@ -174,7 +167,7 @@ supportRoutes.get("/history/:sessionId", async (c) => {
     return c.json({ error: "Conversation not found" }, 404);
   }
 
-  const messages = await db
+  const msgs = await db
     .select()
     .from(supportMessages)
     .where(eq(supportMessages.conversationId, conversation[0].id))
@@ -190,7 +183,7 @@ supportRoutes.get("/history/:sessionId", async (c) => {
       createdAt: conversation[0].createdAt,
       updatedAt: conversation[0].updatedAt,
     },
-    messages: messages.map((m) => ({
+    messages: msgs.map((m) => ({
       id: m.id,
       role: m.role,
       content: m.content,

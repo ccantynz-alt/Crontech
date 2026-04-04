@@ -99,12 +99,7 @@ export const supportRouter = router({
       let feedbackMap: Record<string, { rating: string; comment: string | null }> = {};
 
       if (assistantMsgIds.length > 0) {
-        const feedbacks = await ctx.db
-          .select()
-          .from(supportFeedback)
-          .where(eq(supportFeedback.messageId, assistantMsgIds[0]!));
-
-        // For simplicity, fetch all feedback for this conversation's messages
+        // Fetch feedback for each assistant message
         for (const msgId of assistantMsgIds) {
           const fb = await ctx.db
             .select()

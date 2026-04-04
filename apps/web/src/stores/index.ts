@@ -93,3 +93,14 @@ export type {
   FlagValue,
   FlagDefinition,
 } from "./flags";
+
+// Support (module-level signals + sessionStorage persistence)
+export { supportStore, useSupport } from "./support";
+export type {
+  SupportStore,
+  SupportMessage,
+  SupportMessageRole,
+  SupportAgentMode,
+  FeedbackRating,
+  ToolCallInfo,
+} from "./support";
