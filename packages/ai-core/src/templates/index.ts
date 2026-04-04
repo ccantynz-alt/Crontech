@@ -308,6 +308,211 @@ const minimal: SiteTemplate = {
   },
 };
 
+// ── Blog Template ──────────────────────────────────────────────────
+
+const blog: SiteTemplate = {
+  id: "blog",
+  name: "Blog",
+  description: "A blog layout with featured post, recent articles, and newsletter signup.",
+  category: "blog",
+  layout: {
+    title: "Blog",
+    description: "Blog with featured post, recent posts grid, and newsletter signup",
+    components: [
+      {
+        component: "Stack",
+        props: { direction: "vertical", gap: "xl", align: "stretch", justify: "start" },
+        children: [
+          // Blog Header
+          {
+            component: "Stack",
+            props: { direction: "vertical", gap: "sm", align: "center", justify: "center" },
+            children: [
+              { component: "Text", props: { content: "My Blog", variant: "h1", weight: "bold", align: "center" } },
+              { component: "Text", props: { content: "Thoughts on technology, design, and building for the web.", variant: "body", weight: "normal", align: "center" } },
+            ],
+          },
+          { component: "Separator", props: { orientation: "horizontal" } },
+          // Featured Post
+          { component: "Text", props: { content: "Featured Post", variant: "h2", weight: "semibold", align: "left" } },
+          {
+            component: "Card",
+            props: { title: "The Future of AI-Native Development", description: "How AI is reshaping the way we build software — from code generation to autonomous agents that ship features while you sleep.", padding: "lg" },
+            children: [
+              {
+                component: "Stack",
+                props: { direction: "horizontal", gap: "sm", align: "center", justify: "start" },
+                children: [
+                  { component: "Badge", props: { variant: "info", size: "sm", label: "April 1, 2026" } },
+                  { component: "Button", props: { variant: "primary", size: "md", disabled: false, loading: false, label: "Read More" } },
+                ],
+              },
+            ],
+          },
+          { component: "Separator", props: { orientation: "horizontal" } },
+          // Recent Posts
+          { component: "Text", props: { content: "Recent Posts", variant: "h2", weight: "semibold", align: "left" } },
+          {
+            component: "Stack",
+            props: { direction: "horizontal", gap: "md", align: "stretch", justify: "start" },
+            children: [
+              {
+                component: "Card",
+                props: { title: "Edge Computing in 2026", description: "Why moving compute closer to users changes everything about application architecture.", padding: "md" },
+                children: [
+                  { component: "Badge", props: { variant: "info", size: "sm", label: "March 25, 2026" } },
+                ],
+              },
+              {
+                component: "Card",
+                props: { title: "WebGPU: Beyond Graphics", description: "Using the GPU for AI inference, physics simulations, and real-time data processing in the browser.", padding: "md" },
+                children: [
+                  { component: "Badge", props: { variant: "info", size: "sm", label: "March 18, 2026" } },
+                ],
+              },
+              {
+                component: "Card",
+                props: { title: "Zero-HTML Component Systems", description: "Why writing HTML by hand is over and what comes next for UI development.", padding: "md" },
+                children: [
+                  { component: "Badge", props: { variant: "info", size: "sm", label: "March 10, 2026" } },
+                ],
+              },
+            ],
+          },
+          { component: "Separator", props: { orientation: "horizontal" } },
+          // Newsletter Signup
+          { component: "Text", props: { content: "Stay Updated", variant: "h2", weight: "semibold", align: "center" } },
+          {
+            component: "Card",
+            props: { title: "Subscribe to the Newsletter", description: "Get the latest posts delivered straight to your inbox. No spam, ever.", padding: "md" },
+            children: [
+              {
+                component: "Stack",
+                props: { direction: "horizontal", gap: "sm", align: "center", justify: "start" },
+                children: [
+                  { component: "Input", props: { type: "email", placeholder: "you@example.com", name: "email" } },
+                  { component: "Button", props: { variant: "primary", size: "md", disabled: false, loading: false, label: "Subscribe" } },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+};
+
+// ── Business Template ──────────────────────────────────────────────
+
+const business: SiteTemplate = {
+  id: "business",
+  name: "Business",
+  description: "A professional business site with services, testimonials, and contact form.",
+  category: "business",
+  layout: {
+    title: "Business",
+    description: "Business site with services, testimonials, and contact sections",
+    components: [
+      {
+        component: "Stack",
+        props: { direction: "vertical", gap: "xl", align: "stretch", justify: "start" },
+        children: [
+          // Company Header
+          {
+            component: "Stack",
+            props: { direction: "vertical", gap: "md", align: "center", justify: "center" },
+            children: [
+              { component: "Text", props: { content: "Acme Corporation", variant: "h1", weight: "bold", align: "center" } },
+              { component: "Text", props: { content: "Enterprise solutions that scale with your ambition.", variant: "body", weight: "normal", align: "center" } },
+              {
+                component: "Stack",
+                props: { direction: "horizontal", gap: "md", align: "center", justify: "center" },
+                children: [
+                  { component: "Button", props: { variant: "primary", size: "lg", disabled: false, loading: false, label: "Contact Us" } },
+                  { component: "Button", props: { variant: "outline", size: "lg", disabled: false, loading: false, label: "Learn More" } },
+                ],
+              },
+            ],
+          },
+          { component: "Separator", props: { orientation: "horizontal" } },
+          // Services Section
+          { component: "Text", props: { content: "Our Services", variant: "h2", weight: "semibold", align: "center" } },
+          {
+            component: "Stack",
+            props: { direction: "horizontal", gap: "md", align: "stretch", justify: "center" },
+            children: [
+              {
+                component: "Card",
+                props: { title: "Cloud Infrastructure", description: "Scalable, secure cloud architecture designed for high availability and peak performance.", padding: "md" },
+                children: [
+                  { component: "Badge", props: { variant: "success", size: "sm", label: "99.99% Uptime" } },
+                ],
+              },
+              {
+                component: "Card",
+                props: { title: "AI Integration", description: "Embed intelligent automation into your workflows with custom-trained models and agents.", padding: "md" },
+                children: [
+                  { component: "Badge", props: { variant: "info", size: "sm", label: "Enterprise AI" } },
+                ],
+              },
+              {
+                component: "Card",
+                props: { title: "Security & Compliance", description: "End-to-end encryption, audit trails, and regulatory compliance for every industry.", padding: "md" },
+                children: [
+                  { component: "Badge", props: { variant: "warning", size: "sm", label: "SOC 2 Type II" } },
+                ],
+              },
+            ],
+          },
+          { component: "Separator", props: { orientation: "horizontal" } },
+          // Testimonial Section
+          { component: "Text", props: { content: "What Our Clients Say", variant: "h2", weight: "semibold", align: "center" } },
+          {
+            component: "Card",
+            props: { padding: "lg" },
+            children: [
+              {
+                component: "Stack",
+                props: { direction: "vertical", gap: "md", align: "center", justify: "center" },
+                children: [
+                  { component: "Text", props: { content: "\"Acme transformed our infrastructure overnight. We cut costs by 40% and tripled our throughput. The team is world-class.\"", variant: "body", weight: "normal", align: "center" } },
+                  {
+                    component: "Stack",
+                    props: { direction: "horizontal", gap: "sm", align: "center", justify: "center" },
+                    children: [
+                      { component: "Avatar", props: { initials: "SR", size: "md" } },
+                      { component: "Text", props: { content: "Sarah Rodriguez, CTO at Initech", variant: "caption", weight: "medium", align: "left" } },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+          { component: "Separator", props: { orientation: "horizontal" } },
+          // Contact Section
+          { component: "Text", props: { content: "Get In Touch", variant: "h2", weight: "semibold", align: "center" } },
+          {
+            component: "Card",
+            props: { padding: "md" },
+            children: [
+              {
+                component: "Stack",
+                props: { direction: "vertical", gap: "sm", align: "stretch", justify: "start" },
+                children: [
+                  { component: "Input", props: { type: "text", placeholder: "Your name", label: "Name", name: "name", required: true } },
+                  { component: "Input", props: { type: "email", placeholder: "you@company.com", label: "Email", name: "email", required: true } },
+                  { component: "Input", props: { type: "tel", placeholder: "+1 (555) 000-0000", label: "Phone", name: "phone" } },
+                  { component: "Button", props: { variant: "primary", size: "md", disabled: false, loading: false, label: "Submit" } },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+};
+
 // ── Template Registry ───────────────────────────────────────────────
 
 export const SITE_TEMPLATES: SiteTemplate[] = [
@@ -315,6 +520,8 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
   portfolio,
   saasDashboard,
   minimal,
+  blog,
+  business,
 ];
 
 export function getTemplate(id: string): SiteTemplate | undefined {
