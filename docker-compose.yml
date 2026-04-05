@@ -1,0 +1,134 @@
+# ── Back to the Future: Local Development ────────────────────────────
+# Run all services locally with hot reload support.
+#
+# Usage:
+#   bun docker:dev          # Start core services (api + web + qdrant)
+#   bun docker:dev:full     # Start all services including observability
+#   docker compose down     # Stop all services
+
+services:
+  # ── API Server (Bun + Hono) ──────────────────────────────────────
+  api:
+    build:
+      context: .
+      dockerfile: infra/docker/Dockerfile.api
+      target: deps
+    command: bun run --hot apps/api/src/index.ts
+    working_dir: /app
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=development
+      - API_PORT=3001
+      - QDRANT_URL=http://qdrant:6333
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+    volumes:
+      - ./apps/api/src:/app/apps/api/src
+      - ./packages:/app/packages
+      - /app/node_modules
+    depends_on:
+      qdrant:
+        condition: service_healthy
+    networks:
+      - btf-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # ── Web App (Vinxi Dev Server) ───────────────────────────────────
+  web:
+    build:
+      context: .
+      dockerfile: infra/docker/Dockerfile.web
+      target: deps
+    command: bun run vinxi dev --port 3000 --host 0.0.0.0
+    working_dir: /app/apps/web
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - API_URL=http://api:3001
+    volumes:
+      - ./apps/web/src:/app/apps/web/src
+      - ./apps/web/public:/app/apps/web/public
+      - ./apps/web/app.config.ts:/app/apps/web/app.config.ts
+      - ./packages:/app/packages
+      - /app/node_modules
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - btf-network
+
+  # ── Qdrant Vector Database ──────────────────────────────────────
+  qdrant:
+    image: qdrant/qdrant:v1.12.5
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant-data:/qdrant/storage
+    environment:
+      - QDRANT__SERVICE__GRPC_PORT=6334
+    networks:
+      - btf-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:6333/readyz"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # ── OpenTelemetry Collector (optional, for observability) ───────
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.114.0
+    command: ["--config=/etc/otelcol/config.yaml"]
+    ports:
+      - "4317:4317"
+      - "4318:4318"
+    volumes:
+      - ./infra/docker/otel-collector-config.yaml:/etc/otelcol/config.yaml:ro
+    networks:
+      - btf-network
+    profiles:
+      - observability
+
+  # ── Grafana (optional, for observability dashboards) ────────────
+  grafana:
+    image: grafana/grafana:11.4.0
+    ports:
+      - "3100:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana-data:/var/lib/grafana
+    networks:
+      - btf-network
+    profiles:
+      - observability
+
+  # ── Loki (optional, log aggregation) ───────────────────────────
+  loki:
+    image: grafana/loki:3.3.2
+    ports:
+      - "3101:3100"
+    volumes:
+      - loki-data:/loki
+    networks:
+      - btf-network
+    profiles:
+      - observability
+
+volumes:
+  qdrant-data:
+  grafana-data:
+  loki-data:
+
+networks:
+  btf-network:
+    driver: bridge

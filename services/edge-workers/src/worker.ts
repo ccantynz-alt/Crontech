@@ -18,11 +18,21 @@ interface Env {
   RATE_LIMITER: DurableObjectNamespace;
   ENVIRONMENT: string;
   API_VERSION: string;
+  API_ORIGIN: string;
   OPENAI_API_KEY: string;
   DATABASE_AUTH_TOKEN: string;
   QDRANT_API_KEY?: string;
   NEON_DATABASE_URL?: string;
 }
+
+// ── CORS Origins ────────────────────────────────────────────────────
+
+const ALLOWED_ORIGINS = [
+  "https://backtothefuture.dev",
+  "https://*.backtothefuture.dev",
+  "http://localhost:3000",
+  "http://localhost:3001",
+];
 
 // ── Worker App ───────────────────────────────────────────────────────
 
@@ -34,29 +44,111 @@ app.use("*", logger());
 app.use(
   "*",
   cors({
-    origin: [
-      "https://backtothefuture.dev",
-      "https://*.backtothefuture.dev",
-      "http://localhost:3000",
+    origin: ALLOWED_ORIGINS,
+    allowHeaders: [
+      "Content-Type",
+      "Authorization",
+      "X-Request-ID",
+      "X-Forwarded-For",
     ],
-    allowHeaders: ["Content-Type", "Authorization", "X-Request-ID"],
     allowMethods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    exposeHeaders: [
+      "X-RateLimit-Limit",
+      "X-RateLimit-Remaining",
+      "X-RateLimit-Reset",
+      "X-Request-ID",
+    ],
     maxAge: 86400,
     credentials: true,
   }),
 );
 
+// ── Request ID Middleware ────────────────────────────────────────────
+
+app.use("*", async (c, next) => {
+  const requestId =
+    c.req.header("X-Request-ID") ?? crypto.randomUUID();
+  c.header("X-Request-ID", requestId);
+  await next();
+});
+
+// ── Rate Limiting Middleware (via Durable Objects) ───────────────────
+
+app.use("/api/*", async (c, next) => {
+  const clientIp =
+    c.req.header("CF-Connecting-IP") ??
+    c.req.header("X-Forwarded-For") ??
+    "unknown";
+  const path = c.req.path;
+
+  // Determine rate limit based on path
+  let limit = 60;
+  let window = 60;
+  if (path.startsWith("/api/ai/")) {
+    limit = 20;
+    window = 60;
+  } else if (path.startsWith("/api/trpc/")) {
+    limit = 200;
+    window = 60;
+  }
+
+  try {
+    const id = c.env.RATE_LIMITER.idFromName("global");
+    const stub = c.env.RATE_LIMITER.get(id);
+
+    const url = new URL(c.req.url);
+    url.pathname = "/check";
+    url.searchParams.set("key", `${clientIp}:${path}`);
+    url.searchParams.set("limit", String(limit));
+    url.searchParams.set("window", String(window));
+
+    const rateLimitRes = await stub.fetch(url.toString());
+    const rateLimitData = (await rateLimitRes.json()) as {
+      allowed: boolean;
+      remaining: number;
+    };
+
+    c.header("X-RateLimit-Limit", String(limit));
+    c.header("X-RateLimit-Remaining", String(rateLimitData.remaining));
+    c.header(
+      "X-RateLimit-Reset",
+      String(Math.ceil(Date.now() / 1000) + window),
+    );
+
+    if (!rateLimitData.allowed) {
+      return c.json(
+        {
+          error: "Too Many Requests",
+          retryAfter: window,
+          timestamp: new Date().toISOString(),
+        },
+        429,
+      );
+    }
+  } catch {
+    // If rate limiter is unavailable, allow the request through
+    // (fail open to avoid blocking legitimate traffic)
+  }
+
+  await next();
+});
+
 // ── Global Error Handler ─────────────────────────────────────────────
 
 app.onError((err, c) => {
   const isProduction = c.env.ENVIRONMENT === "production";
+  const requestId = c.res.headers.get("X-Request-ID") ?? "unknown";
 
-  console.error(`[${c.env.ENVIRONMENT}] Unhandled error:`, err.message);
+  console.error(
+    `[${c.env.ENVIRONMENT}] [${requestId}] Unhandled error:`,
+    err.message,
+  );
 
   return c.json(
     {
       error: isProduction ? "Internal Server Error" : err.message,
       status: 500,
+      requestId,
       timestamp: new Date().toISOString(),
     },
     500,
@@ -64,6 +156,19 @@ app.onError((err, c) => {
 });
 
 // ── Health Check ─────────────────────────────────────────────────────
+
+app.get("/health", (c) => {
+  return c.json({
+    status: "ok",
+    environment: c.env.ENVIRONMENT,
+    version: c.env.API_VERSION,
+    timestamp: new Date().toISOString(),
+    runtime: "cloudflare-workers",
+    region:
+      (c.req.raw as Request & { cf?: { colo?: string } }).cf?.colo ??
+      "unknown",
+  });
+});
 
 app.get("/api/health", (c) => {
   return c.json({
@@ -78,17 +183,65 @@ app.get("/api/health", (c) => {
   });
 });
 
+// ── tRPC Proxy ──────────────────────────────────────────────────────
+
+app.all("/api/trpc/*", async (c) => {
+  const apiOrigin = c.env.API_ORIGIN ?? "http://localhost:3001";
+  const url = new URL(c.req.url);
+  const targetUrl = `${apiOrigin}${url.pathname}${url.search}`;
+
+  try {
+    const headers = new Headers(c.req.raw.headers);
+    headers.set(
+      "X-Forwarded-For",
+      c.req.header("CF-Connecting-IP") ?? "unknown",
+    );
+    headers.set("X-Forwarded-Proto", "https");
+
+    const response = await fetch(targetUrl, {
+      method: c.req.method,
+      headers,
+      body:
+        c.req.method !== "GET" && c.req.method !== "HEAD"
+          ? c.req.raw.body
+          : undefined,
+    });
+
+    return new Response(response.body, {
+      status: response.status,
+      statusText: response.statusText,
+      headers: response.headers,
+    });
+  } catch (error) {
+    return c.json(
+      {
+        error: "API proxy error",
+        detail:
+          error instanceof Error ? error.message : "Unknown error",
+        timestamp: new Date().toISOString(),
+      },
+      502,
+    );
+  }
+});
+
 // ── Workers AI (Edge Inference) ──────────────────────────────────────
 
 app.post("/api/ai/edge-inference", async (c) => {
-  const body = (await c.req.json()) as { prompt: string; model?: string };
+  const body = (await c.req.json()) as {
+    prompt: string;
+    model?: string;
+  };
   const model = body.model ?? "@cf/meta/llama-3.1-8b-instruct";
 
   try {
-    const response = await c.env.AI.run(model as BaseAiTextGenerationModels, {
-      prompt: body.prompt,
-      max_tokens: 512,
-    });
+    const response = await c.env.AI.run(
+      model as BaseAiTextGenerationModels,
+      {
+        prompt: body.prompt,
+        max_tokens: 512,
+      },
+    );
 
     return c.json({
       response,
@@ -98,7 +251,9 @@ app.post("/api/ai/edge-inference", async (c) => {
   } catch (error) {
     return c.json(
       {
-        error: error instanceof Error ? error.message : "Inference failed",
+        error:
+          error instanceof Error ? error.message : "Inference failed",
+        timestamp: new Date().toISOString(),
       },
       500,
     );
@@ -112,7 +267,10 @@ app.get("/api/assets/:key", async (c) => {
   const object = await c.env.STORAGE.get(key);
 
   if (!object) {
-    return c.json({ error: "Not found" }, 404);
+    return c.json(
+      { error: "Not found", timestamp: new Date().toISOString() },
+      404,
+    );
   }
 
   const headers = new Headers();
@@ -136,41 +294,68 @@ app.put("/api/assets/:key", async (c) => {
     httpMetadata: { contentType },
   });
 
-  return c.json({ key, size: body.byteLength });
+  return c.json({
+    key,
+    size: body.byteLength,
+    timestamp: new Date().toISOString(),
+  });
 });
 
 // ── KV Cache ─────────────────────────────────────────────────────────
 
 app.get("/api/cache/:key", async (c) => {
   const value = await c.env.CACHE.get(c.req.param("key"));
-  if (!value) return c.json({ error: "Not found" }, 404);
+  if (!value) {
+    return c.json(
+      { error: "Not found", timestamp: new Date().toISOString() },
+      404,
+    );
+  }
   return c.json({ value: JSON.parse(value) });
 });
 
 app.put("/api/cache/:key", async (c) => {
-  const body = (await c.req.json()) as { value: unknown; ttl?: number };
+  const body = (await c.req.json()) as {
+    value: unknown;
+    ttl?: number;
+  };
   const ttl = body.ttl ?? 3600;
-  await c.env.CACHE.put(c.req.param("key"), JSON.stringify(body.value), {
-    expirationTtl: ttl,
-  });
+  await c.env.CACHE.put(
+    c.req.param("key"),
+    JSON.stringify(body.value),
+    { expirationTtl: ttl },
+  );
   return c.json({ success: true });
 });
 
 // ── D1 Database Access ───────────────────────────────────────────────
 
-app.get("/api/db/query", async (c) => {
-  const sql = c.req.query("sql");
-  if (!sql) {
-    return c.json({ error: "Missing sql query parameter" }, 400);
+app.post("/api/db/query", async (c) => {
+  const body = (await c.req.json()) as {
+    sql: string;
+    params?: unknown[];
+  };
+  if (!body.sql) {
+    return c.json(
+      {
+        error: "Missing sql in request body",
+        timestamp: new Date().toISOString(),
+      },
+      400,
+    );
   }
 
   try {
-    const result = await c.env.DB.prepare(sql).all();
+    const stmt = c.env.DB.prepare(body.sql);
+    const bound = body.params ? stmt.bind(...body.params) : stmt;
+    const result = await bound.all();
     return c.json({ results: result.results, meta: result.meta });
   } catch (error) {
     return c.json(
       {
-        error: error instanceof Error ? error.message : "Query failed",
+        error:
+          error instanceof Error ? error.message : "Query failed",
+        timestamp: new Date().toISOString(),
       },
       500,
     );
@@ -186,7 +371,7 @@ app.get("/api/collab/:roomId/ws", async (c) => {
   return stub.fetch(c.req.raw);
 });
 
-// ── Rate Limiter Access ──────────────────────────────────────────────
+// ── Rate Limiter Check (explicit endpoint) ──────────────────────────
 
 app.get("/api/rate-limit/check", async (c) => {
   const key = c.req.query("key") ?? "default";
@@ -197,11 +382,43 @@ app.get("/api/rate-limit/check", async (c) => {
   const stub = c.env.RATE_LIMITER.get(id);
 
   const url = new URL(c.req.url);
+  url.pathname = "/check";
   url.searchParams.set("key", key);
   url.searchParams.set("limit", limit);
   url.searchParams.set("window", window);
 
   return stub.fetch(url.toString());
+});
+
+// ── Stripe Webhook Proxy ────────────────────────────────────────────
+
+app.post("/api/webhooks/stripe", async (c) => {
+  const apiOrigin = c.env.API_ORIGIN ?? "http://localhost:3001";
+  const targetUrl = `${apiOrigin}/api/webhooks/stripe`;
+
+  try {
+    const response = await fetch(targetUrl, {
+      method: "POST",
+      headers: c.req.raw.headers,
+      body: c.req.raw.body,
+    });
+
+    return new Response(response.body, {
+      status: response.status,
+      statusText: response.statusText,
+      headers: response.headers,
+    });
+  } catch (error) {
+    return c.json(
+      {
+        error: "Webhook proxy error",
+        detail:
+          error instanceof Error ? error.message : "Unknown error",
+        timestamp: new Date().toISOString(),
+      },
+      502,
+    );
+  }
 });
 
 // ── 404 Handler ──────────────────────────────────────────────────────
@@ -237,7 +454,16 @@ export class CollabRoom {
   async fetch(request: Request): Promise<Response> {
     const upgradeHeader = request.headers.get("Upgrade");
     if (upgradeHeader !== "websocket") {
-      return new Response("Expected WebSocket", { status: 426 });
+      return new Response(
+        JSON.stringify({
+          error: "Expected WebSocket upgrade",
+          timestamp: new Date().toISOString(),
+        }),
+        {
+          status: 426,
+          headers: { "Content-Type": "application/json" },
+        },
+      );
     }
 
     const pair = new WebSocketPair();
@@ -248,18 +474,22 @@ export class CollabRoom {
     return new Response(null, { status: 101, webSocket: client });
   }
 
-  async webSocketMessage(ws: WebSocket, message: string): Promise<void> {
+  async webSocketMessage(
+    ws: WebSocket,
+    message: string,
+  ): Promise<void> {
     try {
       const data = JSON.parse(message) as {
         type: string;
         userId?: string;
+        name?: string;
         [key: string]: unknown;
       };
 
       if (data.type === "join" && data.userId) {
         this.connections.set(ws, {
           userId: data.userId,
-          name: data.name as string,
+          name: data.name,
         });
         this.broadcast(
           JSON.stringify({
@@ -269,7 +499,19 @@ export class CollabRoom {
           }),
           ws,
         );
+      } else if (data.type === "leave") {
+        const info = this.connections.get(ws);
+        this.connections.delete(ws);
+        if (info) {
+          this.broadcast(
+            JSON.stringify({
+              type: "user_left",
+              userId: info.userId,
+            }),
+          );
+        }
       } else {
+        // Relay all other messages to other participants
         this.broadcast(message, ws);
       }
     } catch {
@@ -327,12 +569,22 @@ export class RateLimiter {
 
     if (current >= limit) {
       return new Response(
-        JSON.stringify({ allowed: false, remaining: 0 }),
+        JSON.stringify({
+          allowed: false,
+          remaining: 0,
+          limit,
+          window,
+        }),
         {
           status: 429,
           headers: {
             "Content-Type": "application/json",
             "Retry-After": String(window - (now % window)),
+            "X-RateLimit-Limit": String(limit),
+            "X-RateLimit-Remaining": "0",
+            "X-RateLimit-Reset": String(
+              now + (window - (now % window)),
+            ),
           },
         },
       );
@@ -341,8 +593,22 @@ export class RateLimiter {
     await this.state.storage.put(windowKey, current + 1);
 
     return new Response(
-      JSON.stringify({ allowed: true, remaining: limit - current - 1 }),
-      { headers: { "Content-Type": "application/json" } },
+      JSON.stringify({
+        allowed: true,
+        remaining: limit - current - 1,
+        limit,
+        window,
+      }),
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "X-RateLimit-Limit": String(limit),
+          "X-RateLimit-Remaining": String(limit - current - 1),
+          "X-RateLimit-Reset": String(
+            now + (window - (now % window)),
+          ),
+        },
+      },
     );
   }
 }
