@@ -168,6 +168,19 @@ export function Layout(props: LayoutProps): JSX.Element {
           {props.children}
         </main>
       </div>
+
+      <footer class="layout-footer">
+        <nav class="footer-links">
+          <A href="/legal/terms">Terms</A>
+          <A href="/legal/privacy">Privacy</A>
+          <A href="/legal/dmca">DMCA</A>
+          <A href="/legal/cookies">Cookies</A>
+          <A href="/legal/acceptable-use">Acceptable Use</A>
+        </nav>
+        <Text variant="caption" class="text-muted">
+          Back to the Future Platform
+        </Text>
+      </footer>
     </div>
   );
 }

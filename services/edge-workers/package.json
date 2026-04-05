@@ -1,0 +1,21 @@
+{
+  "name": "@back-to-the-future/edge-workers",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev --config ../../infra/cloudflare/wrangler.toml",
+    "deploy": "wrangler deploy --config ../../infra/cloudflare/wrangler.toml",
+    "deploy:staging": "wrangler deploy --env staging --config ../../infra/cloudflare/wrangler.toml",
+    "deploy:production": "wrangler deploy --env production --config ../../infra/cloudflare/wrangler.toml",
+    "tail": "wrangler tail --config ../../infra/cloudflare/wrangler.toml",
+    "check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "hono": "^4.7.11"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250327.0",
+    "typescript": "^5.7.3",
+    "wrangler": "^4.14.1"
+  }
+}

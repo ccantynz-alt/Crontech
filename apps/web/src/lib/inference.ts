@@ -1,18 +1,30 @@
-// ── Client-Side AI Inference Layer ───────────────────────────────────
-// Provides in-browser AI inference via WebLLM and Transformers.js.
+// ── Client-Side AI Inference Engine ──────────────────────────────────
+// Manages in-browser AI inference via WebLLM + Transformers.js.
 // Cost per token: $0. No API call. No latency. No server.
+// Falls back gracefully to edge/cloud when WebGPU is unavailable.
 
-import { getDeviceCapabilities, canRunLocally } from "./webgpu";
+import { getDeviceCapabilities, canRunLocally, type WebGPUInfo, detectWebGPU } from "./webgpu";
 import type { ComputeTier, DeviceCapabilities } from "@back-to-the-future/ai-core";
 
 // ── Types ────────────────────────────────────────────────────────────
 
-export interface InferenceEngine {
-  tier: ComputeTier;
-  ready: boolean;
-  generate(prompt: string, options?: GenerateOptions): Promise<GenerateResult>;
-  embed(text: string): Promise<number[]>;
-  dispose(): void;
+export interface InferenceCapabilities {
+  hasWebGPU: boolean;
+  gpuInfo: WebGPUInfo | null;
+  deviceCaps: DeviceCapabilities;
+  canRunClientInference: boolean;
+  supportedModels: ModelInfo[];
+}
+
+export interface ModelInfo {
+  id: string;
+  name: string;
+  parametersBillion: number;
+  minVRAMMB: number;
+  type: "chat" | "embedding" | "classification";
+  backend: "webllm" | "transformers";
+  /** The identifier used by the backend library */
+  backendId: string;
 }
 
 export interface GenerateOptions {
@@ -20,11 +32,13 @@ export interface GenerateOptions {
   temperature?: number;
   topP?: number;
   onToken?: (token: string) => void;
+  systemPrompt?: string;
 }
 
 export interface GenerateResult {
   text: string;
   tokenCount: number;
+  tokensPerSecond: number;
   latencyMs: number;
   tier: ComputeTier;
 }
@@ -36,198 +50,373 @@ export interface EmbeddingResult {
   tier: ComputeTier;
 }
 
-// ── Client-Side Inference Engine ─────────────────────────────────────
-// Uses WebLLM for text generation and Transformers.js for embeddings.
-// Falls back to edge/cloud when device can't handle the workload.
+export type ModelStatus = "idle" | "loading" | "ready" | "error" | "unavailable";
 
-let cachedCapabilities: DeviceCapabilities | null = null;
-
-async function getCachedCapabilities(): Promise<DeviceCapabilities> {
-  if (!cachedCapabilities) {
-    cachedCapabilities = await getDeviceCapabilities();
+export class InferenceError extends Error {
+  constructor(
+    message: string,
+    public readonly code: "NO_WEBGPU" | "MODEL_TOO_LARGE" | "LOAD_FAILED" | "INFERENCE_FAILED" | "NOT_LOADED",
+    public readonly tier: ComputeTier = "client",
+  ) {
+    super(message);
+    this.name = "InferenceError";
   }
+}
+
+// ── Model Registry ──────────────────────────────────────────────────
+
+export const MODEL_REGISTRY: ModelInfo[] = [
+  {
+    id: "smollm2-360m",
+    name: "SmolLM2 360M",
+    parametersBillion: 0.36,
+    minVRAMMB: 512,
+    type: "chat",
+    backend: "webllm",
+    backendId: "SmolLM2-360M-Instruct-q4f16_1-MLC",
+  },
+  {
+    id: "smollm2-1.7b",
+    name: "SmolLM2 1.7B",
+    parametersBillion: 1.7,
+    minVRAMMB: 2048,
+    type: "chat",
+    backend: "webllm",
+    backendId: "SmolLM2-1.7B-Instruct-q4f16_1-MLC",
+  },
+  {
+    id: "phi-3.5-mini",
+    name: "Phi 3.5 Mini",
+    parametersBillion: 3.8,
+    minVRAMMB: 3072,
+    type: "chat",
+    backend: "webllm",
+    backendId: "Phi-3.5-mini-instruct-q4f16_1-MLC",
+  },
+  {
+    id: "llama-3.2-1b",
+    name: "Llama 3.2 1B",
+    parametersBillion: 1.0,
+    minVRAMMB: 1024,
+    type: "chat",
+    backend: "webllm",
+    backendId: "Llama-3.2-1B-Instruct-q4f16_1-MLC",
+  },
+  {
+    id: "llama-3.2-3b",
+    name: "Llama 3.2 3B",
+    parametersBillion: 3.0,
+    minVRAMMB: 2560,
+    type: "chat",
+    backend: "webllm",
+    backendId: "Llama-3.2-3B-Instruct-q4f16_1-MLC",
+  },
+  {
+    id: "embedding-minilm",
+    name: "MiniLM-L6 Embeddings",
+    parametersBillion: 0.02,
+    minVRAMMB: 128,
+    type: "embedding",
+    backend: "transformers",
+    backendId: "Xenova/all-MiniLM-L6-v2",
+  },
+  {
+    id: "embedding-bge-small",
+    name: "BGE Small Embeddings",
+    parametersBillion: 0.03,
+    minVRAMMB: 256,
+    type: "embedding",
+    backend: "transformers",
+    backendId: "Xenova/bge-small-en-v1.5",
+  },
+];
+
+// ── Inference Engine ────────────────────────────────────────────────
+
+type WebLLMEngine = {
+  chat: {
+    completions: {
+      create(params: {
+        messages: Array<{ role: string; content: string }>;
+        max_tokens?: number;
+        temperature?: number;
+        top_p?: number;
+        stream?: boolean;
+      }): Promise<unknown>;
+    };
+  };
+  unload(): Promise<void>;
+};
+
+type TransformersPipeline = (
+  text: string,
+  options?: { pooling?: string; normalize?: boolean },
+) => Promise<{ data: Float32Array }>;
+
+let chatEngine: WebLLMEngine | null = null;
+let embeddingPipeline: TransformersPipeline | null = null;
+let currentModelId: string | null = null;
+let modelStatus: ModelStatus = "idle";
+let cachedCapabilities: InferenceCapabilities | null = null;
+
+/** Detect full device capabilities for client-side inference. */
+export async function detectCapabilities(): Promise<InferenceCapabilities> {
+  if (cachedCapabilities) return cachedCapabilities;
+
+  const gpuInfo = await detectWebGPU();
+  const deviceCaps = await getDeviceCapabilities();
+
+  const supportedModels = MODEL_REGISTRY.filter((model) => {
+    if (!gpuInfo.supported) return false;
+    if (model.backend === "webllm") {
+      return canRunLocally(deviceCaps, model.parametersBillion) && deviceCaps.vramMB >= model.minVRAMMB;
+    }
+    // Transformers.js embeddings have very low requirements
+    return gpuInfo.supported;
+  });
+
+  cachedCapabilities = {
+    hasWebGPU: gpuInfo.supported,
+    gpuInfo: gpuInfo.supported ? gpuInfo : null,
+    deviceCaps,
+    canRunClientInference: supportedModels.length > 0,
+    supportedModels,
+  };
+
   return cachedCapabilities;
 }
 
-/**
- * Creates an inference engine that automatically routes to the best
- * available compute tier.
- *
- * Priority: Client GPU ($0) → Edge (fast) → Cloud (powerful)
- */
-export async function createInferenceEngine(): Promise<InferenceEngine> {
-  const capabilities = await getCachedCapabilities();
+/** Load a chat model into the browser via WebLLM. */
+export async function loadModel(
+  modelId: string,
+  onProgress?: (progress: number, message: string) => void,
+): Promise<void> {
+  const caps = await detectCapabilities();
 
-  // Check if we can run a small model locally (1.5B params)
-  if (canRunLocally(capabilities, 1.5)) {
-    return createClientEngine();
+  if (!caps.hasWebGPU) {
+    modelStatus = "unavailable";
+    throw new InferenceError("WebGPU is not available on this device", "NO_WEBGPU");
   }
 
-  // Fall back to edge/cloud proxy
-  return createProxyEngine("edge");
+  const model = MODEL_REGISTRY.find((m) => m.id === modelId);
+  if (!model) {
+    throw new InferenceError(`Unknown model: ${modelId}`, "LOAD_FAILED");
+  }
+
+  if (model.type !== "chat") {
+    throw new InferenceError(`Model ${modelId} is not a chat model. Use getEmbeddings() instead.`, "LOAD_FAILED");
+  }
+
+  const supported = caps.supportedModels.find((m) => m.id === modelId);
+  if (!supported) {
+    modelStatus = "unavailable";
+    throw new InferenceError(
+      `Model ${model.name} requires ${model.minVRAMMB}MB VRAM. Device has ~${caps.deviceCaps.vramMB}MB.`,
+      "MODEL_TOO_LARGE",
+    );
+  }
+
+  // Unload previous model if different
+  if (currentModelId && currentModelId !== modelId && chatEngine) {
+    await unloadModel();
+  }
+
+  if (currentModelId === modelId && chatEngine) {
+    return; // Already loaded
+  }
+
+  modelStatus = "loading";
+
+  try {
+    const { CreateMLCEngine } = await import("@mlc-ai/web-llm");
+    chatEngine = await CreateMLCEngine(model.backendId, {
+      initProgressCallback: (report: { progress: number; text: string }) => {
+        onProgress?.(report.progress, report.text);
+      },
+    }) as unknown as WebLLMEngine;
+
+    currentModelId = modelId;
+    modelStatus = "ready";
+  } catch (err) {
+    modelStatus = "error";
+    chatEngine = null;
+    currentModelId = null;
+    throw new InferenceError(
+      `Failed to load model ${model.name}: ${err instanceof Error ? err.message : String(err)}`,
+      "LOAD_FAILED",
+    );
+  }
 }
 
-// ── Client Engine (WebGPU) ───────────────────────────────────────────
+/** Run text generation on the loaded client-side model. Returns streamed tokens via callback. */
+export async function generate(prompt: string, options: GenerateOptions = {}): Promise<GenerateResult> {
+  if (!chatEngine || !currentModelId) {
+    throw new InferenceError("No model loaded. Call loadModel() first.", "NOT_LOADED");
+  }
 
-function createClientEngine(): InferenceEngine {
-  let isReady = false;
+  const start = performance.now();
+  let tokenCount = 0;
 
-  // WebLLM and Transformers.js are loaded dynamically to avoid
-  // bundling them when not needed (they're large).
-  return {
-    tier: "client" as ComputeTier,
-    get ready() { return isReady; },
+  try {
+    const messages: Array<{ role: string; content: string }> = [];
+    if (options.systemPrompt) {
+      messages.push({ role: "system", content: options.systemPrompt });
+    }
+    messages.push({ role: "user", content: prompt });
 
-    async generate(prompt: string, options?: GenerateOptions): Promise<GenerateResult> {
-      const start = performance.now();
-
-      // Dynamic import of WebLLM for text generation
-      // In production, this loads the WASM + model weights on first use
-      try {
-        const { CreateMLCEngine } = await import("@mlc-ai/web-llm");
-        const engine = await CreateMLCEngine("Llama-3.1-8B-Instruct-q4f16_1-MLC", {
-          initProgressCallback: (progress) => {
-            if (progress.progress === 1) isReady = true;
-          },
-        });
-
-        const reply = await engine.chat.completions.create({
-          messages: [{ role: "user", content: prompt }],
-          max_tokens: options?.maxTokens ?? 512,
-          temperature: options?.temperature ?? 0.7,
-          top_p: options?.topP ?? 0.9,
-          stream: !!options?.onToken,
-        });
-
-        if (options?.onToken && Symbol.asyncIterator in (reply as object)) {
-          let text = "";
-          for await (const chunk of reply as AsyncIterable<{ choices: Array<{ delta: { content?: string } }> }>) {
-            const token = chunk.choices[0]?.delta?.content ?? "";
-            text += token;
-            options.onToken(token);
-          }
-          return {
-            text,
-            tokenCount: text.split(/\s+/).length,
-            latencyMs: Math.round(performance.now() - start),
-            tier: "client",
-          };
-        }
-
-        const message = (reply as { choices: Array<{ message: { content: string } }> }).choices[0]?.message?.content ?? "";
-        return {
-          text: message,
-          tokenCount: message.split(/\s+/).length,
-          latencyMs: Math.round(performance.now() - start),
-          tier: "client",
-        };
-      } catch {
-        // If client-side fails, fall back to edge
-        const proxy = createProxyEngine("edge");
-        return proxy.generate(prompt, options);
-      }
-    },
-
-    async embed(text: string): Promise<number[]> {
-      try {
-        // Use Transformers.js for embeddings
-        const { pipeline } = await import("@huggingface/transformers");
-        const extractor = await pipeline("feature-extraction", "Xenova/all-MiniLM-L6-v2");
-        const output = await extractor(text, { pooling: "mean", normalize: true });
-        return Array.from(output.data as Float32Array);
-      } catch {
-        // Fall back to edge
-        const proxy = createProxyEngine("edge");
-        return proxy.embed(text);
-      }
-    },
-
-    dispose() {
-      isReady = false;
-      cachedCapabilities = null;
-    },
-  };
-}
-
-// ── Proxy Engine (Edge/Cloud) ────────────────────────────────────────
-
-function createProxyEngine(tier: "edge" | "cloud"): InferenceEngine {
-  const apiBase = typeof window !== "undefined"
-    ? `${window.location.origin}/api`
-    : "http://localhost:3001/api";
-
-  return {
-    tier,
-    ready: true,
-
-    async generate(prompt: string, options?: GenerateOptions): Promise<GenerateResult> {
-      const start = performance.now();
-
-      if (options?.onToken) {
-        // Stream via SSE
-        const response = await fetch(`${apiBase}/ai/chat`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            messages: [{ role: "user", content: prompt }],
-            stream: true,
-            maxTokens: options.maxTokens ?? 512,
-            temperature: options.temperature ?? 0.7,
-          }),
-        });
-
-        let text = "";
-        const reader = response.body?.getReader();
-        const decoder = new TextDecoder();
-
-        if (reader) {
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            const chunk = decoder.decode(value, { stream: true });
-            text += chunk;
-            options.onToken(chunk);
-          }
-        }
-
-        return {
-          text,
-          tokenCount: text.split(/\s+/).length,
-          latencyMs: Math.round(performance.now() - start),
-          tier,
-        };
-      }
-
-      const response = await fetch(`${apiBase}/ai/chat`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          messages: [{ role: "user", content: prompt }],
-          stream: false,
-          maxTokens: options?.maxTokens ?? 512,
-          temperature: options?.temperature ?? 0.7,
-        }),
+    if (options.onToken) {
+      // Streaming mode
+      const stream = await chatEngine.chat.completions.create({
+        messages,
+        max_tokens: options.maxTokens ?? 512,
+        temperature: options.temperature ?? 0.7,
+        top_p: options.topP ?? 0.9,
+        stream: true,
       });
 
-      const data = await response.json() as { text: string };
+      let text = "";
+      for await (const chunk of stream as AsyncIterable<{ choices: Array<{ delta: { content?: string } }> }>) {
+        const token = chunk.choices[0]?.delta?.content ?? "";
+        if (token) {
+          text += token;
+          tokenCount++;
+          options.onToken(token);
+        }
+      }
+
+      const latencyMs = Math.round(performance.now() - start);
       return {
-        text: data.text,
-        tokenCount: data.text.split(/\s+/).length,
-        latencyMs: Math.round(performance.now() - start),
-        tier,
+        text,
+        tokenCount,
+        tokensPerSecond: latencyMs > 0 ? Math.round((tokenCount / latencyMs) * 1000) : 0,
+        latencyMs,
+        tier: "client",
       };
-    },
+    }
 
-    async embed(text: string): Promise<number[]> {
-      const response = await fetch(`${apiBase}/ai/embed`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text }),
-      });
-      const data = await response.json() as { vector: number[] };
-      return data.vector;
-    },
+    // Non-streaming mode
+    const reply = await chatEngine.chat.completions.create({
+      messages,
+      max_tokens: options.maxTokens ?? 512,
+      temperature: options.temperature ?? 0.7,
+      top_p: options.topP ?? 0.9,
+      stream: false,
+    });
 
-    dispose() { /* no-op for proxy */ },
-  };
+    const message =
+      (reply as { choices: Array<{ message: { content: string } }> }).choices[0]?.message?.content ?? "";
+    tokenCount = message.split(/\s+/).filter(Boolean).length;
+    const latencyMs = Math.round(performance.now() - start);
+
+    return {
+      text: message,
+      tokenCount,
+      tokensPerSecond: latencyMs > 0 ? Math.round((tokenCount / latencyMs) * 1000) : 0,
+      latencyMs,
+      tier: "client",
+    };
+  } catch (err) {
+    if (err instanceof InferenceError) throw err;
+    throw new InferenceError(
+      `Inference failed: ${err instanceof Error ? err.message : String(err)}`,
+      "INFERENCE_FAILED",
+    );
+  }
+}
+
+/** Generate embeddings locally via Transformers.js. */
+export async function getEmbeddings(
+  text: string,
+  modelId: string = "embedding-minilm",
+): Promise<EmbeddingResult> {
+  const caps = await detectCapabilities();
+
+  if (!caps.hasWebGPU) {
+    throw new InferenceError("WebGPU is not available for embeddings", "NO_WEBGPU");
+  }
+
+  const model = MODEL_REGISTRY.find((m) => m.id === modelId);
+  if (!model || model.type !== "embedding") {
+    throw new InferenceError(`Unknown embedding model: ${modelId}`, "LOAD_FAILED");
+  }
+
+  const start = performance.now();
+
+  try {
+    if (!embeddingPipeline) {
+      const { pipeline } = await import("@huggingface/transformers");
+      embeddingPipeline = (await pipeline(
+        "feature-extraction",
+        model.backendId,
+      )) as unknown as TransformersPipeline;
+    }
+
+    const output = await embeddingPipeline(text, { pooling: "mean", normalize: true });
+    const vector = Array.from(output.data);
+    const latencyMs = Math.round(performance.now() - start);
+
+    return {
+      vector,
+      dimensions: vector.length,
+      latencyMs,
+      tier: "client",
+    };
+  } catch (err) {
+    embeddingPipeline = null;
+    throw new InferenceError(
+      `Embedding failed: ${err instanceof Error ? err.message : String(err)}`,
+      "INFERENCE_FAILED",
+    );
+  }
+}
+
+/** Check if a chat model is currently loaded and ready. */
+export function isModelLoaded(): boolean {
+  return modelStatus === "ready" && chatEngine !== null;
+}
+
+/** Get the current model status. */
+export function getModelStatus(): ModelStatus {
+  return modelStatus;
+}
+
+/** Get the currently loaded model ID, or null. */
+export function getLoadedModelId(): string | null {
+  return currentModelId;
+}
+
+/** Free GPU memory by unloading the current model. */
+export async function unloadModel(): Promise<void> {
+  if (chatEngine) {
+    try {
+      await chatEngine.unload();
+    } catch {
+      // Best-effort cleanup
+    }
+    chatEngine = null;
+  }
+  currentModelId = null;
+  modelStatus = "idle";
+}
+
+/** Free all resources including embedding pipeline. */
+export async function disposeAll(): Promise<void> {
+  await unloadModel();
+  embeddingPipeline = null;
+  cachedCapabilities = null;
+}
+
+/** Get a model from the registry by ID. */
+export function getModelInfo(modelId: string): ModelInfo | undefined {
+  return MODEL_REGISTRY.find((m) => m.id === modelId);
+}
+
+/** Get all chat models from the registry. */
+export function getChatModels(): ModelInfo[] {
+  return MODEL_REGISTRY.filter((m) => m.type === "chat");
+}
+
+/** Get all embedding models from the registry. */
+export function getEmbeddingModels(): ModelInfo[] {
+  return MODEL_REGISTRY.filter((m) => m.type === "embedding");
 }

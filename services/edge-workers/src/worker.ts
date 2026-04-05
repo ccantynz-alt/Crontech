@@ -1,0 +1,348 @@
+// ── Cloudflare Worker Entry Point ─────────────────────────────────────
+// Edge-deployed API server. Sub-5ms cold starts across 330+ cities.
+// This wraps the Hono API server for Cloudflare Workers runtime.
+
+import { Hono } from "hono";
+import { cors } from "hono/cors";
+import { logger } from "hono/logger";
+import { secureHeaders } from "hono/secure-headers";
+
+// ── Cloudflare Bindings ──────────────────────────────────────────────
+
+interface Env {
+  DB: D1Database;
+  STORAGE: R2Bucket;
+  CACHE: KVNamespace;
+  AI: Ai;
+  COLLAB_ROOM: DurableObjectNamespace;
+  RATE_LIMITER: DurableObjectNamespace;
+  ENVIRONMENT: string;
+  API_VERSION: string;
+  OPENAI_API_KEY: string;
+  DATABASE_AUTH_TOKEN: string;
+  QDRANT_API_KEY?: string;
+  NEON_DATABASE_URL?: string;
+}
+
+// ── Worker App ───────────────────────────────────────────────────────
+
+const app = new Hono<{ Bindings: Env }>();
+
+// Global middleware
+app.use("*", secureHeaders());
+app.use("*", logger());
+app.use(
+  "*",
+  cors({
+    origin: [
+      "https://backtothefuture.dev",
+      "https://*.backtothefuture.dev",
+      "http://localhost:3000",
+    ],
+    allowHeaders: ["Content-Type", "Authorization", "X-Request-ID"],
+    allowMethods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    maxAge: 86400,
+    credentials: true,
+  }),
+);
+
+// ── Global Error Handler ─────────────────────────────────────────────
+
+app.onError((err, c) => {
+  const isProduction = c.env.ENVIRONMENT === "production";
+
+  console.error(`[${c.env.ENVIRONMENT}] Unhandled error:`, err.message);
+
+  return c.json(
+    {
+      error: isProduction ? "Internal Server Error" : err.message,
+      status: 500,
+      timestamp: new Date().toISOString(),
+    },
+    500,
+  );
+});
+
+// ── Health Check ─────────────────────────────────────────────────────
+
+app.get("/api/health", (c) => {
+  return c.json({
+    status: "ok",
+    environment: c.env.ENVIRONMENT,
+    version: c.env.API_VERSION,
+    timestamp: new Date().toISOString(),
+    runtime: "cloudflare-workers",
+    region:
+      (c.req.raw as Request & { cf?: { colo?: string } }).cf?.colo ??
+      "unknown",
+  });
+});
+
+// ── Workers AI (Edge Inference) ──────────────────────────────────────
+
+app.post("/api/ai/edge-inference", async (c) => {
+  const body = (await c.req.json()) as { prompt: string; model?: string };
+  const model = body.model ?? "@cf/meta/llama-3.1-8b-instruct";
+
+  try {
+    const response = await c.env.AI.run(model as BaseAiTextGenerationModels, {
+      prompt: body.prompt,
+      max_tokens: 512,
+    });
+
+    return c.json({
+      response,
+      model,
+      runtime: "workers-ai",
+    });
+  } catch (error) {
+    return c.json(
+      {
+        error: error instanceof Error ? error.message : "Inference failed",
+      },
+      500,
+    );
+  }
+});
+
+// ── R2 Asset Storage ─────────────────────────────────────────────────
+
+app.get("/api/assets/:key", async (c) => {
+  const key = c.req.param("key");
+  const object = await c.env.STORAGE.get(key);
+
+  if (!object) {
+    return c.json({ error: "Not found" }, 404);
+  }
+
+  const headers = new Headers();
+  headers.set(
+    "Content-Type",
+    object.httpMetadata?.contentType ?? "application/octet-stream",
+  );
+  headers.set("Cache-Control", "public, max-age=31536000, immutable");
+  headers.set("ETag", object.httpEtag);
+
+  return new Response(object.body, { headers });
+});
+
+app.put("/api/assets/:key", async (c) => {
+  const key = c.req.param("key");
+  const body = await c.req.arrayBuffer();
+  const contentType =
+    c.req.header("Content-Type") ?? "application/octet-stream";
+
+  await c.env.STORAGE.put(key, body, {
+    httpMetadata: { contentType },
+  });
+
+  return c.json({ key, size: body.byteLength });
+});
+
+// ── KV Cache ─────────────────────────────────────────────────────────
+
+app.get("/api/cache/:key", async (c) => {
+  const value = await c.env.CACHE.get(c.req.param("key"));
+  if (!value) return c.json({ error: "Not found" }, 404);
+  return c.json({ value: JSON.parse(value) });
+});
+
+app.put("/api/cache/:key", async (c) => {
+  const body = (await c.req.json()) as { value: unknown; ttl?: number };
+  const ttl = body.ttl ?? 3600;
+  await c.env.CACHE.put(c.req.param("key"), JSON.stringify(body.value), {
+    expirationTtl: ttl,
+  });
+  return c.json({ success: true });
+});
+
+// ── D1 Database Access ───────────────────────────────────────────────
+
+app.get("/api/db/query", async (c) => {
+  const sql = c.req.query("sql");
+  if (!sql) {
+    return c.json({ error: "Missing sql query parameter" }, 400);
+  }
+
+  try {
+    const result = await c.env.DB.prepare(sql).all();
+    return c.json({ results: result.results, meta: result.meta });
+  } catch (error) {
+    return c.json(
+      {
+        error: error instanceof Error ? error.message : "Query failed",
+      },
+      500,
+    );
+  }
+});
+
+// ── Durable Objects: Collaboration Rooms ─────────────────────────────
+
+app.get("/api/collab/:roomId/ws", async (c) => {
+  const roomId = c.req.param("roomId");
+  const id = c.env.COLLAB_ROOM.idFromName(roomId);
+  const stub = c.env.COLLAB_ROOM.get(id);
+  return stub.fetch(c.req.raw);
+});
+
+// ── Rate Limiter Access ──────────────────────────────────────────────
+
+app.get("/api/rate-limit/check", async (c) => {
+  const key = c.req.query("key") ?? "default";
+  const limit = c.req.query("limit") ?? "60";
+  const window = c.req.query("window") ?? "60";
+
+  const id = c.env.RATE_LIMITER.idFromName("global");
+  const stub = c.env.RATE_LIMITER.get(id);
+
+  const url = new URL(c.req.url);
+  url.searchParams.set("key", key);
+  url.searchParams.set("limit", limit);
+  url.searchParams.set("window", window);
+
+  return stub.fetch(url.toString());
+});
+
+// ── 404 Handler ──────────────────────────────────────────────────────
+
+app.notFound((c) => {
+  return c.json(
+    {
+      error: "Not Found",
+      path: c.req.path,
+      timestamp: new Date().toISOString(),
+    },
+    404,
+  );
+});
+
+// ── Export App + Durable Object Classes ──────────────────────────────
+
+export default app;
+
+// ── Durable Object: Collaboration Room ───────────────────────────────
+
+export class CollabRoom {
+  private state: DurableObjectState;
+  private connections = new Map<
+    WebSocket,
+    { userId: string; name?: string }
+  >();
+
+  constructor(state: DurableObjectState) {
+    this.state = state;
+  }
+
+  async fetch(request: Request): Promise<Response> {
+    const upgradeHeader = request.headers.get("Upgrade");
+    if (upgradeHeader !== "websocket") {
+      return new Response("Expected WebSocket", { status: 426 });
+    }
+
+    const pair = new WebSocketPair();
+    const [client, server] = [pair[0], pair[1]];
+
+    this.state.acceptWebSocket(server);
+
+    return new Response(null, { status: 101, webSocket: client });
+  }
+
+  async webSocketMessage(ws: WebSocket, message: string): Promise<void> {
+    try {
+      const data = JSON.parse(message) as {
+        type: string;
+        userId?: string;
+        [key: string]: unknown;
+      };
+
+      if (data.type === "join" && data.userId) {
+        this.connections.set(ws, {
+          userId: data.userId,
+          name: data.name as string,
+        });
+        this.broadcast(
+          JSON.stringify({
+            type: "user_joined",
+            userId: data.userId,
+            users: Array.from(this.connections.values()),
+          }),
+          ws,
+        );
+      } else {
+        this.broadcast(message, ws);
+      }
+    } catch {
+      // Invalid message -- silently ignore
+    }
+  }
+
+  async webSocketClose(ws: WebSocket): Promise<void> {
+    const info = this.connections.get(ws);
+    this.connections.delete(ws);
+
+    if (info) {
+      this.broadcast(
+        JSON.stringify({ type: "user_left", userId: info.userId }),
+      );
+    }
+  }
+
+  async webSocketError(ws: WebSocket): Promise<void> {
+    this.connections.delete(ws);
+  }
+
+  private broadcast(message: string, exclude?: WebSocket): void {
+    for (const [ws] of this.connections) {
+      if (ws === exclude) continue;
+      try {
+        ws.send(message);
+      } catch {
+        this.connections.delete(ws);
+      }
+    }
+  }
+}
+
+// ── Durable Object: Rate Limiter ─────────────────────────────────────
+
+export class RateLimiter {
+  private state: DurableObjectState;
+
+  constructor(state: DurableObjectState) {
+    this.state = state;
+  }
+
+  async fetch(request: Request): Promise<Response> {
+    const url = new URL(request.url);
+    const key = url.searchParams.get("key") ?? "default";
+    const limit = Number(url.searchParams.get("limit") ?? "60");
+    const window = Number(url.searchParams.get("window") ?? "60");
+
+    const now = Math.floor(Date.now() / 1000);
+    const windowKey = `${key}:${Math.floor(now / window)}`;
+
+    const current =
+      ((await this.state.storage.get(windowKey)) as number) ?? 0;
+
+    if (current >= limit) {
+      return new Response(
+        JSON.stringify({ allowed: false, remaining: 0 }),
+        {
+          status: 429,
+          headers: {
+            "Content-Type": "application/json",
+            "Retry-After": String(window - (now % window)),
+          },
+        },
+      );
+    }
+
+    await this.state.storage.put(windowKey, current + 1);
+
+    return new Response(
+      JSON.stringify({ allowed: true, remaining: limit - current - 1 }),
+      { headers: { "Content-Type": "application/json" } },
+    );
+  }
+}
