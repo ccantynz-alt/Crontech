@@ -104,6 +104,30 @@ export const payments = sqliteTable("payments", {
     .$defaultFn(() => new Date()),
 });
 
+// ── Tenant Projects (Multi-Tenant Neon Provisioning) ─────────────────
+
+export const tenantProjects = sqliteTable("tenant_projects", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  neonProjectId: text("neon_project_id").notNull().unique(),
+  connectionUri: text("connection_uri").notNull(), // encrypted in production
+  region: text("region").notNull().default("aws-us-east-2"),
+  status: text("status", {
+    enum: ["provisioning", "active", "suspended", "deleting"],
+  }).notNull(),
+  plan: text("plan", {
+    enum: ["free", "pro", "enterprise"],
+  }).notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+});
+
 // ── Audit Logs ───────────────────────────────────────────────────────
 
 export const auditLogs = sqliteTable("audit_logs", {

@@ -8,6 +8,8 @@
     ".": "./src/index.ts",
     "./schema": "./src/schema.ts",
     "./neon": "./src/neon.ts",
+    "./neon-provisioning": "./src/neon-provisioning.ts",
+    "./tenant-manager": "./src/tenant-manager.ts",
     "./migrate": "./src/migrate.ts"
   },
   "scripts": {

@@ -7,6 +7,7 @@ import { billingRouter } from "./procedures/billing";
 import { featureFlagsRouter } from "./procedures/featureFlags";
 import { collabRouter } from "./procedures/collab";
 import { emailRouter } from "./procedures/email";
+import { tenantRouter } from "./procedures/tenant";
 
 export const appRouter = router({
   health: publicProcedure.query(() => {
@@ -26,6 +27,7 @@ export const appRouter = router({
   featureFlags: featureFlagsRouter,
   collab: collabRouter,
   email: emailRouter,
+  tenant: tenantRouter,
 });
 
 export type AppRouter = typeof appRouter;

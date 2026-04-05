@@ -3,6 +3,7 @@ import { eq } from "drizzle-orm";
 import { db } from "@back-to-the-future/db";
 import { subscriptions, payments } from "@back-to-the-future/db/schema";
 import { getStripe } from "./client";
+import { provisionTenantDB } from "@back-to-the-future/db/tenant-manager";
 
 export function constructWebhookEvent(
   rawBody: string,
@@ -95,6 +96,19 @@ async function handleCheckoutCompleted(
     });
 
   console.log(`[stripe] Subscription ${stripeSub.id} created for user ${userId}`);
+
+  // Auto-provision tenant database for Pro and Enterprise plans
+  const planName = session.metadata?.["plan"] as string | undefined;
+  if (planName === "pro" || planName === "enterprise") {
+    try {
+      await provisionTenantDB(userId, planName);
+      console.log(`[stripe] Tenant DB provisioned for user ${userId} (${planName})`);
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : String(err);
+      console.error(`[stripe] Failed to provision tenant DB for user ${userId}: ${errMsg}`);
+      // Non-blocking: the user can manually provision later
+    }
+  }
 }
 
 async function handleSubscriptionUpdated(
