@@ -58,6 +58,67 @@ export function initTelemetry(): NodeSDK | null {
 export const tracer = trace.getTracer(SERVICE_NAME, SERVICE_VERSION);
 export const meter = metrics.getMeter(SERVICE_NAME, SERVICE_VERSION);
 
+// ── In-Memory Metrics Counters ──────────────────────────────────────
+// These track values locally so getMetrics() can return stats without
+// needing to read from the OTel export pipeline.
+
+interface MetricsSnapshot {
+  totalRequests: number;
+  activeWebSocketConnections: number;
+  aiInferenceCalls: { client: number; edge: number; cloud: number };
+  totalResponseTimeMs: number;
+  startedAt: string;
+}
+
+const metricsState: MetricsSnapshot = {
+  totalRequests: 0,
+  activeWebSocketConnections: 0,
+  aiInferenceCalls: { client: 0, edge: 0, cloud: 0 },
+  totalResponseTimeMs: 0,
+  startedAt: new Date().toISOString(),
+};
+
+/** Record an HTTP request (called from middleware). */
+export function recordRequest(durationMs: number): void {
+  metricsState.totalRequests++;
+  metricsState.totalResponseTimeMs += durationMs;
+}
+
+/** Record a WebSocket connection change. */
+export function recordWsConnection(delta: 1 | -1): void {
+  metricsState.activeWebSocketConnections += delta;
+}
+
+/** Record an AI inference call by compute tier. */
+export function recordAiInference(tier: "client" | "edge" | "cloud"): void {
+  metricsState.aiInferenceCalls[tier]++;
+}
+
+/** Get a snapshot of current metrics for the health dashboard. */
+export function getMetrics(): {
+  totalRequests: number;
+  activeWebSocketConnections: number;
+  aiInferenceCalls: { client: number; edge: number; cloud: number };
+  averageResponseTimeMs: number;
+  uptimeSeconds: number;
+} {
+  const uptimeSeconds = Math.round(
+    (Date.now() - new Date(metricsState.startedAt).getTime()) / 1000,
+  );
+  const averageResponseTimeMs =
+    metricsState.totalRequests > 0
+      ? Math.round(metricsState.totalResponseTimeMs / metricsState.totalRequests)
+      : 0;
+
+  return {
+    totalRequests: metricsState.totalRequests,
+    activeWebSocketConnections: metricsState.activeWebSocketConnections,
+    aiInferenceCalls: { ...metricsState.aiInferenceCalls },
+    averageResponseTimeMs,
+    uptimeSeconds,
+  };
+}
+
 // ── Pre-built Metrics ────────────────────────────────────────────────
 
 export const httpRequestDuration = meter.createHistogram("http.request.duration", {
@@ -131,5 +192,21 @@ export function traceAICall(
       return result;
     },
     { "ai.model": model },
+  );
+}
+
+/** Wrap a tRPC-like procedure call with an OpenTelemetry span. */
+export function traceProcedure<T>(
+  procedureName: string,
+  fn: () => Promise<T>,
+): Promise<T> {
+  return traceAsync(
+    `trpc.${procedureName}`,
+    async (span) => {
+      span.setAttribute("rpc.system", "trpc");
+      span.setAttribute("rpc.method", procedureName);
+      return await fn();
+    },
+    { "rpc.system": "trpc", "rpc.method": procedureName },
   );
 }

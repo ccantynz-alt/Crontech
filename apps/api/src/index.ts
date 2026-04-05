@@ -4,7 +4,7 @@ import { appRouter } from "./trpc/router";
 import { createContext } from "./trpc/context";
 import { aiRoutes } from "./ai/routes";
 import { wsApp, websocket, sseApp, yjsWsApp } from "./realtime";
-import { initTelemetry, httpRequestCount, httpRequestDuration } from "./telemetry";
+import { initTelemetry, httpRequestCount, httpRequestDuration, recordRequest, getMetrics } from "./telemetry";
 import { getAllFlags, isFeatureEnabled } from "./feature-flags";
 import { checkNeonHealth } from "@back-to-the-future/db/neon";
 import {
@@ -23,29 +23,17 @@ import {
 // Initialize OpenTelemetry (no-op if OTEL_EXPORTER_OTLP_ENDPOINT not set)
 const telemetry = initTelemetry();
 
-import { cors } from "hono/cors";
 import { securityHeaders } from "./middleware/security-headers";
 import { rateLimiter } from "./middleware/rate-limiter";
 import { csrf } from "./middleware/csrf";
 
-const WEB_ORIGIN = process.env["WEB_ORIGIN"] ?? "http://localhost:3000";
-const ALLOWED_ORIGINS = [WEB_ORIGIN, "http://localhost:3001"];
-
 const app = new Hono().basePath("/api");
 
 // ── Security Middleware ──────────────────────────────────────────────
-app.use("*", cors({
-  origin: ALLOWED_ORIGINS,
-  allowMethods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-  allowHeaders: ["Content-Type", "Authorization", "x-trpc-source", "stripe-signature"],
-  exposeHeaders: ["X-RateLimit-Limit", "X-RateLimit-Remaining", "Retry-After"],
-  credentials: true,
-  maxAge: 86400,
-}));
 app.use("*", securityHeaders());
-app.use("*", csrf({ allowedOrigins: ALLOWED_ORIGINS }));
-app.use("/trpc/*", rateLimiter({ windowMs: 60_000, max: 200 }));
-app.use("/ai/*", rateLimiter({ windowMs: 60_000, max: 30 }));
+app.use("*", csrf({ allowedOrigins: ["http://localhost:3000", "http://localhost:3001"] }));
+app.use("/api/trpc/*", rateLimiter({ windowMs: 60_000, max: 200 }));
+app.use("/api/ai/*", rateLimiter({ windowMs: 60_000, max: 30 }));
 
 // ── Request Telemetry Middleware ──────────────────────────────────────
 app.use("*", async (c, next) => {
@@ -58,6 +46,7 @@ app.use("*", async (c, next) => {
     path: c.req.path,
     status: c.res.status,
   });
+  recordRequest(duration);
 });
 
 app.get("/health", (c) => {
@@ -82,6 +71,11 @@ app.get("/health/full", async (c) => {
       qdrant: qdrant.status === "fulfilled" ? qdrant.value : { status: "error", error: "check failed" },
     },
   });
+});
+
+// ── Metrics Endpoint ────────────────────────────────────────────────
+app.get("/metrics", (c) => {
+  return c.json(getMetrics());
 });
 
 // ── Feature Flags Endpoints ──────────────────────────────────────────
