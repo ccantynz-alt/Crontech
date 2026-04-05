@@ -128,6 +128,39 @@ export const tenantProjects = sqliteTable("tenant_projects", {
     .$defaultFn(() => new Date()),
 });
 
+// ── API Keys ────────────────────────────────────────────────────────
+
+export const apiKeys = sqliteTable("api_keys", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  keyHash: text("key_hash").notNull(),
+  prefix: text("prefix").notNull(),
+  name: text("name").notNull(),
+  lastUsedAt: integer("last_used_at", { mode: "timestamp" }),
+  expiresAt: integer("expires_at", { mode: "timestamp" }),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+});
+
+// ── User Webhooks ───────────────────────────────────────────────────
+
+export const userWebhooks = sqliteTable("user_webhooks", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id),
+  url: text("url").notNull(),
+  events: text("events").notNull(),
+  secret: text("secret").notNull(),
+  isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+});
+
 // ── Audit Logs ───────────────────────────────────────────────────────
 
 export const auditLogs = sqliteTable("audit_logs", {

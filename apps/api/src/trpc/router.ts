@@ -10,6 +10,9 @@ import { emailRouter } from "./procedures/email";
 import { adminRouter } from "./procedures/admin";
 import { analyticsRouter } from "./procedures/analytics";
 import { notificationsRouter } from "./procedures/notifications";
+import { tenantRouter } from "./procedures/tenant";
+import { apiKeysRouter } from "./procedures/apiKeys";
+import { webhooksRouter } from "./procedures/webhooks";
 
 export const appRouter = router({
   health: publicProcedure.query(() => {
@@ -32,6 +35,9 @@ export const appRouter = router({
   admin: adminRouter,
   analytics: analyticsRouter,
   notifications: notificationsRouter,
+  tenant: tenantRouter,
+  apiKeys: apiKeysRouter,
+  webhooks: webhooksRouter,
 });
 
 export type AppRouter = typeof appRouter;

@@ -26,6 +26,7 @@ const telemetry = initTelemetry();
 import { securityHeaders } from "./middleware/security-headers";
 import { rateLimiter } from "./middleware/rate-limiter";
 import { csrf } from "./middleware/csrf";
+import { apiKeyAuthMiddleware } from "./middleware/api-key-auth";
 
 const app = new Hono().basePath("/api");
 
@@ -34,6 +35,11 @@ app.use("*", securityHeaders());
 app.use("*", csrf({ allowedOrigins: ["http://localhost:3000", "http://localhost:3001"] }));
 app.use("/api/trpc/*", rateLimiter({ windowMs: 60_000, max: 200 }));
 app.use("/api/ai/*", rateLimiter({ windowMs: 60_000, max: 30 }));
+
+// ── API Key Authentication ──────────────────────────────────────────
+// Allows Bearer btf_sk_... tokens to authenticate against the API keys table.
+app.use("/api/trpc/*", apiKeyAuthMiddleware);
+app.use("/api/ai/*", apiKeyAuthMiddleware);
 
 // ── Request Telemetry Middleware ──────────────────────────────────────
 app.use("*", async (c, next) => {
