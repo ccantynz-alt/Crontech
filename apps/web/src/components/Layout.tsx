@@ -3,6 +3,7 @@ import { Show, createSignal } from "solid-js";
 import { A, useLocation } from "@solidjs/router";
 import { Button, Text } from "@back-to-the-future/ui";
 import { useAuth, useTheme } from "../stores";
+import { NotificationCenter } from "./NotificationCenter";
 
 // ── Nav Link ──────────────────────────────────────────────────────────
 
@@ -107,6 +108,7 @@ function Sidebar(props: SidebarProps): JSX.Element {
           <NavLink href="/video" label="Video Editor" />
           <NavLink href="/pricing" label="Pricing" />
           <NavLink href="/settings" label="Settings" />
+          <NavLink href="/admin" label="Admin" />
           <NavLink href="/about" label="About" />
         </nav>
       </Show>
@@ -144,6 +146,9 @@ export function Layout(props: LayoutProps): JSX.Element {
         </div>
         <div class="navbar-right">
           <ThemeToggle />
+          <Show when={auth.isAuthenticated()}>
+            <NotificationCenter />
+          </Show>
           <Show
             when={auth.isAuthenticated()}
             fallback={

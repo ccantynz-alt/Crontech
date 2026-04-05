@@ -112,7 +112,7 @@ export const tenantProjects = sqliteTable("tenant_projects", {
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
   neonProjectId: text("neon_project_id").notNull().unique(),
-  connectionUri: text("connection_uri").notNull(), // encrypted in production
+  connectionUri: text("connection_uri").notNull(),
   region: text("region").notNull().default("aws-us-east-2"),
   status: text("status", {
     enum: ["provisioning", "active", "suspended", "deleting"],
@@ -147,4 +147,39 @@ export const auditLogs = sqliteTable("audit_logs", {
   previousHash: text("previous_hash"),
   entryHash: text("entry_hash").notNull(),
   signature: text("signature"),
+});
+
+// ── Notifications ────────────────────────────────────────────────────
+
+export const notifications = sqliteTable("notifications", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  type: text("type", {
+    enum: ["system", "billing", "collaboration", "ai"],
+  }).notNull(),
+  title: text("title").notNull(),
+  message: text("message").notNull(),
+  read: integer("read", { mode: "boolean" }).notNull().default(false),
+  metadata: text("metadata"),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+});
+
+// ── Analytics Events ─────────────────────────────────────────────────
+
+export const analyticsEvents = sqliteTable("analytics_events", {
+  id: text("id").primaryKey(),
+  userId: text("user_id"),
+  sessionId: text("session_id"),
+  event: text("event").notNull(),
+  category: text("category", {
+    enum: ["page_view", "feature_usage", "ai_generation", "time_on_page"],
+  }).notNull(),
+  properties: text("properties"),
+  timestamp: integer("timestamp", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
 });

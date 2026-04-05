@@ -3,6 +3,7 @@ import { A } from "@solidjs/router";
 import { For } from "solid-js";
 import { Button, Card, Stack, Text } from "@back-to-the-future/ui";
 import { ProtectedRoute } from "../components/ProtectedRoute";
+import { OnboardingWizard } from "../components/OnboardingWizard";
 import { useAuth } from "../stores";
 
 // ── Quick Action Card ─────────────────────────────────────────────────
@@ -56,6 +57,7 @@ export default function DashboardPage(): ReturnType<typeof ProtectedRoute> {
 
   return (
     <ProtectedRoute>
+      <OnboardingWizard />
       <Title>Dashboard - Back to the Future</Title>
       <Stack direction="vertical" gap="lg" class="page-padded">
         <Stack direction="vertical" gap="xs">
