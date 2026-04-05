@@ -3,7 +3,7 @@ import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 import { appRouter } from "./trpc/router";
 import { createContext } from "./trpc/context";
 import { aiRoutes } from "./ai/routes";
-import { wsApp, websocket, sseApp } from "./realtime";
+import { wsApp, websocket, sseApp, yjsWsApp } from "./realtime";
 import { initTelemetry, httpRequestCount, httpRequestDuration } from "./telemetry";
 import { getAllFlags, isFeatureEnabled } from "./feature-flags";
 import { checkNeonHealth } from "@back-to-the-future/db/neon";
@@ -23,7 +23,17 @@ import {
 // Initialize OpenTelemetry (no-op if OTEL_EXPORTER_OTLP_ENDPOINT not set)
 const telemetry = initTelemetry();
 
+import { securityHeaders } from "./middleware/security-headers";
+import { rateLimiter } from "./middleware/rate-limiter";
+import { csrf } from "./middleware/csrf";
+
 const app = new Hono().basePath("/api");
+
+// ── Security Middleware ──────────────────────────────────────────────
+app.use("*", securityHeaders());
+app.use("*", csrf({ allowedOrigins: ["http://localhost:3000", "http://localhost:3001"] }));
+app.use("/api/trpc/*", rateLimiter({ windowMs: 60_000, max: 200 }));
+app.use("/api/ai/*", rateLimiter({ windowMs: 60_000, max: 30 }));
 
 // ── Request Telemetry Middleware ──────────────────────────────────────
 app.use("*", async (c, next) => {
@@ -119,6 +129,25 @@ app.get("/mcp/resources/:uri{.+}", (c) => {
   return c.json({ result });
 });
 
+// ── Stripe Webhook (raw Hono -- needs raw body for signature verification) ──
+app.post("/webhooks/stripe", async (c) => {
+  const { constructWebhookEvent, handleWebhookEvent } = await import("./stripe/webhooks");
+  const signature = c.req.header("stripe-signature");
+  if (!signature) {
+    return c.json({ error: "Missing stripe-signature header" }, 400);
+  }
+  try {
+    const rawBody = await c.req.text();
+    const event = constructWebhookEvent(rawBody, signature);
+    await handleWebhookEvent(event);
+    return c.json({ received: true });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Webhook error";
+    console.error("Stripe webhook error:", message);
+    return c.json({ error: message }, 400);
+  }
+});
+
 // Mount AI routes (raw Hono -- streaming works better outside tRPC)
 app.route("/ai", aiRoutes);
 
@@ -134,6 +163,9 @@ app.use("/trpc/*", async (c) => {
 
 // Real-Time: WebSocket upgrade at /api/ws
 app.route("/", wsApp);
+
+// Real-Time: Yjs CRDT sync WebSocket at /api/yjs/:roomId
+app.route("/", yjsWsApp);
 
 // Real-Time: SSE + REST endpoints
 app.route("/", sseApp);

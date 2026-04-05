@@ -41,15 +41,15 @@ export default function DashboardPage(): ReturnType<typeof ProtectedRoute> {
       label: "Open Builder",
     },
     {
-      title: "Projects",
-      description: "View and manage your existing projects, deployments, and assets.",
-      href: "/dashboard",
-      label: "Browse Projects",
+      title: "Video Editor",
+      description: "WebGPU-accelerated video processing directly in the browser.",
+      href: "/video",
+      label: "Open Editor",
     },
     {
       title: "Collaboration",
       description: "Join a real-time editing session or invite team members to collaborate.",
-      href: "/dashboard",
+      href: "/collab",
       label: "Start Session",
     },
   ];
