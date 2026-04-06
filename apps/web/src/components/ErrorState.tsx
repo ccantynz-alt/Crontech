@@ -1,4 +1,5 @@
 import type { JSX } from "solid-js";
+import { A, useNavigate } from "@solidjs/router";
 import { Button, Card, Stack, Text } from "@back-to-the-future/ui";
 
 interface ErrorStateProps {
@@ -13,6 +14,10 @@ interface ErrorStateProps {
  * Never expose stack traces to users.
  */
 export function ErrorState(props: ErrorStateProps): JSX.Element {
+  const navigate = useNavigate();
+  const handleSupport = (): void => {
+    navigate(props.supportHref ?? "/docs");
+  };
   return (
     <Card padding="lg" class="error-state-card">
       <Stack direction="vertical" gap="md" align="center">
@@ -29,9 +34,9 @@ export function ErrorState(props: ErrorStateProps): JSX.Element {
               Try again
             </Button>
           ) : null}
-          <a href={props.supportHref ?? "/docs"}>
-            <Button variant="outline">Contact support</Button>
-          </a>
+          <Button variant="outline" onClick={handleSupport}>
+            Contact support
+          </Button>
         </Stack>
       </Stack>
     </Card>
@@ -50,6 +55,7 @@ interface EmptyStateProps {
  * Friendly empty state with a clear next action.
  */
 export function EmptyState(props: EmptyStateProps): JSX.Element {
+  const navigate = useNavigate();
   return (
     <Card padding="lg" class="empty-state-card">
       <Stack direction="vertical" gap="md" align="center">
@@ -57,9 +63,9 @@ export function EmptyState(props: EmptyStateProps): JSX.Element {
         <Text variant="h4" weight="semibold" align="center">{props.title}</Text>
         <Text variant="body" class="text-muted" align="center">{props.message}</Text>
         {props.actionHref && props.actionLabel ? (
-          <a href={props.actionHref}>
-            <Button variant="primary">{props.actionLabel}</Button>
-          </a>
+          <Button variant="primary" onClick={() => navigate(props.actionHref!)}>
+            {props.actionLabel}
+          </Button>
         ) : null}
       </Stack>
     </Card>
