@@ -50,24 +50,28 @@ describe("Mastra Tools", () => {
   });
 
   test("generateComponentTool execute returns valid result", async () => {
-    const executeFn = generateComponentTool.execute as (input: { componentName: string; description: string }) => Promise<{ success: boolean; component: { component: string } | null }>;
+    const executeFn = generateComponentTool.execute as unknown as (
+      input: { componentName: string; description: string },
+    ) => Promise<{ success: boolean; component: { component: string } | null }>;
     const result = await executeFn({
       componentName: "Button",
       description: "Submit form",
     });
     expect(result.success).toBe(true);
     expect(result.component).toBeDefined();
-    expect(result.component!.component).toBe("Button");
+    expect(result.component?.component).toBe("Button");
   });
 
   test("analyzeCodeTool detects any type", async () => {
-    const executeFn = analyzeCodeTool.execute as (input: { code: string; language: string; focus: string }) => Promise<{ issues: Array<{ message: string }> }>;
+    const executeFn = analyzeCodeTool.execute as unknown as (
+      input: { code: string; language: string; focus: string },
+    ) => Promise<{ issues: Array<{ message: string }> }>;
     const result = await executeFn({
       code: "const x: any = 'hello';",
       language: "typescript",
       focus: "all",
     });
     expect(result.issues.length).toBeGreaterThan(0);
-    expect(result.issues[0].message).toContain("any");
+    expect(result.issues[0]?.message).toContain("any");
   });
 });

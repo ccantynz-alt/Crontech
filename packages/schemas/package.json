@@ -15,6 +15,7 @@
     "zod": "^4"
   },
   "devDependencies": {
-    "typescript": "^5"
+    "typescript": "^5",
+    "@types/bun": "^1.2.0"
   }
 }

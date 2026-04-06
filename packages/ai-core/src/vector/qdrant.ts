@@ -16,10 +16,12 @@ const VECTOR_SIZE = 1536; // OpenAI text-embedding-3-small dimensions
 // ── Client Factory ───────────────────────────────────────────────────
 
 export function createQdrantClient(config?: QdrantConfig): QdrantClient {
-  return new QdrantClient({
+  const params: { url: string; apiKey?: string } = {
     url: config?.url ?? process.env["QDRANT_URL"] ?? "http://localhost:6333",
-    apiKey: config?.apiKey ?? process.env["QDRANT_API_KEY"],
-  });
+  };
+  const apiKey = config?.apiKey ?? process.env["QDRANT_API_KEY"];
+  if (apiKey !== undefined) params.apiKey = apiKey;
+  return new QdrantClient(params);
 }
 
 // ── Collection Management ────────────────────────────────────────────

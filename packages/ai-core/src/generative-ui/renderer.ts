@@ -114,6 +114,11 @@ export function validateComponentTree(
 /**
  * Counts total components in a tree (including nested children).
  */
+interface ComponentLike {
+  component: string;
+  children?: unknown;
+}
+
 function countComponents(tree: z.infer<typeof ComponentSchema>[]): {
   count: number;
   names: Set<string>;
@@ -122,10 +127,11 @@ function countComponents(tree: z.infer<typeof ComponentSchema>[]): {
   let count = 0;
 
   function walk(nodes: z.infer<typeof ComponentSchema>[]) {
-    for (const node of nodes) {
+    for (const rawNode of nodes) {
+      const node = rawNode as unknown as ComponentLike;
       count++;
       names.add(node.component);
-      if ("children" in node && Array.isArray(node.children)) {
+      if (node.children !== undefined && Array.isArray(node.children)) {
         walk(node.children as z.infer<typeof ComponentSchema>[]);
       }
     }

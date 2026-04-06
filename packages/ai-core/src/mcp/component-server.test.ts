@@ -134,7 +134,7 @@ describe("MCP Component Server", () => {
       const resources = getMCPResources();
       // 1 catalog + 15 components
       expect(resources).toHaveLength(16);
-      expect(resources[0].uri).toBe("btf://components/catalog");
+      expect(resources[0]?.uri).toBe("btf://components/catalog");
     });
   });
 

@@ -288,7 +288,8 @@ app.post("/api/ai/edge-inference", async (c) => {
 
   try {
     const response = await c.env.AI.run(
-      model as BaseAiTextGenerationModels,
+      // Workers AI types vary across versions; cast to satisfy compiler
+      model as Parameters<typeof c.env.AI.run>[0],
       {
         prompt: body.prompt,
         max_tokens: 512,

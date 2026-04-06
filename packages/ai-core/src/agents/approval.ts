@@ -13,7 +13,7 @@ export const ApprovalRequestSchema = z.object({
   action: z.string(),
   description: z.string(),
   riskLevel: z.enum(["low", "medium", "high", "critical"]),
-  details: z.record(z.unknown()).optional(),
+  details: z.record(z.string(), z.unknown()).optional(),
   status: z.enum(["pending", "approved", "rejected", "expired"]),
   createdAt: z.number(),
   expiresAt: z.number(),

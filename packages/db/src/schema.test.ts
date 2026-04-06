@@ -116,7 +116,8 @@ describe("auditLogs table schema", () => {
       "entryHash",
     ];
     for (const field of requiredFields) {
-      expect(columns[field].notNull).toBe(true);
+      const col = (columns as Record<string, { notNull: boolean }>)[field];
+      expect(col?.notNull).toBe(true);
     }
   });
 
@@ -131,7 +132,8 @@ describe("auditLogs table schema", () => {
       "signature",
     ];
     for (const field of optionalFields) {
-      expect(columns[field].notNull).toBe(false);
+      const col = (columns as Record<string, { notNull: boolean }>)[field];
+      expect(col?.notNull).toBe(false);
     }
   });
 
