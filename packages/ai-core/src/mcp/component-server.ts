@@ -83,12 +83,14 @@ export function getComponentSchema(componentName: string): {
     let typeName = "unknown";
     let defaultValue: unknown;
 
-    // Extract type info from Zod schema
+    // Extract type info from Zod schema (Zod v4 internals are typed loosely)
+    const def = (zodSchema as unknown as { _def?: { defaultValue?: unknown; innerType?: unknown } })._def;
     if (zodSchema instanceof z.ZodDefault) {
-      defaultValue = zodSchema._def.defaultValue();
-      typeName = getZodTypeName(zodSchema._def.innerType);
+      const dv = def?.defaultValue;
+      defaultValue = typeof dv === "function" ? (dv as () => unknown)() : dv;
+      typeName = getZodTypeName(def?.innerType as z.ZodType);
     } else if (zodSchema instanceof z.ZodOptional) {
-      typeName = getZodTypeName(zodSchema._def.innerType);
+      typeName = getZodTypeName(def?.innerType as z.ZodType);
     } else {
       typeName = getZodTypeName(zodSchema);
     }
@@ -161,7 +163,7 @@ export function getMCPTools(): MCPTool[] {
     {
       name: "btf_list_components",
       description:
-        "List all available UI components in the Marco Reid component catalog. " +
+        "List all available UI components in the Crontech component catalog. " +
         "Returns component names, prop counts, and whether they accept children.",
       inputSchema: {
         type: "object",
@@ -306,12 +308,24 @@ function getZodTypeName(schema: z.ZodType): string {
   if (schema instanceof z.ZodString) return "string";
   if (schema instanceof z.ZodNumber) return "number";
   if (schema instanceof z.ZodBoolean) return "boolean";
-  if (schema instanceof z.ZodEnum) return `enum(${(schema as z.ZodEnum<[string]>).options.join("|")})`;
+  if (schema instanceof z.ZodEnum) {
+    const opts = (schema as unknown as { options?: readonly string[] }).options ?? [];
+    return `enum(${opts.join("|")})`;
+  }
   if (schema instanceof z.ZodArray) return "array";
   if (schema instanceof z.ZodObject) return "object";
-  if (schema instanceof z.ZodLiteral) return `literal(${String(schema.value)})`;
-  if (schema instanceof z.ZodOptional) return getZodTypeName(schema._def.innerType);
-  if (schema instanceof z.ZodDefault) return getZodTypeName(schema._def.innerType);
+  if (schema instanceof z.ZodLiteral) {
+    const val = (schema as unknown as { value?: unknown }).value;
+    return `literal(${String(val)})`;
+  }
+  if (schema instanceof z.ZodOptional) {
+    const inner = (schema as unknown as { _def?: { innerType?: z.ZodType } })._def?.innerType;
+    return inner ? getZodTypeName(inner) : "unknown";
+  }
+  if (schema instanceof z.ZodDefault) {
+    const inner = (schema as unknown as { _def?: { innerType?: z.ZodType } })._def?.innerType;
+    return inner ? getZodTypeName(inner) : "unknown";
+  }
   return "unknown";
 }
 

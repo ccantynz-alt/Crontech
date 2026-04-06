@@ -189,7 +189,7 @@ export function SupportBot(): ReturnType<typeof Show> {
     const path = location.pathname;
     return (
       PAGE_HINTS[path] ?? {
-        title: "Marco Reid",
+        title: "Crontech",
         suggestions: ["How do I get started?", "Show me around", "How do I get help?"],
       }
     );

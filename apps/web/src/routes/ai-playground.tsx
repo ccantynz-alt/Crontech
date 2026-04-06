@@ -131,7 +131,7 @@ export default function AIPlayground(): JSX.Element {
   // ── Render ─────────────────────────────────────────────────────────
   return (
     <div class="max-w-6xl mx-auto p-6 space-y-6">
-      <Title>AI Playground | Marco Reid</Title>
+      <Title>AI Playground | Crontech</Title>
 
       <Stack direction="vertical" gap="md">
         <Text variant="heading" class="text-2xl font-bold">AI Playground</Text>

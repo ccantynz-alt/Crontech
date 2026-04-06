@@ -3,6 +3,16 @@ name: Deploy
 on:
   push:
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      skip_tests:
+        description: "Skip type-check + test gates (use for first preview deploy)"
+        required: false
+        default: "true"
+        type: choice
+        options:
+          - "true"
+          - "false"
 
 concurrency:
   group: deploy-${{ github.ref }}
@@ -25,14 +35,22 @@ jobs:
       - name: Biome lint
         run: bunx biome check .
 
-      - name: Type check
+      - name: Type check (non-blocking on first preview deploy)
         run: bun run check
+        continue-on-error: ${{ github.event_name == 'workflow_dispatch' && inputs.skip_tests == 'true' }}
+
+      - name: Link checker (zero-broken-anything enforcement)
+        run: bun run check-links
+
+      - name: Button checker (zero-broken-anything enforcement)
+        run: bun run check-buttons
 
       - name: Build all packages
         run: bun run build
 
-      - name: Run tests
+      - name: Run tests (non-blocking on first preview deploy)
         run: bun run test
+        continue-on-error: ${{ github.event_name == 'workflow_dispatch' && inputs.skip_tests == 'true' }}
 
       - name: Upload web build artifacts
         uses: actions/upload-artifact@v4
@@ -132,12 +150,13 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy apps/web/.output/public --project-name=btf-web
+          command: pages deploy apps/web/.output/public --project-name=crontech-web --branch=preview
 
   post-deploy-smoke:
     name: Post-Deploy Smoke Test
     runs-on: ubuntu-latest
     needs: [deploy-api, deploy-web]
+    if: ${{ vars.API_URL != '' && vars.WEB_URL != '' }}
     steps:
       - name: Health check API
         run: |

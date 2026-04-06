@@ -3,8 +3,7 @@
 // Agents plan, execute, observe, and adapt — not single-shot LLM calls.
 // Sustained autonomous workflows with memory and branching logic.
 
-import { streamText, generateObject, type ModelMessage } from "ai";
-import { z } from "zod";
+import { streamText, type ModelMessage } from "ai";
 import { getModelForTier, getDefaultModel, type AIProviderEnv } from "../providers";
 import { allTools } from "../tools";
 import type { ComputeTier } from "../compute-tier";
@@ -47,7 +46,7 @@ export interface AgentStep {
 export class AgentOrchestrator {
   private agents = new Map<string, AgentDefinition>();
   private states = new Map<string, AgentState>();
-  private providerEnv?: AIProviderEnv;
+  private providerEnv: AIProviderEnv | undefined;
 
   constructor(config?: { providerEnv?: AIProviderEnv }) {
     this.providerEnv = config?.providerEnv;

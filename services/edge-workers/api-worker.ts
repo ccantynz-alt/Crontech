@@ -33,7 +33,7 @@ app.use("*", secureHeaders());
 app.use(
   "*",
   cors({
-    origin: ["https://marcoreid.com", "http://localhost:3000"],
+    origin: ["https://crontech.ai", "http://localhost:3000"],
     allowHeaders: ["Content-Type", "Authorization"],
     allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     maxAge: 86400,

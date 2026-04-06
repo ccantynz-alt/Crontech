@@ -10,17 +10,20 @@ import { secureHeaders } from "hono/secure-headers";
 // ── Cloudflare Bindings ──────────────────────────────────────────────
 
 interface Env {
-  DB: D1Database;
-  STORAGE: R2Bucket;
-  CACHE: KVNamespace;
+  // Optional bindings — only present after the corresponding Cloudflare
+  // resources are created and uncommented in wrangler.toml. The worker
+  // gracefully degrades when they are missing.
+  DB?: D1Database;
+  STORAGE?: R2Bucket;
+  CACHE?: KVNamespace;
   AI: Ai;
   COLLAB_ROOM: DurableObjectNamespace;
   RATE_LIMITER: DurableObjectNamespace;
   ENVIRONMENT: string;
   API_VERSION: string;
-  API_ORIGIN: string;
-  OPENAI_API_KEY: string;
-  DATABASE_AUTH_TOKEN: string;
+  API_ORIGIN?: string;
+  OPENAI_API_KEY?: string;
+  DATABASE_AUTH_TOKEN?: string;
   QDRANT_API_KEY?: string;
   NEON_DATABASE_URL?: string;
 }
@@ -28,12 +31,12 @@ interface Env {
 // ── CORS Origins ────────────────────────────────────────────────────
 
 const ALLOWED_ORIGINS = [
-  "https://marcoreid.com",
-  "https://www.marcoreid.com",
-  "https://accounting.marcoreid.com",
-  "https://legal.marcoreid.com",
-  "https://immigration.marcoreid.com",
-  "https://api.marcoreid.com",
+  "https://crontech.ai",
+  "https://www.crontech.ai",
+  "https://accounting.crontech.ai",
+  "https://legal.crontech.ai",
+  "https://immigration.crontech.ai",
+  "https://api.crontech.ai",
   "http://localhost:3000",
   "http://localhost:3001",
 ];
@@ -48,11 +51,11 @@ function resolveVertical(hostname: string): Vertical {
   // Strip port if present
   const host = hostname.split(":")[0] ?? hostname;
 
-  if (host === "api.marcoreid.com") return "api";
-  if (host === "accounting.marcoreid.com") return "accounting";
-  if (host === "legal.marcoreid.com") return "legal";
-  if (host === "immigration.marcoreid.com") return "immigration";
-  // Main domain (marcoreid.com, www.marcoreid.com, localhost)
+  if (host === "api.crontech.ai") return "api";
+  if (host === "accounting.crontech.ai") return "accounting";
+  if (host === "legal.crontech.ai") return "legal";
+  if (host === "immigration.crontech.ai") return "immigration";
+  // Main domain (crontech.ai, www.crontech.ai, localhost)
   return "main";
 }
 
@@ -108,20 +111,20 @@ app.use("*", async (c, next) => {
 
 // ── Vertical-Specific Routes ─────────────────────────────────────────
 
-// accounting.marcoreid.com root → serves accounting landing page
+// accounting.crontech.ai root → serves accounting landing page
 app.get("/", async (c) => {
   const vertical = c.req.header("host")?.split(":")[0] ?? "";
-  if (vertical === "accounting.marcoreid.com") {
+  if (vertical === "accounting.crontech.ai") {
     return c.redirect("/accounting", 302);
   }
-  if (vertical === "legal.marcoreid.com") {
+  if (vertical === "legal.crontech.ai") {
     return c.redirect("/legal-services", 302);
   }
-  if (vertical === "immigration.marcoreid.com") {
+  if (vertical === "immigration.crontech.ai") {
     return c.redirect("/immigration", 302);
   }
   // Main domain falls through to normal handler
-  return c.text("Marco Reid — route to main app");
+  return c.text("Crontech — route to main app");
 });
 
 // ── Rate Limiting Middleware (via Durable Objects) ───────────────────
@@ -288,7 +291,8 @@ app.post("/api/ai/edge-inference", async (c) => {
 
   try {
     const response = await c.env.AI.run(
-      model as BaseAiTextGenerationModels,
+      // Workers AI types vary across versions; cast to satisfy compiler
+      model as Parameters<typeof c.env.AI.run>[0],
       {
         prompt: body.prompt,
         max_tokens: 512,
@@ -313,8 +317,15 @@ app.post("/api/ai/edge-inference", async (c) => {
 });
 
 // ── R2 Asset Storage ─────────────────────────────────────────────────
+// All R2 routes return 503 gracefully if STORAGE binding isn't configured.
+
+const SERVICE_UNAVAILABLE = (service: string) => ({
+  error: `${service} not configured. Add the binding in wrangler.toml and redeploy.`,
+  timestamp: new Date().toISOString(),
+});
 
 app.get("/api/assets/:key", async (c) => {
+  if (!c.env.STORAGE) return c.json(SERVICE_UNAVAILABLE("R2 storage"), 503);
   const key = c.req.param("key");
   const object = await c.env.STORAGE.get(key);
 
@@ -337,6 +348,7 @@ app.get("/api/assets/:key", async (c) => {
 });
 
 app.put("/api/assets/:key", async (c) => {
+  if (!c.env.STORAGE) return c.json(SERVICE_UNAVAILABLE("R2 storage"), 503);
   const key = c.req.param("key");
   const body = await c.req.arrayBuffer();
   const contentType =
@@ -356,6 +368,7 @@ app.put("/api/assets/:key", async (c) => {
 // ── KV Cache ─────────────────────────────────────────────────────────
 
 app.get("/api/cache/:key", async (c) => {
+  if (!c.env.CACHE) return c.json(SERVICE_UNAVAILABLE("KV cache"), 503);
   const value = await c.env.CACHE.get(c.req.param("key"));
   if (!value) {
     return c.json(
@@ -367,6 +380,7 @@ app.get("/api/cache/:key", async (c) => {
 });
 
 app.put("/api/cache/:key", async (c) => {
+  if (!c.env.CACHE) return c.json(SERVICE_UNAVAILABLE("KV cache"), 503);
   const body = (await c.req.json()) as {
     value: unknown;
     ttl?: number;
@@ -383,6 +397,7 @@ app.put("/api/cache/:key", async (c) => {
 // ── D1 Database Access ───────────────────────────────────────────────
 
 app.post("/api/db/query", async (c) => {
+  if (!c.env.DB) return c.json(SERVICE_UNAVAILABLE("D1 database"), 503);
   const body = (await c.req.json()) as {
     sql: string;
     params?: unknown[];

@@ -50,21 +50,25 @@ export const searchContent = tool({
       const { createEmbedFunction } = await import("./rag/embeddings");
       const client = createQdrantClient();
 
-      // Build filter from contentType
-      const filter = input.contentType !== "all"
-        ? { type: input.contentType }
-        : undefined;
-
       // Generate real embeddings for the query (uses AI SDK or hash fallback)
       const embedFn = createEmbedFunction();
       const queryVector = await embedFn(input.query);
 
-      const hits = await searchSimilar(client, queryVector, {
+      const searchOpts: {
+        collection: string;
+        limit: number;
+        scoreThreshold: number;
+        filter?: Record<string, unknown>;
+      } = {
         collection: "content_embeddings",
         limit: input.limit,
         scoreThreshold: 0.5,
-        filter,
-      });
+      };
+      if (input.contentType !== "all") {
+        searchOpts.filter = { type: input.contentType };
+      }
+
+      const hits = await searchSimilar(client, queryVector, searchOpts);
 
       return hits.map((hit) => ({
         id: String(hit.id),

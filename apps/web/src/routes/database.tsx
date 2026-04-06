@@ -106,7 +106,7 @@ export default function DatabasePage(): JSX.Element {
 
   return (
     <ProtectedRoute>
-      <Title>Database - Marco Reid</Title>
+      <Title>Database - Crontech</Title>
       <Stack direction="vertical" gap="lg" class="page-padded">
         <Stack direction="vertical" gap="xs">
           <Text variant="h1" weight="bold">Database</Text>

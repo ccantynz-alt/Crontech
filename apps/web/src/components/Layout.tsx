@@ -205,7 +205,7 @@ export function Layout(props: LayoutProps): JSX.Element {
           <A href="/legal/acceptable-use">Acceptable Use</A>
         </nav>
         <Text variant="caption" class="text-muted">
-          Marco Reid Platform
+          Crontech Platform
         </Text>
       </footer>
     </div>

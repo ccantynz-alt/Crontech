@@ -4,7 +4,7 @@
  */
 
 const BRAND_COLOR = "#6366f1";
-const BRAND_NAME = process.env["SITE_NAME"] ?? "Marco Reid";
+const BRAND_NAME = process.env["SITE_NAME"] ?? "Crontech";
 const PUBLIC_URL = process.env["PUBLIC_URL"] ?? "http://localhost:3000";
 const FOOTER_TEXT = `&copy; ${new Date().getFullYear()} ${BRAND_NAME}. All rights reserved.`;
 

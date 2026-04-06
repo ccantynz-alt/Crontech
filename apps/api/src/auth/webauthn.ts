@@ -20,7 +20,7 @@ import type {
   PublicKeyCredentialRequestOptionsJSON,
 } from "@simplewebauthn/server";
 
-const RP_NAME = "Marco Reid";
+const RP_NAME = "Crontech";
 
 function getRpId(): string {
   return process.env["WEBAUTHN_RP_ID"] ?? "localhost";

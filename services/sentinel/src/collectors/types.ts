@@ -10,7 +10,7 @@ export const IntelligenceItemSchema = z.object({
   url: z.string(),
   severity: z.enum(["low", "medium", "high", "critical"]),
   tags: z.array(z.string()),
-  metadata: z.record(z.unknown()),
+  metadata: z.record(z.string(), z.unknown()),
   collectedAt: z.string(),
 });
 
@@ -21,7 +21,7 @@ export interface CollectorResult {
   items: IntelligenceItem[];
   collectedAt: string;
   success: boolean;
-  error?: string;
+  error: string | undefined;
   durationMs: number;
 }
 

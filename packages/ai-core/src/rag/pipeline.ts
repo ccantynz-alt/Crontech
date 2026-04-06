@@ -32,7 +32,7 @@ export const RAGQuerySchema = z.object({
   query: z.string(),
   maxResults: z.number().int().min(1).max(50).default(5),
   scoreThreshold: z.number().min(0).max(1).default(0.7),
-  filter: z.record(z.unknown()).optional(),
+  filter: z.record(z.string(), z.unknown()).optional(),
 });
 
 export type RAGQuery = z.infer<typeof RAGQuerySchema>;
@@ -58,8 +58,8 @@ export type EmbedFunction = (text: string) => Promise<number[]>;
 export class RAGPipeline {
   private embedFn: EmbedFunction;
   private collection: string;
-  private qdrantUrl?: string;
-  private qdrantApiKey?: string;
+  private qdrantUrl: string | undefined;
+  private qdrantApiKey: string | undefined;
 
   constructor(config: {
     embedFn: EmbedFunction;
@@ -74,10 +74,10 @@ export class RAGPipeline {
   }
 
   private getClient() {
-    return createQdrantClient({
-      url: this.qdrantUrl,
-      apiKey: this.qdrantApiKey,
-    });
+    const cfg: { url?: string; apiKey?: string } = {};
+    if (this.qdrantUrl !== undefined) cfg.url = this.qdrantUrl;
+    if (this.qdrantApiKey !== undefined) cfg.apiKey = this.qdrantApiKey;
+    return createQdrantClient(cfg);
   }
 
   /**
@@ -146,12 +146,19 @@ export class RAGPipeline {
     const queryVector = await this.embedFn(parsed.query);
     const client = this.getClient();
 
-    const hits = await searchSimilar(client, queryVector, {
+    const searchOpts: {
+      collection: string;
+      limit: number;
+      scoreThreshold: number;
+      filter?: Record<string, unknown>;
+    } = {
       collection: this.collection,
       limit: parsed.maxResults,
       scoreThreshold: parsed.scoreThreshold,
-      filter: parsed.filter,
-    });
+    };
+    if (parsed.filter !== undefined) searchOpts.filter = parsed.filter;
+
+    const hits = await searchSimilar(client, queryVector, searchOpts);
 
     return this.buildResult(hits);
   }
@@ -160,13 +167,18 @@ export class RAGPipeline {
    * Build a RAG result from search hits, assembling context for the LLM.
    */
   private buildResult(hits: SearchHit[]): RAGResult {
-    const sources = hits.map((hit) => ({
-      id: hit.id,
-      score: hit.score,
-      title: hit.payload["title"] as string | undefined,
-      source: hit.payload["source"] as string | undefined,
-      snippet: truncate(hit.payload["content"] as string ?? "", 500),
-    }));
+    const sources: RAGResult["sources"] = hits.map((hit) => {
+      const item: RAGResult["sources"][number] = {
+        id: hit.id,
+        score: hit.score,
+        snippet: truncate((hit.payload["content"] as string | undefined) ?? "", 500),
+      };
+      const title = hit.payload["title"];
+      if (typeof title === "string") item.title = title;
+      const source = hit.payload["source"];
+      if (typeof source === "string") item.source = source;
+      return item;
+    });
 
     // Assemble context string for LLM injection
     const contextParts = sources.map(

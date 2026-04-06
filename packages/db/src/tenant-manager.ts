@@ -10,7 +10,6 @@ import { tenantProjects } from "./schema";
 import {
   createTenantProject,
   deleteTenantProject as deleteNeonProject,
-  getTenantConnectionString,
 } from "./neon-provisioning";
 
 export type TenantProject = typeof tenantProjects.$inferSelect;
