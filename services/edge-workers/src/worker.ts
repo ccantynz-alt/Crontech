@@ -16,7 +16,7 @@ interface Env {
   DB?: D1Database;
   STORAGE?: R2Bucket;
   CACHE?: KVNamespace;
-  AI: Ai;
+  AI?: Ai;
   COLLAB_ROOM: DurableObjectNamespace;
   RATE_LIMITER: DurableObjectNamespace;
   ENVIRONMENT: string;
@@ -40,6 +40,13 @@ const ALLOWED_ORIGINS = [
   "http://localhost:3000",
   "http://localhost:3001",
 ];
+
+// ── Helpers (used across route handlers) ────────────────────────────
+
+const SERVICE_UNAVAILABLE = (service: string) => ({
+  error: `${service} not configured. Add the binding in wrangler.toml and redeploy.`,
+  timestamp: new Date().toISOString(),
+});
 
 // ── Subdomain → Vertical Router ─────────────────────────────────────
 // Maps subdomains to vertical products. The worker reads the Host
@@ -283,6 +290,7 @@ app.all("/api/trpc/*", async (c) => {
 // ── Workers AI (Edge Inference) ──────────────────────────────────────
 
 app.post("/api/ai/edge-inference", async (c) => {
+  if (!c.env.AI) return c.json(SERVICE_UNAVAILABLE("Workers AI"), 503);
   const body = (await c.req.json()) as {
     prompt: string;
     model?: string;
@@ -290,9 +298,10 @@ app.post("/api/ai/edge-inference", async (c) => {
   const model = body.model ?? "@cf/meta/llama-3.1-8b-instruct";
 
   try {
-    const response = await c.env.AI.run(
+    const ai = c.env.AI;
+    const response = await ai.run(
       // Workers AI types vary across versions; cast to satisfy compiler
-      model as Parameters<typeof c.env.AI.run>[0],
+      model as Parameters<typeof ai.run>[0],
       {
         prompt: body.prompt,
         max_tokens: 512,
@@ -318,11 +327,6 @@ app.post("/api/ai/edge-inference", async (c) => {
 
 // ── R2 Asset Storage ─────────────────────────────────────────────────
 // All R2 routes return 503 gracefully if STORAGE binding isn't configured.
-
-const SERVICE_UNAVAILABLE = (service: string) => ({
-  error: `${service} not configured. Add the binding in wrangler.toml and redeploy.`,
-  timestamp: new Date().toISOString(),
-});
 
 app.get("/api/assets/:key", async (c) => {
   if (!c.env.STORAGE) return c.json(SERVICE_UNAVAILABLE("R2 storage"), 503);

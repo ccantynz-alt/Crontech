@@ -1,46 +1,64 @@
-# ── Edge Worker Configuration ─────────────────────────────────────────
-# Local wrangler.toml for development convenience.
-# Production config lives at infra/cloudflare/wrangler.toml.
+# ── Crontech Edge Worker Configuration ──────────────────────────────
+# Single source of truth for the worker. Production-ready.
+#
+# This config is intentionally MINIMAL for the first deploy.
+# Bindings (D1, KV, R2, AI) are commented out and added back as you
+# create the corresponding Cloudflare resources. The worker starts
+# successfully without them.
 
-name = "btf-edge-worker"
+name = "crontech-api"
 main = "src/worker.ts"
 compatibility_date = "2024-12-01"
 compatibility_flags = ["nodejs_compat"]
 
-[placement]
-mode = "smart"
-
+# ── Environment Variables ─────────────────────────────────────────────
 [vars]
-ENVIRONMENT = "development"
+ENVIRONMENT = "production"
 API_VERSION = "0.0.1"
-API_ORIGIN = "http://localhost:3001"
 
-[[d1_databases]]
-binding = "DB"
-database_name = "btf-dev"
-database_id = "YOUR_D1_DATABASE_ID"
+# ── Durable Objects (Stateful edge compute) ──────────────────────────
+# Required for rate limiting + collaboration rooms.
+[[durable_objects.bindings]]
+name = "RATE_LIMITER"
+class_name = "RateLimiter"
 
-[[r2_buckets]]
-binding = "STORAGE"
-bucket_name = "btf-assets-dev"
+[[durable_objects.bindings]]
+name = "COLLAB_ROOM"
+class_name = "CollabRoom"
 
-[[kv_namespaces]]
-binding = "CACHE"
-id = "YOUR_KV_NAMESPACE_ID"
-
-[durable_objects]
-bindings = [
-  { name = "RATE_LIMITER", class_name = "RateLimiter" },
-  { name = "COLLAB_ROOM", class_name = "CollabRoom" },
-]
-
+# Migration registers the Durable Object classes on first deploy.
 [[migrations]]
 tag = "v1"
-new_classes = ["CollabRoom", "RateLimiter"]
+new_classes = ["RateLimiter", "CollabRoom"]
 
-[ai]
-binding = "AI"
+# ── D1 Database (Edge SQLite) ────────────────────────────────────────
+# Uncomment + paste IDs after running:
+#   wrangler d1 create crontech-production
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "crontech-production"
+# database_id = "PASTE_AFTER_CREATE"
 
+# ── R2 Object Storage (S3-compatible, zero egress) ────────────────────
+# Uncomment after running:
+#   wrangler r2 bucket create crontech-assets
+# [[r2_buckets]]
+# binding = "STORAGE"
+# bucket_name = "crontech-assets"
+
+# ── KV Namespace (Global key-value) ──────────────────────────────────
+# Uncomment + paste ID after running:
+#   wrangler kv namespace create CACHE
+# [[kv_namespaces]]
+# binding = "CACHE"
+# id = "PASTE_AFTER_CREATE"
+
+# ── Workers AI (Edge inference) ──────────────────────────────────────
+# Uncomment if your Cloudflare account has Workers AI enabled.
+# [ai]
+# binding = "AI"
+
+# ── Local Development ────────────────────────────────────────────────
 [dev]
 port = 3002
 local_protocol = "http"

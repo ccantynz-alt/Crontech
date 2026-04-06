@@ -95,7 +95,7 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: services/edge-workers
-          command: deploy --env production --config ../../infra/cloudflare/wrangler.toml --dry-run
+          command: deploy --dry-run
 
   deploy-api:
     name: Deploy API to Cloudflare Workers
@@ -124,7 +124,7 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: services/edge-workers
-          command: deploy --env production --config ../../infra/cloudflare/wrangler.toml
+          command: deploy
 
   deploy-web:
     name: Deploy Web to Cloudflare Pages
@@ -145,12 +145,31 @@ jobs:
         run: bun run build
         working-directory: apps/web
 
+      - name: Verify build output exists
+        run: |
+          if [ ! -d "apps/web/.output/public" ]; then
+            echo "::error::Build output directory apps/web/.output/public does not exist"
+            ls -la apps/web/.output/ || true
+            exit 1
+          fi
+          echo "Build output verified."
+          du -sh apps/web/.output/public
+
+      - name: Ensure Cloudflare Pages project exists (idempotent)
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          # Try to create the Pages project. If it already exists (HTTP 4xx), ignore.
+          npx -y wrangler@latest pages project create crontech-web --production-branch=main || \
+            echo "Project may already exist — proceeding with deploy."
+
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy apps/web/.output/public --project-name=crontech-web --branch=preview
+          command: pages deploy apps/web/.output/public --project-name=crontech-web --branch=preview --commit-dirty=true
 
   post-deploy-smoke:
     name: Post-Deploy Smoke Test
