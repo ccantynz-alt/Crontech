@@ -117,7 +117,7 @@ export default function StatusPage(): ReturnType<typeof Stack> {
 
   return (
     <>
-      <Title>Status - Marco Reid</Title>
+      <Title>Status - Crontech</Title>
       <Stack direction="vertical" gap="lg">
         <Text variant="h1">Platform Status</Text>
 

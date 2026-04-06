@@ -1,6 +1,6 @@
 // ── Accounting Router ──────────────────────────────────────────────
 // Clients, invoices, expenses, financial reports and dashboard KPIs
-// for the accounting vertical (accounting.marcoreid.com).
+// for the accounting vertical (accounting.crontech.ai).
 
 import { z } from "zod";
 import { and, desc, eq, gte, sql } from "drizzle-orm";

@@ -1,7 +1,7 @@
 import { Title, Meta, Link } from "@solidjs/meta";
 import type { JSX } from "solid-js";
 
-const SITE_NAME = import.meta.env.VITE_SITE_NAME ?? "Marco Reid";
+const SITE_NAME = import.meta.env.VITE_SITE_NAME ?? "Crontech";
 const BASE_URL =
   import.meta.env.VITE_PUBLIC_URL ??
   (typeof window !== "undefined" ? window.location.origin : "http://localhost:3000");

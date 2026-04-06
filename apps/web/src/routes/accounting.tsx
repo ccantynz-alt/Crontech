@@ -142,7 +142,7 @@ export default function AccountingLanding(): JSX.Element {
   return (
     <>
       <SEOHead
-        title="Marco Reid Accounting — AI Platform for Accountants"
+        title="Crontech Accounting — AI Platform for Accountants"
         description="The AI accounting platform accountants actually want to use. Cut 80% of manual work with AI invoice processing, real-time tax calculations, and SOC 2 audit trails built in."
         path="/accounting"
       />

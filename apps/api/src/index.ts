@@ -204,10 +204,10 @@ app.post("/webhooks/inbound-email", async (c) => {
         ? body.from
         : body.from?.email ?? "unknown@unknown";
     const to = Array.isArray(body.to)
-      ? body.to[0] ?? (process.env["SUPPORT_EMAIL"] ?? "support@marcoreid.com")
+      ? body.to[0] ?? (process.env["SUPPORT_EMAIL"] ?? "support@crontech.ai")
       : typeof body.to === "string"
         ? body.to
-        : body.to?.email ?? (process.env["SUPPORT_EMAIL"] ?? "support@marcoreid.com");
+        : body.to?.email ?? (process.env["SUPPORT_EMAIL"] ?? "support@crontech.ai");
     const subject = body.subject ?? "(no subject)";
     const text = body.text ?? body.html ?? "";
 

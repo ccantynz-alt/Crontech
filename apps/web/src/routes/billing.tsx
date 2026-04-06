@@ -53,7 +53,7 @@ export default function BillingPage(): JSX.Element {
 
   return (
     <ProtectedRoute>
-      <Title>Billing - Marco Reid</Title>
+      <Title>Billing - Crontech</Title>
       <Stack direction="vertical" gap="lg" class="page-padded">
         <Stack direction="vertical" gap="xs">
           <Text variant="h1" weight="bold">Billing</Text>

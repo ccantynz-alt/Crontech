@@ -34,7 +34,7 @@ export default function App() {
     <Router
       root={(props) => (
         <MetaProvider>
-          <Title>Marco Reid</Title>
+          <Title>Crontech</Title>
           <ThemeProvider>
             <AuthProvider>
               <FeatureFlagProvider>

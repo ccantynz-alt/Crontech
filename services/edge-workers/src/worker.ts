@@ -28,12 +28,12 @@ interface Env {
 // ── CORS Origins ────────────────────────────────────────────────────
 
 const ALLOWED_ORIGINS = [
-  "https://marcoreid.com",
-  "https://www.marcoreid.com",
-  "https://accounting.marcoreid.com",
-  "https://legal.marcoreid.com",
-  "https://immigration.marcoreid.com",
-  "https://api.marcoreid.com",
+  "https://crontech.ai",
+  "https://www.crontech.ai",
+  "https://accounting.crontech.ai",
+  "https://legal.crontech.ai",
+  "https://immigration.crontech.ai",
+  "https://api.crontech.ai",
   "http://localhost:3000",
   "http://localhost:3001",
 ];
@@ -48,11 +48,11 @@ function resolveVertical(hostname: string): Vertical {
   // Strip port if present
   const host = hostname.split(":")[0] ?? hostname;
 
-  if (host === "api.marcoreid.com") return "api";
-  if (host === "accounting.marcoreid.com") return "accounting";
-  if (host === "legal.marcoreid.com") return "legal";
-  if (host === "immigration.marcoreid.com") return "immigration";
-  // Main domain (marcoreid.com, www.marcoreid.com, localhost)
+  if (host === "api.crontech.ai") return "api";
+  if (host === "accounting.crontech.ai") return "accounting";
+  if (host === "legal.crontech.ai") return "legal";
+  if (host === "immigration.crontech.ai") return "immigration";
+  // Main domain (crontech.ai, www.crontech.ai, localhost)
   return "main";
 }
 
@@ -108,20 +108,20 @@ app.use("*", async (c, next) => {
 
 // ── Vertical-Specific Routes ─────────────────────────────────────────
 
-// accounting.marcoreid.com root → serves accounting landing page
+// accounting.crontech.ai root → serves accounting landing page
 app.get("/", async (c) => {
   const vertical = c.req.header("host")?.split(":")[0] ?? "";
-  if (vertical === "accounting.marcoreid.com") {
+  if (vertical === "accounting.crontech.ai") {
     return c.redirect("/accounting", 302);
   }
-  if (vertical === "legal.marcoreid.com") {
+  if (vertical === "legal.crontech.ai") {
     return c.redirect("/legal-services", 302);
   }
-  if (vertical === "immigration.marcoreid.com") {
+  if (vertical === "immigration.crontech.ai") {
     return c.redirect("/immigration", 302);
   }
   // Main domain falls through to normal handler
-  return c.text("Marco Reid — route to main app");
+  return c.text("Crontech — route to main app");
 });
 
 // ── Rate Limiting Middleware (via Durable Objects) ───────────────────

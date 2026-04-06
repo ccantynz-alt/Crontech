@@ -121,7 +121,7 @@ export default function TemplatesPage() {
 
   return (
     <>
-      <Title>Templates Gallery — Marco Reid</Title>
+      <Title>Templates Gallery — Crontech</Title>
       <Stack direction="vertical" gap="lg" align="stretch" justify="start">
         <Stack direction="vertical" gap="sm" align="center" justify="start">
           <Text variant="h1" weight="bold" align="center">

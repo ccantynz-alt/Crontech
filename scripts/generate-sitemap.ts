@@ -87,7 +87,7 @@ async function discoverRoutes(): Promise<RouteInfo[]> {
     // legal/ may not exist
   }
 
-  // Accounting vertical routes (accounting.marcoreid.com)
+  // Accounting vertical routes (accounting.crontech.ai)
   const accountingRoutes = [
     "/accounting/clients",
     "/accounting/invoices",

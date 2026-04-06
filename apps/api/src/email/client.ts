@@ -26,7 +26,7 @@ interface ResendErrorResponse {
 const RESEND_API_URL = "https://api.resend.com/emails";
 
 function getFromAddress(): string {
-  const siteName = process.env["SITE_NAME"] ?? "Marco Reid";
+  const siteName = process.env["SITE_NAME"] ?? "Crontech";
   const fromEmail = process.env["EMAIL_FROM"] ?? "noreply@example.com";
   return `${siteName} <${fromEmail}>`;
 }

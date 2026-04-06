@@ -69,24 +69,24 @@ name = "btf-api-production"
 [env.production.vars]
 ENVIRONMENT = "production"
 
-# ── Routes (marcoreid.com + subdomains) ──────────────────────────────
+# ── Routes (crontech.ai + subdomains) ──────────────────────────────
 # Uncomment once domain is registered and added to Cloudflare
 # [[env.production.routes]]
-# pattern = "api.marcoreid.com/*"
-# zone_name = "marcoreid.com"
+# pattern = "api.crontech.ai/*"
+# zone_name = "crontech.ai"
 #
 # [[env.production.routes]]
-# pattern = "marcoreid.com/*"
-# zone_name = "marcoreid.com"
+# pattern = "crontech.ai/*"
+# zone_name = "crontech.ai"
 #
 # [[env.production.routes]]
-# pattern = "accounting.marcoreid.com/*"
-# zone_name = "marcoreid.com"
+# pattern = "accounting.crontech.ai/*"
+# zone_name = "crontech.ai"
 #
 # [[env.production.routes]]
-# pattern = "legal.marcoreid.com/*"
-# zone_name = "marcoreid.com"
+# pattern = "legal.crontech.ai/*"
+# zone_name = "crontech.ai"
 #
 # [[env.production.routes]]
-# pattern = "immigration.marcoreid.com/*"
-# zone_name = "marcoreid.com"
+# pattern = "immigration.crontech.ai/*"
+# zone_name = "crontech.ai"

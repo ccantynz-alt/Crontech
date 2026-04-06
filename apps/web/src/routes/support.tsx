@@ -63,7 +63,7 @@ export default function SupportPage(): JSX.Element {
 
   return (
     <ProtectedRoute>
-      <Title>Support - Marco Reid</Title>
+      <Title>Support - Crontech</Title>
       <Stack direction="vertical" gap="lg" class="page-padded">
         <Stack direction="vertical" gap="xs">
           <Text variant="h1" weight="bold">How can we help?</Text>
