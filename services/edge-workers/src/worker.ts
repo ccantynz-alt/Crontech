@@ -10,17 +10,20 @@ import { secureHeaders } from "hono/secure-headers";
 // ── Cloudflare Bindings ──────────────────────────────────────────────
 
 interface Env {
-  DB: D1Database;
-  STORAGE: R2Bucket;
-  CACHE: KVNamespace;
+  // Optional bindings — only present after the corresponding Cloudflare
+  // resources are created and uncommented in wrangler.toml. The worker
+  // gracefully degrades when they are missing.
+  DB?: D1Database;
+  STORAGE?: R2Bucket;
+  CACHE?: KVNamespace;
   AI: Ai;
   COLLAB_ROOM: DurableObjectNamespace;
   RATE_LIMITER: DurableObjectNamespace;
   ENVIRONMENT: string;
   API_VERSION: string;
-  API_ORIGIN: string;
-  OPENAI_API_KEY: string;
-  DATABASE_AUTH_TOKEN: string;
+  API_ORIGIN?: string;
+  OPENAI_API_KEY?: string;
+  DATABASE_AUTH_TOKEN?: string;
   QDRANT_API_KEY?: string;
   NEON_DATABASE_URL?: string;
 }
@@ -314,8 +317,15 @@ app.post("/api/ai/edge-inference", async (c) => {
 });
 
 // ── R2 Asset Storage ─────────────────────────────────────────────────
+// All R2 routes return 503 gracefully if STORAGE binding isn't configured.
+
+const SERVICE_UNAVAILABLE = (service: string) => ({
+  error: `${service} not configured. Add the binding in wrangler.toml and redeploy.`,
+  timestamp: new Date().toISOString(),
+});
 
 app.get("/api/assets/:key", async (c) => {
+  if (!c.env.STORAGE) return c.json(SERVICE_UNAVAILABLE("R2 storage"), 503);
   const key = c.req.param("key");
   const object = await c.env.STORAGE.get(key);
 
@@ -338,6 +348,7 @@ app.get("/api/assets/:key", async (c) => {
 });
 
 app.put("/api/assets/:key", async (c) => {
+  if (!c.env.STORAGE) return c.json(SERVICE_UNAVAILABLE("R2 storage"), 503);
   const key = c.req.param("key");
   const body = await c.req.arrayBuffer();
   const contentType =
@@ -357,6 +368,7 @@ app.put("/api/assets/:key", async (c) => {
 // ── KV Cache ─────────────────────────────────────────────────────────
 
 app.get("/api/cache/:key", async (c) => {
+  if (!c.env.CACHE) return c.json(SERVICE_UNAVAILABLE("KV cache"), 503);
   const value = await c.env.CACHE.get(c.req.param("key"));
   if (!value) {
     return c.json(
@@ -368,6 +380,7 @@ app.get("/api/cache/:key", async (c) => {
 });
 
 app.put("/api/cache/:key", async (c) => {
+  if (!c.env.CACHE) return c.json(SERVICE_UNAVAILABLE("KV cache"), 503);
   const body = (await c.req.json()) as {
     value: unknown;
     ttl?: number;
@@ -384,6 +397,7 @@ app.put("/api/cache/:key", async (c) => {
 // ── D1 Database Access ───────────────────────────────────────────────
 
 app.post("/api/db/query", async (c) => {
+  if (!c.env.DB) return c.json(SERVICE_UNAVAILABLE("D1 database"), 503);
   const body = (await c.req.json()) as {
     sql: string;
     params?: unknown[];

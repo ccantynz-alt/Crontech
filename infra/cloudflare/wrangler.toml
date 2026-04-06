@@ -1,8 +1,13 @@
 # ── Cloudflare Workers Configuration ──────────────────────────────────
 # API server deployed to Cloudflare Workers for sub-5ms cold starts
 # across 330+ cities worldwide.
+#
+# FIRST DEPLOY NOTE: D1, KV, R2 bindings are commented out below.
+# Once you create those resources in Cloudflare, paste the IDs back in
+# and uncomment. The worker can boot WITHOUT them — it just won't have
+# DB/cache/storage access until they're wired.
 
-name = "btf-api"
+name = "crontech-api"
 main = "../../services/edge-workers/src/worker.ts"
 compatibility_date = "2024-12-01"
 compatibility_flags = ["nodejs_compat"]
@@ -16,20 +21,23 @@ ENVIRONMENT = "production"
 API_VERSION = "0.0.1"
 
 # ── D1 Database (Edge SQLite) ─────────────────────────────────────────
-[[d1_databases]]
-binding = "DB"
-database_name = "btf-production"
-database_id = "YOUR_D1_DATABASE_ID"
+# Uncomment after creating: wrangler d1 create crontech-production
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "crontech-production"
+# database_id = "YOUR_D1_DATABASE_ID"
 
 # ── R2 Object Storage (S3-compatible, zero egress) ────────────────────
-[[r2_buckets]]
-binding = "STORAGE"
-bucket_name = "btf-assets"
+# Uncomment after creating: wrangler r2 bucket create crontech-assets
+# [[r2_buckets]]
+# binding = "STORAGE"
+# bucket_name = "crontech-assets"
 
 # ── KV Namespace (Global key-value) ──────────────────────────────────
-[[kv_namespaces]]
-binding = "CACHE"
-id = "YOUR_KV_NAMESPACE_ID"
+# Uncomment after creating: wrangler kv:namespace create CACHE
+# [[kv_namespaces]]
+# binding = "CACHE"
+# id = "YOUR_KV_NAMESPACE_ID"
 
 # ── Durable Objects (Stateful edge compute) ───────────────────────────
 [durable_objects]
@@ -59,18 +67,18 @@ local_protocol = "http"
 
 # ── Staging Environment ──────────────────────────────────────────────
 [env.staging]
-name = "btf-api-staging"
+name = "crontech-api-staging"
 [env.staging.vars]
 ENVIRONMENT = "staging"
 
 # ── Production Environment ────────────────────────────────────────────
 [env.production]
-name = "btf-api-production"
+name = "crontech-api-production"
 [env.production.vars]
 ENVIRONMENT = "production"
 
 # ── Routes (crontech.ai + subdomains) ──────────────────────────────
-# Uncomment once domain is registered and added to Cloudflare
+# Uncomment once crontech.ai is added as a Cloudflare zone (DNS)
 # [[env.production.routes]]
 # pattern = "api.crontech.ai/*"
 # zone_name = "crontech.ai"
