@@ -23,6 +23,15 @@ import {
 // Initialize OpenTelemetry (no-op if OTEL_EXPORTER_OTLP_ENDPOINT not set)
 const telemetry = initTelemetry();
 
+import { startQueue } from "./automation/retry-queue";
+import { startHealingLoop } from "./automation/self-heal";
+import {
+  startHealthMonitor,
+  getCurrentHealth,
+  getHealthHistory,
+} from "./automation/health-monitor";
+import { getQueueStatus } from "./automation/retry-queue";
+
 import { securityHeaders } from "./middleware/security-headers";
 import { rateLimiter } from "./middleware/rate-limiter";
 import { csrf } from "./middleware/csrf";
@@ -76,6 +85,15 @@ app.get("/health/full", async (c) => {
       neon: neon.status === "fulfilled" ? neon.value : { status: "error", error: "check failed" },
       qdrant: qdrant.status === "fulfilled" ? qdrant.value : { status: "error", error: "check failed" },
     },
+  });
+});
+
+// ── Automated Health Monitor Endpoint ───────────────────────────────
+app.get("/health/monitor", (c) => {
+  return c.json({
+    current: getCurrentHealth(),
+    history: getHealthHistory(),
+    queue: getQueueStatus(),
   });
 });
 
@@ -181,6 +199,33 @@ app.route("/", yjsWsApp);
 
 // Real-Time: SSE + REST endpoints
 app.route("/", sseApp);
+
+// ── Auto-migrate on startup (safe default: only when AUTO_MIGRATE=true) ──
+async function maybeRunMigrations(): Promise<void> {
+  const enabled = process.env.AUTO_MIGRATE === "true" || process.env.NODE_ENV !== "production";
+  if (!enabled) {
+    console.log("[startup] Skipping auto-migrate (set AUTO_MIGRATE=true to enable in prod)");
+    return;
+  }
+  try {
+    const { runMigrations } = await import("@back-to-the-future/db/migrate" as string).catch(
+      async () => await import("../../../packages/db/src/migrate" as string),
+    );
+    if (typeof runMigrations === "function") {
+      await runMigrations();
+      console.log("[startup] Migrations applied.");
+    }
+  } catch (err) {
+    console.warn("[startup] Migration failed - starting in degraded mode:", err);
+  }
+}
+
+maybeRunMigrations().catch((err) => console.warn("[startup] migration wrapper error:", err));
+
+// ── Start automation loops ─────────────────────────────────────────
+startQueue();
+startHealingLoop();
+startHealthMonitor();
 
 const port = Number(process.env.API_PORT) || 3001;
 
