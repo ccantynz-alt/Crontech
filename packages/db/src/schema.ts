@@ -201,6 +201,56 @@ export const notifications = sqliteTable("notifications", {
     .$defaultFn(() => new Date()),
 });
 
+// ── Support Tickets (AI Email Support) ──────────────────────────────
+
+export const supportTickets = sqliteTable("support_tickets", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").references(() => users.id),
+  fromEmail: text("from_email").notNull(),
+  subject: text("subject").notNull(),
+  category: text("category", {
+    enum: ["billing", "technical", "bug", "feature", "sales", "spam", "other"],
+  })
+    .notNull()
+    .default("other"),
+  status: text("status", {
+    enum: ["new", "ai_drafted", "awaiting_review", "sent", "resolved", "escalated"],
+  })
+    .notNull()
+    .default("new"),
+  aiConfidence: integer("ai_confidence"),
+  aiDraft: text("ai_draft"),
+  finalResponse: text("final_response"),
+  threadId: text("thread_id"),
+  priority: text("priority", { enum: ["low", "medium", "high", "urgent"] })
+    .notNull()
+    .default("medium"),
+  assignedTo: text("assigned_to").references(() => users.id),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+  resolvedAt: integer("resolved_at", { mode: "timestamp" }),
+});
+
+export const supportMessages = sqliteTable("support_messages", {
+  id: text("id").primaryKey(),
+  ticketId: text("ticket_id")
+    .notNull()
+    .references(() => supportTickets.id, { onDelete: "cascade" }),
+  direction: text("direction", { enum: ["inbound", "outbound"] }).notNull(),
+  fromAddress: text("from_address").notNull(),
+  toAddress: text("to_address").notNull(),
+  body: text("body").notNull(),
+  bodyHtml: text("body_html"),
+  sentByAi: integer("sent_by_ai", { mode: "boolean" }).notNull().default(false),
+  sentAt: integer("sent_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+});
+
 // ── Analytics Events ─────────────────────────────────────────────────
 
 export const analyticsEvents = sqliteTable("analytics_events", {

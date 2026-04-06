@@ -13,6 +13,7 @@ import { notificationsRouter } from "./procedures/notifications";
 import { tenantRouter } from "./procedures/tenant";
 import { apiKeysRouter } from "./procedures/apiKeys";
 import { webhooksRouter } from "./procedures/webhooks";
+import { supportRouter } from "./procedures/support";
 
 export const appRouter = router({
   health: publicProcedure.query(() => {
@@ -38,6 +39,7 @@ export const appRouter = router({
   tenant: tenantRouter,
   apiKeys: apiKeysRouter,
   webhooks: webhooksRouter,
+  support: supportRouter,
 });
 
 export type AppRouter = typeof appRouter;

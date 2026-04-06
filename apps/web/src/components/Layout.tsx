@@ -95,6 +95,7 @@ interface SidebarProps {
 }
 
 function Sidebar(props: SidebarProps): JSX.Element {
+  const auth = useAuth();
   return (
     <aside class={`sidebar ${props.collapsed ? "sidebar-collapsed" : ""}`}>
       <button class="sidebar-toggle" onClick={props.onToggle} type="button">
@@ -109,6 +110,9 @@ function Sidebar(props: SidebarProps): JSX.Element {
           <NavLink href="/pricing" label="Pricing" />
           <NavLink href="/settings" label="Settings" />
           <NavLink href="/admin" label="Admin" />
+          <Show when={auth.currentUser()?.role === "admin"}>
+            <NavLink href="/admin/support" label="Support" />
+          </Show>
           <NavLink href="/about" label="About" />
         </nav>
       </Show>

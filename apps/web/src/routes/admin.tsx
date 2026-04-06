@@ -85,6 +85,8 @@ export default function AdminPage(): JSX.Element {
   const [systemHealth] = createResource(() => trpc.admin.getSystemHealth.query());
   const [flags] = createResource(() => trpc.featureFlags.getAll.query());
   const [collabRooms] = createResource(() => trpc.collab.getRooms.query());
+  const [supportStats] = createResource(() => trpc.support.getStats.query());
+  const navigateToSupport = (): void => { window.location.href = "/admin/support"; };
 
   const [togglingFlag, setTogglingFlag] = createSignal<string | null>(null);
 
@@ -153,6 +155,44 @@ export default function AdminPage(): JSX.Element {
                 value={statsData()?.aiGenerations ?? 0}
               />
             </div>
+          </Show>
+        </Stack>
+
+        {/* Support Metrics */}
+        <Stack direction="vertical" gap="sm">
+          <Text variant="h3" weight="semibold">AI Support Inbox</Text>
+          <Show when={!supportStats.loading} fallback={<Spinner />}>
+            <Card padding="md">
+              <Stack direction="vertical" gap="sm">
+                <div class="grid-4">
+                  <Stack direction="vertical" gap="xs">
+                    <Text variant="caption" class="text-muted">Total tickets</Text>
+                    <Text variant="h2" weight="bold">{supportStats()?.totalTickets ?? 0}</Text>
+                  </Stack>
+                  <Stack direction="vertical" gap="xs">
+                    <Text variant="caption" class="text-muted">Auto-resolved</Text>
+                    <Text variant="h2" weight="bold">
+                      <Badge variant="success" size="sm">{supportStats()?.autoResolved ?? 0}</Badge>
+                    </Text>
+                  </Stack>
+                  <Stack direction="vertical" gap="xs">
+                    <Text variant="caption" class="text-muted">Awaiting review</Text>
+                    <Text variant="h2" weight="bold">
+                      <Badge variant="warning" size="sm">{supportStats()?.awaitingReview ?? 0}</Badge>
+                    </Text>
+                  </Stack>
+                  <Stack direction="vertical" gap="xs">
+                    <Text variant="caption" class="text-muted">Escalated</Text>
+                    <Text variant="h2" weight="bold">
+                      <Badge variant="error" size="sm">{supportStats()?.escalated ?? 0}</Badge>
+                    </Text>
+                  </Stack>
+                </div>
+                <Button variant="primary" size="sm" onClick={navigateToSupport}>
+                  Open support inbox
+                </Button>
+              </Stack>
+            </Card>
           </Show>
         </Stack>
 

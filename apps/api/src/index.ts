@@ -178,6 +178,58 @@ app.post("/webhooks/stripe", async (c) => {
   }
 });
 
+// ── Inbound Email Webhook (Resend) ──────────────────────────────────
+app.post("/webhooks/inbound-email", async (c) => {
+  try {
+    const secret = process.env["RESEND_INBOUND_SECRET"];
+    if (secret) {
+      const provided =
+        c.req.header("x-resend-signature") ??
+        c.req.header("svix-signature") ??
+        c.req.header("authorization");
+      if (!provided || !provided.includes(secret)) {
+        return c.json({ error: "Invalid signature" }, 401);
+      }
+    }
+    const body = (await c.req.json()) as {
+      from?: string | { email?: string };
+      to?: string | string[] | { email?: string };
+      subject?: string;
+      text?: string;
+      html?: string;
+    };
+
+    const from =
+      typeof body.from === "string"
+        ? body.from
+        : body.from?.email ?? "unknown@unknown";
+    const to = Array.isArray(body.to)
+      ? body.to[0] ?? (process.env["SUPPORT_EMAIL"] ?? "support@marcoreid.com")
+      : typeof body.to === "string"
+        ? body.to
+        : body.to?.email ?? (process.env["SUPPORT_EMAIL"] ?? "support@marcoreid.com");
+    const subject = body.subject ?? "(no subject)";
+    const text = body.text ?? body.html ?? "";
+
+    // Fire-and-forget so we never block email delivery.
+    const { processInboundEmail } = await import("./support/auto-responder");
+    processInboundEmail({
+      from,
+      to,
+      subject,
+      body: text,
+      bodyHtml: body.html,
+    }).catch((err) => {
+      console.error("[inbound-email] processing error:", err);
+    });
+
+    return c.json({ received: true });
+  } catch (err) {
+    console.error("[inbound-email] handler error:", err);
+    return c.json({ received: true });
+  }
+});
+
 // Mount AI routes (raw Hono -- streaming works better outside tRPC)
 app.route("/ai", aiRoutes);
 
