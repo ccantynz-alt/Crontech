@@ -3,8 +3,8 @@ import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 import { appRouter } from "./trpc/router";
 import { createContext } from "./trpc/context";
 import { aiRoutes } from "./ai/routes";
-import { wsApp, websocket, sseApp } from "./realtime";
-import { initTelemetry, httpRequestCount, httpRequestDuration } from "./telemetry";
+import { wsApp, websocket, sseApp, yjsWsApp } from "./realtime";
+import { initTelemetry, httpRequestCount, httpRequestDuration, recordRequest, getMetrics } from "./telemetry";
 import { getAllFlags, isFeatureEnabled } from "./feature-flags";
 import { checkNeonHealth } from "@back-to-the-future/db/neon";
 import {
@@ -23,7 +23,32 @@ import {
 // Initialize OpenTelemetry (no-op if OTEL_EXPORTER_OTLP_ENDPOINT not set)
 const telemetry = initTelemetry();
 
+import { startQueue } from "./automation/retry-queue";
+import { startHealingLoop } from "./automation/self-heal";
+import {
+  startHealthMonitor,
+  getCurrentHealth,
+  getHealthHistory,
+} from "./automation/health-monitor";
+import { getQueueStatus } from "./automation/retry-queue";
+
+import { securityHeaders } from "./middleware/security-headers";
+import { rateLimiter } from "./middleware/rate-limiter";
+import { csrf } from "./middleware/csrf";
+import { apiKeyAuthMiddleware } from "./middleware/api-key-auth";
+
 const app = new Hono().basePath("/api");
+
+// ── Security Middleware ──────────────────────────────────────────────
+app.use("*", securityHeaders());
+app.use("*", csrf({ allowedOrigins: ["http://localhost:3000", "http://localhost:3001"] }));
+app.use("/api/trpc/*", rateLimiter({ windowMs: 60_000, max: 200 }));
+app.use("/api/ai/*", rateLimiter({ windowMs: 60_000, max: 30 }));
+
+// ── API Key Authentication ──────────────────────────────────────────
+// Allows Bearer btf_sk_... tokens to authenticate against the API keys table.
+app.use("/api/trpc/*", apiKeyAuthMiddleware);
+app.use("/api/ai/*", apiKeyAuthMiddleware);
 
 // ── Request Telemetry Middleware ──────────────────────────────────────
 app.use("*", async (c, next) => {
@@ -36,6 +61,7 @@ app.use("*", async (c, next) => {
     path: c.req.path,
     status: c.res.status,
   });
+  recordRequest(duration);
 });
 
 app.get("/health", (c) => {
@@ -60,6 +86,20 @@ app.get("/health/full", async (c) => {
       qdrant: qdrant.status === "fulfilled" ? qdrant.value : { status: "error", error: "check failed" },
     },
   });
+});
+
+// ── Automated Health Monitor Endpoint ───────────────────────────────
+app.get("/health/monitor", (c) => {
+  return c.json({
+    current: getCurrentHealth(),
+    history: getHealthHistory(),
+    queue: getQueueStatus(),
+  });
+});
+
+// ── Metrics Endpoint ────────────────────────────────────────────────
+app.get("/metrics", (c) => {
+  return c.json(getMetrics());
 });
 
 // ── Feature Flags Endpoints ──────────────────────────────────────────
@@ -119,6 +159,77 @@ app.get("/mcp/resources/:uri{.+}", (c) => {
   return c.json({ result });
 });
 
+// ── Stripe Webhook (raw Hono -- needs raw body for signature verification) ──
+app.post("/webhooks/stripe", async (c) => {
+  const { constructWebhookEvent, handleWebhookEvent } = await import("./stripe/webhooks");
+  const signature = c.req.header("stripe-signature");
+  if (!signature) {
+    return c.json({ error: "Missing stripe-signature header" }, 400);
+  }
+  try {
+    const rawBody = await c.req.text();
+    const event = constructWebhookEvent(rawBody, signature);
+    await handleWebhookEvent(event);
+    return c.json({ received: true });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Webhook error";
+    console.error("Stripe webhook error:", message);
+    return c.json({ error: message }, 400);
+  }
+});
+
+// ── Inbound Email Webhook (Resend) ──────────────────────────────────
+app.post("/webhooks/inbound-email", async (c) => {
+  try {
+    const secret = process.env["RESEND_INBOUND_SECRET"];
+    if (secret) {
+      const provided =
+        c.req.header("x-resend-signature") ??
+        c.req.header("svix-signature") ??
+        c.req.header("authorization");
+      if (!provided || !provided.includes(secret)) {
+        return c.json({ error: "Invalid signature" }, 401);
+      }
+    }
+    const body = (await c.req.json()) as {
+      from?: string | { email?: string };
+      to?: string | string[] | { email?: string };
+      subject?: string;
+      text?: string;
+      html?: string;
+    };
+
+    const from =
+      typeof body.from === "string"
+        ? body.from
+        : body.from?.email ?? "unknown@unknown";
+    const to = Array.isArray(body.to)
+      ? body.to[0] ?? (process.env["SUPPORT_EMAIL"] ?? "support@marcoreid.com")
+      : typeof body.to === "string"
+        ? body.to
+        : body.to?.email ?? (process.env["SUPPORT_EMAIL"] ?? "support@marcoreid.com");
+    const subject = body.subject ?? "(no subject)";
+    const text = body.text ?? body.html ?? "";
+
+    // Fire-and-forget so we never block email delivery.
+    const { processInboundEmail } = await import("./support/auto-responder");
+    processInboundEmail({
+      from,
+      to,
+      subject,
+      body: text,
+      bodyHtml: body.html,
+    }).catch((err) => {
+      console.error("[inbound-email] processing error:", err);
+    });
+
+    return c.json({ received: true });
+  } catch (err) {
+    console.error("[inbound-email] handler error:", err);
+    return c.json({ received: true });
+  }
+});
+
 // Mount AI routes (raw Hono -- streaming works better outside tRPC)
 app.route("/ai", aiRoutes);
 
@@ -135,8 +246,38 @@ app.use("/trpc/*", async (c) => {
 // Real-Time: WebSocket upgrade at /api/ws
 app.route("/", wsApp);
 
+// Real-Time: Yjs CRDT sync WebSocket at /api/yjs/:roomId
+app.route("/", yjsWsApp);
+
 // Real-Time: SSE + REST endpoints
 app.route("/", sseApp);
+
+// ── Auto-migrate on startup (safe default: only when AUTO_MIGRATE=true) ──
+async function maybeRunMigrations(): Promise<void> {
+  const enabled = process.env.AUTO_MIGRATE === "true" || process.env.NODE_ENV !== "production";
+  if (!enabled) {
+    console.log("[startup] Skipping auto-migrate (set AUTO_MIGRATE=true to enable in prod)");
+    return;
+  }
+  try {
+    const { runMigrations } = await import("@back-to-the-future/db/migrate" as string).catch(
+      async () => await import("../../../packages/db/src/migrate" as string),
+    );
+    if (typeof runMigrations === "function") {
+      await runMigrations();
+      console.log("[startup] Migrations applied.");
+    }
+  } catch (err) {
+    console.warn("[startup] Migration failed - starting in degraded mode:", err);
+  }
+}
+
+maybeRunMigrations().catch((err) => console.warn("[startup] migration wrapper error:", err));
+
+// ── Start automation loops ─────────────────────────────────────────
+startQueue();
+startHealingLoop();
+startHealthMonitor();
 
 const port = Number(process.env.API_PORT) || 3001;
 

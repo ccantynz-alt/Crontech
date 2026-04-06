@@ -5,6 +5,7 @@
     "dev": "vinxi dev --port 3000",
     "build": "vinxi build",
     "start": "vinxi start",
+    "test": "bun test",
     "check": "tsc --noEmit",
     "lint": "biome check .",
     "format": "biome format . --write"

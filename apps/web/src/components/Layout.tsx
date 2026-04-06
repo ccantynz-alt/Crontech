@@ -3,6 +3,7 @@ import { Show, createSignal } from "solid-js";
 import { A, useLocation } from "@solidjs/router";
 import { Button, Text } from "@back-to-the-future/ui";
 import { useAuth, useTheme } from "../stores";
+import { NotificationCenter } from "./NotificationCenter";
 
 // ── Nav Link ──────────────────────────────────────────────────────────
 
@@ -93,18 +94,45 @@ interface SidebarProps {
   onToggle: () => void;
 }
 
+function isAccountingContext(): boolean {
+  if (typeof window === "undefined") return false;
+  const host = window.location.hostname;
+  const path = window.location.pathname;
+  return host.startsWith("accounting.") || path === "/accounting" || path.startsWith("/accounting/");
+}
+
 function Sidebar(props: SidebarProps): JSX.Element {
+  const accounting = isAccountingContext();
   return (
     <aside class={`sidebar ${props.collapsed ? "sidebar-collapsed" : ""}`}>
       <button class="sidebar-toggle" onClick={props.onToggle} type="button">
         {props.collapsed ? "\u25B6" : "\u25C0"}
       </button>
       <Show when={!props.collapsed}>
-        <nav class="sidebar-nav">
-          <NavLink href="/dashboard" label="Dashboard" />
-          <NavLink href="/builder" label="AI Builder" />
-          <NavLink href="/about" label="About" />
-        </nav>
+        <Show
+          when={accounting}
+          fallback={
+            <nav class="sidebar-nav">
+              <NavLink href="/dashboard" label="Dashboard" />
+              <NavLink href="/builder" label="AI Builder" />
+              <NavLink href="/collab" label="Collaboration" />
+              <NavLink href="/video" label="Video Editor" />
+              <NavLink href="/pricing" label="Pricing" />
+              <NavLink href="/settings" label="Settings" />
+              <NavLink href="/admin" label="Admin" />
+              <NavLink href="/about" label="About" />
+            </nav>
+          }
+        >
+          <nav class="sidebar-nav">
+            <NavLink href="/accounting/dashboard" label="Dashboard" />
+            <NavLink href="/accounting/clients" label="Clients" />
+            <NavLink href="/accounting/invoices" label="Invoices" />
+            <NavLink href="/accounting/expenses" label="Expenses" />
+            <NavLink href="/accounting/reports" label="Reports" />
+            <NavLink href="/settings" label="Settings" />
+          </nav>
+        </Show>
       </Show>
     </aside>
   );
@@ -132,12 +160,17 @@ export function Layout(props: LayoutProps): JSX.Element {
             <Show when={auth.isAuthenticated()}>
               <NavLink href="/dashboard" label="Dashboard" />
               <NavLink href="/builder" label="Builder" />
+              <NavLink href="/collab" label="Collab" />
+              <NavLink href="/video" label="Video" />
             </Show>
-            <NavLink href="/about" label="About" />
+            <NavLink href="/pricing" label="Pricing" />
           </nav>
         </div>
         <div class="navbar-right">
           <ThemeToggle />
+          <Show when={auth.isAuthenticated()}>
+            <NotificationCenter />
+          </Show>
           <Show
             when={auth.isAuthenticated()}
             fallback={
@@ -162,6 +195,19 @@ export function Layout(props: LayoutProps): JSX.Element {
           {props.children}
         </main>
       </div>
+
+      <footer class="layout-footer">
+        <nav class="footer-links">
+          <A href="/legal/terms">Terms</A>
+          <A href="/legal/privacy">Privacy</A>
+          <A href="/legal/dmca">DMCA</A>
+          <A href="/legal/cookies">Cookies</A>
+          <A href="/legal/acceptable-use">Acceptable Use</A>
+        </nav>
+        <Text variant="caption" class="text-muted">
+          Marco Reid Platform
+        </Text>
+      </footer>
     </div>
   );
 }

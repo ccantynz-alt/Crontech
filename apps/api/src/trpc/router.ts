@@ -3,6 +3,18 @@ import { router, publicProcedure } from "./init";
 import { usersRouter } from "./procedures/users";
 import { auditRouter } from "./procedures/audit";
 import { authRouter } from "./procedures/auth";
+import { billingRouter } from "./procedures/billing";
+import { featureFlagsRouter } from "./procedures/featureFlags";
+import { collabRouter } from "./procedures/collab";
+import { emailRouter } from "./procedures/email";
+import { adminRouter } from "./procedures/admin";
+import { analyticsRouter } from "./procedures/analytics";
+import { notificationsRouter } from "./procedures/notifications";
+import { tenantRouter } from "./procedures/tenant";
+import { apiKeysRouter } from "./procedures/apiKeys";
+import { webhooksRouter } from "./procedures/webhooks";
+import { supportRouter } from "./procedures/support";
+import { accountingRouter } from "./procedures/accounting";
 
 export const appRouter = router({
   health: publicProcedure.query(() => {
@@ -18,6 +30,18 @@ export const appRouter = router({
   users: usersRouter,
   audit: auditRouter,
   auth: authRouter,
+  billing: billingRouter,
+  featureFlags: featureFlagsRouter,
+  collab: collabRouter,
+  email: emailRouter,
+  admin: adminRouter,
+  analytics: analyticsRouter,
+  notifications: notificationsRouter,
+  tenant: tenantRouter,
+  apiKeys: apiKeysRouter,
+  webhooks: webhooksRouter,
+  support: supportRouter,
+  accounting: accountingRouter,
 });
 
 export type AppRouter = typeof appRouter;

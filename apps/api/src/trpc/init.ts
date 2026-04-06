@@ -1,5 +1,6 @@
 import { initTRPC, TRPCError } from "@trpc/server";
 import type { TRPCContext } from "./context";
+import { validateSession } from "../auth/session";
 
 import type * as _schema from "@back-to-the-future/db";
 
@@ -11,11 +12,26 @@ export const router = t.router;
 export const publicProcedure = t.procedure;
 export const middleware = t.middleware;
 
+/**
+ * Middleware that enforces authentication on every call.
+ * Re-validates the session token against the DB to ensure:
+ * - The session has not been revoked (logout)
+ * - The session has not expired (expiresAt check)
+ */
 const enforceAuth = middleware(async ({ ctx, next }) => {
-  if (!ctx.userId) {
+  if (!ctx.userId || !ctx.sessionToken) {
     throw new TRPCError({
       code: "UNAUTHORIZED",
       message: "You must be logged in to perform this action.",
+    });
+  }
+
+  // Re-validate session on every protected call (defense in depth)
+  const validUserId = await validateSession(ctx.sessionToken, ctx.db);
+  if (!validUserId || validUserId !== ctx.userId) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "Session expired or invalid. Please log in again.",
     });
   }
 

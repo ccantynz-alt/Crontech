@@ -13,10 +13,16 @@
     "lint": "turbo lint",
     "format": "turbo format",
     "check": "turbo check",
-    "clean": "turbo clean"
+    "clean": "turbo clean",
+    "check-links": "bun run scripts/link-checker.ts",
+    "check-buttons": "bun run scripts/button-checker.ts",
+    "generate-sitemap": "bun run scripts/generate-sitemap.ts",
+    "prebuild": "bun run scripts/generate-sitemap.ts",
+    "test:e2e": "playwright test"
   },
   "devDependencies": {
-    "turbo": "^2"
+    "turbo": "^2",
+    "@playwright/test": "^1.48.0"
   },
   "packageManager": "bun@1.3.9"
 }

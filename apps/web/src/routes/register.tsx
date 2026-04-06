@@ -4,33 +4,58 @@ import { Show, createSignal } from "solid-js";
 import { Button, Card, Input, Stack, Text } from "@back-to-the-future/ui";
 import { useAuth } from "../stores";
 
+type Mode = "choose" | "guest" | "email" | "creating";
+
 export default function RegisterPage(): ReturnType<typeof Stack> {
   const auth = useAuth();
   const navigate = useNavigate();
+  const [mode, setMode] = createSignal<Mode>("choose");
   const [email, setEmail] = createSignal("");
-  const [displayName, setDisplayName] = createSignal("");
+  const [name, setName] = createSignal("");
+  const [progress, setProgress] = createSignal(0);
   const [localError, setLocalError] = createSignal<string | null>(null);
 
-  const handleRegister = async (): Promise<void> => {
+  const startGuest = async (): Promise<void> => {
     setLocalError(null);
-
-    const emailValue = email().trim();
-    const nameValue = displayName().trim();
-
-    if (!emailValue) {
-      setLocalError("Please enter your email address.");
-      return;
-    }
-    if (!nameValue) {
-      setLocalError("Please enter your display name.");
-      return;
-    }
-
+    setMode("creating");
+    setProgress(20);
+    const guestEmail = `guest-${Date.now()}@demo.local`;
+    const guestName = "Guest Explorer";
+    setProgress(50);
     try {
-      await auth.register(emailValue, nameValue);
-      navigate("/dashboard", { replace: true });
+      try {
+        await auth.register(guestEmail, guestName);
+      } catch {
+        // Demo mode: ignore auth errors and continue.
+      }
+      setProgress(90);
+      window.setTimeout(() => {
+        setProgress(100);
+        navigate("/dashboard?tour=1", { replace: true });
+      }, 300);
     } catch {
-      // Error is set in auth store
+      setLocalError("Something went wrong. Try again — it usually works the second time.");
+      setMode("choose");
+    }
+  };
+
+  const startEmail = async (): Promise<void> => {
+    setLocalError(null);
+    const e = email().trim();
+    const n = name().trim() || "Friend";
+    if (!e) {
+      setLocalError("Please add your email so we can save your work.");
+      return;
+    }
+    setMode("creating");
+    setProgress(30);
+    try {
+      await auth.register(e, n);
+      setProgress(100);
+      navigate("/dashboard?tour=1", { replace: true });
+    } catch {
+      setLocalError("We couldn't sign you up just now. Try 'Continue as Guest' instead.");
+      setMode("email");
     }
   };
 
@@ -38,14 +63,14 @@ export default function RegisterPage(): ReturnType<typeof Stack> {
 
   return (
     <Stack direction="vertical" align="center" justify="center" class="page-center">
-      <Title>Register - Back to the Future</Title>
+      <Title>Get Started - Marco Reid</Title>
       <Card class="auth-card" padding="lg">
         <Stack direction="vertical" gap="lg" align="center">
           <Text variant="h2" weight="bold" align="center">
-            Create Account
+            Let's get you started
           </Text>
           <Text variant="body" align="center" class="text-muted">
-            Register with a passkey for phishing-immune authentication.
+            No forms. No fuss. Pick how you want to begin.
           </Text>
 
           <Show when={displayError()}>
@@ -54,39 +79,83 @@ export default function RegisterPage(): ReturnType<typeof Stack> {
             </div>
           </Show>
 
-          <Stack direction="vertical" gap="md" class="auth-form">
-            <Input
-              label="Display Name"
-              type="text"
-              placeholder="Your Name"
-              value={displayName()}
-              onInput={(e) => setDisplayName(e.currentTarget.value)}
-              disabled={auth.isLoading()}
-            />
+          <Show when={mode() === "choose"}>
+            <Stack direction="vertical" gap="md" class="auth-form">
+              <Button variant="primary" size="lg" onClick={startGuest}>
+                Try for Free (one click)
+              </Button>
+              <Text variant="caption" align="center" class="text-muted">
+                Instant demo account, sample projects pre-loaded.
+              </Text>
+              <Button variant="secondary" size="lg" onClick={() => setMode("email")}>
+                Continue with Email
+              </Button>
+              <Text variant="caption" align="center" class="text-muted">
+                Save your work across devices.
+              </Text>
+            </Stack>
+          </Show>
 
-            <Input
-              label="Email"
-              type="email"
-              placeholder="you@example.com"
-              value={email()}
-              onInput={(e) => setEmail(e.currentTarget.value)}
-              disabled={auth.isLoading()}
-            />
+          <Show when={mode() === "email"}>
+            <Stack direction="vertical" gap="md" class="auth-form">
+              <Input
+                label="Your name"
+                type="text"
+                placeholder="What should we call you?"
+                value={name()}
+                onInput={(e) => setName(e.currentTarget.value)}
+              />
+              <Input
+                label="Your email"
+                type="email"
+                placeholder="you@example.com"
+                value={email()}
+                onInput={(e) => setEmail(e.currentTarget.value)}
+              />
+              <Button variant="primary" size="lg" onClick={startEmail}>
+                Create my account
+              </Button>
+              <Button variant="ghost" size="md" onClick={() => setMode("choose")}>
+                Back
+              </Button>
+              <Text variant="caption" align="center" class="text-muted">
+                We use safe sign-in — no passwords to remember.
+              </Text>
+            </Stack>
+          </Show>
 
-            <Button
-              variant="primary"
-              size="lg"
-              onClick={handleRegister}
-              loading={auth.isLoading()}
-              class="auth-submit"
-            >
-              Register with Passkey
-            </Button>
-          </Stack>
+          <Show when={mode() === "creating"}>
+            <Stack direction="vertical" gap="md" align="center">
+              <Text variant="body">Setting up your account…</Text>
+              <div
+                style={{
+                  width: "240px",
+                  height: "8px",
+                  background: "#e5e7eb",
+                  "border-radius": "9999px",
+                  overflow: "hidden",
+                }}
+              >
+                <div
+                  style={{
+                    width: `${progress()}%`,
+                    height: "100%",
+                    background: "linear-gradient(90deg, #6366f1, #8b5cf6)",
+                    transition: "width 0.3s ease",
+                  }}
+                />
+              </div>
+              <Text variant="caption" class="text-muted">
+                Loading sample projects and starting your tour…
+              </Text>
+            </Stack>
+          </Show>
 
           <Text variant="caption" class="text-muted">
             Already have an account?{" "}
-            <A href="/login" class="link">Sign in</A>
+            <A href="/login" class="link">
+              Sign in
+            </A>
           </Text>
         </Stack>
       </Card>
