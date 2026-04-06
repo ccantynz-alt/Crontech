@@ -4,8 +4,8 @@ import { FileRoutes } from "@solidjs/start/router";
 import { Suspense, onMount, createEffect, onCleanup } from "solid-js";
 import { AuthProvider, ThemeProvider, FeatureFlagProvider } from "./stores";
 import { Layout } from "./components/Layout";
+import { CommandPalette } from "./components/CommandPalette";
 import { AppErrorBoundary } from "./components/ErrorBoundary";
-import { SupportBot } from "./components/SupportBot";
 import { initAnalytics, stopAnalytics, trackPageView } from "./lib/analytics";
 import "./app.css";
 
@@ -39,10 +39,10 @@ export default function App() {
               <FeatureFlagProvider>
                 <AppErrorBoundary>
                   <AnalyticsTracker />
+                  <CommandPalette />
                   <Layout>
                     <Suspense>{props.children}</Suspense>
                   </Layout>
-                  <SupportBot />
                 </AppErrorBoundary>
               </FeatureFlagProvider>
             </AuthProvider>

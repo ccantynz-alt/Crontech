@@ -4,6 +4,7 @@ import { For } from "solid-js";
 import { Button, Card, Stack, Text } from "@back-to-the-future/ui";
 import { ProtectedRoute } from "../components/ProtectedRoute";
 import { OnboardingWizard } from "../components/OnboardingWizard";
+import { ProgressTracker } from "../components/ProgressTracker";
 import { useAuth } from "../stores";
 
 // ── Quick Action Card ─────────────────────────────────────────────────
@@ -84,6 +85,8 @@ export default function DashboardPage(): ReturnType<typeof ProtectedRoute> {
             </For>
           </div>
         </Stack>
+
+        <ProgressTracker />
 
         <Stack direction="vertical" gap="sm">
           <Text variant="h3" weight="semibold">Account</Text>
