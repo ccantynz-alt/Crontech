@@ -97,7 +97,7 @@ export default function CollabPage(): JSX.Element {
                           >
                             {room.status}
                           </Badge>
-                          <Button variant="outline" size="sm">
+                          <Button variant="outline" size="sm" onClick={() => { window.location.href = `/builder?room=${room.id}`; }}>
                             Join
                           </Button>
                         </Stack>

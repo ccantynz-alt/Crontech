@@ -34,15 +34,16 @@ function ChatBubble(props: { message: ChatMessage }): JSX.Element {
 // ── Preview Panel ─────────────────────────────────────────────────────
 
 function PreviewPanel(): JSX.Element {
+  const [device, setDevice] = createSignal<"desktop" | "tablet" | "mobile">("desktop");
   return (
     <Card class="preview-panel" padding="none">
       <Stack direction="vertical" gap="none" class="preview-inner">
         <div class="preview-toolbar">
-          <Text variant="caption" weight="semibold">Live Preview</Text>
+          <Text variant="caption" weight="semibold">Live Preview ({device()})</Text>
           <Stack direction="horizontal" gap="xs">
-            <Button variant="ghost" size="sm">Desktop</Button>
-            <Button variant="ghost" size="sm">Tablet</Button>
-            <Button variant="ghost" size="sm">Mobile</Button>
+            <Button variant="ghost" size="sm" onClick={() => setDevice("desktop")}>Desktop</Button>
+            <Button variant="ghost" size="sm" onClick={() => setDevice("tablet")}>Tablet</Button>
+            <Button variant="ghost" size="sm" onClick={() => setDevice("mobile")}>Mobile</Button>
           </Stack>
         </div>
         <div class="preview-canvas">

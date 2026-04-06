@@ -1,11 +1,55 @@
 import { Title } from "@solidjs/meta";
-import { Show, createSignal } from "solid-js";
+import { useNavigate } from "@solidjs/router";
+import { Show } from "solid-js";
 import type { JSX } from "solid-js";
 import { Button, Card, Stack, Text, Badge } from "@back-to-the-future/ui";
 import { ProtectedRoute } from "../components/ProtectedRoute";
+import { showToast } from "../components/Toast";
+import { trpc } from "../lib/trpc";
+import { useQuery, useMutation, friendlyError } from "../lib/use-trpc";
 
 export default function BillingPage(): JSX.Element {
-  const [currentPlan] = createSignal("Free");
+  const navigate = useNavigate();
+
+  const subscription = useQuery(() => trpc.billing.getSubscription.query());
+  const usage = useQuery(() =>
+    trpc.analytics.getUsageStats.query().catch(() => ({
+      pageViews: 0,
+      featureUsage: 0,
+      aiGenerations: 0,
+      recentEvents: [],
+    })),
+  );
+
+  const portal = useMutation((customerId: string) =>
+    trpc.billing.createPortalSession.mutate({ customerId }),
+  );
+
+  const handleUpgrade = (): void => {
+    navigate("/pricing");
+  };
+
+  const handleManageBilling = async (): Promise<void> => {
+    const sub = subscription.data();
+    const customerId = sub?.stripeCustomerId ?? null;
+    if (!customerId) {
+      showToast("Billing portal unavailable. Subscribe to a paid plan first.", "warning");
+      return;
+    }
+    try {
+      const result = (await portal.mutate(customerId)) as unknown as { url?: string };
+      if (result?.url) {
+        window.location.href = result.url;
+      } else {
+        showToast("Billing portal URL unavailable.", "error");
+      }
+    } catch (err) {
+      showToast(friendlyError(err), "error");
+    }
+  };
+
+  const planName = (): string => subscription.data()?.plan ?? "Free";
+  const status = (): string => subscription.data()?.status ?? "free";
 
   return (
     <ProtectedRoute>
@@ -18,19 +62,35 @@ export default function BillingPage(): JSX.Element {
           </Text>
         </Stack>
 
+        <Show when={subscription.error()}>
+          <Card padding="sm">
+            <Text variant="caption" class="text-muted">
+              Could not load subscription: {friendlyError(subscription.error())}
+            </Text>
+          </Card>
+        </Show>
+
         <Card padding="lg">
           <Stack direction="vertical" gap="md">
             <Text variant="h3" weight="semibold">Current Plan</Text>
             <Stack direction="horizontal" gap="sm" align="center">
-              <Text variant="h2" weight="bold">{currentPlan()}</Text>
-              <Badge variant="info" size="sm">Active</Badge>
+              <Text variant="h2" weight="bold">
+                {subscription.loading() ? "Loading..." : planName()}
+              </Text>
+              <Badge variant="info" size="sm">{status()}</Badge>
             </Stack>
             <Text variant="body" class="text-muted">
               Your plan renews automatically. Upgrade anytime to unlock more features.
             </Text>
             <Stack direction="horizontal" gap="sm">
-              <Button variant="primary">Upgrade Plan</Button>
-              <Button variant="outline">Manage Billing</Button>
+              <Button variant="primary" onClick={handleUpgrade}>Upgrade Plan</Button>
+              <Button
+                variant="outline"
+                onClick={() => void handleManageBilling()}
+                loading={portal.loading()}
+              >
+                Manage Billing
+              </Button>
             </Stack>
           </Stack>
         </Card>
@@ -42,19 +102,25 @@ export default function BillingPage(): JSX.Element {
               <Card padding="sm">
                 <Stack direction="vertical" gap="xs">
                   <Text variant="caption" class="text-muted">AI Generations</Text>
-                  <Text variant="h3" weight="bold">12 / 50</Text>
+                  <Text variant="h3" weight="bold">
+                    {usage.loading() ? "--" : String(usage.data()?.aiGenerations ?? 0)}
+                  </Text>
                 </Stack>
               </Card>
               <Card padding="sm">
                 <Stack direction="vertical" gap="xs">
-                  <Text variant="caption" class="text-muted">Projects</Text>
-                  <Text variant="h3" weight="bold">1 / 1</Text>
+                  <Text variant="caption" class="text-muted">Page Views</Text>
+                  <Text variant="h3" weight="bold">
+                    {usage.loading() ? "--" : String(usage.data()?.pageViews ?? 0)}
+                  </Text>
                 </Stack>
               </Card>
               <Card padding="sm">
                 <Stack direction="vertical" gap="xs">
-                  <Text variant="caption" class="text-muted">Storage</Text>
-                  <Text variant="h3" weight="bold">24 MB</Text>
+                  <Text variant="caption" class="text-muted">Feature Uses</Text>
+                  <Text variant="h3" weight="bold">
+                    {usage.loading() ? "--" : String(usage.data()?.featureUsage ?? 0)}
+                  </Text>
                 </Stack>
               </Card>
             </div>

@@ -6,6 +6,7 @@ import { AuthProvider, ThemeProvider, FeatureFlagProvider } from "./stores";
 import { Layout } from "./components/Layout";
 import { CommandPalette } from "./components/CommandPalette";
 import { AppErrorBoundary } from "./components/ErrorBoundary";
+import { ToastContainer } from "./components/Toast";
 import { initAnalytics, stopAnalytics, trackPageView } from "./lib/analytics";
 import "./app.css";
 
@@ -40,6 +41,7 @@ export default function App() {
                 <AppErrorBoundary>
                   <AnalyticsTracker />
                   <CommandPalette />
+                  <ToastContainer />
                   <Layout>
                     <Suspense>{props.children}</Suspense>
                   </Layout>

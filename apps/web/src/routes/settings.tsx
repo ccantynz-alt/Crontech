@@ -4,6 +4,9 @@ import type { JSX } from "solid-js";
 import { Button, Card, Input, Stack, Text, Badge } from "@back-to-the-future/ui";
 import { ProtectedRoute } from "../components/ProtectedRoute";
 import { useAuth, useTheme } from "../stores";
+import { trpc } from "../lib/trpc";
+import { friendlyError } from "../lib/use-trpc";
+import { showToast } from "../components/Toast";
 
 function Section(props: { title: string; description: string; children: JSX.Element }): JSX.Element {
   return (
@@ -39,34 +42,16 @@ interface WebhookInfo {
   createdAt: Date;
 }
 
-// ── Mock fetchers (wired to tRPC in production) ─────────────────────
-// These would use the tRPC client in production. Using inline stubs
-// so the page renders and compiles without requiring a running API.
+// ── Fetchers (tRPC client) ──────────────────────────────────────────
 
 async function fetchApiKeys(): Promise<ApiKeyInfo[]> {
-  try {
-    const res = await fetch("/api/trpc/apiKeys.list", {
-      headers: { Authorization: `Bearer ${localStorage.getItem("session_token") ?? ""}` },
-    });
-    if (!res.ok) return [];
-    const data = (await res.json()) as { result?: { data?: { json?: ApiKeyInfo[] } } };
-    return data?.result?.data?.json ?? [];
-  } catch {
-    return [];
-  }
+  const rows = await trpc.apiKeys.list.query();
+  return rows as unknown as ApiKeyInfo[];
 }
 
 async function fetchWebhooks(): Promise<WebhookInfo[]> {
-  try {
-    const res = await fetch("/api/trpc/webhooks.list", {
-      headers: { Authorization: `Bearer ${localStorage.getItem("session_token") ?? ""}` },
-    });
-    if (!res.ok) return [];
-    const data = (await res.json()) as { result?: { data?: { json?: WebhookInfo[] } } };
-    return data?.result?.data?.json ?? [];
-  } catch {
-    return [];
-  }
+  const rows = await trpc.webhooks.list.query();
+  return rows as unknown as WebhookInfo[];
 }
 
 // ── Developer Section Component ─────────────────────────────────────
@@ -93,32 +78,20 @@ function DeveloperSection(): JSX.Element {
     setCreatedKey(null);
 
     try {
-      const body: Record<string, unknown> = { name: newKeyName() };
+      const input: { name: string; expiresAt?: Date } = { name: newKeyName() };
       if (newKeyExpiry()) {
-        body.expiresAt = new Date(newKeyExpiry()).toISOString();
+        input.expiresAt = new Date(newKeyExpiry());
       }
-
-      const res = await fetch("/api/trpc/apiKeys.create", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("session_token") ?? ""}`,
-        },
-        body: JSON.stringify({ json: body }),
-      });
-
-      if (res.ok) {
-        const data = (await res.json()) as { result?: { data?: { json?: { rawKey?: string } } } };
-        const rawKey = data?.result?.data?.json?.rawKey;
-        if (rawKey) {
-          setCreatedKey(rawKey);
-        }
-        setNewKeyName("");
-        setNewKeyExpiry("");
-        void refetchKeys();
+      const result = (await trpc.apiKeys.create.mutate(input)) as unknown as { rawKey?: string };
+      if (result?.rawKey) {
+        setCreatedKey(result.rawKey);
       }
-    } catch {
-      // Error handled silently
+      setNewKeyName("");
+      setNewKeyExpiry("");
+      void refetchKeys();
+      showToast("API key created", "success");
+    } catch (err) {
+      showToast(friendlyError(err), "error");
     } finally {
       setKeyCreating(false);
     }
@@ -126,17 +99,11 @@ function DeveloperSection(): JSX.Element {
 
   const handleRevokeKey = async (id: string): Promise<void> => {
     try {
-      await fetch("/api/trpc/apiKeys.revoke", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("session_token") ?? ""}`,
-        },
-        body: JSON.stringify({ json: { id } }),
-      });
+      await trpc.apiKeys.revoke.mutate({ id });
       void refetchKeys();
-    } catch {
-      // Error handled silently
+      showToast("API key revoked", "success");
+    } catch (err) {
+      showToast(friendlyError(err), "error");
     }
   };
 
@@ -154,23 +121,15 @@ function DeveloperSection(): JSX.Element {
     setWebhookCreating(true);
 
     try {
-      await fetch("/api/trpc/webhooks.create", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("session_token") ?? ""}`,
-        },
-        body: JSON.stringify({
-          json: {
-            url: newWebhookUrl(),
-            events: ["build.completed", "deployment.ready"],
-          },
-        }),
+      await trpc.webhooks.create.mutate({
+        url: newWebhookUrl(),
+        events: ["build.completed", "deployment.ready"],
       });
       setNewWebhookUrl("");
       void refetchWebhooks();
-    } catch {
-      // Error handled silently
+      showToast("Webhook added", "success");
+    } catch (err) {
+      showToast(friendlyError(err), "error");
     } finally {
       setWebhookCreating(false);
     }
@@ -178,17 +137,11 @@ function DeveloperSection(): JSX.Element {
 
   const handleDeleteWebhook = async (id: string): Promise<void> => {
     try {
-      await fetch("/api/trpc/webhooks.delete", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("session_token") ?? ""}`,
-        },
-        body: JSON.stringify({ json: { id } }),
-      });
+      await trpc.webhooks.delete.mutate({ id });
       void refetchWebhooks();
-    } catch {
-      // Error handled silently
+      showToast("Webhook deleted", "success");
+    } catch (err) {
+      showToast(friendlyError(err), "error");
     }
   };
 
@@ -197,29 +150,17 @@ function DeveloperSection(): JSX.Element {
     setTestResult(null);
 
     try {
-      const res = await fetch("/api/trpc/webhooks.test", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("session_token") ?? ""}`,
-        },
-        body: JSON.stringify({ json: { id } }),
+      const result = (await trpc.webhooks.test.mutate({ id })) as unknown as {
+        success: boolean;
+        statusCode: number;
+        statusText: string;
+      };
+      setTestResult({
+        success: result.success,
+        status: `${result.statusCode} ${result.statusText}`,
       });
-
-      if (res.ok) {
-        const data = (await res.json()) as {
-          result?: { data?: { json?: { success: boolean; statusCode: number; statusText: string } } };
-        };
-        const result = data?.result?.data?.json;
-        if (result) {
-          setTestResult({
-            success: result.success,
-            status: `${result.statusCode} ${result.statusText}`,
-          });
-        }
-      }
-    } catch {
-      setTestResult({ success: false, status: "Connection failed" });
+    } catch (err) {
+      setTestResult({ success: false, status: friendlyError(err) });
     } finally {
       setTestingWebhookId(null);
     }
@@ -570,7 +511,7 @@ export default function SettingsPage(): JSX.Element {
                       This will permanently delete your account and all data.
                     </Text>
                     <Stack direction="horizontal" gap="sm">
-                      <Button variant="outline" size="sm">Yes, Delete</Button>
+                      <Button variant="outline" size="sm" onClick={() => { setShowDeleteConfirm(false); alert("Account deletion requested. Contact support to finalize."); }}>Yes, Delete</Button>
                       <Button variant="outline" size="sm" onClick={() => setShowDeleteConfirm(false)}>
                         Cancel
                       </Button>

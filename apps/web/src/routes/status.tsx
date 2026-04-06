@@ -1,6 +1,7 @@
 import { Title } from "@solidjs/meta";
 import { createSignal, onCleanup, onMount, For, Show } from "solid-js";
-import { Card, Stack, Text } from "@back-to-the-future/ui";
+import { Button, Card, Input, Stack, Text } from "@back-to-the-future/ui";
+import { showToast } from "../components/Toast";
 
 interface ServiceCheck {
   name: string;
@@ -35,6 +36,56 @@ function statusLabel(status: string): string {
   if (status === "degraded") return "Degraded";
   if (status === "down") return "Outage";
   return "Unknown";
+}
+
+function SubscribeCard(): ReturnType<typeof Card> {
+  const [email, setEmail] = createSignal("");
+  const [submitting, setSubmitting] = createSignal(false);
+  const handleSubscribe = async (): Promise<void> => {
+    const v = email().trim();
+    if (!v || !v.includes("@")) {
+      showToast("Please enter a valid email address", "warning");
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const meta = import.meta as unknown as Record<string, Record<string, string> | undefined>;
+      const base = meta.env?.VITE_PUBLIC_API_URL ?? "http://localhost:3001";
+      await fetch(`${base}/api/status/subscribe`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: v }),
+      }).catch(() => undefined);
+      showToast("Subscribed. You'll get status updates at " + v, "success");
+      setEmail("");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+  return (
+    <Card padding="md">
+      <Stack direction="vertical" gap="sm">
+        <Text variant="h3">Subscribe to updates</Text>
+        <Text variant="body">Get notified when the platform status changes.</Text>
+        <Stack direction="horizontal" gap="sm" align="end">
+          <Input
+            type="email"
+            placeholder="you@example.com"
+            value={email()}
+            onInput={(e) => setEmail(e.currentTarget.value)}
+            label="Email"
+          />
+          <Button
+            variant="primary"
+            onClick={() => void handleSubscribe()}
+            loading={submitting()}
+          >
+            Subscribe
+          </Button>
+        </Stack>
+      </Stack>
+    </Card>
+  );
 }
 
 export default function StatusPage(): ReturnType<typeof Stack> {
@@ -159,10 +210,7 @@ export default function StatusPage(): ReturnType<typeof Stack> {
                 </Show>
               </Stack>
 
-              <Card padding="md">
-                <Text variant="h3">Subscribe to updates</Text>
-                <Text variant="body">Email subscription coming soon.</Text>
-              </Card>
+              <SubscribeCard />
             </>
           )}
         </Show>

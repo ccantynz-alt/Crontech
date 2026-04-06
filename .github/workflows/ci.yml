@@ -30,6 +30,12 @@ jobs:
       - name: Type check all packages
         run: bun run check
 
+      - name: Check links
+        run: bun run check-links
+
+      - name: Check buttons
+        run: bun run check-buttons
+
   build:
     name: Build
     runs-on: ubuntu-latest

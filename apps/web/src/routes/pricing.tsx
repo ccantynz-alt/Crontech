@@ -4,6 +4,34 @@ import { A } from "@solidjs/router";
 import { Button, Card, Stack, Text, Badge } from "@back-to-the-future/ui";
 import { useAuth } from "../stores";
 import { SEOHead } from "../components/SEOHead";
+import { trpc } from "../lib/trpc";
+import { friendlyError } from "../lib/use-trpc";
+import { showToast } from "../components/Toast";
+
+const PRICE_IDS: Record<string, string> = {
+  pro: "price_pro_monthly",
+  enterprise: "price_enterprise_monthly",
+};
+
+async function startCheckout(planId: string): Promise<void> {
+  const priceId = PRICE_IDS[planId];
+  if (!priceId) {
+    showToast("This plan is not available for checkout.", "warning");
+    return;
+  }
+  try {
+    const result = (await trpc.billing.createCheckoutSession.mutate({ priceId })) as unknown as {
+      url?: string;
+    };
+    if (result?.url) {
+      window.location.href = result.url;
+    } else {
+      showToast("Checkout URL unavailable. Please try again later.", "error");
+    }
+  } catch (err) {
+    showToast(friendlyError(err), "error");
+  }
+}
 
 interface PlanInfo {
   id: string;
@@ -104,6 +132,7 @@ function PlanCard(props: { plan: PlanInfo }): JSX.Element {
             variant={props.plan.popular ? "primary" : "outline"}
             class="w-full"
             disabled={props.plan.id === "free"}
+            onClick={() => void startCheckout(props.plan.id)}
           >
             {props.plan.id === "free" ? "Current Plan" : "Upgrade"}
           </Button>
@@ -143,7 +172,7 @@ export default function PricingPage(): JSX.Element {
             <Text variant="body" class="text-muted">
               Contact us for volume pricing, custom AI agents, and enterprise deployments.
             </Text>
-            <Button variant="outline">Contact Sales</Button>
+            <Button variant="outline" onClick={() => { window.location.href = "mailto:sales@backtothefuture.dev"; }}>Contact Sales</Button>
           </Stack>
         </Card>
       </Stack>
