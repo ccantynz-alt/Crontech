@@ -36,5 +36,6 @@ export function rateLimiter(opts: {
     c.header("X-RateLimit-Remaining", String(bucket.tokens));
 
     await next();
+    return;
   };
 }

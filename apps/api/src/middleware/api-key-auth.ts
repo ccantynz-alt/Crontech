@@ -72,6 +72,7 @@ export const apiKeyAuthMiddleware = createMiddleware<ApiKeyAuthEnv>(
       c.set("userId", key.userId);
       c.set("apiKeyId", key.id);
       await next();
+      return;
     } catch (err: unknown) {
       console.error(
         "API key auth error:",

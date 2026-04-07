@@ -20,37 +20,50 @@ export interface ProjectSuggestion {
   };
 }
 
-function flatten(tree: Component[] | undefined): Component[] {
-  const out: Component[] = [];
+// Local structural type used for traversal.
+// ComponentSchema is annotated as z.ZodType (without a type parameter) so
+// z.infer resolves to unknown. This interface captures the minimum shape we
+// need for rule evaluation without requiring the schemas package to be rebuilt.
+interface AnyComponent {
+  component: string;
+  props: Record<string, unknown>;
+  children?: AnyComponent[];
+}
+
+function flatten(tree: AnyComponent[] | undefined): AnyComponent[] {
+  const out: AnyComponent[] = [];
   if (!tree) return out;
-  const visit = (node: Component): void => {
+  const visit = (node: AnyComponent): void => {
     out.push(node);
-    const maybeChildren = (node as { children?: Component[] }).children;
-    if (Array.isArray(maybeChildren)) {
-      for (const child of maybeChildren) visit(child);
+    if (Array.isArray(node.children)) {
+      for (const child of node.children) visit(child);
     }
   };
   for (const node of tree) visit(node);
   return out;
 }
 
-function hasComponent(tree: Component[], name: string): boolean {
+function hasComponent(tree: AnyComponent[], name: string): boolean {
   return flatten(tree).some((c) => c.component === name);
 }
 
-function hasButtonLike(tree: Component[], keywords: string[]): boolean {
+function hasButtonLike(tree: AnyComponent[], keywords: string[]): boolean {
   return flatten(tree).some((c) => {
     if (c.component !== "Button") return false;
-    const label = (c.props as { label?: string }).label?.toLowerCase() ?? "";
+    const label = (c.props["label"] as string | undefined)?.toLowerCase() ?? "";
     return keywords.some((k) => label.includes(k));
   });
 }
 
 export function analyzeProject(tree: Component[]): ProjectSuggestion[] {
+  // Cast to the local traversal type; Component resolves to unknown at the
+  // type level due to z.ZodType on ComponentSchema, but the runtime shape is
+  // identical to AnyComponent.
+  const nodes = tree as unknown as AnyComponent[];
   const suggestions: ProjectSuggestion[] = [];
 
   // Rule 1: Missing CTA
-  if (!hasButtonLike(tree, ["start", "sign up", "buy", "get", "try", "join", "contact"])) {
+  if (!hasButtonLike(nodes, ["start", "sign up", "buy", "get", "try", "join", "contact"])) {
     suggestions.push({
       id: "missing-cta",
       title: "Your page is missing a call-to-action button.",
@@ -67,7 +80,7 @@ export function analyzeProject(tree: Component[]): ProjectSuggestion[] {
   }
 
   // Rule 2: No headline
-  if (!flatten(tree).some((c) => c.component === "Text" && (c.props as { variant?: string }).variant === "h1")) {
+  if (!flatten(nodes).some((c) => c.component === "Text" && (c.props["variant"] as string | undefined) === "h1")) {
     suggestions.push({
       id: "missing-headline",
       title: "There is no main headline on this page.",
@@ -84,7 +97,7 @@ export function analyzeProject(tree: Component[]): ProjectSuggestion[] {
   }
 
   // Rule 3: No images / avatars / visual content
-  if (!hasComponent(tree, "Avatar") && !hasComponent(tree, "Card")) {
+  if (!hasComponent(nodes, "Avatar") && !hasComponent(nodes, "Card")) {
     suggestions.push({
       id: "needs-visuals",
       title: "This page is text-only.",
@@ -95,7 +108,7 @@ export function analyzeProject(tree: Component[]): ProjectSuggestion[] {
   }
 
   // Rule 4: No contact form
-  if (!hasComponent(tree, "Input") && !hasComponent(tree, "Textarea")) {
+  if (!hasComponent(nodes, "Input") && !hasComponent(nodes, "Textarea")) {
     suggestions.push({
       id: "add-contact-form",
       title: "Add a contact form?",
@@ -112,7 +125,7 @@ export function analyzeProject(tree: Component[]): ProjectSuggestion[] {
   }
 
   // Rule 5: Spacing — too many siblings without a Stack wrapper
-  if (tree.length > 4 && !hasComponent(tree, "Stack")) {
+  if (nodes.length > 4 && !hasComponent(nodes, "Stack")) {
     suggestions.push({
       id: "needs-spacing",
       title: "This section could use better spacing.",
@@ -123,12 +136,12 @@ export function analyzeProject(tree: Component[]): ProjectSuggestion[] {
   }
 
   // Rule 6: Mobile-friendly check (very rough — just a recommendation)
-  const wideStacks = flatten(tree).filter(
+  const wideStacks = flatten(nodes).filter(
     (c) =>
       c.component === "Stack" &&
-      (c.props as { direction?: string }).direction === "horizontal" &&
-      Array.isArray((c as { children?: Component[] }).children) &&
-      ((c as { children?: Component[] }).children?.length ?? 0) > 3,
+      (c.props["direction"] as string | undefined) === "horizontal" &&
+      Array.isArray(c.children) &&
+      (c.children?.length ?? 0) > 3,
   );
   if (wideStacks.length > 0) {
     suggestions.push({

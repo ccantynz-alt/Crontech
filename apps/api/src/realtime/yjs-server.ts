@@ -24,7 +24,7 @@ const yjsWsApp = new Hono();
 yjsWsApp.get(
   "/api/yjs/:roomId",
   upgradeWebSocket((c) => {
-    const roomId = c.req.param("roomId");
+    const roomId = c.req.param("roomId")!;
     const doc = getOrCreateDoc(roomId);
 
     return {
@@ -37,7 +37,7 @@ yjsWsApp.get(
 
         // Send initial state
         const state = Y.encodeStateAsUpdate(doc);
-        ws.send(state);
+        ws.send(state as unknown as Uint8Array<ArrayBuffer>);
       },
 
       onMessage(evt, ws) {

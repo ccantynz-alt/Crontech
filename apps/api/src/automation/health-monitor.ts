@@ -42,14 +42,13 @@ async function timed<T>(fn: () => Promise<T>): Promise<{ value?: T; error?: stri
 async function checkDb(): Promise<ServiceCheck> {
   const r = await timed(async () => {
     const { db } = await import("@back-to-the-future/db");
-    // @ts-expect-error - drizzle libsql exposes run
     if (db.run) await db.run("SELECT 1");
   });
   return {
     name: "database",
     status: r.error ? "down" : r.latencyMs > 500 ? "degraded" : "ok",
     latencyMs: r.latencyMs,
-    detail: r.error,
+    ...(r.error !== undefined ? { detail: r.error } : {}),
   };
 }
 
@@ -62,7 +61,7 @@ async function checkQdrant(): Promise<ServiceCheck> {
     name: "qdrant",
     status: r.error ? "degraded" : "ok",
     latencyMs: r.latencyMs,
-    detail: r.error,
+    ...(r.error !== undefined ? { detail: r.error } : {}),
   };
 }
 
@@ -75,11 +74,12 @@ async function checkStripe(): Promise<ServiceCheck> {
     });
     if (!res.ok && res.status !== 401) throw new Error(`stripe status ${res.status}`);
   });
+  const stripeDetail = r.error ?? (process.env.STRIPE_SECRET_KEY ? undefined : "not configured");
   return {
     name: "stripe",
     status: r.error ? "degraded" : "ok",
     latencyMs: r.latencyMs,
-    detail: r.error ?? (process.env.STRIPE_SECRET_KEY ? undefined : "not configured"),
+    ...(stripeDetail !== undefined ? { detail: stripeDetail } : {}),
   };
 }
 
@@ -88,20 +88,21 @@ async function checkEmail(): Promise<ServiceCheck> {
     name: "email",
     status: process.env.RESEND_API_KEY ? "ok" : "degraded",
     latencyMs: 0,
-    detail: process.env.RESEND_API_KEY ? undefined : "no RESEND_API_KEY (console fallback)",
+    ...(process.env.RESEND_API_KEY ? {} : { detail: "no RESEND_API_KEY (console fallback)" }),
   };
 }
 
 async function checkSentinel(): Promise<ServiceCheck> {
-  const r = await timed(async () => {
-    const mod = await import("../../../../services/sentinel/src/index").catch(() => null);
-    if (!mod) throw new Error("sentinel not loaded");
-  });
+  // Check if sentinel alerting is configured without importing the sentinel
+  // service (which lives outside this package's rootDir).
+  const configured = Boolean(
+    process.env["SLACK_WEBHOOK_URL"] ?? process.env["DISCORD_WEBHOOK_URL"],
+  );
   return {
     name: "sentinel",
-    status: r.error ? "degraded" : "ok",
-    latencyMs: r.latencyMs,
-    detail: r.error,
+    status: configured ? "ok" : "degraded",
+    latencyMs: 0,
+    ...(configured ? {} : { detail: "no webhook configured" }),
   };
 }
 
@@ -117,16 +118,46 @@ async function alertIfDown(snapshot: HealthSnapshot): Promise<void> {
   const broken = snapshot.services.filter((s) => s.status === "down");
   if (broken.length === 0) return;
   try {
-    const alerts = await import("../../../../services/sentinel/src/alerts/types");
-    const message = {
+    const title = "Health monitor: services down";
+    const body = broken.map((b) => `- ${b.name}: ${b.detail ?? b.status}`).join("\n");
+    const payload = {
       priority: "critical" as const,
-      title: "Health monitor: services down",
-      body: broken.map((b) => `- ${b.name}: ${b.detail ?? b.status}`).join("\n"),
+      title,
+      body,
       timestamp: snapshot.timestamp,
     };
-    await Promise.allSettled([alerts.sendSlackAlert(message), alerts.sendDiscordAlert(message)]);
+
+    // Send alerts inline — avoids cross-package imports outside rootDir.
+    const slackWebhook = process.env["SLACK_WEBHOOK_URL"];
+    const discordWebhook = process.env["DISCORD_WEBHOOK_URL"];
+    await Promise.allSettled([
+      slackWebhook
+        ? fetch(slackWebhook, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              text: `*[${payload.priority.toUpperCase()}]* ${payload.title}`,
+              blocks: [
+                {
+                  type: "section",
+                  text: { type: "mrkdwn", text: `*${payload.title}*\n${payload.body}` },
+                },
+              ],
+            }),
+          })
+        : Promise.resolve(),
+      discordWebhook
+        ? fetch(discordWebhook, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              content: `**[${payload.priority.toUpperCase()}]** ${payload.title}\n${payload.body}`,
+            }),
+          })
+        : Promise.resolve(),
+    ]);
   } catch {
-    // Sentinel unavailable - log via audit instead.
+    // Alert sending failed - log via audit instead.
     await writeAudit({
       actorId: "system:health-monitor",
       action: "UPDATE",

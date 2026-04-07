@@ -129,7 +129,7 @@ export function getQueueStatus(): {
       id: j.id,
       type: j.type,
       attempts: j.attempts,
-      lastError: j.lastError,
+      ...(j.lastError !== undefined ? { lastError: j.lastError } : {}),
     })),
   };
 }

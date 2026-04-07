@@ -31,5 +31,6 @@ export function csrf(opts?: { allowedOrigins?: string[] }): MiddlewareHandler {
     }
 
     await next();
+    return;
   };
 }

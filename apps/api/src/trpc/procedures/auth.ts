@@ -87,7 +87,7 @@ const registrationResponseSchema = z.object({
   authenticatorAttachment: z
     .enum(["cross-platform", "platform"])
     .optional(),
-  clientExtensionResults: z.record(z.unknown()),
+  clientExtensionResults: z.record(z.string(), z.unknown()),
   type: z.literal("public-key"),
 });
 
@@ -103,7 +103,7 @@ const authenticationResponseSchema = z.object({
   authenticatorAttachment: z
     .enum(["cross-platform", "platform"])
     .optional(),
-  clientExtensionResults: z.record(z.unknown()),
+  clientExtensionResults: z.record(z.string(), z.unknown()),
   type: z.literal("public-key"),
 });
 
