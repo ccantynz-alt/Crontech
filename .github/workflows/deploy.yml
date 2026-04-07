@@ -170,7 +170,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy apps/web/.output/public --project-name=crontech-web --branch=preview --commit-dirty=true
+          command: pages deploy apps/web/.output/public --project-name=crontech-web --branch=main --commit-dirty=true
 
   post-deploy-smoke:
     name: Post-Deploy Smoke Test
