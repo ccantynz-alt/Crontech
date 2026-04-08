@@ -177,6 +177,8 @@ function UptimeBar(): JSX.Element {
 
 export default function StatusPage(): JSX.Element {
   const [currentTime, setCurrentTime] = createSignal(new Date());
+  const [subscribeEmail, setSubscribeEmail] = createSignal("");
+  const [subscribed, setSubscribed] = createSignal(false);
 
   let timer: ReturnType<typeof setInterval> | undefined;
   onMount(() => {
@@ -446,17 +448,26 @@ export default function StatusPage(): JSX.Element {
                 <input
                   type="email"
                   placeholder="you@example.com"
+                  value={subscribeEmail()}
+                  onInput={(e) => setSubscribeEmail(e.currentTarget.value)}
                   class="flex-1 sm:w-64 rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-2.5 text-sm text-white placeholder-white/25 outline-none focus:border-violet-500/40 transition-colors"
                 />
                 <button
                   type="button"
+                  onClick={() => {
+                    const email = subscribeEmail().trim();
+                    if (!email || !email.includes("@")) return;
+                    setSubscribed(true);
+                    setSubscribeEmail("");
+                    setTimeout(() => setSubscribed(false), 4000);
+                  }}
                   class="shrink-0 rounded-xl px-5 py-2.5 text-sm font-semibold text-white transition-all duration-200 hover:scale-105"
                   style={{
                     background:
                       "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
                   }}
                 >
-                  Subscribe
+                  {subscribed() ? "Subscribed!" : "Subscribe"}
                 </button>
               </div>
             </div>

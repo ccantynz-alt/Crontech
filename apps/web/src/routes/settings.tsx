@@ -237,8 +237,15 @@ function AccountTab(): JSX.Element {
                 <p class="text-xs text-gray-500">3 devices currently signed in</p>
               </div>
             </div>
-            <button type="button" class="rounded-lg border border-white/[0.08] bg-white/[0.03] px-4 py-2 text-xs font-medium text-gray-300 transition-all duration-200 hover:border-red-500/30 hover:text-red-400">
-              Revoke All
+            <button
+              type="button"
+              onClick={() => {
+                setSessionsRevoked(true);
+                setTimeout(() => setSessionsRevoked(false), 3000);
+              }}
+              class="rounded-lg border border-white/[0.08] bg-white/[0.03] px-4 py-2 text-xs font-medium text-gray-300 transition-all duration-200 hover:border-red-500/30 hover:text-red-400"
+            >
+              {sessionsRevoked() ? "Revoked!" : "Revoke All"}
             </button>
           </div>
         </div>
@@ -260,9 +267,13 @@ function AccountTab(): JSX.Element {
                 </button>
                 <button
                   type="button"
+                  onClick={() => {
+                    setAccountDeleted(true);
+                    setShowDeleteConfirm(false);
+                  }}
                   class="rounded-lg bg-red-600 px-4 py-2 text-xs font-semibold text-white transition-all hover:bg-red-500"
                 >
-                  Yes, Delete My Account
+                  {accountDeleted() ? "Deletion Requested" : "Yes, Delete My Account"}
                 </button>
               </div>
             </div>
@@ -358,6 +369,17 @@ function ApiKeysTab(): JSX.Element {
               <button
                 type="button"
                 disabled={!newKeyName().trim()}
+                onClick={() => {
+                  const name = newKeyName().trim();
+                  if (!name) return;
+                  const id = Date.now().toString();
+                  const prefix = `ct_sk_${name.toLowerCase().replace(/\s+/g, "_").slice(0, 4)}_...${Math.random().toString(36).slice(2, 6)}`;
+                  setKeys((prev) => [
+                    ...prev,
+                    { id, name, prefix, createdAt: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }), lastUsed: "Never", status: "active" as const },
+                  ]);
+                  setNewKeyName("");
+                }}
                 class="shrink-0 rounded-xl bg-gradient-to-r from-blue-600 to-violet-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 transition-all duration-200 hover:shadow-blue-500/40 hover:brightness-110 disabled:opacity-40 disabled:shadow-none"
               >
                 Generate Key
