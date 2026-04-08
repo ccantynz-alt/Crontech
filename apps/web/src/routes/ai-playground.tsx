@@ -69,9 +69,9 @@ export function Hero(props: HeroProps) {
           {props.subtitle}
         </p>
         <button
+          onClick={props.onCta}
           onMouseEnter={() => setHovered(true)}
           onMouseLeave={() => setHovered(false)}
-          onClick={props.onCta}
           class="mt-10 rounded-2xl bg-gradient-to-r
             from-blue-600 to-violet-600 px-8 py-4
             text-lg font-semibold text-white
@@ -169,6 +169,8 @@ export default function AIPlayground(): JSX.Element {
   const [temperature, setTemperature] = createSignal(0.7);
   const [maxTokens, setMaxTokens] = createSignal(2048);
   const [showCodePanel, setShowCodePanel] = createSignal(true);
+  const [codeCopied, setCodeCopied] = createSignal(false);
+  const [codeInserted, setCodeInserted] = createSignal(false);
 
   // Performance stats
   const [tokensPerSec, setTokensPerSec] = createSignal(41.2);
@@ -470,11 +472,27 @@ export default function AIPlayground(): JSX.Element {
               <span class="rounded-full bg-violet-500/15 px-2 py-0.5 text-[9px] font-semibold uppercase text-violet-400">Live</span>
             </div>
             <div class="flex items-center gap-1.5">
-              <button type="button" class="rounded-lg border border-white/[0.06] bg-white/[0.03] px-2.5 py-1 text-[10px] font-medium text-gray-400 transition-all hover:text-white">
-                Copy
+              <button
+                type="button"
+                onClick={() => {
+                  void navigator.clipboard.writeText(SAMPLE_CODE);
+                  setCodeCopied(true);
+                  setTimeout(() => setCodeCopied(false), 2000);
+                }}
+                class="rounded-lg border border-white/[0.06] bg-white/[0.03] px-2.5 py-1 text-[10px] font-medium text-gray-400 transition-all hover:text-white"
+              >
+                {codeCopied() ? "Copied!" : "Copy"}
               </button>
-              <button type="button" class="rounded-lg border border-white/[0.06] bg-white/[0.03] px-2.5 py-1 text-[10px] font-medium text-gray-400 transition-all hover:text-white">
-                Insert
+              <button
+                type="button"
+                onClick={() => {
+                  setInput((prev) => prev + (prev ? "\n" : "") + SAMPLE_CODE);
+                  setCodeInserted(true);
+                  setTimeout(() => setCodeInserted(false), 2000);
+                }}
+                class="rounded-lg border border-white/[0.06] bg-white/[0.03] px-2.5 py-1 text-[10px] font-medium text-gray-400 transition-all hover:text-white"
+              >
+                {codeInserted() ? "Inserted!" : "Insert"}
               </button>
             </div>
           </div>

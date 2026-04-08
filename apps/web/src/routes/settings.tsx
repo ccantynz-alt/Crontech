@@ -128,6 +128,17 @@ function ProfileTab(): JSX.Element {
               </div>
               <button
                 type="button"
+                onClick={() => {
+                  const fileInput = document.createElement("input");
+                  fileInput.type = "file";
+                  fileInput.accept = "image/png,image/jpeg,image/webp";
+                  fileInput.onchange = () => {
+                    if (fileInput.files?.[0]) {
+                      console.log("[Settings] Avatar selected:", fileInput.files[0].name);
+                    }
+                  };
+                  fileInput.click();
+                }}
                 class="absolute inset-0 flex items-center justify-center rounded-2xl bg-black/60 text-xs font-medium text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100"
               >
                 Change
@@ -180,6 +191,9 @@ function ProfileTab(): JSX.Element {
 
 function AccountTab(): JSX.Element {
   const [showDeleteConfirm, setShowDeleteConfirm] = createSignal(false);
+  const [twoFactorEnabled, setTwoFactorEnabled] = createSignal(false);
+  const [sessionsRevoked, setSessionsRevoked] = createSignal(false);
+  const [accountDeleted, setAccountDeleted] = createSignal(false);
 
   return (
     <div class="flex flex-col gap-6">
@@ -204,8 +218,14 @@ function AccountTab(): JSX.Element {
                 <p class="text-xs text-gray-500">TOTP via authenticator app</p>
               </div>
             </div>
-            <button type="button" class="rounded-lg border border-white/[0.08] bg-white/[0.03] px-4 py-2 text-xs font-medium text-gray-300 transition-all duration-200 hover:border-white/[0.15] hover:text-white">
-              Enable
+            <button
+              type="button"
+              onClick={() => {
+                setTwoFactorEnabled(true);
+              }}
+              class="rounded-lg border border-white/[0.08] bg-white/[0.03] px-4 py-2 text-xs font-medium text-gray-300 transition-all duration-200 hover:border-white/[0.15] hover:text-white"
+            >
+              {twoFactorEnabled() ? "Enabled" : "Enable"}
             </button>
           </div>
 

@@ -137,6 +137,16 @@ function PlanCard(props: { plan: PlanTier; isAnnual: boolean }): JSX.Element {
   const price = (): number => props.isAnnual ? props.plan.annualPrice : props.plan.monthlyPrice;
   const isCustom = (): boolean => props.plan.monthlyPrice === -1;
 
+  const handleCtaClick = (): void => {
+    if (props.plan.id === "enterprise") {
+      window.location.href = "/contact?plan=enterprise";
+    } else if (props.plan.id === "pro") {
+      window.location.href = "/signup?plan=pro&billing=" + (props.isAnnual ? "annual" : "monthly");
+    } else {
+      window.location.href = "/signup?plan=free";
+    }
+  };
+
   return (
     <div
       class={`relative flex flex-col rounded-2xl border p-6 transition-all duration-300 ${
@@ -188,6 +198,7 @@ function PlanCard(props: { plan: PlanTier; isAnnual: boolean }): JSX.Element {
       {/* CTA */}
       <button
         type="button"
+        onClick={handleCtaClick}
         class={`mb-6 w-full rounded-xl py-3 text-sm font-semibold transition-all duration-200 ${
           props.plan.highlighted
             ? "bg-gradient-to-r from-blue-600 to-violet-600 text-white shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 hover:brightness-110"
@@ -367,12 +378,14 @@ export default function PricingPage(): JSX.Element {
             <div class="mt-6 flex items-center justify-center gap-4">
               <button
                 type="button"
+                onClick={() => { window.location.href = "/signup?plan=free"; }}
                 class="rounded-xl bg-gradient-to-r from-blue-600 to-violet-600 px-8 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 transition-all duration-200 hover:shadow-blue-500/40 hover:brightness-110"
               >
                 Get Started Free
               </button>
               <button
                 type="button"
+                onClick={() => { window.location.href = "/contact?plan=enterprise"; }}
                 class="rounded-xl border border-white/[0.1] bg-white/[0.04] px-8 py-3 text-sm font-medium text-gray-200 transition-all hover:border-white/[0.2] hover:bg-white/[0.08]"
               >
                 Talk to Sales

@@ -140,6 +140,37 @@ function InvoiceStatus(props: { status: "paid" | "pending" | "failed" }): JSX.El
 
 export default function BillingPage(): JSX.Element {
   const [showCancelConfirm, setShowCancelConfirm] = createSignal(false);
+  const [cancelledPlan, setCancelledPlan] = createSignal(false);
+  const [showPaymentEdit, setShowPaymentEdit] = createSignal(false);
+  const [showAddressEdit, setShowAddressEdit] = createSignal(false);
+
+  const generateInvoiceCsv = (invoice: Invoice): void => {
+    const csv = `Invoice ID,Date,Amount,Status,Period\n${invoice.id},${invoice.date},${invoice.amount},${invoice.status},${invoice.period}`;
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${invoice.id}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const downloadAllInvoices = (): void => {
+    const header = "Invoice ID,Date,Amount,Status,Period";
+    const rows = INVOICES.map((inv) => `${inv.id},${inv.date},${inv.amount},${inv.status},${inv.period}`);
+    const csv = [header, ...rows].join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "crontech-invoices.csv";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <div class="min-h-screen bg-[#060606]">
@@ -178,12 +209,14 @@ export default function BillingPage(): JSX.Element {
             <div class="flex items-center gap-3">
               <button
                 type="button"
+                onClick={() => { window.location.href = "/pricing?upgrade=enterprise"; }}
                 class="rounded-xl bg-gradient-to-r from-blue-600 to-violet-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 transition-all duration-200 hover:shadow-blue-500/40 hover:brightness-110"
               >
                 Upgrade to Enterprise
               </button>
               <button
                 type="button"
+                onClick={() => { window.location.href = "/pricing"; }}
                 class="rounded-xl border border-white/[0.08] bg-white/[0.03] px-5 py-2.5 text-sm font-medium text-gray-300 transition-all duration-200 hover:border-white/[0.15] hover:text-white"
               >
                 Manage Plan
@@ -236,7 +269,7 @@ export default function BillingPage(): JSX.Element {
             >
               <div class="mb-5 flex items-center justify-between">
                 <h2 class="text-lg font-semibold text-white">Invoice History</h2>
-                <button type="button" class="rounded-lg border border-white/[0.06] bg-white/[0.03] px-3 py-1.5 text-[11px] font-medium text-gray-400 transition-all hover:text-white">
+                <button type="button" onClick={downloadAllInvoices} class="rounded-lg border border-white/[0.06] bg-white/[0.03] px-3 py-1.5 text-[11px] font-medium text-gray-400 transition-all hover:text-white">
                   Download All
                 </button>
               </div>
@@ -259,7 +292,7 @@ export default function BillingPage(): JSX.Element {
                       <span class="text-xs font-semibold text-white">{invoice.amount}</span>
                       <InvoiceStatus status={invoice.status} />
                       <div class="text-right">
-                        <button type="button" class="rounded-lg border border-white/[0.06] bg-white/[0.03] px-3 py-1 text-[10px] font-medium text-gray-400 transition-all hover:text-white">
+                        <button type="button" onClick={() => generateInvoiceCsv(invoice)} class="rounded-lg border border-white/[0.06] bg-white/[0.03] px-3 py-1 text-[10px] font-medium text-gray-400 transition-all hover:text-white">
                           Download
                         </button>
                       </div>
@@ -290,10 +323,25 @@ export default function BillingPage(): JSX.Element {
               </div>
               <button
                 type="button"
+                onClick={() => setShowPaymentEdit(!showPaymentEdit())}
                 class="mt-3 w-full rounded-xl border border-white/[0.08] bg-white/[0.03] py-2.5 text-xs font-medium text-gray-300 transition-all duration-200 hover:border-white/[0.15] hover:text-white"
               >
-                Update Payment Method
+                {showPaymentEdit() ? "Cancel" : "Update Payment Method"}
               </button>
+              <Show when={showPaymentEdit()}>
+                <div class="mt-3 rounded-xl border border-white/[0.06] bg-white/[0.03] p-4">
+                  <div class="flex flex-col gap-3">
+                    <input type="text" placeholder="Card number" class="w-full rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 py-2 text-xs text-gray-200 placeholder-gray-600 outline-none focus:border-blue-500/50" />
+                    <div class="flex gap-3">
+                      <input type="text" placeholder="MM/YY" class="w-1/2 rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 py-2 text-xs text-gray-200 placeholder-gray-600 outline-none focus:border-blue-500/50" />
+                      <input type="text" placeholder="CVC" class="w-1/2 rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 py-2 text-xs text-gray-200 placeholder-gray-600 outline-none focus:border-blue-500/50" />
+                    </div>
+                    <button type="button" onClick={() => setShowPaymentEdit(false)} class="w-full rounded-lg bg-gradient-to-r from-blue-600 to-violet-600 py-2 text-xs font-semibold text-white transition-all hover:brightness-110">
+                      Save Payment Method
+                    </button>
+                  </div>
+                </div>
+              </Show>
             </div>
 
             {/* Billing Address */}
@@ -302,54 +350,83 @@ export default function BillingPage(): JSX.Element {
               style={{ background: "linear-gradient(135deg, rgba(17,17,17,0.9) 0%, rgba(10,10,10,0.95) 100%)" }}
             >
               <h2 class="mb-4 text-lg font-semibold text-white">Billing Address</h2>
-              <div class="flex flex-col gap-1 text-sm text-gray-400">
-                <span>Craig Robertson</span>
-                <span>Crontech Inc.</span>
-                <span>123 Innovation Drive</span>
-                <span>San Francisco, CA 94105</span>
-                <span>United States</span>
-              </div>
-              <button
-                type="button"
-                class="mt-3 rounded-lg border border-white/[0.06] bg-white/[0.03] px-3 py-1.5 text-[11px] font-medium text-gray-400 transition-all hover:text-white"
+              <Show
+                when={!showAddressEdit()}
+                fallback={
+                  <div class="flex flex-col gap-3">
+                    <input type="text" placeholder="Full name" value="Craig Robertson" class="w-full rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 py-2 text-xs text-gray-200 placeholder-gray-600 outline-none focus:border-blue-500/50" />
+                    <input type="text" placeholder="Company" value="Crontech Inc." class="w-full rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 py-2 text-xs text-gray-200 placeholder-gray-600 outline-none focus:border-blue-500/50" />
+                    <input type="text" placeholder="Address" value="123 Innovation Drive" class="w-full rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 py-2 text-xs text-gray-200 placeholder-gray-600 outline-none focus:border-blue-500/50" />
+                    <input type="text" placeholder="City, State ZIP" value="San Francisco, CA 94105" class="w-full rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 py-2 text-xs text-gray-200 placeholder-gray-600 outline-none focus:border-blue-500/50" />
+                    <div class="flex gap-3">
+                      <button type="button" onClick={() => setShowAddressEdit(false)} class="flex-1 rounded-lg bg-gradient-to-r from-blue-600 to-violet-600 py-2 text-xs font-semibold text-white transition-all hover:brightness-110">Save</button>
+                      <button type="button" onClick={() => setShowAddressEdit(false)} class="flex-1 rounded-lg border border-white/[0.06] bg-white/[0.03] py-2 text-xs font-medium text-gray-400 transition-all hover:text-white">Cancel</button>
+                    </div>
+                  </div>
+                }
               >
-                Edit Address
-              </button>
+                <div class="flex flex-col gap-1 text-sm text-gray-400">
+                  <span>Craig Robertson</span>
+                  <span>Crontech Inc.</span>
+                  <span>123 Innovation Drive</span>
+                  <span>San Francisco, CA 94105</span>
+                  <span>United States</span>
+                </div>
+              </Show>
+              <Show when={!showAddressEdit()}>
+                <button
+                  type="button"
+                  onClick={() => setShowAddressEdit(true)}
+                  class="mt-3 rounded-lg border border-white/[0.06] bg-white/[0.03] px-3 py-1.5 text-[11px] font-medium text-gray-400 transition-all hover:text-white"
+                >
+                  Edit Address
+                </button>
+              </Show>
             </div>
 
             {/* Cancel Plan */}
-            <Show
-              when={!showCancelConfirm()}
-              fallback={
-                <div class="rounded-2xl border border-red-500/20 bg-red-500/5 p-5">
-                  <p class="mb-3 text-sm text-red-400">
-                    Your plan will remain active until the end of the current billing period (Apr 30, 2026). After that, you will be moved to the Free plan.
-                  </p>
-                  <div class="flex items-center gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setShowCancelConfirm(false)}
-                      class="rounded-lg border border-white/[0.08] bg-white/[0.03] px-4 py-2 text-xs font-medium text-gray-300 transition-all hover:text-white"
-                    >
-                      Keep Plan
-                    </button>
-                    <button
-                      type="button"
-                      class="rounded-lg bg-red-600 px-4 py-2 text-xs font-semibold text-white transition-all hover:bg-red-500"
-                    >
-                      Confirm Cancellation
-                    </button>
+            <Show when={cancelledPlan()}>
+              <div class="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-5">
+                <p class="text-sm text-amber-400">
+                  Your plan has been cancelled. It will remain active until Apr 30, 2026, after which you will be moved to the Free plan.
+                </p>
+              </div>
+            </Show>
+            <Show when={!cancelledPlan()}>
+              <Show
+                when={!showCancelConfirm()}
+                fallback={
+                  <div class="rounded-2xl border border-red-500/20 bg-red-500/5 p-5">
+                    <p class="mb-3 text-sm text-red-400">
+                      Your plan will remain active until the end of the current billing period (Apr 30, 2026). After that, you will be moved to the Free plan.
+                    </p>
+                    <div class="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setShowCancelConfirm(false)}
+                        class="rounded-lg border border-white/[0.08] bg-white/[0.03] px-4 py-2 text-xs font-medium text-gray-300 transition-all hover:text-white"
+                      >
+                        Keep Plan
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { setCancelledPlan(true); setShowCancelConfirm(false); }}
+                        class="rounded-lg bg-red-600 px-4 py-2 text-xs font-semibold text-white transition-all hover:bg-red-500"
+                      >
+                        Confirm Cancellation
+                      </button>
+                    </div>
                   </div>
-                </div>
-              }
-            >
-              <button
-                type="button"
-                onClick={() => setShowCancelConfirm(true)}
-                class="text-center text-xs text-gray-600 transition-colors duration-200 hover:text-gray-400"
+                }
               >
-                Cancel Plan
-              </button>
+                <button
+                  type="button"
+                  onClick={() => setShowCancelConfirm(true)}
+                  class="text-center text-xs text-gray-600 transition-colors duration-200 hover:text-gray-400"
+                >
+                  Cancel Plan
+                </button>
+              </Show>
             </Show>
           </div>
         </div>

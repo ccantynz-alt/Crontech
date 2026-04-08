@@ -185,9 +185,73 @@ function UserRow(props: {
 export default function AdminPage(): JSX.Element {
   const [searchQuery, setSearchQuery] = createSignal("");
   const [filterPlan, setFilterPlan] = createSignal<string>("all");
+  const [showInviteModal, setShowInviteModal] = createSignal(false);
+  const [inviteEmail, setInviteEmail] = createSignal("");
+  const [inviteSent, setInviteSent] = createSignal(false);
+  const [editingUserId, setEditingUserId] = createSignal<string | null>(null);
+  const [showSuspendConfirm, setShowSuspendConfirm] = createSignal<string | null>(null);
+  const [users, setUsers] = createSignal(MOCK_USERS);
+
+  const handleInviteUser = (): void => {
+    setShowInviteModal(true);
+    setInviteEmail("");
+    setInviteSent(false);
+  };
+
+  const submitInvite = (): void => {
+    if (inviteEmail().trim() !== "") {
+      setInviteSent(true);
+      setTimeout(() => {
+        setShowInviteModal(false);
+        setInviteSent(false);
+      }, 2000);
+    }
+  };
+
+  const handleExportData = (): void => {
+    const header = "ID,Name,Email,Plan,Status";
+    const rows = users().map((u) => `${u.id},${u.name},${u.email},${u.plan},${u.status}`);
+    const csv = [header, ...rows].join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "crontech-users-export.csv";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleViewLogs = (): void => {
+    window.location.href = "/admin/logs";
+  };
+
+  const handleSystemConfig = (): void => {
+    window.location.href = "/admin/config";
+  };
+
+  const handleEditUser = (userId: string): void => {
+    setEditingUserId(editingUserId() === userId ? null : userId);
+  };
+
+  const handleSuspendUser = (userId: string): void => {
+    if (showSuspendConfirm() === userId) {
+      setUsers((prev) =>
+        prev.map((u) =>
+          u.id === userId
+            ? { ...u, status: (u.status === "suspended" ? "active" : "suspended") as "active" | "inactive" | "suspended" }
+            : u
+        )
+      );
+      setShowSuspendConfirm(null);
+    } else {
+      setShowSuspendConfirm(userId);
+    }
+  };
 
   const filteredUsers = (): typeof MOCK_USERS => {
-    return MOCK_USERS.filter((u) => {
+    return users().filter((u) => {
       const matchesSearch =
         u.name.toLowerCase().includes(searchQuery().toLowerCase()) ||
         u.email.toLowerCase().includes(searchQuery().toLowerCase());
