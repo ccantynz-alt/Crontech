@@ -77,9 +77,17 @@ describe("users table schema", () => {
     expect(columns.updatedAt.notNull).toBe(true);
   });
 
-  test("has exactly 7 columns", () => {
+  test("has exactly 11 columns", () => {
     const columns = getTableColumns(users);
-    expect(Object.keys(columns).length).toBe(7);
+    expect(Object.keys(columns).length).toBe(11);
+  });
+
+  test("has auth provider columns", () => {
+    const columns = getTableColumns(users);
+    expect(columns.passwordHash).toBeDefined();
+    expect(columns.authProvider).toBeDefined();
+    expect(columns.googleId).toBeDefined();
+    expect(columns.avatarUrl).toBeDefined();
   });
 });
 
