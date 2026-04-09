@@ -7,8 +7,7 @@ export function csrf(opts?: { allowedOrigins?: string[] }): MiddlewareHandler {
 
   return async (c, next) => {
     if (SAFE_METHODS.has(c.req.method)) {
-      await next();
-      return;
+      return next();
     }
 
     const origin = c.req.header("origin");
@@ -16,8 +15,7 @@ export function csrf(opts?: { allowedOrigins?: string[] }): MiddlewareHandler {
 
     // Allow requests with no origin (server-to-server, curl, etc.)
     if (!origin && !referer) {
-      await next();
-      return;
+      return next();
     }
 
     // Check origin against allowed list
@@ -30,6 +28,6 @@ export function csrf(opts?: { allowedOrigins?: string[] }): MiddlewareHandler {
       }
     }
 
-    await next();
+    return next();
   };
 }
