@@ -24,7 +24,8 @@
         "VITE_SITE_NAME",
         "VITE_API_URL",
         "PUBLIC_URL",
-        "PUBLIC_API_URL"
+        "PUBLIC_API_URL",
+        "stripePriceId"
       ]
     },
     "test": {

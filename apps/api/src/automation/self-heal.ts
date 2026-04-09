@@ -29,8 +29,9 @@ async function tryDbReconnect(): Promise<HealingAction> {
     const { db } = await import("@back-to-the-future/db");
     action.attempted = true;
     // Trivial query to verify connection.
-    // @ts-expect-error - drizzle exposes raw exec
-    await (db.run ? db.run("SELECT 1") : Promise.resolve());
+    await ((db as Record<string, unknown>).run
+      ? (db as Record<string, unknown> & { run: (sql: string) => Promise<unknown> }).run("SELECT 1")
+      : Promise.resolve());
     action.recovered = true;
   } catch (err) {
     action.detail = err instanceof Error ? err.message : String(err);
