@@ -14,7 +14,7 @@ export function rateLimiter(opts: {
   const windowMs = opts.windowMs ?? 60_000;
   const max = opts.max ?? 100;
 
-  return async (c, next) => {
+  return async (c, next): Promise<Response | void> => {
     const ip = c.req.header("x-forwarded-for") ?? c.req.header("x-real-ip") ?? "unknown";
     const key = `${ip}:${c.req.path}`;
     const now = Date.now();
