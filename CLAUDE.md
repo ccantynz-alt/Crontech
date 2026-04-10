@@ -103,13 +103,33 @@ Crontech must be **80% to 100% ahead of every competitor at all times.** This is
 
 | Gate | Command | Pass Criteria |
 |------|---------|---------------|
-| Build | `bun run build` | 3/3 packages successful |
+| Build | `bun run build` | 4/4 packages successful (apps/web, apps/api, packages/ui, services/edge-workers) |
+| Type check | `bun run check` | 10/10 packages, 0 errors |
+| Tests | `bun run test` | 12/12 packages, 100% pass |
 | Link checker | `bun run check-links` | 0 dead links |
 | Button checker | `bun run check-buttons` | 0 dead buttons |
-| Tests | `bun test` (where applicable) | 100% pass |
-| Type check | `bunx tsc --noEmit` | 0 errors |
+| Lint | `bunx biome check apps packages services` | exit 0 |
 
 CI enforces these. The session-start hook reports them. **The agent enforces them voluntarily.** A session that pushes broken work to origin is a session that violated doctrine.
+
+### 0.4.1 The Clean Green Ecosystem Rules (BINDING)
+
+The build-quality gate above is the *what*. These rules are the *how* — how we keep every package green every single day, with no exceptions, no "I'll fix it later," and no pragmatic softening of the bar.
+
+1. **Every package must have at least one test file.** If a workspace member ships without tests, `bun run test` exits 1 and the doctrine is broken. Add a smoke test on day one — even a single `describe(...)` that imports the entrypoint and asserts it loads is enough to keep the gate honest.
+2. **Orphan source files are forbidden.** Every `.ts`/`.tsx` file in `apps/`, `packages/`, and `services/` MUST be inside some `tsconfig.json`'s `include` glob. Files outside any tsconfig (stale duplicates, half-deleted refactors, "just in case I need this later" code) get deleted on sight. If it isn't type-checked, it isn't real.
+3. **`continue-on-error: true` is forbidden on quality gates in CI.** Build, check, test, link, button, biome — none of these may be marked `continue-on-error`. If a gate is too noisy to enforce, the answer is to fix the noise, not silence the alarm. The only acceptable use of `continue-on-error` is for genuinely advisory non-gates (e.g. deploy preview comments).
+4. **The mandatory strict tsconfig flags are non-negotiable.** Every package's `tsconfig.json` must have, at minimum:
+   - `"strict": true`
+   - `"exactOptionalPropertyTypes": true`
+   - `"noUncheckedIndexedAccess": true`
+   - `"noUnusedLocals": true`
+   - `"noUnusedParameters": true`
+   - `"noImplicitReturns": true`
+5. **Softening tsconfig flags to unblock work is a doctrine breach.** Disabling `exactOptionalPropertyTypes`, downgrading `strict`, adding `// @ts-ignore`, casting to `any`, or scoping out a flag with `// @ts-expect-error` for "later" is not a fix — it is debt. Fix the code. If the code is genuinely impossible to make type-safe, escalate to Craig before touching the config.
+6. **Drizzle migration SQL files MUST use `--> statement-breakpoint` between every DDL statement.** The libsql migrator runs one statement per `execute()` call. Without the breakpoint marker, every CREATE/ALTER after the first one in a file is silently dropped, and the DB ends up half-built. Always use `drizzle-kit generate` to author migrations (it inserts breakpoints automatically) — and if you hand-write one, you MUST insert `--> statement-breakpoint` between statements yourself. New migrations should also prefer `CREATE TABLE IF NOT EXISTS` and `CREATE INDEX IF NOT EXISTS` so partially-applied DBs can re-run cleanly.
+7. **Test suites that depend on a local DB MUST wipe and re-migrate before running.** Stale-schema drift is a recurring source of red tests. Use a `bunfig.toml` `[test].preload` script that deletes the DB file and runs `runMigrations()` from `@back-to-the-future/db/migrate` so every test run starts from a known-good schema. See `apps/api/test/setup.ts` + `apps/api/bunfig.toml` for the canonical pattern.
+8. **A green ecosystem is the precondition for every commit.** Before `git commit`, the agent must verify: `bun run check` ✅, `bun run build` ✅, `bun run test` ✅, `bun run check-links` ✅, `bun run check-buttons` ✅, `bunx biome check` ✅. Pushing red work to origin is a doctrine breach even if "the failure was already there." If you broke nothing and the bar is red, fix it before you push — that *is* the job.
 
 ### 0.5 The Aggressor Mindset
 
