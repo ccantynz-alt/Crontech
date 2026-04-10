@@ -17,7 +17,13 @@
 | `0c8dc20` | feat(infra) | Phase 0 Hetzner bootstrap + LGTM observability stack |
 | `8f089f1` | docs(migrations) | Full 7-week dogfood migration playbooks |
 | `82e2825` | refactor(sentinel) | Zod-first `AlertPriority` + exhaustive Discord color map |
-| `<next>`  | chore(tracker) | progress.json updated to reflect tonight's work + HANDOFF.md |
+| `488a27c` | chore(tracker) | progress.json updated + HANDOFF.md wake-up briefing |
+| `36eb673` | docs | Anchor customer hunt playbook (Tier 1 lever #2) |
+| `72d92cf` | refactor | Zod-first `ComputeTier` (ai-core) + `ServiceStatus` (api) |
+| `9203981` | refactor(api) | Zod-first `AutoResponderAction` + `SuggestionSeverity` |
+| `8848f33` | refactor(schemas) | Zod-first `TemplateCategory` + `TemplateDifficulty` |
+| `37de380` | test(web) | Progress tracker schema + progress.json lock tests (17 new tests) |
+| `<final>` | chore(tracker) | progress.json wave 2 updates |
 
 All commits signed with the session footer. All pushed to `origin/claude/fix-tracked-repos-types-LYo16`.
 
@@ -25,7 +31,7 @@ All commits signed with the session footer. All pushed to `origin/claude/fix-tra
 
 ## What the admin tracker now shows
 
-Visit `/admin/progress` in the web app. **58 entries across 10 categories.** **17 completed.** New entries added tonight:
+Visit `/admin/progress` in the web app. **64 entries across 10 categories.** **22 completed.** New entries added tonight:
 
 - **Sentinel:** `sentinel-alerts-zod` (commit `82e2825`) — completed
 - **Infrastructure:**
@@ -37,6 +43,64 @@ Visit `/admin/progress` in the web app. **58 entries across 10 categories.** **1
 - **Migration:**
   - `migration-playbooks` (commit `8f089f1`) — completed
   - All week-1…week-7 entries updated with direct playbook docLinks
+- **Tier 1:**
+  - `t1-anchor-playbook` (commit `36eb673`) — completed
+  - `t1-anchor-customer` moved to in_progress with docLink → `docs/ANCHOR_CUSTOMER_HUNT.md`
+- **Sentinel / platform hardening (Wave 2):**
+  - `zod-sweep-ai-core` (commit `72d92cf`) — ComputeTier hardened
+  - `zod-sweep-api` (commit `9203981`) — ServiceStatus, AutoResponderAction, SuggestionSeverity, SuggestionFixKind
+  - `zod-sweep-schemas` (commit `8848f33`) — TemplateCategory, TemplateDifficulty
+  - `progress-tracker-tests` (commit `37de380`) — progress.json lock tests
+
+---
+
+## Wave 2: Zod-first sweep across the codebase
+
+Six more enum types across four packages refactored to the same Zod-first
+pattern we've been using. Every refactor:
+
+1. Defines `FooSchema = z.enum([...])` as the source of truth
+2. Derives `type Foo = z.infer<typeof FooSchema>`
+3. Exports `isFoo(value: unknown): value is Foo` runtime guard
+
+| Package | File | Enum(s) |
+|---|---|---|
+| `packages/ai-core` | `compute-tier.ts` | `ComputeTier` (client/edge/cloud) |
+| `apps/api` | `automation/health-monitor.ts` | `ServiceStatus` (ok/degraded/down/unknown) |
+| `apps/api` | `support/auto-responder.ts` | `AutoResponderAction` (auto_sent/queued/escalated) |
+| `apps/api` | `ai/project-analyzer.ts` | `SuggestionSeverity` + `SuggestionFixKind` |
+| `packages/schemas` | `templates.ts` | `TemplateCategory` + `TemplateDifficulty` |
+
+Each refactor verified with `bunx tsc --noEmit` and the package's own test
+suite. Full roll:
+
+- **sentinel**: 37 tests passing
+- **ai-core**: 24 tests passing (up from 20 — 4 new guard/schema tests)
+- **api**: 115 tests passing
+- **schemas**: 137 tests passing
+- **web**: 59 tests passing (up from 42 — 17 new progress-tracker tests)
+
+**Pattern is now applied across the entire codebase.** Any new enum type
+introduced in a zod-capable package should follow the same pattern. Use
+the existing files as templates.
+
+## /admin/progress is now CI-locked
+
+`apps/web/src/lib/progress/schema.test.ts` loads the real
+`progress.json`, runs it through `parseProgressTracker`, and asserts:
+
+- File parses successfully
+- Every category has at least one entry
+- Entry ids unique across the whole tracker
+- Category ids unique
+- At least one completed entry cites a commit SHA
+- Every blocked entry has a blockedReason
+- Every entry has at least one tag
+
+If a future session drops a bad status, duplicate id, missing tag, or
+blocked entry without a reason, CI fails here before the admin page
+breaks in production. **This test is a load-bearing piece of the
+"zero broken anything" doctrine.** Do not disable it.
 
 ---
 
