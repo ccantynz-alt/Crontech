@@ -8,8 +8,8 @@
       "category": "framework",
       "description": "React framework for production. Primary competitor in full-stack web.",
       "defaultBranch": "canary",
-      "lastKnownRelease": "v16.2.3",
-      "lastKnownReleaseAt": "2026-04-08T18:53:10Z",
+      "lastKnownRelease": "v16.2.1-canary.31",
+      "lastKnownReleaseAt": "2026-04-10T08:52:15Z",
       "lastCommitCheckAt": "2026-04-10T13:12:05.056Z",
       "baselineCommitsPerWeek": 100
     },
@@ -313,6 +313,6 @@
       "baselineCommitsPerWeek": null
     }
   ],
-  "lastUpdated": "2026-04-10T13:12:05.060Z",
+  "lastUpdated": "2026-04-10T17:30:34.224Z",
   "schemaVersion": 1
 }
