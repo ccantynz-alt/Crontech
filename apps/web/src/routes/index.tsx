@@ -184,7 +184,9 @@ export default function Home(): JSX.Element {
                 <Button variant="primary" size="lg">Claim Founding Member — first 100 only</Button>
               </A>
               <A href="/docs">
-                <Button variant="outline" size="lg">Read the docs</Button>
+                <Button variant="outline" size="lg">
+                  Read the docs
+                </Button>
               </A>
             </Stack>
           </Stack>

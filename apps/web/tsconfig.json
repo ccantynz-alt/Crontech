@@ -11,6 +11,6 @@
       "~/*": ["./src/*"]
     }
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "app.config.ts"],
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.d.ts", "app.config.ts"],
   "exclude": ["node_modules", "dist", ".vinxi", ".output"]
 }
