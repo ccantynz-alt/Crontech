@@ -2,13 +2,24 @@
  * Simple in-memory retry queue with exponential backoff.
  * Processes jobs every 30 seconds. Max 5 retries (1s,2s,4s,8s,16s).
  */
+import { z } from "zod";
 import { writeAudit } from "./audit-log";
 
-export type JobType =
-  | "provision_workspace"
-  | "send_email"
-  | "create_sample_content"
-  | "provision_db";
+// Zod-first: the source of truth is the schema. The TS type is inferred,
+// the runtime guard is derived, and the test harness can validate fixtures
+// directly. Add a new job kind here once, get everything else for free.
+export const JobTypeSchema = z.enum([
+  "provision_workspace",
+  "send_email",
+  "create_sample_content",
+  "provision_db",
+]);
+
+export type JobType = z.infer<typeof JobTypeSchema>;
+
+export function isJobType(value: unknown): value is JobType {
+  return JobTypeSchema.safeParse(value).success;
+}
 
 export interface RetryJob {
   id: string;

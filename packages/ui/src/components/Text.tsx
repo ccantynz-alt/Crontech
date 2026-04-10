@@ -9,7 +9,18 @@ export interface TextProps {
   align?: "left" | "center" | "right";
   size?: "xs" | "sm" | "md" | "lg";
   class?: string;
-  style?: JSX.CSSProperties;
+  /**
+   * Inline CSS for one-off overrides. Accepts a style object (preferred)
+   * or a raw CSS string. Signed off at the component boundary so
+   * call-sites don't have to reach for `as any`.
+   */
+  style?: JSX.CSSProperties | string;
+  /**
+   * Override the rendered HTML tag. Defaults are driven by `variant`
+   * (body → p, caption → span, etc.) but you often want e.g. a
+   * semibold `<span>` inside a `<p>` — pass `as="span"` for that.
+   */
+  as?: "h1" | "h2" | "h3" | "h4" | "h5" | "h6" | "p" | "span" | "div" | "code" | "strong" | "em";
   children?: JSX.Element;
 }
 
@@ -33,16 +44,16 @@ export function Text(props: TextProps): JSX.Element {
     "size",
     "class",
     "style",
+    "as",
     "children",
   ]);
 
   const tag = (): string => local.as ?? variantTagMap[local.variant ?? "body"];
-  const sizeClass = (): string => (local.size ? ` text-size-${local.size}` : "");
 
   return (
     <Dynamic
       component={tag()}
-      class={`text-${local.variant ?? "body"} font-${local.weight ?? "normal"} text-${local.align ?? "left"}${sizeClass()} ${local.class ?? ""}`}
+      class={`text-${local.variant ?? "body"} font-${local.weight ?? "normal"} text-${local.align ?? "left"} ${local.class ?? ""}`}
       style={local.style}
       {...rest}
     >
