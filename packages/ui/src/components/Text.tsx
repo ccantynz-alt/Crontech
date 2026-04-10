@@ -4,8 +4,10 @@ import { Dynamic } from "solid-js/web";
 export interface TextProps {
   content?: string;
   variant?: "h1" | "h2" | "h3" | "h4" | "body" | "caption" | "code";
+  as?: "h1" | "h2" | "h3" | "h4" | "h5" | "h6" | "p" | "span" | "div" | "code" | "label" | "strong" | "em";
   weight?: "normal" | "medium" | "semibold" | "bold";
   align?: "left" | "center" | "right";
+  size?: "xs" | "sm" | "md" | "lg";
   class?: string;
   /**
    * Inline CSS for one-off overrides. Accepts a style object (preferred)
@@ -36,8 +38,10 @@ export function Text(props: TextProps): JSX.Element {
   const [local, rest] = splitProps(props, [
     "content",
     "variant",
+    "as",
     "weight",
     "align",
+    "size",
     "class",
     "style",
     "as",
