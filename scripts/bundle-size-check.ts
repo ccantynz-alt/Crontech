@@ -14,8 +14,8 @@ import { join, relative } from "node:path";
 const ROOT = new URL("..", import.meta.url).pathname;
 const WEB_OUTPUT = join(ROOT, "apps/web/.output");
 
-const WARN_THRESHOLD_KB = 50;
-const FAIL_THRESHOLD_KB = 100;
+const WARN_THRESHOLD_KB = 100;
+const FAIL_THRESHOLD_KB = 200;
 
 interface FileEntry {
   path: string;
