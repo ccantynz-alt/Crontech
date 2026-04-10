@@ -1,10 +1,28 @@
 import { z } from "zod";
 
-export type Severity = "low" | "medium" | "high" | "critical";
+export const SeveritySchema = z.enum(["low", "medium", "high", "critical"]);
+export type Severity = z.infer<typeof SeveritySchema>;
 
-export type RepoPriority = "critical" | "high" | "medium";
+export const RepoPrioritySchema = z.enum(["critical", "high", "medium"]);
+export type RepoPriority = z.infer<typeof RepoPrioritySchema>;
 
-export type RepoCategory = "framework" | "backend" | "api" | "ai";
+export const RepoCategorySchema = z.enum(["framework", "backend", "api", "ai"]);
+export type RepoCategory = z.infer<typeof RepoCategorySchema>;
+
+/**
+ * Runtime type guard for RepoPriority. Useful when narrowing a `string`
+ * coming from JSON, env vars, or CLI args without throwing on bad input.
+ */
+export function isRepoPriority(value: unknown): value is RepoPriority {
+  return RepoPrioritySchema.safeParse(value).success;
+}
+
+/**
+ * Runtime type guard for RepoCategory. Same contract as `isRepoPriority`.
+ */
+export function isRepoCategory(value: unknown): value is RepoCategory {
+  return RepoCategorySchema.safeParse(value).success;
+}
 
 export const IntelligenceItemSchema = z.object({
   id: z.string(),
@@ -12,7 +30,7 @@ export const IntelligenceItemSchema = z.object({
   title: z.string(),
   description: z.string(),
   url: z.string(),
-  severity: z.enum(["low", "medium", "high", "critical"]),
+  severity: SeveritySchema,
   tags: z.array(z.string()),
   metadata: z.record(z.string(), z.unknown()),
   collectedAt: z.string(),
@@ -40,8 +58,8 @@ export const TrackedRepoSchema = z.object({
   owner: z.string(),
   repo: z.string(),
   displayName: z.string(),
-  priority: z.enum(["critical", "high", "medium"]),
-  category: z.enum(["framework", "backend", "api", "ai"]),
+  priority: RepoPrioritySchema,
+  category: RepoCategorySchema,
   description: z.string(),
   defaultBranch: z.string(),
   lastKnownRelease: z.string().nullable(),

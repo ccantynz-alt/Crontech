@@ -9,8 +9,12 @@ import {
   TrackedRepoSchema,
   TrackedReposFileSchema,
   DEFAULT_TRACKED_REPOS,
+  isRepoPriority,
+  isRepoCategory,
   type IntelligenceItem,
   type Severity,
+  type RepoPriority,
+  type RepoCategory,
 } from "./collectors/types";
 import { analyzeThreat, analyzeThreats, type ThreatAnalysis } from "./analyzers/threat-analyzer";
 import { findOpportunities, type Opportunity } from "./analyzers/opportunity-finder";
@@ -136,6 +140,84 @@ describe("TrackedRepoSchema / DEFAULT_TRACKED_REPOS", () => {
     expect(slugs.has("snyk/snyk")).toBe(true);
     expect(slugs.has("openai/whisper")).toBe(true);
     expect(slugs.has("stackblitz/bolt.new")).toBe(true);
+  });
+
+  test("tracked-repos.json has no duplicate owner/repo pairs", () => {
+    const jsonPath = join(
+      (import.meta as { dir?: string }).dir ?? process.cwd(),
+      "..",
+      "data",
+      "tracked-repos.json",
+    );
+    const raw = readFileSync(jsonPath, "utf-8");
+    const parsed = TrackedReposFileSchema.parse(JSON.parse(raw));
+    const seen = new Set<string>();
+    for (const repo of parsed.repos) {
+      const key = `${repo.owner}/${repo.repo}`;
+      expect(seen.has(key)).toBe(false);
+      seen.add(key);
+    }
+  });
+
+  test("every RepoPriority level has at least one tracked repo", () => {
+    const priorities = new Set(DEFAULT_TRACKED_REPOS.map((r) => r.priority));
+    for (const p of ["critical", "high", "medium"] as RepoPriority[]) {
+      expect(priorities.has(p)).toBe(true);
+    }
+  });
+
+  test("every RepoCategory is represented in DEFAULT_TRACKED_REPOS", () => {
+    const categories = new Set(DEFAULT_TRACKED_REPOS.map((r) => r.category));
+    for (const c of ["framework", "backend", "api", "ai"] as RepoCategory[]) {
+      expect(categories.has(c)).toBe(true);
+    }
+  });
+});
+
+// ── Type Guard Tests ────────────────────────────────────────────────
+
+describe("isRepoPriority / isRepoCategory type guards", () => {
+  test("isRepoPriority accepts all valid levels", () => {
+    expect(isRepoPriority("critical")).toBe(true);
+    expect(isRepoPriority("high")).toBe(true);
+    expect(isRepoPriority("medium")).toBe(true);
+  });
+
+  test("isRepoPriority rejects invalid inputs", () => {
+    expect(isRepoPriority("low")).toBe(false);
+    expect(isRepoPriority("")).toBe(false);
+    expect(isRepoPriority(null)).toBe(false);
+    expect(isRepoPriority(undefined)).toBe(false);
+    expect(isRepoPriority(1)).toBe(false);
+    expect(isRepoPriority({})).toBe(false);
+  });
+
+  test("isRepoCategory accepts all valid categories", () => {
+    expect(isRepoCategory("framework")).toBe(true);
+    expect(isRepoCategory("backend")).toBe(true);
+    expect(isRepoCategory("api")).toBe(true);
+    expect(isRepoCategory("ai")).toBe(true);
+  });
+
+  test("isRepoCategory rejects invalid inputs", () => {
+    expect(isRepoCategory("compliance")).toBe(false);
+    expect(isRepoCategory("")).toBe(false);
+    expect(isRepoCategory(null)).toBe(false);
+    expect(isRepoCategory(42)).toBe(false);
+  });
+
+  test("type guards narrow for the compiler", () => {
+    const raw: unknown = "critical";
+    if (isRepoPriority(raw)) {
+      // TS narrows to RepoPriority here -- assign to a typed slot.
+      const p: RepoPriority = raw;
+      expect(p).toBe("critical");
+    }
+    const rawCat: unknown = "ai";
+    if (isRepoCategory(rawCat)) {
+      const c: RepoCategory = rawCat;
+      expect(c).toBe("ai");
+    }
   });
 });
 
