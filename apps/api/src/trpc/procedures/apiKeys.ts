@@ -130,12 +130,12 @@ export const apiKeysRouter = router({
 
       const key = results[0];
       if (!key) {
-        return { valid: false as const, userId: null, keyId: null };
+        return { valid: false as const, userId: null as string | null, keyId: null as string | null };
       }
 
       // Check expiration
       if (key.expiresAt && key.expiresAt < new Date()) {
-        return { valid: false as const, userId: null, keyId: null };
+        return { valid: false as const, userId: null as string | null, keyId: null as string | null };
       }
 
       // Update last used timestamp
