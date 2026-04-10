@@ -5,51 +5,73 @@ import { Button, Card, Stack, Text, Badge } from "@back-to-the-future/ui";
 import { useAuth } from "../stores";
 import { SEOHead } from "../components/SEOHead";
 
-// ── Home page copy ──────────────────────────────────────────────────
-// Locked to docs/POSITIONING.md — universal audience, polite tone,
-// "developer platform for the next decade" headline direction.
-// Do NOT name competitors in this file. Any deviation requires
-// Craig's explicit authorization.
+// ── Data ──────────────────────────────────────────────────────────────
 
-interface FeaturePillar {
+interface Pillar {
   badge: string;
   title: string;
   description: string;
 }
 
-const PILLARS: FeaturePillar[] = [
+// Compliance-native pillars. Derived from docs/strategy/WEDGE.md §4.
+const pillars: Pillar[] = [
   {
-    badge: "One platform",
-    title: "Every layer your app needs",
+    badge: "SOC 2-ready",
+    title: "SOC 2 primitives on day one",
     description:
-      "Hosting, database, authentication, AI, real-time collaboration, payments, email, and storage — in one product with one dashboard and one bill.",
+      "Immutable audit trails, least-privilege access, zero-trust networking, and evidence export — built into every tier, not sold as an add-on.",
   },
   {
-    badge: "Built on the bleeding edge",
-    title: "The fastest stack on the web",
+    badge: "Encrypted",
+    title: "Encrypted-at-rest Postgres",
     description:
-      "Cloudflare Workers for sub-5ms cold starts. SolidJS for the fastest reactivity on the web. Bun + Hono for the fastest JavaScript runtime. Type-safe end to end.",
+      "AES-256-GCM at rest, TLS 1.3 in transit, envelope encryption with rotating KMS keys. The default posture, not a premium upsell.",
   },
   {
-    badge: "AI-native",
-    title: "AI at every layer, not bolted on",
+    badge: "Tamper-evident",
+    title: "Hash-chained audit logs",
     description:
-      "AI agents, generative UI, three-tier compute routing (client → edge → cloud), RAG pipelines, and real-time collaboration — all native to the platform.",
+      "Every event signed, every entry chained to the previous hash. Cryptographic integrity your next audit can actually verify.",
+  },
+  {
+    badge: "Polyglot",
+    title: "TypeScript, Python, Rust — one runtime",
+    description:
+      "A polyglot runtime host from day one. Ship your Python AI service and your TypeScript web app on a single compliance-native substrate.",
+  },
+  {
+    badge: "One bill",
+    title: "One platform instead of seven",
+    description:
+      "Hosting, database, auth, audit logging, observability, secrets, evidence storage — unified. One dashboard. One bill. One vendor on your audit questionnaire.",
+  },
+  {
+    badge: "Sovereign",
+    title: "Your data, your audit trail",
+    description:
+      "Configurable data residency, WORM-compliant evidence storage, and exports you own. Sovereign infrastructure for teams that cannot afford ambiguity.",
   },
 ];
 
-const STATS = [
-  { value: "<5ms", label: "Cold starts at the edge" },
-  { value: "330+", label: "Cities on the edge network" },
-  { value: "$0", label: "On-device AI inference" },
-  { value: "100%", label: "Type-safe end to end" },
-];
+// ── Dogfood proof strip ───────────────────────────────────────────────
+// Real migration status from docs/strategy/MIGRATION-PLAN.md.
+// Nothing is claimed as "running on Crontech" until it actually is — status
+// labels reflect the current state honestly.
 
-const FOUNDING_PERKS = [
-  "Lifetime 50% off any paid plan",
-  "Direct line to the team that ships the platform",
-  "Early access to new features weeks before public release",
-  "Your feedback steers the roadmap while it is still being written",
+interface ProofPoint {
+  name: string;
+  role: string;
+  status: "coming-soon" | "in-migration";
+}
+
+const proofPoints: ProofPoint[] = [
+  { name: "Crontech",                    role: "Crontech runs Crontech — self-hosted substrate",       status: "in-migration" },
+  { name: "MarcoReid.com",               role: "Dress rehearsal migration",                             status: "coming-soon" },
+  { name: "emailed",                     role: "Stack-identical dogfood",                               status: "coming-soon" },
+  { name: "Astra (ledger.ai)",           role: "Polyglot Python + real banking + Stripe",               status: "coming-soon" },
+  { name: "AI-Immigration-Compliance",   role: "§5A primitives under real compliance load",             status: "coming-soon" },
+  { name: "GateTest",                    role: "Revenue-bearing SaaS on Crontech",                      status: "coming-soon" },
+  { name: "Zoobicon.com",                role: "The AI website builder, running on Crontech",           status: "coming-soon" },
 ];
 
 export default function Home(): JSX.Element {
@@ -58,89 +80,64 @@ export default function Home(): JSX.Element {
   return (
     <>
       <SEOHead
-        title="Crontech — The developer platform for the next decade"
-        description="One unified product. Hosting, database, authentication, AI, real-time collaboration, billing, email, and storage — built on the fastest stack on the web."
+        title="Crontech — The compliance-native developer platform for AI SaaS"
+        description="SOC 2 primitives, encrypted-at-rest Postgres, hash-chained audit logs, polyglot runtime. Built in. Day one. The compliance-native developer platform for AI SaaS."
         path="/"
       />
       <Stack direction="vertical" gap="xl" class="page-padded">
         {/* Hero */}
         <Stack direction="vertical" align="center" justify="center" gap="md" class="hero">
-          <Badge variant="info" size="sm">
-            Now in private beta · founding customers welcome
-          </Badge>
+          <Badge variant="info" size="sm">Founding Member cohort open — first 100 only</Badge>
           <Text variant="h1" weight="bold" align="center" class="heading hero-gradient">
-            The developer platform for the next decade.
+            The compliance-native developer platform for AI SaaS.
           </Text>
           <Text variant="body" align="center" class="tagline">
-            One unified product. Every layer your application needs — hosting, database, auth,
-            AI, real-time, billing, video — built on the bleeding edge and ready to ship.
+            SOC 2 primitives, encrypted-at-rest Postgres, hash-chained audit logs, polyglot runtime. Built in. Day one.
           </Text>
           <Text variant="body" align="center" class="description">
-            Crontech runs on the fastest stack on the web. Sub-5ms cold starts at the edge.
-            Type-safe end to end. AI-native at every layer. Built for builders who refuse to
-            settle for yesterday's tools.
+            Every AI SaaS hits the SOC 2 wall. Most founders scramble to stitch together seven vendors just to reach the starting line of an audit.
+            Crontech is the other option: one platform where every layer is compliance-native from the first deploy.
           </Text>
           <Stack direction="horizontal" gap="md" justify="center">
+            <A href="/founding">
+              <Button variant="primary" size="lg">Claim Founding Member — first 100 only</Button>
+            </A>
             <Show
               when={auth.isAuthenticated()}
               fallback={
-                <A href="/register">
-                  <Button variant="primary" size="lg">
-                    Start building
-                  </Button>
+                <A href="/docs">
+                  <Button variant="outline" size="lg">See the primitives</Button>
                 </A>
               }
             >
               <A href="/dashboard">
-                <Button variant="primary" size="lg">
-                  Open dashboard
-                </Button>
+                <Button variant="outline" size="lg">Open dashboard</Button>
               </A>
             </Show>
-            <A href="/docs">
-              <Button variant="outline" size="lg">
-                See the docs
-              </Button>
-            </A>
           </Stack>
         </Stack>
 
-        {/* Stats */}
-        <div class="stats-grid">
-          <For each={STATS}>
-            {(s) => (
-              <div class="stat-card">
-                <div class="stat-value">{s.value}</div>
-                <div class="stat-label">{s.label}</div>
-              </div>
-            )}
-          </For>
-        </div>
-
-        {/* Feature pillars (3-column) */}
+        {/* Proof strip — real migrations, real status */}
         <Stack direction="vertical" gap="md">
           <Stack direction="vertical" gap="xs" align="center">
             <Text variant="h2" weight="bold" align="center">
-              One product instead of many.
+              Proved on production workloads.
             </Text>
             <Text variant="body" class="text-muted" align="center">
-              Three ideas carry the whole platform.
+              Crontech launches with real apps already running on it — not slideware.
+              Each migration forces a compliance-native primitive into existence.
             </Text>
           </Stack>
           <div class="grid-3">
-            <For each={PILLARS}>
-              {(pillar) => (
+            <For each={proofPoints}>
+              {(p) => (
                 <Card padding="lg">
                   <Stack direction="vertical" gap="sm">
                     <Badge variant="info" size="sm">
-                      {pillar.badge}
+                      {p.status === "in-migration" ? "In migration" : "Coming soon"}
                     </Badge>
-                    <Text variant="h4" weight="semibold">
-                      {pillar.title}
-                    </Text>
-                    <Text variant="body" class="text-muted">
-                      {pillar.description}
-                    </Text>
+                    <Text variant="h4" weight="semibold">{p.name}</Text>
+                    <Text variant="body" class="text-muted">{p.role}</Text>
                   </Stack>
                 </Card>
               )}
@@ -148,64 +145,43 @@ export default function Home(): JSX.Element {
           </div>
         </Stack>
 
-        {/* Founding customer block */}
-        <Card padding="lg">
-          <Stack direction="vertical" gap="md">
-            <Stack direction="horizontal" gap="sm" align="center">
-              <Badge variant="info" size="sm">
-                Founding customer program
-              </Badge>
-            </Stack>
-            <Text variant="h3" weight="semibold">
-              Build alongside the team shipping the platform.
+        {/* Pillars Grid */}
+        <Stack direction="vertical" gap="md">
+          <Stack direction="vertical" gap="xs" align="center">
+            <Text variant="h2" weight="bold" align="center">
+              Compliance-native at every layer.
             </Text>
-            <Text variant="body" class="text-muted">
-              We are in private beta. The first wave of customers gets direct access to the
-              people building Crontech, pricing locked in for life, and a meaningful seat at the
-              table while the product is still being shaped. If you want to ship on a platform
-              you helped design, this is the window.
+            <Text variant="body" class="text-muted" align="center">
+              Not a checklist. Not a premium tier. The default posture of the platform.
             </Text>
-            <div class="grid-2">
-              <For each={FOUNDING_PERKS}>
-                {(perk) => (
-                  <Stack direction="horizontal" gap="sm" align="center">
-                    <Text variant="body" weight="semibold" as="span">
-                      ✓
-                    </Text>
-                    <Text variant="body">{perk}</Text>
-                  </Stack>
-                )}
-              </For>
-            </div>
-            <Stack direction="horizontal" gap="sm">
-              <A href="/register">
-                <Button variant="primary" size="lg">
-                  Apply for founding access
-                </Button>
-              </A>
-              <A href="/pricing">
-                <Button variant="outline" size="lg">
-                  See pricing
-                </Button>
-              </A>
-            </Stack>
           </Stack>
-        </Card>
+          <div class="grid-3">
+            <For each={pillars}>
+              {(pillar) => (
+                <Card padding="lg">
+                  <Stack direction="vertical" gap="sm">
+                    <Badge variant="info" size="sm">{pillar.badge}</Badge>
+                    <Text variant="h4" weight="semibold">{pillar.title}</Text>
+                    <Text variant="body" class="text-muted">{pillar.description}</Text>
+                  </Stack>
+                </Card>
+              )}
+            </For>
+          </div>
+        </Stack>
 
         {/* Closing CTA */}
         <Card padding="lg">
           <Stack direction="vertical" gap="md" align="center">
             <Text variant="h3" weight="semibold" align="center">
-              The next decade of software will be built on something. Why not this?
+              Your audit log should run on a platform that could pass its own audit.
             </Text>
             <Text variant="body" class="text-muted" align="center">
-              Free to start. No credit card. Upgrade only when you ship.
+              Founding Members get the compliance-native primitives, the polyglot runtime, and a direct line to the team building it. First 100 seats only.
             </Text>
             <Stack direction="horizontal" gap="sm" justify="center">
-              <A href="/register">
-                <Button variant="primary" size="lg">
-                  Start building
-                </Button>
+              <A href="/founding">
+                <Button variant="primary" size="lg">Claim Founding Member — first 100 only</Button>
               </A>
               <A href="/docs">
                 <Button variant="outline" size="lg">
