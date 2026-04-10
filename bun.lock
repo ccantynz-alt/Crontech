@@ -97,6 +97,18 @@
         "typescript": "^5",
       },
     },
+    "packages/cfo-engine": {
+      "name": "@back-to-the-future/cfo-engine",
+      "version": "0.0.1",
+      "dependencies": {
+        "@crontech/audit-log": "workspace:*",
+        "zod": "^4.3.6",
+      },
+      "devDependencies": {
+        "@types/bun": "^1.2.0",
+        "typescript": "^5",
+      },
+    },
     "packages/config": {
       "name": "@back-to-the-future/config",
       "version": "0.0.1",
@@ -238,6 +250,8 @@
     "@back-to-the-future/ai-core": ["@back-to-the-future/ai-core@workspace:packages/ai-core"],
 
     "@back-to-the-future/api": ["@back-to-the-future/api@workspace:apps/api"],
+
+    "@back-to-the-future/cfo-engine": ["@back-to-the-future/cfo-engine@workspace:packages/cfo-engine"],
 
     "@back-to-the-future/config": ["@back-to-the-future/config@workspace:packages/config"],
 
