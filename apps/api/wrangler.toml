@@ -6,6 +6,11 @@ compatibility_flags = ["nodejs_compat"]
 [vars]
 ENVIRONMENT = "production"
 
+# Cron triggers — fire scheduled handlers on a schedule. The webhook
+# dispatcher drains `webhook_deliveries` every minute.
+[triggers]
+crons = ["*/1 * * * *"]
+
 # Uncomment and configure when ready to deploy:
 # [[d1_databases]]
 # binding = "DB"
