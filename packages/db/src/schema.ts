@@ -270,3 +270,49 @@ export const analyticsEvents = sqliteTable("analytics_events", {
     .notNull()
     .$defaultFn(() => new Date()),
 });
+
+// ── Sites & Site Versions (AI Site Builder output) ──────────────────
+// Persists the PageLayout objects produced by the site builder agent.
+// Each `sites` row is a logical site owned by a user; `site_versions`
+// is an append-only history of generated/edited layouts for that site.
+// Layouts are stored as JSON text (serialized PageLayout from
+// @back-to-the-future/ai-core).
+
+export const sites = sqliteTable("sites", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  slug: text("slug").notNull().unique(),
+  description: text("description"),
+  status: text("status", {
+    enum: ["draft", "published", "archived"],
+  })
+    .notNull()
+    .default("draft"),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+});
+
+export const siteVersions = sqliteTable("site_versions", {
+  id: text("id").primaryKey(),
+  siteId: text("site_id")
+    .notNull()
+    .references(() => sites.id, { onDelete: "cascade" }),
+  version: integer("version").notNull(),
+  prompt: text("prompt"),
+  layout: text("layout").notNull(),
+  generatedBy: text("generated_by", {
+    enum: ["ai", "user", "mixed"],
+  })
+    .notNull()
+    .default("ai"),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+});
