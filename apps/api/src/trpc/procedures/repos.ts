@@ -68,11 +68,6 @@ const RepoIdInput = z.object({
   repo: z.string().min(1),
 });
 
-const PaginationInput = z.object({
-  per_page: z.number().int().min(1).max(100).default(30),
-  page: z.number().int().min(1).default(1),
-});
-
 // ── Router ─────────────────────────────────────────────────────────────
 
 export const reposRouter = router({
@@ -156,10 +151,11 @@ export const reposRouter = router({
     )
     .query(async ({ ctx, input }) => {
       const client = await getGitHubClient(ctx.db, ctx.userId);
-      return client.listCommits(input.owner, input.repo, {
+      const commitOpts: { per_page?: number; sha?: string } = {
         per_page: input.per_page,
-        sha: input.sha,
-      });
+      };
+      if (input.sha !== undefined) commitOpts.sha = input.sha;
+      return client.listCommits(input.owner, input.repo, commitOpts);
     }),
 
   /** List pull requests for a repository. */
