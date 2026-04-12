@@ -103,16 +103,19 @@ export const tenantRouter = router({
 
       // 2. Insert into tenants table
       const tenantId = crypto.randomUUID();
-      await ctx.db.insert(tenants).values({
+      const tenantValues: Record<string, unknown> = {
         id: tenantId,
         name: input.name,
         slug: input.slug,
         plan: input.plan,
         ownerEmail: input.ownerEmail,
-        customDomain: input.customDomain ?? null,
         status: "provisioning",
         createdAt: new Date(),
-      });
+      };
+      if (input.customDomain !== undefined) {
+        tenantValues["customDomain"] = input.customDomain;
+      }
+      await ctx.db.insert(tenants).values(tenantValues as typeof tenants.$inferInsert);
 
       // 3. R2 storage prefix verification (non-blocking)
       try {
