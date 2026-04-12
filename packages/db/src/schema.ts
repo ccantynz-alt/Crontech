@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer, blob } from "drizzle-orm/sqlite-core";
+import { sqliteTable, text, integer, blob, uniqueIndex, index } from "drizzle-orm/sqlite-core";
 
 export const users = sqliteTable("users", {
   id: text("id").primaryKey(),
@@ -344,6 +344,50 @@ export const siteVersions = sqliteTable("site_versions", {
     .notNull()
     .default("ai"),
   createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+});
+
+// ── AI Response Cache ──────────────────────────────────────────────
+// Content-addressable cache for LLM/embedding calls. Tenant-scoped
+// so cache hits never leak across customers. Used by the
+// cachedAICall() wrapper in apps/api/src/ai/cache.ts.
+
+export const aiCache = sqliteTable("ai_cache", {
+  cacheKey: text("cache_key").primaryKey(),
+  tenantId: text("tenant_id"),
+  model: text("model").notNull(),
+  promptHash: text("prompt_hash").notNull(),
+  responseJson: text("response_json").notNull(),
+  tokensUsed: integer("tokens_used").notNull().default(0),
+  costUsd: integer("cost_usd").notNull().default(0),
+  hitCount: integer("hit_count").notNull().default(0),
+  lastHitAt: integer("last_hit_at", { mode: "timestamp" }),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+  expiresAt: integer("expires_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+});
+
+// ── UI Component Catalog ───────────────────────────────────────────
+// Schema-first component registry for the generative-UI system.
+// AI agents and deterministic composers read from this catalog to
+// assemble validated component trees.
+
+export const uiComponents = sqliteTable("ui_components", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  category: text("category").notNull(),
+  description: text("description").notNull(),
+  descriptorJson: text("descriptor_json").notNull(),
+  registeredBy: text("registered_by"),
+  isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
     .notNull()
     .$defaultFn(() => new Date()),
 });
