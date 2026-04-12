@@ -1,4 +1,4 @@
-// ── AI Provider Factory ───────────────────────────────────────────
+// ── AI Provider Factory ────────���──────────────────────────────────
 // Creates AI providers based on compute tier and environment config.
 // Supports OpenAI-compatible endpoints AND Anthropic natively.
 
@@ -26,6 +26,11 @@ export interface AIProviderConfig {
   organization: string | undefined;
 }
 
+export interface AnthropicProviderConfig {
+  apiKey: string;
+  model: string;
+}
+
 export interface AIProviderEnv {
   /** Primary provider (cloud tier) - typically OpenAI GPT-4 class */
   cloud: AIProviderConfig;
@@ -33,6 +38,8 @@ export interface AIProviderEnv {
   edge: AIProviderConfig;
   /** Fallback model when primary is unavailable */
   fallback: AIProviderConfig | undefined;
+  /** Anthropic provider — used as primary when ANTHROPIC_API_KEY is set */
+  anthropic: AnthropicProviderConfig | undefined;
 }
 
 /**
@@ -53,9 +60,11 @@ function env(key: string): string | undefined {
 
 /**
  * Reads AI provider configuration from environment variables.
- * All keys are optional at read time -- validated at usage time.
+ * All keys are optional at read time — validated at usage time.
  */
 export function readProviderEnv(): AIProviderEnv {
+  const anthropicKey = env("ANTHROPIC_API_KEY");
+
   return {
     cloud: {
       apiKey: env("OPENAI_API_KEY") ?? "",
@@ -77,10 +86,17 @@ export function readProviderEnv(): AIProviderEnv {
           organization: undefined,
         }
       : undefined,
+    anthropic:
+      anthropicKey && anthropicKey.length > 5
+        ? {
+            apiKey: anthropicKey,
+            model: env("AI_ANTHROPIC_MODEL") ?? "claude-sonnet-4-20250514",
+          }
+        : undefined,
   };
 }
 
-// ── Provider Factory ──────────────────────────────────────────────
+// ── Provider Factory ─────────────────��────────────────────────────
 
 /**
  * Creates an OpenAI-compatible provider instance from config.
@@ -104,9 +120,23 @@ function createProviderFromConfig(
 }
 
 /**
+ * Creates an Anthropic provider instance.
+ */
+function createAnthropicFromConfig(
+  config: AnthropicProviderConfig,
+): LanguageModel {
+  const provider = createAnthropic({ apiKey: config.apiKey });
+  return provider(config.model);
+}
+
+/**
  * Returns a language model for the given compute tier.
- * Cloud tier gets the most capable model. Edge tier gets the fastest.
- * Client tier is handled browser-side (WebLLM) -- not managed here.
+ *
+ * Provider selection priority:
+ *   - If ANTHROPIC_API_KEY is set, Anthropic Claude is the primary for cloud tier
+ *   - If only OPENAI_API_KEY is set, OpenAI is primary
+ *   - Edge tier always uses the lighter OpenAI-compatible model
+ *   - Client tier falls back to edge (browser-side handled by WebLLM)
  */
 export function getModelForTier(
   tier: ComputeTier,
@@ -116,6 +146,10 @@ export function getModelForTier(
 
   switch (tier) {
     case "cloud": {
+      // Prefer Anthropic for cloud tier when available
+      if (config.anthropic) {
+        return createAnthropicFromConfig(config.anthropic);
+      }
       const provider = createProviderFromConfig(config.cloud);
       return provider(config.cloud.model);
     }
@@ -138,16 +172,37 @@ export function getModelForTier(
 
 /**
  * Returns a fallback model when the primary provider fails.
- * Returns undefined if no fallback is configured.
+ *
+ * Fallback chain:
+ *   - If primary was Anthropic → fall back to OpenAI (if configured)
+ *   - If primary was OpenAI    → fall back to Anthropic (if configured)
+ *   - If explicit AI_FALLBACK_ vars are set, those take precedence
+ *   - Returns undefined if no fallback is available
  */
 export function getFallbackModel(
   providerEnv?: AIProviderEnv,
 ): LanguageModel | undefined {
   const config = providerEnv ?? readProviderEnv();
-  if (!config.fallback) return undefined;
 
-  const provider = createProviderFromConfig(config.fallback);
-  return provider(config.fallback.model);
+  // Explicit fallback config takes priority
+  if (config.fallback) {
+    const provider = createProviderFromConfig(config.fallback);
+    return provider(config.fallback.model);
+  }
+
+  // Auto-failover: if Anthropic is primary, OpenAI is fallback (and vice versa)
+  if (config.anthropic && config.cloud.apiKey.length > 5) {
+    // Primary is Anthropic, fallback to OpenAI
+    const provider = createProviderFromConfig(config.cloud);
+    return provider(config.cloud.model);
+  }
+  if (!config.anthropic && config.anthropic === undefined) {
+    // Primary is OpenAI; check if Anthropic key exists for fallback
+    // (this branch only triggers if anthropic was not set as primary)
+    return undefined;
+  }
+
+  return undefined;
 }
 
 /**

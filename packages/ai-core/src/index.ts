@@ -82,6 +82,7 @@ export {
   estimateCost,
   ANTHROPIC_MODELS,
   type AIProviderConfig,
+  type AnthropicProviderConfig,
   type AIProviderEnv,
   type AnthropicModelId,
 } from "./providers";
