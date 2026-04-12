@@ -1,21 +1,23 @@
 // ── AI Provider Factory ────────���──────────────────────────────────
 // Creates AI providers based on compute tier and environment config.
-// Supports OpenAI + Anthropic with automatic failover.
-//
-// Provider priority:
-//   1. If ANTHROPIC_API_KEY is set → Anthropic Claude is PRIMARY
-//   2. If OPENAI_API_KEY is set   → OpenAI is FALLBACK (or primary if no Anthropic key)
-//   3. If neither                 → demo mode (caller handles)
-//
-// On provider failure (429, 500, 503, timeout), routeAICall()
-// automatically retries with the fallback provider.
+// Supports OpenAI-compatible endpoints AND Anthropic natively.
 
 import { createOpenAI, type OpenAIProviderSettings } from "@ai-sdk/openai";
 import { createAnthropic } from "@ai-sdk/anthropic";
 import type { LanguageModel } from "ai";
 import type { ComputeTier } from "./compute-tier";
 
-// ── Environment Configuration Schema ────────────��─────────────────
+// ── Anthropic Model IDs ──────────────────────────────────────────
+
+export const ANTHROPIC_MODELS = {
+  "claude-opus-4-20250514": { name: "Claude Opus 4", inputCostPer1M: 15, outputCostPer1M: 75 },
+  "claude-sonnet-4-20250514": { name: "Claude Sonnet 4", inputCostPer1M: 3, outputCostPer1M: 15 },
+  "claude-haiku-4-20250506": { name: "Claude Haiku 4", inputCostPer1M: 0.80, outputCostPer1M: 4 },
+} as const;
+
+export type AnthropicModelId = keyof typeof ANTHROPIC_MODELS;
+
+// ── Environment Configuration Schema ──────────────────────────────
 
 export interface AIProviderConfig {
   apiKey: string;
@@ -210,85 +212,51 @@ export function getDefaultModel(providerEnv?: AIProviderEnv): LanguageModel {
   return getModelForTier("cloud", providerEnv);
 }
 
-// ── Retryable errors ──────────────���─────────────────────────────────
-
-const RETRYABLE_STATUS_CODES = new Set([429, 500, 502, 503, 504]);
+// ── Anthropic Provider ───────────────────────────────────────────
 
 /**
- * Determines whether an error is retryable (rate limit, server error, timeout).
+ * Creates an Anthropic language model from an API key and model ID.
+ * Used by the internal chat interface where the user supplies their
+ * own Anthropic API key.
  */
-export function isRetryableError(error: unknown): boolean {
-  if (error instanceof Error) {
-    const message = error.message.toLowerCase();
-    // Check for timeout
-    if (message.includes("timeout") || message.includes("timed out")) {
-      return true;
-    }
-    // Check for status codes embedded in error messages
-    for (const code of RETRYABLE_STATUS_CODES) {
-      if (message.includes(String(code))) {
-        return true;
-      }
-    }
-    // Check for common retryable error patterns
-    if (
-      message.includes("rate limit") ||
-      message.includes("too many requests") ||
-      message.includes("service unavailable") ||
-      message.includes("internal server error") ||
-      message.includes("bad gateway")
-    ) {
-      return true;
-    }
-  }
-  // Check if it has a status property (API SDK errors)
-  const errorWithStatus = error as { status?: number } | null;
-  if (
-    errorWithStatus?.status !== undefined &&
-    RETRYABLE_STATUS_CODES.has(errorWithStatus.status)
-  ) {
-    return true;
-  }
-  return false;
+export function getAnthropicModel(
+  apiKey: string,
+  modelId?: string,
+): LanguageModel {
+  const provider = createAnthropic({ apiKey });
+  return provider(modelId ?? "claude-sonnet-4-20250514");
 }
 
 /**
- * Executes an AI call with automatic fallback on retryable errors.
- *
- * Usage:
- *   const result = await routeAICall(providerEnv, async (model) => {
- *     return streamText({ model, messages, ... });
- *   });
- *
- * On primary provider failure (429, 500, 503, timeout), retries once
- * with the fallback provider. If no fallback is configured or the
- * fallback also fails, the error propagates.
+ * Returns an Anthropic model from environment variables if configured.
  */
-export async function routeAICall<T>(
-  providerEnv: AIProviderEnv,
-  fn: (model: LanguageModel) => Promise<T>,
-  tier: ComputeTier = "cloud",
-): Promise<T> {
-  const primaryModel = getModelForTier(tier, providerEnv);
+export function getAnthropicModelFromEnv(): LanguageModel | undefined {
+  const key = env("ANTHROPIC_API_KEY");
+  if (!key) return undefined;
+  const modelId = env("ANTHROPIC_MODEL") ?? "claude-sonnet-4-20250514";
+  return getAnthropicModel(key, modelId);
+}
 
-  try {
-    return await fn(primaryModel);
-  } catch (primaryError: unknown) {
-    if (!isRetryableError(primaryError)) {
-      throw primaryError;
-    }
+/**
+ * Checks whether an Anthropic API key is available (from env or user-supplied).
+ */
+export function hasAnthropicProvider(): boolean {
+  const key = env("ANTHROPIC_API_KEY");
+  return key !== undefined && key.length > 5;
+}
 
-    const fallbackModel = getFallbackModel(providerEnv);
-    if (!fallbackModel) {
-      throw primaryError;
-    }
-
-    console.warn(
-      "[ai-provider] Primary provider failed with retryable error, switching to fallback:",
-      primaryError instanceof Error ? primaryError.message : String(primaryError),
-    );
-
-    // Attempt with fallback — if this also fails, let it propagate
-    return await fn(fallbackModel);
-  }
+/**
+ * Estimate cost in microdollars for a given model and token counts.
+ * Returns cost in microdollars (1/1,000,000 of a dollar) for precision.
+ */
+export function estimateCost(
+  modelId: string,
+  inputTokens: number,
+  outputTokens: number,
+): number {
+  const modelInfo = ANTHROPIC_MODELS[modelId as AnthropicModelId];
+  if (!modelInfo) return 0;
+  const inputCost = (inputTokens / 1_000_000) * modelInfo.inputCostPer1M;
+  const outputCost = (outputTokens / 1_000_000) * modelInfo.outputCostPer1M;
+  return Math.round((inputCost + outputCost) * 1_000_000);
 }

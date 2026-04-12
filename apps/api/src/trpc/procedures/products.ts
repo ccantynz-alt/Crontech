@@ -1,7 +1,11 @@
-// ── cron.products.* — Product registry (stub) ─────────────────────
-// Minimal stub so the router import resolves and tests pass.
-// Wire real product CRUD when the product-registry feature ships.
+// ── Products Router ─────────────────────────────────────────────────
+// Stub: product registry CRUD. Will be expanded when the product
+// management UI lands.
 
-import { router } from "../init";
+import { router, protectedProcedure } from "../init";
 
-export const productsRouter = router({});
+export const productsRouter = router({
+  list: protectedProcedure.query(() => {
+    return [];
+  }),
+});
