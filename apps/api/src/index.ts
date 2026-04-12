@@ -38,9 +38,13 @@ import { securityHeaders } from "./middleware/security-headers";
 import { createRateLimiter, type KvNamespaceLike } from "./middleware/rate-limiter";
 import { csrf } from "./middleware/csrf";
 import { apiKeyAuthMiddleware } from "./middleware/api-key-auth";
+import { subdomainRouter } from "./middleware/subdomain";
 import { googleOAuthRoutes } from "./auth/google-oauth";
 
 const app = new Hono().basePath("/api");
+
+// ── Subdomain Routing (Multi-Tenant) ────────────────────────────────
+app.use("*", subdomainRouter);
 
 // ── Security Middleware ──────────────────────────────────────────────
 app.use("*", securityHeaders());
