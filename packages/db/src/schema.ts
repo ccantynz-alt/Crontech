@@ -438,7 +438,7 @@ export const userProviderKeys = sqliteTable("user_provider_keys", {
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
   provider: text("provider", {
-    enum: ["anthropic", "openai"],
+    enum: ["anthropic", "openai", "github"],
   }).notNull(),
   encryptedKey: text("encrypted_key").notNull(),
   keyPrefix: text("key_prefix").notNull(),
