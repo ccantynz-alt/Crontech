@@ -1,4 +1,6 @@
 # Crontech API — Production (Hono + Bun)
+# Runs TypeScript source directly — Bun handles TS natively.
+# No bundling step = no native module resolution headaches.
 FROM oven/bun:1
 
 RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
@@ -6,7 +8,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf 
 WORKDIR /app
 COPY . .
 RUN bun install
-RUN bun run build --filter=@back-to-the-future/api
 
 ENV NODE_ENV=production
 ENV API_PORT=3001
@@ -15,4 +16,4 @@ EXPOSE 3001
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
   CMD curl -f http://localhost:3001/api/health || exit 1
 
-CMD ["bun", "run", "apps/api/dist/index.js"]
+CMD ["bun", "run", "apps/api/src/index.ts"]
