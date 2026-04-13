@@ -7,8 +7,8 @@ FROM oven/bun:1 AS deps
 WORKDIR /app
 
 # Copy workspace root files
-COPY package.json bun.lockb bunfig.toml ./
-COPY turbo.json ./
+COPY package.json bunfig.toml turbo.json ./
+COPY bun.lock* ./
 
 # Copy all package.json files for workspace resolution
 COPY apps/web/package.json apps/web/
@@ -27,7 +27,7 @@ COPY services/gpu-workers/package.json services/gpu-workers/
 COPY services/orchestrator/package.json services/orchestrator/
 COPY services/sentinel/package.json services/sentinel/
 
-RUN bun install --frozen-lockfile
+RUN bun install
 
 # Stage 2: Build
 FROM oven/bun:1 AS builder
