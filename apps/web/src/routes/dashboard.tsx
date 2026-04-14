@@ -283,14 +283,14 @@ export default function DashboardPage(): ReturnType<typeof ProtectedRoute> {
 
   const getStartedItems: ActivityItemProps[] = [
     { icon: "\u{2795}", title: "Create your first project", description: "Set up a new site, app, or API project", time: "Step 1", accentColor: "#8b5cf6", href: "/builder" },
-    { icon: "\u{2728}", title: "Try the AI Builder", description: "Describe what you want and ship it in minutes", time: "Step 2", accentColor: "#f43f5e", href: "/builder" },
+    { icon: "\u{2728}", title: "Try the Composer", description: "Generate a component tree from a prompt. Routes through client GPU, edge, or cloud.", time: "Step 2", accentColor: "#f43f5e", href: "/builder" },
     { icon: "\u{26A1}", title: "Open Claude Chat", description: "Direct API access -- your key, your data, your control", time: "Step 3", accentColor: "#f97316", href: "/chat" },
     { icon: "\u{1F511}", title: "Configure API keys", description: "Add your OpenAI, Anthropic, or other provider keys", time: "Step 4", accentColor: "#06b6d4", href: "/settings" },
     { icon: "\u{1F4CB}", title: "Browse templates", description: "Start from a battle-tested blueprint and customize", time: "Step 5", accentColor: "#10b981", href: "/templates" },
   ];
 
   const quickActions: QuickActionProps[] = [
-    { title: "AI Website Builder", description: "Describe what you want. Ship it in minutes. Validated component trees, zero boilerplate.", href: "/builder", label: "Open builder", badge: "Popular", icon: "\u{1F680}", gradient: "#8b5cf6" },
+    { title: "Component Composer", description: "Generate validated SolidJS component trees from a prompt. Three-tier routing, zero boilerplate.", href: "/builder", label: "Open Composer", badge: "Popular", icon: "\u{1F680}", gradient: "#8b5cf6" },
     { title: "Video Editor", description: "GPU-accelerated editing straight in the browser. Effects, transitions, encoding -- all on-device.", href: "/video", label: "Open editor", badge: "WebGPU", icon: "\u{1F3AC}", gradient: "#f43f5e" },
     { title: "Real-Time Collaboration", description: "Start a session. Invite your team. Let AI agents co-author alongside them.", href: "/collab", label: "Start session", icon: "\u{1F91D}", gradient: "#06b6d4" },
     { title: "AI Playground", description: "Test prompts, swap models, tune agents. Ship from notebook to production in one click.", href: "/ai-playground", label: "Open playground", icon: "\u{1F9EA}", gradient: "#10b981" },
