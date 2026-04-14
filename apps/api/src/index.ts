@@ -5,7 +5,8 @@ import { appRouter } from "./trpc/router";
 import { createContext } from "./trpc/context";
 import { aiRoutes } from "./ai/routes";
 import { chatStreamRoutes } from "./ai/chat-stream";
-import { wsApp, websocket, sseApp, yjsWsApp } from "./realtime";
+import { wsApp, websocket, sseApp, yjsWsApp, liveUpdatesApp } from "./realtime";
+import { terminalApp } from "./terminal/handler";
 import { initTelemetry, httpRequestCount, httpRequestDuration, recordRequest, getMetrics } from "./telemetry";
 import { getAllFlags, isFeatureEnabled } from "./feature-flags";
 import { checkNeonHealth } from "@back-to-the-future/db/neon";
@@ -37,6 +38,7 @@ import {
 import { getQueueStatus } from "./automation/retry-queue";
 
 import { securityHeaders } from "./middleware/security-headers";
+import { cacheControl } from "./middleware/cache-control";
 import { createRateLimiter, type KvNamespaceLike } from "./middleware/rate-limiter";
 import { csrf } from "./middleware/csrf";
 import { apiKeyAuthMiddleware } from "./middleware/api-key-auth";
@@ -79,6 +81,8 @@ app.use(
 
 // ── Security Middleware ──────────────────────────────────────────────
 app.use("*", securityHeaders());
+// ── Cache-Control (prevent stale dynamic content) ───────────────────
+app.use("*", cacheControl());
 app.use("*", csrf({
   allowedOrigins: [
     "http://localhost:3000",
@@ -342,6 +346,12 @@ app.route("/", yjsWsApp);
 // Real-Time: SSE + REST endpoints
 app.route("/", sseApp);
 
+// Live Updates: SSE push notifications for data changes
+app.route("/", liveUpdatesApp);
+
+// Terminal: WebSocket PTY at /api/terminal/:projectId
+app.route("/", terminalApp);
+
 // ── Auto-migrate on startup (safe default: only when AUTO_MIGRATE=true) ──
 async function maybeRunMigrations(): Promise<void> {
   const enabled = process.env.AUTO_MIGRATE === "true" || process.env.NODE_ENV !== "production";
@@ -394,6 +404,7 @@ Bun.serve({
 console.log(`API server running on http://localhost:${port}`);
 console.log(`  WebSocket: ws://localhost:${port}/api/ws`);
 console.log(`  SSE: http://localhost:${port}/api/realtime/events/:roomId`);
+console.log(`  Terminal: ws://localhost:${port}/api/terminal/:projectId`);
 
 // ── Cloudflare Workers entry point ─────────────────────────────────
 // `default export = app` stays for compatibility with existing importers
