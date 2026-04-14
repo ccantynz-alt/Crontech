@@ -14,6 +14,7 @@ import {
   userProviderKeys,
 } from "@back-to-the-future/db";
 import { ANTHROPIC_MODELS } from "@back-to-the-future/ai-core";
+import { emitDataChange } from "../../realtime/live-updates";
 
 // ── IDs ────────────────────────────────────────────────────────────────
 
@@ -91,6 +92,7 @@ export const chatRouter = router({
         createdAt: now,
         updatedAt: now,
       });
+      emitDataChange("conversations", "conversation created");
       return { id, title: input.title };
     }),
 
@@ -295,6 +297,7 @@ export const chatRouter = router({
         createdAt: new Date(),
       });
 
+      emitDataChange("provider-keys", `${input.provider} key saved`);
       return { id, prefix };
     }),
 
@@ -335,6 +338,7 @@ export const chatRouter = router({
             eq(userProviderKeys.provider, input.provider),
           ),
         );
+      emitDataChange("provider-keys", `${input.provider} key deleted`);
       return { success: true };
     }),
 

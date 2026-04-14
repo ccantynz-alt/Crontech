@@ -1,6 +1,7 @@
 import { Title } from "@solidjs/meta";
 import { createSignal, For, Show, Switch, Match } from "solid-js";
 import type { JSX } from "solid-js";
+import { invalidateQueries } from "../lib/use-trpc";
 
 // ── Types ────────────────────────────────────────────────────────────
 
@@ -566,6 +567,7 @@ function GitHubTokenSection(): JSX.Element {
       setSavedGh({ prefix: result.prefix, createdAt: "Just now" });
       setGhToken("");
       setGhMessage({ type: "success", text: "GitHub token saved. Your repos are now accessible." });
+      invalidateQueries("provider-keys");
     } catch (err) {
       setGhMessage({ type: "error", text: err instanceof Error ? err.message : "Failed to save" });
     } finally {
@@ -580,6 +582,7 @@ function GitHubTokenSection(): JSX.Element {
       setSavedGh(null);
       setGhDeleteConfirm(false);
       setGhMessage({ type: "success", text: "GitHub token deleted." });
+      invalidateQueries("provider-keys");
     } catch (err) {
       setGhMessage({ type: "error", text: err instanceof Error ? err.message : "Failed" });
     }
@@ -686,6 +689,7 @@ function AIProvidersTab(): JSX.Element {
       setSavedKey({ prefix: result.prefix, createdAt: "Just now" });
       setAnthropicKey("");
       setMessage({ type: "success", text: "Anthropic API key saved successfully." });
+      invalidateQueries("provider-keys");
     } catch (err) {
       setMessage({ type: "error", text: err instanceof Error ? err.message : "Failed to save key" });
     } finally {
@@ -700,6 +704,7 @@ function AIProvidersTab(): JSX.Element {
       setSavedKey(null);
       setDeleteConfirm(false);
       setMessage({ type: "success", text: "API key deleted." });
+      invalidateQueries("provider-keys");
     } catch (err) {
       setMessage({ type: "error", text: err instanceof Error ? err.message : "Failed to delete key" });
     }
