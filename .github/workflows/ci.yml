@@ -6,6 +6,12 @@ on:
   pull_request:
     branches: [main, develop]
 
+# Workflow-wide baseline: read-only access. Individual jobs may expand
+# scope explicitly if they need it. Anything that doesn't override stays
+# least-privilege, matching GitHub hardening guidance.
+permissions:
+  contents: read
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true

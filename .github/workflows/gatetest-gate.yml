@@ -19,11 +19,13 @@ on:
   pull_request:
     branches: [main, master]
 
+# Workflow-wide baseline: read-only. The gatetest job below elevates
+# to the write scopes GateTest actually needs (pull-requests for
+# comment posting, security-events for SARIF upload, checks for the
+# status-check annotation API). Any new jobs added here default back
+# to contents: read unless they opt in explicitly.
 permissions:
   contents: read
-  pull-requests: write
-  security-events: write
-  checks: write
 
 concurrency:
   group: gatetest-${{ github.ref }}
@@ -34,6 +36,15 @@ jobs:
     name: GateTest — Quality Gate
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    # Job-level permissions: GateTest posts PR comments, uploads a
+    # SARIF report to GitHub Security, and writes status-check
+    # annotations. contents: read is inherited from the workflow-wide
+    # baseline above.
+    permissions:
+      contents: read
+      pull-requests: write
+      security-events: write
+      checks: write
     steps:
       - name: Checkout target repository
         uses: actions/checkout@v4

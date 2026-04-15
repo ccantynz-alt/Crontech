@@ -48,6 +48,12 @@ on:
     branches: [Main, main]
   workflow_dispatch:
 
+# Workflow-wide baseline: read-only. Deployment steps talk to Cloudflare
+# via CLOUDFLARE_API_TOKEN (not GITHUB_TOKEN), so no job needs write
+# scope on the repo itself. Least-privilege by default.
+permissions:
+  contents: read
+
 concurrency:
   # One deploy at a time for main. cancel-in-progress: false because a
   # mid-flight wrangler deploy that gets killed can leave Cloudflare
