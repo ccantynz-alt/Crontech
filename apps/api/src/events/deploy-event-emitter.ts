@@ -31,6 +31,16 @@
  *   → 401 invalid bearer
  *   → 400 malformed payload
  *
+ * Scope: these events are emitted ONLY for deploys triggered via the
+ * push-webhook path (apps/api/src/webhooks/gluecron-push.ts). Admin-initiated
+ * deploys via the tenant.deploy tRPC mutation are intentionally NOT tracked
+ * by these events. Rationale: admin deploys can target any repo URL (GitHub,
+ * Gluecron, or BYO) and Gluecron has no deployments row to correlate the event
+ * against. Event emission for admin deploys would generate orphan signal on
+ * the receiver side. If this scope ever changes, tenant.deploy's input schema
+ * must grow a sha field — that is a §0.7 HARD GATE change and requires Craig
+ * auth.
+ *
  * Design rules for this module:
  *   1. NEVER throws. The deploy path must not care whether Gluecron is up.
  *   2. If either env var is missing, log ONCE and no-op. Never spam logs.
