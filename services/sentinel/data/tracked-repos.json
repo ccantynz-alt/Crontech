@@ -60,8 +60,8 @@
       "category": "framework",
       "description": "Content-focused web framework. Islands architecture for partial hydration.",
       "defaultBranch": "main",
-      "lastKnownRelease": "astro@6.1.5",
-      "lastKnownReleaseAt": "2026-04-08T13:52:10Z",
+      "lastKnownRelease": "astro@6.1.6",
+      "lastKnownReleaseAt": "2026-04-13T17:22:43Z",
       "lastCommitCheckAt": "2026-04-10T21:20:17.932Z",
       "baselineCommitsPerWeek": 25
     },
@@ -125,8 +125,8 @@
       "category": "ai",
       "description": "JS framework for LLM applications. Multi-agent orchestration via LangGraph.",
       "defaultBranch": "main",
-      "lastKnownRelease": "langchain@1.3.2",
-      "lastKnownReleaseAt": "2026-04-13T22:39:29Z",
+      "lastKnownRelease": "langchain@1.3.3",
+      "lastKnownReleaseAt": "2026-04-15T00:22:14Z",
       "lastCommitCheckAt": "2026-04-14T07:15:01.269Z",
       "baselineCommitsPerWeek": 13
     },
@@ -138,8 +138,8 @@
       "category": "backend",
       "description": "Wrangler + Workers tooling. We run on this today; we also compete on DX.",
       "defaultBranch": "main",
-      "lastKnownRelease": "wrangler@4.82.2",
-      "lastKnownReleaseAt": "2026-04-13T19:08:48Z",
+      "lastKnownRelease": "wrangler@4.83.0",
+      "lastKnownReleaseAt": "2026-04-15T09:28:42Z",
       "lastCommitCheckAt": "2026-04-14T07:15:00.243Z",
       "baselineCommitsPerWeek": 35
     },
@@ -151,8 +151,8 @@
       "category": "backend",
       "description": "Official Pages deploy GitHub Action. Track deploy surface evolution.",
       "defaultBranch": "main",
-      "lastKnownRelease": null,
-      "lastKnownReleaseAt": null,
+      "lastKnownRelease": "v1.5.0",
+      "lastKnownReleaseAt": "2023-05-23T17:46:18Z",
       "lastCommitCheckAt": "2026-04-14T07:10:47.629Z",
       "baselineCommitsPerWeek": 0
     },
@@ -313,6 +313,6 @@
       "baselineCommitsPerWeek": 0
     }
   ],
-  "lastUpdated": "2026-04-15T07:29:37.553Z",
+  "lastUpdated": "2026-04-15T10:41:41.157Z",
   "schemaVersion": 1
 }
