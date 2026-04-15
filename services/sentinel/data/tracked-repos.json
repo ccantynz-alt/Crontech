@@ -10,7 +10,7 @@
       "defaultBranch": "canary",
       "lastKnownRelease": "v16.2.1-canary.42",
       "lastKnownReleaseAt": "2026-04-15T01:28:21Z",
-      "lastCommitCheckAt": "2026-04-15T07:29:37.018Z",
+      "lastCommitCheckAt": "2026-04-15T11:08:18.090Z",
       "baselineCommitsPerWeek": 100
     },
     {
@@ -75,7 +75,7 @@
       "defaultBranch": "main",
       "lastKnownRelease": "v4.12.14",
       "lastKnownReleaseAt": "2026-04-15T06:15:10Z",
-      "lastCommitCheckAt": "2026-04-15T07:29:37.167Z",
+      "lastCommitCheckAt": "2026-04-15T11:08:18.238Z",
       "baselineCommitsPerWeek": 6
     },
     {
@@ -88,7 +88,7 @@
       "defaultBranch": "main",
       "lastKnownRelease": "v2.0.0-beta.0",
       "lastKnownReleaseAt": "2026-03-03T23:09:19Z",
-      "lastCommitCheckAt": "2026-04-15T07:29:37.302Z",
+      "lastCommitCheckAt": "2026-04-15T11:08:18.355Z",
       "baselineCommitsPerWeek": 0
     },
     {
@@ -101,7 +101,7 @@
       "defaultBranch": "main",
       "lastKnownRelease": "v11.16.0",
       "lastKnownReleaseAt": "2026-03-28T10:24:00Z",
-      "lastCommitCheckAt": "2026-04-15T07:29:37.500Z",
+      "lastCommitCheckAt": "2026-04-15T11:08:18.549Z",
       "baselineCommitsPerWeek": 1
     },
     {
@@ -114,8 +114,8 @@
       "defaultBranch": "main",
       "lastKnownRelease": "ai@6.0.161",
       "lastKnownReleaseAt": "2026-04-15T01:31:01Z",
-      "lastCommitCheckAt": "2026-04-14T03:39:58.765Z",
-      "baselineCommitsPerWeek": 75
+      "lastCommitCheckAt": "2026-04-15T11:08:19.741Z",
+      "baselineCommitsPerWeek": 76
     },
     {
       "owner": "langchain-ai",
@@ -313,6 +313,6 @@
       "baselineCommitsPerWeek": 0
     }
   ],
-  "lastUpdated": "2026-04-15T10:41:41.157Z",
+  "lastUpdated": "2026-04-15T11:08:19.742Z",
   "schemaVersion": 1
 }
