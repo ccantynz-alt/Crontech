@@ -23,8 +23,14 @@ import {
   listComponents,
 } from "@back-to-the-future/ai-core";
 
-// Initialize OpenTelemetry (no-op if OTEL_EXPORTER_OTLP_ENDPOINT not set)
-initTelemetry();
+// Initialize OpenTelemetry (no-op if OTEL_EXPORTER_OTLP_ENDPOINT not set).
+// Fire-and-forget: `initTelemetry()` is async because it lazy-imports the
+// Node-only `@opentelemetry/sdk-node` package so this file stays Workers-
+// parseable. We do not await it — telemetry is best-effort; a missing SDK
+// should never block the server from booting.
+initTelemetry().catch((err) => {
+  console.warn("[telemetry] init failed:", err);
+});
 
 import { startQueue } from "./automation/retry-queue";
 import { startHealingLoop } from "./automation/self-heal";
@@ -390,37 +396,46 @@ async function maybeRunMigrations(): Promise<void> {
 
 maybeRunMigrations().catch((err) => console.warn("[startup] migration wrapper error:", err));
 
-// ── Start automation loops ─────────────────────────────────────────
-startQueue();
-startHealingLoop();
-startHealthMonitor();
+// ── Bun-only long-lived boot path ──────────────────────────────────
+// Everything below needs a long-running Node/Bun process: in-memory queues,
+// `setInterval` timers, `Bun.serve`. None of it is valid on Cloudflare
+// Workers (no `Bun` global, no persistent intervals between requests). Guard
+// on `typeof Bun !== "undefined"` so Workers imports this module cleanly.
+// Workers uses the `workerHandler` export below for `fetch` + `scheduled`
+// instead.
+if (typeof Bun !== "undefined") {
+  // ── Start automation loops (Bun-only) ────────────────────────────
+  startQueue();
+  startHealingLoop();
+  startHealthMonitor();
 
-// Webhook dispatcher: drains the `webhook_deliveries` queue every minute
-// in long-running server mode (Bun). On Cloudflare Workers, wire the same
-// `runDispatcher` call into a cron trigger via the exported `scheduled`
-// handler below.
-const webhookDispatcherInterval = setInterval(() => {
-  runDispatcher(defaultDb).catch((err) => {
-    console.warn("[webhook-dispatcher] run failed:", err);
+  // Webhook dispatcher: drains the `webhook_deliveries` queue every minute
+  // in long-running server mode (Bun). On Cloudflare Workers, the same
+  // `runDispatcher` call is wired into a cron trigger via the exported
+  // `scheduled` handler below.
+  const webhookDispatcherInterval = setInterval(() => {
+    runDispatcher(defaultDb).catch((err) => {
+      console.warn("[webhook-dispatcher] run failed:", err);
+    });
+  }, 60_000);
+  // Unref so the interval does not keep a test process alive.
+  if (typeof (webhookDispatcherInterval as unknown as { unref?: () => void }).unref === "function") {
+    (webhookDispatcherInterval as unknown as { unref: () => void }).unref();
+  }
+
+  const port = Number(process.env.API_PORT) || 3001;
+
+  Bun.serve({
+    fetch: app.fetch,
+    port,
+    websocket,
   });
-}, 60_000);
-// Unref so the interval does not keep a test process alive.
-if (typeof (webhookDispatcherInterval as unknown as { unref?: () => void }).unref === "function") {
-  (webhookDispatcherInterval as unknown as { unref: () => void }).unref();
+
+  console.log(`API server running on http://localhost:${port}`);
+  console.log(`  WebSocket: ws://localhost:${port}/api/ws`);
+  console.log(`  SSE: http://localhost:${port}/api/realtime/events/:roomId`);
+  console.log(`  Terminal: ws://localhost:${port}/api/terminal/:projectId`);
 }
-
-const port = Number(process.env.API_PORT) || 3001;
-
-Bun.serve({
-  fetch: app.fetch,
-  port,
-  websocket,
-});
-
-console.log(`API server running on http://localhost:${port}`);
-console.log(`  WebSocket: ws://localhost:${port}/api/ws`);
-console.log(`  SSE: http://localhost:${port}/api/realtime/events/:roomId`);
-console.log(`  Terminal: ws://localhost:${port}/api/terminal/:projectId`);
 
 // ── Cloudflare Workers entry point ─────────────────────────────────
 // `default export = app` stays for compatibility with existing importers
