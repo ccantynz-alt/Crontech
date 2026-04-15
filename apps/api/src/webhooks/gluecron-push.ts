@@ -26,6 +26,11 @@ import {
   orchestratorDeploy,
   type OrchestratorDeployInput,
 } from "../deploy/orchestrator-client";
+import {
+  classifyDeployError,
+  emitDeployFailed,
+  emitDeploySucceeded,
+} from "../events/deploy-event-emitter";
 
 export type DbClient = typeof defaultDb;
 
@@ -196,19 +201,43 @@ export function createGluecronPushApp(
       ...(envVarsParsed !== undefined ? { envVars: envVarsParsed } : {}),
     };
 
+    // ── 6. Trigger deploy + emit Signal Bus P1 event (E3/E4) ───────
+    //
+    // Deploy events go out DOWNSTREAM of the orchestrator call as a
+    // fire-and-forget HTTP POST to Gluecron. The emitter itself never
+    // throws, so `void emitDeployX(...)` is safe — we do NOT await it
+    // and we do NOT let its result affect the hook's HTTP response.
+    const deployStartedAt = Date.now();
     try {
       await deploy(deployInput);
     } catch (err) {
+      const durationMs = Date.now() - deployStartedAt;
       const message = err instanceof Error ? err.message : "deploy failed";
       console.warn(
         `[gluecron-push] deploy trigger failed for ${payload.repository}:`,
         message,
       );
+      void emitDeployFailed({
+        repository: payload.repository,
+        sha: payload.sha,
+        deploymentId,
+        errorCategory: classifyDeployError(err),
+        errorSummary: message,
+        durationMs,
+      });
       return c.json(
         { ok: false, error: "deploy trigger failed", detail: message },
         502,
       );
     }
+
+    const durationMs = Date.now() - deployStartedAt;
+    void emitDeploySucceeded({
+      repository: payload.repository,
+      sha: payload.sha,
+      deploymentId,
+      durationMs,
+    });
 
     return c.json({
       ok: true,
