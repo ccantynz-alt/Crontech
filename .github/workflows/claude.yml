@@ -60,6 +60,10 @@ jobs:
           fetch-depth: 0
 
       - name: Run Claude Code
+        # TODO(sha-pin): replace @v1 with specific SHA after verifying
+        # upstream release. Third-party action (non github/ org) — must
+        # be SHA-pinned per supply-chain hardening guidance. Tracking in
+        # commit msg for batch-resolution.
         uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}

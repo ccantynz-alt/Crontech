@@ -70,6 +70,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # TODO(sha-pin): replace @v2 with specific SHA after verifying
+      # upstream release. Third-party action (non github/ org) — must
+      # be SHA-pinned per supply-chain hardening guidance. 3 call-sites
+      # in this workflow; resolve all to the same SHA.
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
@@ -104,6 +108,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # TODO(sha-pin): replace @v2 with specific SHA after verifying
+      # upstream release. Third-party action — see deploy-api's note.
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
@@ -138,6 +144,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # TODO(sha-pin): replace @v2 with specific SHA after verifying
+      # upstream release. Third-party action — see deploy-api's note.
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
