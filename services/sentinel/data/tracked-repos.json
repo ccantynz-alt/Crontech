@@ -8,9 +8,9 @@
       "category": "framework",
       "description": "React framework for production. Primary competitor in full-stack web.",
       "defaultBranch": "canary",
-      "lastKnownRelease": "v16.2.1-canary.43",
-      "lastKnownReleaseAt": "2026-04-15T14:10:33Z",
-      "lastCommitCheckAt": "2026-04-15T23:08:57.739Z",
+      "lastKnownRelease": "v16.2.4",
+      "lastKnownReleaseAt": "2026-04-15T22:35:38Z",
+      "lastCommitCheckAt": "2026-04-16T00:14:53.767Z",
       "baselineCommitsPerWeek": 100
     },
     {
@@ -49,7 +49,7 @@
       "defaultBranch": "main",
       "lastKnownRelease": "eslint-plugin-qwik@2.0.0-beta.32",
       "lastKnownReleaseAt": "2026-04-13T21:55:28Z",
-      "lastCommitCheckAt": "2026-04-15T23:07:15.594Z",
+      "lastCommitCheckAt": "2026-04-16T00:17:08.988Z",
       "baselineCommitsPerWeek": 1
     },
     {
@@ -75,7 +75,7 @@
       "defaultBranch": "main",
       "lastKnownRelease": "v4.12.14",
       "lastKnownReleaseAt": "2026-04-15T06:15:10Z",
-      "lastCommitCheckAt": "2026-04-15T23:08:57.904Z",
+      "lastCommitCheckAt": "2026-04-16T00:17:04.546Z",
       "baselineCommitsPerWeek": 6
     },
     {
@@ -127,7 +127,7 @@
       "defaultBranch": "main",
       "lastKnownRelease": "langchain@1.3.3",
       "lastKnownReleaseAt": "2026-04-15T00:22:14Z",
-      "lastCommitCheckAt": "2026-04-15T23:07:14.345Z",
+      "lastCommitCheckAt": "2026-04-16T00:17:05.752Z",
       "baselineCommitsPerWeek": 16
     },
     {
@@ -166,7 +166,7 @@
       "defaultBranch": "master",
       "lastKnownRelease": "v1.26.04",
       "lastKnownReleaseAt": "2026-04-09T14:38:08Z",
-      "lastCommitCheckAt": "2026-04-15T23:07:13.111Z",
+      "lastCommitCheckAt": "2026-04-16T00:17:05.127Z",
       "baselineCommitsPerWeek": 100
     },
     {
@@ -177,8 +177,8 @@
       "category": "backend",
       "description": "Reactive backend competitor. Sync engine + TS functions.",
       "defaultBranch": "main",
-      "lastKnownRelease": "precompiled-2026-04-15-8b4751a",
-      "lastKnownReleaseAt": "2026-04-15T19:18:00Z",
+      "lastKnownRelease": "precompiled-2026-04-15-8d74800",
+      "lastKnownReleaseAt": "2026-04-15T23:54:01Z",
       "lastCommitCheckAt": "2026-04-15T23:07:13.378Z",
       "baselineCommitsPerWeek": 99
     },
@@ -192,7 +192,7 @@
       "defaultBranch": "master",
       "lastKnownRelease": "v0.4.35",
       "lastKnownReleaseAt": "2026-04-14T19:35:30Z",
-      "lastCommitCheckAt": "2026-04-15T23:07:14.718Z",
+      "lastCommitCheckAt": "2026-04-16T00:17:06.751Z",
       "baselineCommitsPerWeek": 18
     },
     {
@@ -203,9 +203,9 @@
       "category": "backend",
       "description": "We use Renovate; track feature evolution for self-evolution pipeline.",
       "defaultBranch": "main",
-      "lastKnownRelease": "43.123.4",
-      "lastKnownReleaseAt": "2026-04-15T21:12:08Z",
-      "lastCommitCheckAt": "2026-04-15T23:07:15.890Z",
+      "lastKnownRelease": "43.123.5",
+      "lastKnownReleaseAt": "2026-04-15T23:58:58Z",
+      "lastCommitCheckAt": "2026-04-16T00:17:09.368Z",
       "baselineCommitsPerWeek": 100
     },
     {
@@ -218,7 +218,7 @@
       "defaultBranch": "master",
       "lastKnownRelease": "v4.37.3",
       "lastKnownReleaseAt": "2026-04-15T00:28:12Z",
-      "lastCommitCheckAt": "2026-04-15T23:07:16.109Z",
+      "lastCommitCheckAt": "2026-04-16T00:17:09.551Z",
       "baselineCommitsPerWeek": 6
     },
     {
@@ -244,7 +244,7 @@
       "defaultBranch": "master",
       "lastKnownRelease": "15.0.0",
       "lastKnownReleaseAt": "2026-04-02T01:26:35Z",
-      "lastCommitCheckAt": "2026-04-15T23:07:16.301Z",
+      "lastCommitCheckAt": "2026-04-16T00:17:09.747Z",
       "baselineCommitsPerWeek": 0
     },
     {
@@ -270,8 +270,8 @@
       "defaultBranch": "main",
       "lastKnownRelease": "v1.1304.0",
       "lastKnownReleaseAt": "2026-04-09T11:40:07Z",
-      "lastCommitCheckAt": "2026-04-15T23:07:15.207Z",
-      "baselineCommitsPerWeek": 26
+      "lastCommitCheckAt": "2026-04-16T00:17:08.524Z",
+      "baselineCommitsPerWeek": 25
     },
     {
       "owner": "openai",
@@ -283,7 +283,7 @@
       "defaultBranch": "main",
       "lastKnownRelease": "v20250625",
       "lastKnownReleaseAt": "2025-06-26T01:06:09Z",
-      "lastCommitCheckAt": "2026-04-15T23:07:15.415Z",
+      "lastCommitCheckAt": "2026-04-16T00:17:08.765Z",
       "baselineCommitsPerWeek": 1
     },
     {
@@ -300,6 +300,6 @@
       "baselineCommitsPerWeek": 0
     }
   ],
-  "lastUpdated": "2026-04-15T23:08:59.423Z",
+  "lastUpdated": "2026-04-16T00:20:54.155Z",
   "schemaVersion": 1
 }
