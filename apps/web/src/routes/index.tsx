@@ -5,16 +5,14 @@ import { Button } from "@back-to-the-future/ui";
 import { useAuth } from "../stores";
 import { SEOHead } from "../components/SEOHead";
 
-// ── Palette ─────────────────────────────────────────────────────────
-// Restricted to three accent colors so the page reads as one brand,
-// not as a rainbow. Everything else uses white/gray tiers.
-//   - VIOLET  primary accent (brand, CTAs)
-//   - CYAN    secondary accent (platform/technical pillars)
-//   - EMERALD positive/live signals (status dots, "built-in" badges)
+// BLK-008 — light-first Stripe-direction landing. Restricted accents
+// (indigo primary, cyan secondary, emerald positive) sit on a white
+// canvas with slate neutrals. BLK-003 copy is locked; only visuals move.
+
 const ACCENT = {
-  violet: "#8b5cf6",
-  cyan: "#06b6d4",
-  emerald: "#10b981",
+  primary: "#4f46e5", // indigo-600 — brand / CTAs
+  secondary: "#0891b2", // cyan-600 — platform/technical
+  positive: "#059669", // emerald-600 — live/built-in
 } as const;
 
 // ── Data ────────────────────────────────────────────────────────────
@@ -28,9 +26,6 @@ interface Feature {
   badge?: string | undefined;
 }
 
-// Feature cards showcase PLATFORM LAYERS, not end-user products.
-// Per docs/POSITIONING.md: Crontech is a developer platform, not an
-// AI website builder for non-developers.
 const features: Feature[] = [
   {
     icon: "\u26A1",
@@ -38,7 +33,7 @@ const features: Feature[] = [
     description:
       "Cloudflare Workers at the edge. Sub-5ms cold starts across 330+ cities. No containers, no regions, no capacity planning. Your code lives next to your users.",
     href: "/deployments",
-    accent: ACCENT.violet,
+    accent: ACCENT.primary,
     badge: "Core",
   },
   {
@@ -47,7 +42,7 @@ const features: Feature[] = [
     description:
       "Turso SQLite replicas at the edge for zero-latency reads. Neon Postgres when you need the full engine. Qdrant for vector search. All type-safe through Drizzle.",
     href: "/database",
-    accent: ACCENT.cyan,
+    accent: ACCENT.secondary,
   },
   {
     icon: "\u{1F517}",
@@ -55,7 +50,7 @@ const features: Feature[] = [
     description:
       "tRPC v11 end to end. Change a server type, see the client error instantly. No OpenAPI specs, no codegen step, no drift between backend and frontend. Ever.",
     href: "/docs",
-    accent: ACCENT.violet,
+    accent: ACCENT.primary,
   },
   {
     icon: "\u{1F310}",
@@ -63,7 +58,7 @@ const features: Feature[] = [
     description:
       "WebSockets, SSE, and Yjs CRDTs on every edge node. Multi-user editing with AI agents as first-class peers. Conflict-free by mathematics, not by lock.",
     href: "/collab",
-    accent: ACCENT.cyan,
+    accent: ACCENT.secondary,
   },
   {
     icon: "\u{1F9E0}",
@@ -71,7 +66,7 @@ const features: Feature[] = [
     description:
       "Three-tier compute routes inference where it is cheapest: client GPU (free), edge (sub-5ms), or cloud H100s on demand. Generative UI and streaming native to the platform.",
     href: "/ai-playground",
-    accent: ACCENT.violet,
+    accent: ACCENT.primary,
   },
   {
     icon: "\u{1F512}",
@@ -79,7 +74,7 @@ const features: Feature[] = [
     description:
       "Passkeys, OAuth, 2FA. Role-based access control. Audit logs, analytics, and user management. A full admin dashboard ships with the platform, not as a separate product.",
     href: "/admin",
-    accent: ACCENT.emerald,
+    accent: ACCENT.positive,
     badge: "Built-in",
   },
 ];
@@ -98,15 +93,15 @@ const steps: Step[] = [
     title: "Connect",
     description:
       "Point your domain at Crontech. Your app moves to the edge. DNS propagation is the longest step in the whole process.",
-    accent: ACCENT.violet,
+    accent: ACCENT.primary,
     icon: "\u{1F50C}",
   },
   {
     number: "02",
     title: "Compose",
     description:
-      "Pick the layers you need — data, auth, AI, real-time, billing. One config line each, not one vendor contract each.",
-    accent: ACCENT.cyan,
+      "Pick the layers you need \u2014 data, auth, AI, real-time, billing. One config line each, not one vendor contract each.",
+    accent: ACCENT.secondary,
     icon: "\u{1F9F1}",
   },
   {
@@ -114,7 +109,7 @@ const steps: Step[] = [
     title: "Ship",
     description:
       "Git push deploys. Type-safe end to end. Every layer observable. Global in seconds, with no infrastructure to manage.",
-    accent: ACCENT.emerald,
+    accent: ACCENT.positive,
     icon: "\u{1F680}",
   },
 ];
@@ -126,17 +121,16 @@ interface Stat {
 }
 
 const stats: Stat[] = [
-  { value: "\u003C 5ms", label: "Edge Cold Start", color: ACCENT.violet },
-  { value: "330+", label: "Cities Worldwide", color: ACCENT.cyan },
-  { value: "End-to-End", label: "Type Safety", color: ACCENT.violet },
-  { value: "Built-In", label: "Auth, RBAC, Audit", color: ACCENT.emerald },
+  { value: "\u003C 5ms", label: "Edge Cold Start", color: ACCENT.primary },
+  { value: "330+", label: "Cities Worldwide", color: ACCENT.secondary },
+  { value: "End-to-End", label: "Type Safety", color: ACCENT.primary },
+  { value: "Built-In", label: "Auth, RBAC, Audit", color: ACCENT.positive },
 ];
 
 interface TechPillar {
   label: string;
   title: string;
   description: string;
-  color: string;
   labelColor: string;
 }
 
@@ -146,24 +140,21 @@ const techPillars: TechPillar[] = [
     title: "Replace your entire stack",
     description:
       "Hosting, database, authentication, AI, real-time collaboration, payments, email, and storage. One product. One dashboard. One bill.",
-    color: ACCENT.violet,
-    labelColor: "text-violet-400",
+    labelColor: "text-indigo-600",
   },
   {
     label: "Built on the bleeding edge",
     title: "The fastest stack on the web",
     description:
       "Cloudflare Workers for sub-5ms cold starts. SolidJS for the fastest reactivity. Bun + Hono for the fastest runtime. Type-safe end to end.",
-    color: ACCENT.cyan,
-    labelColor: "text-cyan-400",
+    labelColor: "text-cyan-700",
   },
   {
     label: "AI-native at every layer",
     title: "AI is the architecture, not an add-on",
     description:
       "AI agents, generative UI, three-tier compute routing, RAG pipelines, and real-time AI co-authoring. Native to the platform from the ground up.",
-    color: ACCENT.emerald,
-    labelColor: "text-emerald-400",
+    labelColor: "text-emerald-700",
   },
 ];
 
@@ -171,21 +162,13 @@ const techPillars: TechPillar[] = [
 
 function FeatureCard(props: Feature): JSX.Element {
   return (
-    <A href={props.href} class="block group">
-      <div
-        class="relative h-full overflow-hidden rounded-2xl border border-white/[0.06] bg-[#0a0a0a] p-6 transition-all duration-300 hover:border-white/[0.14] hover:bg-[#0d0d0d]"
-      >
-        {/* Single subtle glow — only on hover, only in one corner */}
-        <div
-          class="absolute -top-20 -right-20 h-40 w-40 rounded-full opacity-0 blur-3xl transition-opacity duration-500 group-hover:opacity-[0.18]"
-          style={{ background: props.accent }}
-        />
-
+    <A href={props.href} class="group block">
+      <div class="relative h-full overflow-hidden rounded-xl border border-slate-200 bg-white p-6 transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md">
         <div class="relative z-10 flex h-full flex-col gap-4">
           <div class="flex items-start justify-between gap-3">
             <div class="flex items-center gap-3">
               <div
-                class="flex h-10 w-10 items-center justify-center rounded-lg text-base"
+                class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-base"
                 style={{
                   background: `${props.accent}14`,
                   color: props.accent,
@@ -193,15 +176,15 @@ function FeatureCard(props: Feature): JSX.Element {
               >
                 {props.icon}
               </div>
-              <span class="text-base font-semibold text-white">
+              <span class="text-base font-semibold text-slate-900">
                 {props.title}
               </span>
             </div>
             <Show when={props.badge}>
               <span
-                class="shrink-0 rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider"
+                class="shrink-0 whitespace-nowrap rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider"
                 style={{
-                  background: `${props.accent}1a`,
+                  background: `${props.accent}14`,
                   color: props.accent,
                 }}
               >
@@ -209,15 +192,17 @@ function FeatureCard(props: Feature): JSX.Element {
               </span>
             </Show>
           </div>
-          <p class="text-sm leading-relaxed text-gray-400">
+          <p class="text-sm leading-relaxed text-slate-600">
             {props.description}
           </p>
           <div
-            class="mt-auto flex items-center gap-1.5 pt-2 text-xs font-medium transition-colors duration-200 group-hover:text-white"
+            class="mt-auto flex items-center gap-1.5 pt-2 text-xs font-semibold"
             style={{ color: props.accent }}
           >
             <span>Learn more</span>
-            <span class="transition-transform duration-200 group-hover:translate-x-1">&#8594;</span>
+            <span class="transition-transform duration-200 group-hover:translate-x-0.5">
+              {"\u2192"}
+            </span>
           </div>
         </div>
       </div>
@@ -232,7 +217,7 @@ function StepCard(props: Step): JSX.Element {
     <div class="group relative flex flex-col items-center gap-5 text-center">
       <div class="relative">
         <div
-          class="flex h-20 w-20 items-center justify-center rounded-2xl text-2xl transition-all duration-300 group-hover:scale-105"
+          class="flex h-20 w-20 items-center justify-center rounded-2xl text-2xl transition-transform duration-200 group-hover:scale-105"
           style={{
             background: `${props.accent}14`,
             border: `1px solid ${props.accent}33`,
@@ -241,14 +226,14 @@ function StepCard(props: Step): JSX.Element {
           <span style={{ color: props.accent }}>{props.icon}</span>
         </div>
         <div
-          class="absolute -top-2 -right-2 flex h-7 w-7 items-center justify-center rounded-lg text-[11px] font-bold text-white"
+          class="absolute -right-2 -top-2 flex h-7 w-7 items-center justify-center rounded-lg text-[11px] font-bold text-white shadow-sm"
           style={{ background: props.accent }}
         >
           {props.number}
         </div>
       </div>
-      <h3 class="text-xl font-bold text-white">{props.title}</h3>
-      <p class="max-w-xs text-sm leading-relaxed text-gray-400">
+      <h3 class="text-xl font-bold text-slate-900">{props.title}</h3>
+      <p class="max-w-xs text-sm leading-relaxed text-slate-600">
         {props.description}
       </p>
     </div>
@@ -259,14 +244,14 @@ function StepCard(props: Step): JSX.Element {
 
 function StatBlock(props: Stat): JSX.Element {
   return (
-    <div class="flex flex-col items-center gap-1 px-6 py-5">
+    <div class="flex flex-col items-center gap-1 px-6 py-6">
       <span
         class="text-2xl font-bold tracking-tight sm:text-3xl"
         style={{ color: props.color }}
       >
         {props.value}
       </span>
-      <span class="text-[11px] font-medium uppercase tracking-widest text-gray-500">
+      <span class="text-[11px] font-semibold uppercase tracking-widest text-slate-500">
         {props.label}
       </span>
     </div>
@@ -277,20 +262,14 @@ function StatBlock(props: Stat): JSX.Element {
 
 function TechPillarCard(props: TechPillar): JSX.Element {
   return (
-    <div class="group relative overflow-hidden rounded-2xl border border-white/[0.06] bg-[#0a0a0a] p-8 transition-all duration-300 hover:border-white/[0.14]">
-      <div
-        class="absolute -top-12 -right-12 h-32 w-32 rounded-full opacity-[0.08] blur-3xl transition-opacity duration-500 group-hover:opacity-20"
-        style={{ background: props.color }}
-      />
-      <div class="relative z-10">
-        <span
-          class={`mb-3 inline-block text-xs font-semibold uppercase tracking-widest ${props.labelColor}`}
-        >
-          {props.label}
-        </span>
-        <h3 class="mb-3 text-xl font-bold text-white">{props.title}</h3>
-        <p class="text-sm leading-relaxed text-gray-400">{props.description}</p>
-      </div>
+    <div class="group relative overflow-hidden rounded-xl border border-slate-200 bg-white p-8 transition-all duration-200 hover:border-slate-300 hover:shadow-md">
+      <span
+        class={`mb-3 inline-block text-xs font-semibold uppercase tracking-widest ${props.labelColor}`}
+      >
+        {props.label}
+      </span>
+      <h3 class="mb-3 text-xl font-bold text-slate-900">{props.title}</h3>
+      <p class="text-sm leading-relaxed text-slate-600">{props.description}</p>
     </div>
   );
 }
@@ -308,66 +287,55 @@ export default function Home(): JSX.Element {
         path="/"
       />
 
-      {/* overflow-x-hidden on the outer wrapper prevents any stray
-          absolute element from creating horizontal scroll on narrow
-          viewports (which was clipping cards on tablets). */}
-      <div class="min-h-screen overflow-x-hidden bg-[#060606]">
+      <div class="min-h-screen overflow-x-hidden bg-white">
         {/* ── Hero ──────────────────────────────────────────────── */}
         <section class="relative overflow-hidden">
-          {/* Single restrained background orb — violet only, not a rainbow */}
+          {/* Subtle dotted grid — professional, not cyberpunk */}
           <div
-            class="pointer-events-none absolute top-[-200px] left-1/2 h-[500px] w-[700px] -translate-x-1/2 rounded-full opacity-[0.08] blur-[120px]"
-            style={{
-              background: `linear-gradient(135deg, ${ACCENT.violet}, ${ACCENT.cyan})`,
-            }}
-          />
-
-          {/* Subtle grid pattern — kept very low opacity */}
-          <div
-            class="pointer-events-none absolute inset-0 opacity-[0.015]"
+            class="pointer-events-none absolute inset-0 opacity-[0.4]"
             style={{
               "background-image":
-                "linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px)",
-              "background-size": "64px 64px",
+                "radial-gradient(rgba(15,23,42,0.07) 1px, transparent 1px)",
+              "background-size": "28px 28px",
+              "mask-image":
+                "linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0.6) 60%, rgba(0,0,0,0) 100%)",
+              "-webkit-mask-image":
+                "linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0.6) 60%, rgba(0,0,0,0) 100%)",
             }}
           />
 
-          <div class="relative z-10 mx-auto max-w-[1200px] px-6 pt-24 pb-20 lg:px-8 lg:pt-36 lg:pb-28">
+          <div class="relative z-10 mx-auto max-w-[1200px] px-6 pb-20 pt-20 lg:px-8 lg:pb-28 lg:pt-28">
             <div class="flex flex-col items-center text-center">
               {/* Announcement badge */}
-              <div class="mb-8 inline-flex items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.03] px-4 py-1.5 backdrop-blur-sm">
-                <div class="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                <span class="text-xs font-medium text-gray-400">
+              <div class="mb-8 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3.5 py-1.5 shadow-sm">
+                <span class="relative flex h-2 w-2">
+                  <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                  <span class="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+                </span>
+                <span class="text-xs font-medium text-slate-600">
                   Now in early access
                 </span>
               </div>
 
-              {/* Doctrine headline — per docs/POSITIONING.md */}
-              <h1 class="max-w-4xl text-4xl font-extrabold leading-[1.08] tracking-tight text-white sm:text-5xl lg:text-[4rem]">
+              {/* Doctrine headline — per docs/POSITIONING.md (BLK-003 locked) */}
+              <h1 class="max-w-4xl text-4xl font-extrabold leading-[1.08] tracking-tight text-slate-900 sm:text-5xl lg:text-[4rem]">
                 The developer platform{" "}
-                <span
-                  class="bg-clip-text text-transparent"
-                  style={{
-                    "background-image": `linear-gradient(135deg, ${ACCENT.violet}, ${ACCENT.cyan})`,
-                  }}
-                >
-                  for the next decade.
-                </span>
+                <span class="text-indigo-600">for the next decade.</span>
               </h1>
 
-              {/* Subhead — leads with backend+frontend unified, first-of-its-kind */}
-              <p class="mt-6 max-w-2xl text-base leading-relaxed text-gray-400 sm:text-lg">
+              {/* Subhead */}
+              <p class="mt-6 max-w-2xl text-base leading-relaxed text-slate-600 sm:text-lg">
                 Backend and frontend, joined as one product. Hosting, database,
-                auth, AI, real-time, and billing &mdash; every layer your app
+                auth, AI, real-time, and billing {"\u2014"} every layer your app
                 needs, type-safe end to end, built on the bleeding edge and
                 ready the moment your team is.
               </p>
 
               {/* CTAs */}
-              <div class="mt-10 flex flex-col items-center gap-4 sm:flex-row">
+              <div class="mt-10 flex flex-col items-center gap-3 sm:flex-row">
                 <A href="/register">
                   <Button variant="primary" size="lg">
-                    Start building &#8594;
+                    Start building {"\u2192"}
                   </Button>
                 </A>
                 <Show
@@ -402,7 +370,7 @@ export default function Home(): JSX.Element {
                   ]}
                 >
                   {(tech) => (
-                    <span class="text-xs font-medium uppercase tracking-widest text-gray-600 transition-colors duration-200 hover:text-gray-400">
+                    <span class="text-xs font-semibold uppercase tracking-widest text-slate-400 transition-colors duration-200 hover:text-slate-600">
                       {tech}
                     </span>
                   )}
@@ -413,9 +381,9 @@ export default function Home(): JSX.Element {
         </section>
 
         {/* ── Stats strip ───────────────────────────────────────── */}
-        <section class="border-y border-white/[0.04]">
+        <section class="border-y border-slate-200 bg-slate-50">
           <div class="mx-auto max-w-[1200px] px-6 lg:px-8">
-            <div class="grid grid-cols-2 divide-x divide-white/[0.06] sm:grid-cols-4">
+            <div class="grid grid-cols-2 divide-x divide-slate-200 sm:grid-cols-4">
               <For each={stats}>
                 {(stat) => (
                   <StatBlock
@@ -430,21 +398,16 @@ export default function Home(): JSX.Element {
         </section>
 
         {/* ── Platform layers ───────────────────────────────────── */}
-        <section class="relative overflow-hidden py-24 lg:py-32">
-          <div
-            class="pointer-events-none absolute left-[-200px] top-1/2 h-[500px] w-[500px] -translate-y-1/2 rounded-full opacity-[0.04] blur-[120px]"
-            style={{ background: ACCENT.violet }}
-          />
-
-          <div class="relative z-10 mx-auto max-w-[1200px] px-6 lg:px-8">
-            <div class="mb-16 flex flex-col items-center text-center">
-              <span class="mb-4 text-xs font-semibold uppercase tracking-widest text-violet-400">
+        <section class="relative py-24 lg:py-28">
+          <div class="mx-auto max-w-[1200px] px-6 lg:px-8">
+            <div class="mb-14 flex flex-col items-center text-center">
+              <span class="mb-4 text-xs font-semibold uppercase tracking-widest text-indigo-600">
                 Platform
               </span>
-              <h2 class="max-w-2xl text-3xl font-bold tracking-tight text-white sm:text-4xl">
+              <h2 class="max-w-2xl text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
                 Every layer your app needs, in one product
               </h2>
-              <p class="mt-4 max-w-xl text-base leading-relaxed text-gray-500">
+              <p class="mt-4 max-w-xl text-base leading-relaxed text-slate-600">
                 Stop stitching together a dozen services. Crontech is one
                 product with one dashboard and one bill.
               </p>
@@ -468,21 +431,16 @@ export default function Home(): JSX.Element {
         </section>
 
         {/* ── How it works ──────────────────────────────────────── */}
-        <section class="relative overflow-hidden border-y border-white/[0.04] py-24 lg:py-32">
-          <div
-            class="pointer-events-none absolute right-[-200px] top-1/3 h-[400px] w-[400px] rounded-full opacity-[0.04] blur-[100px]"
-            style={{ background: ACCENT.cyan }}
-          />
-
-          <div class="relative z-10 mx-auto max-w-[1200px] px-6 lg:px-8">
-            <div class="mb-16 flex flex-col items-center text-center">
-              <span class="mb-4 text-xs font-semibold uppercase tracking-widest text-cyan-400">
+        <section class="relative border-y border-slate-200 bg-slate-50 py-24 lg:py-28">
+          <div class="mx-auto max-w-[1200px] px-6 lg:px-8">
+            <div class="mb-14 flex flex-col items-center text-center">
+              <span class="mb-4 text-xs font-semibold uppercase tracking-widest text-cyan-700">
                 Onboarding
               </span>
-              <h2 class="max-w-2xl text-3xl font-bold tracking-tight text-white sm:text-4xl">
+              <h2 class="max-w-2xl text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
                 Move your app to Crontech in three steps
               </h2>
-              <p class="mt-4 max-w-xl text-base leading-relaxed text-gray-500">
+              <p class="mt-4 max-w-xl text-base leading-relaxed text-slate-600">
                 No rebuild. No long migration. Bring the code you already have,
                 layer Crontech underneath, ship.
               </p>
@@ -505,7 +463,7 @@ export default function Home(): JSX.Element {
         </section>
 
         {/* ── Tech pillars ──────────────────────────────────────── */}
-        <section class="py-24 lg:py-32">
+        <section class="py-24 lg:py-28">
           <div class="mx-auto max-w-[1200px] px-6 lg:px-8">
             <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
               <For each={techPillars}>
@@ -514,7 +472,6 @@ export default function Home(): JSX.Element {
                     label={pillar.label}
                     title={pillar.title}
                     description={pillar.description}
-                    color={pillar.color}
                     labelColor={pillar.labelColor}
                   />
                 )}
@@ -524,34 +481,20 @@ export default function Home(): JSX.Element {
         </section>
 
         {/* ── Bottom CTA ────────────────────────────────────────── */}
-        <section class="relative overflow-hidden border-t border-white/[0.04] py-24 lg:py-32">
-          <div
-            class="pointer-events-none absolute bottom-0 left-1/2 h-[400px] w-[600px] -translate-x-1/2 rounded-full opacity-[0.06] blur-[120px]"
-            style={{
-              background: `linear-gradient(135deg, ${ACCENT.violet}, ${ACCENT.cyan})`,
-            }}
-          />
-
+        <section class="relative border-t border-slate-200 bg-slate-50 py-24 lg:py-28">
           <div class="relative z-10 mx-auto max-w-[800px] px-6 text-center lg:px-8">
-            <h2 class="text-3xl font-bold tracking-tight text-white sm:text-4xl lg:text-5xl">
+            <h2 class="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl lg:text-5xl">
               The developer platform{" "}
-              <span
-                class="bg-clip-text text-transparent"
-                style={{
-                  "background-image": `linear-gradient(135deg, ${ACCENT.violet}, ${ACCENT.cyan})`,
-                }}
-              >
-                for the next decade.
-              </span>
+              <span class="text-indigo-600">for the next decade.</span>
             </h2>
-            <p class="mt-5 text-base leading-relaxed text-gray-400 sm:text-lg">
+            <p class="mt-5 text-base leading-relaxed text-slate-600 sm:text-lg">
               One product. Every layer. Built for teams who refuse to settle
-              for yesterday&#39;s tools.
+              for yesterday{"\u2019"}s tools.
             </p>
-            <div class="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+            <div class="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <A href="/register">
                 <Button variant="primary" size="lg">
-                  Start building &#8594;
+                  Start building {"\u2192"}
                 </Button>
               </A>
               <A href="/dashboard">
