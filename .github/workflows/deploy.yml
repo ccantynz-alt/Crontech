@@ -48,6 +48,12 @@ on:
     branches: [Main, main]
   workflow_dispatch:
 
+# Workflow-wide baseline: read-only. Deployment steps talk to Cloudflare
+# via CLOUDFLARE_API_TOKEN (not GITHUB_TOKEN), so no job needs write
+# scope on the repo itself. Least-privilege by default.
+permissions:
+  contents: read
+
 concurrency:
   # One deploy at a time for main. cancel-in-progress: false because a
   # mid-flight wrangler deploy that gets killed can leave Cloudflare
@@ -64,6 +70,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # TODO(sha-pin): replace @v2 with specific SHA after verifying
+      # upstream release. Third-party action (non github/ org) — must
+      # be SHA-pinned per supply-chain hardening guidance. 3 call-sites
+      # in this workflow; resolve all to the same SHA.
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
@@ -98,6 +108,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # TODO(sha-pin): replace @v2 with specific SHA after verifying
+      # upstream release. Third-party action — see deploy-api's note.
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
@@ -132,6 +144,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # TODO(sha-pin): replace @v2 with specific SHA after verifying
+      # upstream release. Third-party action — see deploy-api's note.
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
