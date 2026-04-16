@@ -106,26 +106,25 @@ function PlatformCard(props: PlatformCardProps): JSX.Element {
         }
       }}
       disabled={!props.platform.supported}
-      class={`relative flex flex-col items-center gap-4 rounded-2xl border-2 p-8 transition-all duration-300 cursor-pointer group ${
+      class={`relative flex flex-col items-center gap-4 rounded-2xl border p-8 transition-all duration-300 cursor-pointer group ${
         props.selected
-          ? "border-cyan-400 bg-cyan-400/[0.08] shadow-lg shadow-cyan-400/10"
+          ? "border-indigo-500 bg-indigo-50 shadow-sm"
           : props.platform.supported
-            ? "border-white/[0.06] bg-white/[0.02] hover:border-white/[0.15] hover:bg-white/[0.04]"
-            : "border-white/[0.04] bg-white/[0.01] opacity-50 cursor-not-allowed"
+            ? "border-slate-200 bg-white hover:border-slate-300 hover:shadow-md"
+            : "border-slate-200 bg-slate-50 opacity-50 cursor-not-allowed"
       }`}
     >
       {/* Platform icon */}
       <div
         class="flex h-16 w-16 items-center justify-center rounded-2xl text-2xl font-bold text-white transition-transform duration-300 group-hover:scale-110"
         style={{
-          background: `linear-gradient(135deg, ${props.platform.color}, ${props.platform.color}cc)`,
-          border: `1px solid ${props.platform.color}66`,
+          background: props.platform.color,
         }}
       >
         {props.platform.icon}
       </div>
 
-      <span class="text-lg font-semibold text-white">
+      <span class="text-lg font-semibold text-slate-900">
         {props.platform.name}
       </span>
 
@@ -136,7 +135,7 @@ function PlatformCard(props: PlatformCardProps): JSX.Element {
       </Show>
 
       <Show when={props.selected}>
-        <div class="absolute -top-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-cyan-400 text-xs font-bold text-black">
+        <div class="absolute -top-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-indigo-600 text-xs font-bold text-white">
           {"✓"}
         </div>
       </Show>
@@ -155,7 +154,7 @@ function ProgressItem(props: ProgressItemProps): JSX.Element {
     <div class="flex items-center gap-4 py-3">
       <div class="flex h-8 w-8 items-center justify-center">
         <Show when={props.step.status === "done"}>
-          <div class="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-400">
+          <div class="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700">
             {"✓"}
           </div>
         </Show>
@@ -163,10 +162,10 @@ function ProgressItem(props: ProgressItemProps): JSX.Element {
           <Spinner size="sm" />
         </Show>
         <Show when={props.step.status === "pending"}>
-          <div class="h-3 w-3 rounded-full bg-white/20" />
+          <div class="h-3 w-3 rounded-full bg-slate-200" />
         </Show>
         <Show when={props.step.status === "error"}>
-          <div class="flex h-8 w-8 items-center justify-center rounded-full bg-red-500/20 text-red-400">
+          <div class="flex h-8 w-8 items-center justify-center rounded-full bg-rose-50 border border-rose-200 text-rose-700">
             {"!"}
           </div>
         </Show>
@@ -174,12 +173,12 @@ function ProgressItem(props: ProgressItemProps): JSX.Element {
       <span
         class={`text-sm font-medium transition-colors duration-300 ${
           props.step.status === "done"
-            ? "text-emerald-400"
+            ? "text-emerald-700"
             : props.step.status === "active"
-              ? "text-white"
+              ? "text-slate-900"
               : props.step.status === "error"
-                ? "text-red-400"
-                : "text-gray-500"
+                ? "text-rose-700"
+                : "text-slate-500"
         }`}
       >
         {props.step.label}
@@ -378,14 +377,14 @@ export default function ImportProject(): JSX.Element {
     <ProtectedRoute>
       <Title>Import Project | Crontech</Title>
 
-      <div class="min-h-screen bg-[#09090b] px-4 py-12">
+      <div class="min-h-screen bg-white px-4 py-12">
         <div class="mx-auto max-w-3xl">
           {/* Header */}
           <div class="mb-10 text-center">
-            <h1 class="text-4xl font-bold tracking-tight text-white">
+            <h1 class="text-4xl font-bold tracking-tight text-slate-900">
               Import Project
             </h1>
-            <p class="mt-3 text-base text-gray-400">
+            <p class="mt-3 text-base text-slate-600">
               Migrate your project to Crontech in one click. We handle everything.
             </p>
           </div>
@@ -411,17 +410,17 @@ export default function ImportProject(): JSX.Element {
                     <Show when={i() > 0}>
                       <div
                         class={`h-px w-8 transition-colors duration-300 ${
-                          isCompleted() ? "bg-cyan-400" : "bg-white/10"
+                          isCompleted() ? "bg-indigo-500" : "bg-slate-200"
                         }`}
                       />
                     </Show>
                     <div
                       class={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold transition-all duration-300 ${
                         isActive()
-                          ? "bg-cyan-400 text-black"
+                          ? "bg-indigo-600 text-white"
                           : isCompleted()
-                            ? "bg-cyan-400/20 text-cyan-400"
-                            : "bg-white/[0.06] text-gray-500"
+                            ? "bg-indigo-50 text-indigo-700"
+                            : "bg-slate-100 text-slate-500"
                       }`}
                     >
                       <Show when={isCompleted()} fallback={i() + 1}>
@@ -431,10 +430,10 @@ export default function ImportProject(): JSX.Element {
                     <span
                       class={`hidden text-xs font-medium sm:inline ${
                         isActive()
-                          ? "text-white"
+                          ? "text-slate-900"
                           : isCompleted()
-                            ? "text-cyan-400/60"
-                            : "text-gray-600"
+                            ? "text-indigo-700"
+                            : "text-slate-500"
                       }`}
                     >
                       {label}
@@ -447,17 +446,11 @@ export default function ImportProject(): JSX.Element {
 
           {/* Step 1: Choose Platform */}
           <Show when={step() === "platform"}>
-            <div
-              class="rounded-2xl border border-white/[0.06] p-8"
-              style={{
-                background:
-                  "linear-gradient(135deg, rgba(17,17,17,0.9) 0%, rgba(10,10,10,0.95) 100%)",
-              }}
-            >
-              <h2 class="mb-2 text-xl font-semibold text-white">
+            <div class="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+              <h2 class="mb-2 text-xl font-semibold text-slate-900">
                 Where is your project hosted?
               </h2>
-              <p class="mb-8 text-sm text-gray-400">
+              <p class="mb-8 text-sm text-slate-600">
                 Select the platform you want to import from.
               </p>
 
@@ -477,17 +470,11 @@ export default function ImportProject(): JSX.Element {
 
           {/* Step 2: Enter API Token */}
           <Show when={step() === "token"}>
-            <div
-              class="rounded-2xl border border-white/[0.06] p-8"
-              style={{
-                background:
-                  "linear-gradient(135deg, rgba(17,17,17,0.9) 0%, rgba(10,10,10,0.95) 100%)",
-              }}
-            >
-              <h2 class="mb-2 text-xl font-semibold text-white">
+            <div class="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+              <h2 class="mb-2 text-xl font-semibold text-slate-900">
                 Connect to {getPlatformMeta()?.name}
               </h2>
-              <p class="mb-6 text-sm text-gray-400">
+              <p class="mb-6 text-sm text-slate-600">
                 Enter your API token. We use it only for this import and never store it.
               </p>
 
@@ -504,13 +491,13 @@ export default function ImportProject(): JSX.Element {
                   error={tokenError()}
                 />
 
-                <p class="text-xs text-gray-500">
+                <p class="text-xs text-slate-500">
                   Get your token:{" "}
                   <a
                     href={getPlatformMeta()?.tokenUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    class="text-cyan-400 underline decoration-cyan-400/30 hover:decoration-cyan-400"
+                    class="text-indigo-600 underline decoration-indigo-300 hover:decoration-indigo-600"
                   >
                     {getPlatformMeta()?.name} Token Settings
                   </a>
@@ -544,17 +531,11 @@ export default function ImportProject(): JSX.Element {
 
           {/* Step 3: Select Project */}
           <Show when={step() === "select"}>
-            <div
-              class="rounded-2xl border border-white/[0.06] p-8"
-              style={{
-                background:
-                  "linear-gradient(135deg, rgba(17,17,17,0.9) 0%, rgba(10,10,10,0.95) 100%)",
-              }}
-            >
-              <h2 class="mb-2 text-xl font-semibold text-white">
+            <div class="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+              <h2 class="mb-2 text-xl font-semibold text-slate-900">
                 Select a project to import
               </h2>
-              <p class="mb-6 text-sm text-gray-400">
+              <p class="mb-6 text-sm text-slate-600">
                 Found {externalProjects().length} project
                 {externalProjects().length !== 1 ? "s" : ""} on{" "}
                 {getPlatformMeta()?.name}.
@@ -567,23 +548,23 @@ export default function ImportProject(): JSX.Element {
                       type="button"
                       class={`flex w-full items-center justify-between rounded-xl border px-5 py-4 text-left transition-all duration-200 ${
                         selectedProject()?.id === project.id
-                          ? "border-cyan-400 bg-cyan-400/[0.06]"
-                          : "border-white/[0.06] bg-white/[0.02] hover:border-white/[0.12] hover:bg-white/[0.04]"
+                          ? "border-indigo-500 bg-indigo-50"
+                          : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50"
                       }`}
                       onClick={() => handleProjectSelect(project)}
                     >
                       <div class="flex flex-col gap-1">
-                        <span class="font-medium text-white">
+                        <span class="font-medium text-slate-900">
                           {project.name}
                         </span>
                         <Show when={project.framework}>
-                          <span class="text-xs text-gray-500">
+                          <span class="text-xs text-slate-500">
                             Framework: {project.framework}
                           </span>
                         </Show>
                       </div>
                       <svg
-                        class="h-5 w-5 text-gray-500"
+                        class="h-5 w-5 text-slate-400"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -616,42 +597,36 @@ export default function ImportProject(): JSX.Element {
 
           {/* Step 4: Review */}
           <Show when={step() === "review"}>
-            <div
-              class="rounded-2xl border border-white/[0.06] p-8"
-              style={{
-                background:
-                  "linear-gradient(135deg, rgba(17,17,17,0.9) 0%, rgba(10,10,10,0.95) 100%)",
-              }}
-            >
-              <h2 class="mb-2 text-xl font-semibold text-white">
+            <div class="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+              <h2 class="mb-2 text-xl font-semibold text-slate-900">
                 Review import
               </h2>
-              <p class="mb-6 text-sm text-gray-400">
+              <p class="mb-6 text-sm text-slate-600">
                 Confirm the details below before importing.
               </p>
 
-              <div class="space-y-4 rounded-xl border border-white/[0.06] bg-white/[0.02] p-6">
+              <div class="space-y-4 rounded-xl border border-slate-200 bg-slate-50 p-6">
                 <div class="flex items-center justify-between">
-                  <span class="text-sm text-gray-400">Source Platform</span>
+                  <span class="text-sm text-slate-600">Source Platform</span>
                   <Badge variant="info">{getPlatformMeta()?.name}</Badge>
                 </div>
-                <div class="h-px bg-white/[0.06]" />
+                <div class="h-px bg-slate-200" />
                 <div class="flex items-center justify-between">
-                  <span class="text-sm text-gray-400">Project Name</span>
-                  <span class="font-medium text-white">
+                  <span class="text-sm text-slate-600">Project Name</span>
+                  <span class="font-medium text-slate-900">
                     {selectedProject()?.name}
                   </span>
                 </div>
-                <div class="h-px bg-white/[0.06]" />
+                <div class="h-px bg-slate-200" />
                 <div class="flex items-center justify-between">
-                  <span class="text-sm text-gray-400">Framework</span>
-                  <span class="text-sm text-white">
+                  <span class="text-sm text-slate-600">Framework</span>
+                  <span class="text-sm text-slate-900">
                     {selectedProject()?.framework ?? "Not detected"}
                   </span>
                 </div>
-                <div class="h-px bg-white/[0.06]" />
+                <div class="h-px bg-slate-200" />
                 <div class="flex items-center justify-between">
-                  <span class="text-sm text-gray-400">What we will import</span>
+                  <span class="text-sm text-slate-600">What we will import</span>
                   <div class="flex gap-2">
                     <Badge>Project Config</Badge>
                     <Badge>Env Vars</Badge>
@@ -681,17 +656,11 @@ export default function ImportProject(): JSX.Element {
 
           {/* Step 5: Importing */}
           <Show when={step() === "importing"}>
-            <div
-              class="rounded-2xl border border-white/[0.06] p-8"
-              style={{
-                background:
-                  "linear-gradient(135deg, rgba(17,17,17,0.9) 0%, rgba(10,10,10,0.95) 100%)",
-              }}
-            >
-              <h2 class="mb-2 text-xl font-semibold text-white">
+            <div class="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+              <h2 class="mb-2 text-xl font-semibold text-slate-900">
                 Importing {selectedProject()?.name}...
               </h2>
-              <p class="mb-6 text-sm text-gray-400">
+              <p class="mb-6 text-sm text-slate-600">
                 Sit back. We are migrating everything for you.
               </p>
 
@@ -702,8 +671,8 @@ export default function ImportProject(): JSX.Element {
               </div>
 
               <Show when={importError()}>
-                <div class="mt-6 rounded-xl border border-red-500/20 bg-red-500/[0.06] p-4">
-                  <p class="text-sm text-red-400">{importError()}</p>
+                <div class="mt-6 rounded-xl border border-rose-200 bg-rose-50 p-4">
+                  <p class="text-sm text-rose-700">{importError()}</p>
                   <div class="mt-3 flex gap-3">
                     <Button
                       variant="ghost"
@@ -729,43 +698,37 @@ export default function ImportProject(): JSX.Element {
 
           {/* Step 6: Done */}
           <Show when={step() === "done"}>
-            <div
-              class="rounded-2xl border border-emerald-500/20 p-8 text-center"
-              style={{
-                background:
-                  "linear-gradient(135deg, rgba(16,185,129,0.05) 0%, rgba(10,10,10,0.95) 100%)",
-              }}
-            >
+            <div class="rounded-2xl border border-emerald-200 bg-emerald-50/50 p-8 text-center shadow-sm">
               {/* Success icon */}
-              <div class="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-emerald-500/20 text-3xl text-emerald-400">
+              <div class="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100 text-3xl text-emerald-700">
                 {"✓"}
               </div>
 
-              <h2 class="mb-2 text-2xl font-bold text-white">
+              <h2 class="mb-2 text-2xl font-bold text-slate-900">
                 Import Complete
               </h2>
-              <p class="mb-8 text-base text-gray-400">
-                <strong class="text-white">{importResult()?.name}</strong> has
+              <p class="mb-8 text-base text-slate-600">
+                <strong class="text-slate-900">{importResult()?.name}</strong> has
                 been imported to Crontech.
               </p>
 
               {/* Import summary */}
               <div class="mx-auto mb-8 grid max-w-md grid-cols-3 gap-4">
-                <div class="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
-                  <div class="text-2xl font-bold text-cyan-400">1</div>
-                  <div class="text-xs text-gray-400">Project</div>
+                <div class="rounded-xl border border-slate-200 bg-white p-4">
+                  <div class="text-2xl font-bold text-indigo-700">1</div>
+                  <div class="text-xs text-slate-600">Project</div>
                 </div>
-                <div class="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
-                  <div class="text-2xl font-bold text-cyan-400">
+                <div class="rounded-xl border border-slate-200 bg-white p-4">
+                  <div class="text-2xl font-bold text-indigo-700">
                     {importResult()?.envVarsImported ?? 0}
                   </div>
-                  <div class="text-xs text-gray-400">Env Vars</div>
+                  <div class="text-xs text-slate-600">Env Vars</div>
                 </div>
-                <div class="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
-                  <div class="text-2xl font-bold text-cyan-400">
+                <div class="rounded-xl border border-slate-200 bg-white p-4">
+                  <div class="text-2xl font-bold text-indigo-700">
                     {importResult()?.domainsImported ?? 0}
                   </div>
-                  <div class="text-xs text-gray-400">Domains</div>
+                  <div class="text-xs text-slate-600">Domains</div>
                 </div>
               </div>
 

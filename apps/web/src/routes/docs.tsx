@@ -33,7 +33,7 @@ const DOC_CATEGORIES: DocCategory[] = [
       "Set up your first project in under five minutes. Install the CLI, scaffold an app, deploy to the edge, and see it live.",
     articles: 12,
     tags: ["setup", "quickstart", "install"],
-    gradient: "from-violet-600 to-indigo-600",
+    gradient: "from-indigo-500 to-indigo-600",
   },
   {
     id: "api-reference",
@@ -139,41 +139,34 @@ function DocCategoryCard(props: { category: DocCategory }): JSX.Element {
       class="group block"
       style={{ "text-decoration": "none" }}
     >
-      <div
-        class="relative overflow-hidden rounded-2xl border border-white/[0.06] p-6 transition-all duration-300 hover:scale-[1.02] hover:border-white/[0.12]"
-        style={{
-          background:
-            "linear-gradient(145deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)",
-          "backdrop-filter": "blur(12px)",
-        }}
-      >
+      <div class="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 transition-all duration-200 hover:border-slate-300 hover:shadow-md">
         {/* Gradient accent bar */}
         <div
-          class={`absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r ${props.category.gradient} opacity-60 transition-opacity duration-300 group-hover:opacity-100`}
+          class={`absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r ${props.category.gradient} opacity-80 transition-opacity duration-300 group-hover:opacity-100`}
         />
 
         <div class="flex items-start gap-4">
           <div
-            class={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${props.category.gradient} text-xl shadow-lg`}
+            class={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${props.category.gradient} text-xl text-white shadow-sm`}
           >
             {props.category.icon}
           </div>
           <div class="min-w-0 flex-1">
             <div class="flex items-center gap-2 mb-1">
-              <span class="text-lg font-semibold text-white group-hover:text-white/90 transition-colors">
+              <span class="text-lg font-semibold text-slate-900 transition-colors">
                 {props.category.title}
               </span>
-              <span class="rounded-full bg-white/[0.06] px-2 py-0.5 text-xs text-white/50 font-mono">
+              <span class="whitespace-nowrap rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-500 font-mono">
                 {props.category.articles}
               </span>
             </div>
-            <p class="text-sm text-white/50 leading-relaxed mb-3">
+            <p class="text-sm text-slate-600 leading-relaxed mb-3">
               {props.category.description}
             </p>
             <div class="flex flex-wrap gap-1.5">
               <For each={props.category.tags}>
                 {(tag) => (
-                  <span class="rounded-md bg-white/[0.04] px-2 py-0.5 text-xs text-white/40 font-mono">
+                  <span class="rounded-md bg-slate-100 px-2 py-0.5 text-xs text-slate-500 font-mono">
                     {tag}
                   </span>
                 )}
@@ -183,7 +176,7 @@ function DocCategoryCard(props: { category: DocCategory }): JSX.Element {
         </div>
 
         {/* Arrow indicator */}
-        <div class="absolute right-5 top-1/2 -translate-y-1/2 text-white/20 transition-all duration-300 group-hover:translate-x-1 group-hover:text-white/50">
+        <div class="absolute right-5 top-1/2 -translate-y-1/2 text-slate-300 transition-all duration-300 group-hover:translate-x-1 group-hover:text-slate-500">
           <svg
             width="20"
             height="20"
@@ -229,52 +222,28 @@ export default function DocsPage(): JSX.Element {
         path="/docs"
       />
 
-      <div class="min-h-screen" style={{ background: "#0a0a0a" }}>
+      <div class="min-h-screen bg-white">
         {/* ── Hero Section ───────────────────────────────────────────── */}
-        <div class="relative overflow-hidden">
-          {/* Background gradient mesh */}
-          <div
-            class="absolute inset-0 opacity-30"
-            style={{
-              background:
-                "radial-gradient(ellipse at 20% 50%, rgba(99,102,241,0.15) 0%, transparent 50%), radial-gradient(ellipse at 80% 20%, rgba(139,92,246,0.1) 0%, transparent 50%), radial-gradient(ellipse at 50% 80%, rgba(59,130,246,0.08) 0%, transparent 50%)",
-            }}
-          />
-
+        <div class="relative overflow-hidden border-b border-slate-200 bg-slate-50">
           <div class="relative mx-auto max-w-6xl px-6 pt-20 pb-16">
             <div class="flex flex-col items-center text-center">
               <Badge variant="info" size="sm">
                 149 articles across 8 categories
               </Badge>
-              <h1
-                class="mt-6 text-5xl font-bold tracking-tight sm:text-6xl"
-                style={{
-                  background:
-                    "linear-gradient(135deg, #fff 0%, #a78bfa 50%, #6366f1 100%)",
-                  "-webkit-background-clip": "text",
-                  "-webkit-text-fill-color": "transparent",
-                  "line-height": "1.1",
-                }}
-              >
+              <h1 class="mt-6 text-5xl font-bold tracking-tight text-slate-900 sm:text-6xl" style={{ "line-height": "1.1" }}>
                 Documentation
               </h1>
-              <p class="mt-4 max-w-2xl text-lg text-white/50">
+              <p class="mt-4 max-w-2xl text-lg text-slate-600">
                 Everything you need to build, deploy, and scale with Crontech.
                 From first install to production-grade AI agents.
               </p>
 
               {/* ── Search Bar ──────────────────────────────────────── */}
               <div class="mt-8 w-full max-w-xl">
-                <div
-                  class="relative rounded-2xl border border-white/[0.08] overflow-hidden"
-                  style={{
-                    background: "rgba(255,255,255,0.03)",
-                    "backdrop-filter": "blur(12px)",
-                  }}
-                >
+                <div class="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
                   <div class="absolute inset-y-0 left-4 flex items-center pointer-events-none">
                     <svg
-                      class="h-5 w-5 text-white/30"
+                      class="h-5 w-5 text-slate-400"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -294,10 +263,10 @@ export default function DocsPage(): JSX.Element {
                     onInput={(e) =>
                       setSearchQuery(e.currentTarget.value)
                     }
-                    class="w-full bg-transparent py-4 pl-12 pr-4 text-white placeholder-white/30 outline-none text-sm"
+                    class="w-full bg-transparent py-4 pl-12 pr-4 text-slate-900 placeholder-slate-400 outline-none text-sm"
                   />
                   <div class="absolute inset-y-0 right-4 flex items-center pointer-events-none">
-                    <kbd class="rounded border border-white/[0.1] bg-white/[0.04] px-2 py-0.5 text-xs text-white/30 font-mono">
+                    <kbd class="rounded border border-slate-200 bg-slate-100 px-2 py-0.5 text-xs text-slate-500 font-mono">
                       /
                     </kbd>
                   </div>
@@ -308,25 +277,25 @@ export default function DocsPage(): JSX.Element {
         </div>
 
         {/* ── Quick Links ─────────────────────────────────────────── */}
-        <div class="mx-auto max-w-6xl px-6 pb-8">
+        <div class="mx-auto max-w-6xl px-6 pt-10 pb-8">
           <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <For each={QUICK_LINKS}>
               {(link) => (
                 <A
                   href={link.href}
-                  class="group flex items-center gap-3 rounded-xl border border-white/[0.06] px-4 py-3 transition-all duration-200 hover:border-white/[0.12] hover:bg-white/[0.02]"
+                  class="group flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 transition-all duration-200 hover:border-slate-300 hover:shadow-sm"
                   style={{ "text-decoration": "none" }}
                 >
                   <div class="flex-1 min-w-0">
-                    <span class="block text-sm font-medium text-white/80 group-hover:text-white transition-colors">
+                    <span class="block text-sm font-medium text-slate-800 group-hover:text-slate-900 transition-colors">
                       {link.label}
                     </span>
-                    <span class="block text-xs text-white/30 font-mono mt-0.5 truncate">
+                    <span class="block text-xs text-slate-500 font-mono mt-0.5 truncate">
                       {link.description}
                     </span>
                   </div>
                   <svg
-                    class="h-4 w-4 shrink-0 text-white/20 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-white/40"
+                    class="h-4 w-4 shrink-0 text-slate-300 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-slate-500"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -351,7 +320,7 @@ export default function DocsPage(): JSX.Element {
             <aside class="lg:col-span-1">
               <div class="sticky top-20 space-y-6">
                 <div>
-                  <h3 class="text-xs font-semibold uppercase tracking-wider text-white/30 mb-3">
+                  <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-3">
                     Categories
                   </h3>
                   <nav class="space-y-0.5">
@@ -359,14 +328,14 @@ export default function DocsPage(): JSX.Element {
                       {(cat) => (
                         <a
                           href={`#${cat.id}`}
-                          class="flex items-center justify-between rounded-lg px-3 py-2 text-sm text-white/50 transition-colors hover:bg-white/[0.04] hover:text-white/80"
+                          class="flex items-center justify-between rounded-lg px-3 py-2 text-sm text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900"
                           style={{ "text-decoration": "none" }}
                         >
                           <span class="flex items-center gap-2">
                             <span>{cat.icon}</span>
                             <span>{cat.title}</span>
                           </span>
-                          <span class="text-xs text-white/25 font-mono">
+                          <span class="text-xs text-slate-400 font-mono">
                             {cat.articles}
                           </span>
                         </a>
@@ -376,29 +345,26 @@ export default function DocsPage(): JSX.Element {
                 </div>
 
                 {/* SDK versions */}
-                <div
-                  class="rounded-xl border border-white/[0.06] p-4"
-                  style={{ background: "rgba(255,255,255,0.02)" }}
-                >
-                  <h3 class="text-xs font-semibold uppercase tracking-wider text-white/30 mb-3">
+                <div class="rounded-xl border border-slate-200 bg-white p-4">
+                  <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-3">
                     SDK Versions
                   </h3>
                   <div class="space-y-2 text-sm">
                     <div class="flex justify-between">
-                      <span class="text-white/40">@crontech/cli</span>
-                      <span class="text-emerald-400/80 font-mono text-xs">
+                      <span class="text-slate-600">@crontech/cli</span>
+                      <span class="text-emerald-700 font-mono text-xs">
                         v0.8.2
                       </span>
                     </div>
                     <div class="flex justify-between">
-                      <span class="text-white/40">@crontech/sdk</span>
-                      <span class="text-emerald-400/80 font-mono text-xs">
+                      <span class="text-slate-600">@crontech/sdk</span>
+                      <span class="text-emerald-700 font-mono text-xs">
                         v0.6.1
                       </span>
                     </div>
                     <div class="flex justify-between">
-                      <span class="text-white/40">@crontech/ai</span>
-                      <span class="text-emerald-400/80 font-mono text-xs">
+                      <span class="text-slate-600">@crontech/ai</span>
+                      <span class="text-emerald-700 font-mono text-xs">
                         v0.4.0
                       </span>
                     </div>
@@ -413,18 +379,18 @@ export default function DocsPage(): JSX.Element {
                 when={filteredCategories().length > 0}
                 fallback={
                   <div class="flex flex-col items-center justify-center py-20 text-center">
-                    <div class="text-4xl mb-4 opacity-30">
+                    <div class="text-4xl mb-4 opacity-60">
                       {"\uD83D\uDD0D"}
                     </div>
-                    <p class="text-white/40 text-lg">
+                    <p class="text-slate-700 text-lg">
                       No results for "{searchQuery()}"
                     </p>
-                    <p class="text-white/25 text-sm mt-1">
+                    <p class="text-slate-500 text-sm mt-1">
                       Try a different search term or browse the categories
                     </p>
                     <button
                       type="button"
-                      class="mt-4 rounded-lg bg-white/[0.06] px-4 py-2 text-sm text-white/60 hover:bg-white/[0.1] transition-colors"
+                      class="mt-4 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-colors"
                       onClick={() => setSearchQuery("")}
                     >
                       Clear search
@@ -444,7 +410,7 @@ export default function DocsPage(): JSX.Element {
               {/* ── Popular Articles ─────────────────────────────────── */}
               <Show when={searchQuery() === ""}>
                 <div class="mt-16">
-                  <h2 class="text-lg font-semibold text-white/80 mb-6">
+                  <h2 class="text-lg font-semibold text-slate-900 mb-6">
                     Popular articles
                   </h2>
                   <div class="space-y-2">
@@ -484,18 +450,18 @@ export default function DocsPage(): JSX.Element {
                     ].map((article) => (
                       <a
                         href={`/docs/${article.category.toLowerCase().replace(/\s+/g, "-")}/${article.title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`}
-                        class="group flex items-center justify-between rounded-xl border border-white/[0.04] px-5 py-4 transition-all duration-200 hover:border-white/[0.1] hover:bg-white/[0.02]"
+                        class="group flex items-center justify-between rounded-xl border border-slate-200 bg-white px-5 py-4 transition-all duration-200 hover:border-slate-300 hover:shadow-sm"
                         style={{ "text-decoration": "none" }}
                       >
                         <div>
-                          <span class="text-sm text-white/70 group-hover:text-white/90 transition-colors">
+                          <span class="text-sm text-slate-700 group-hover:text-slate-900 transition-colors">
                             {article.title}
                           </span>
-                          <span class="ml-3 text-xs text-white/25 font-mono">
+                          <span class="ml-3 text-xs text-slate-500 font-mono">
                             {article.category}
                           </span>
                         </div>
-                        <span class="text-xs text-white/20 shrink-0 ml-4">
+                        <span class="text-xs text-slate-400 shrink-0 ml-4">
                           {article.readTime}
                         </span>
                       </a>

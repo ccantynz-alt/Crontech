@@ -42,18 +42,18 @@ export function AdminRoute(props: AdminRouteProps): JSX.Element {
     <div class="flex min-h-[60vh] flex-col items-center justify-center gap-4">
       <div
         class="flex h-16 w-16 items-center justify-center rounded-2xl text-2xl"
-        style={{ background: "rgba(239,68,68,0.1)", color: "#ef4444" }}
+        style={{ background: "rgba(225,29,72,0.08)", color: "#e11d48" }}
       >
         &#128274;
       </div>
-      <h2 class="text-xl font-bold text-white">Access Denied</h2>
-      <p class="max-w-sm text-center text-sm text-gray-500">
+      <h2 class="text-xl font-bold text-slate-900">Access Denied</h2>
+      <p class="max-w-sm text-center text-sm text-slate-600">
         This area is restricted to administrators. If you believe this is an error, contact your account administrator.
       </p>
       <button
         type="button"
         onClick={() => navigate("/dashboard", { replace: true })}
-        class="mt-2 rounded-xl bg-white/[0.06] border border-white/[0.08] px-6 py-2.5 text-sm font-medium text-gray-300 transition-all hover:border-white/[0.15] hover:text-white"
+        class="mt-2 rounded-xl border border-slate-200 bg-white px-6 py-2.5 text-sm font-medium text-slate-700 transition-all hover:border-slate-300 hover:bg-slate-50"
       >
         Go to Dashboard
       </button>

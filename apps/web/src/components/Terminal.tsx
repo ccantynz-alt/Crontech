@@ -244,15 +244,15 @@ export function Terminal(props: TerminalProps): JSX.Element {
   return (
     <div class="terminal-wrapper flex flex-col h-full w-full">
       {/* Status bar */}
-      <div class="terminal-status-bar flex items-center justify-between px-4 py-2 border-b border-white/[0.06]" style={{ background: "#111111" }}>
+      <div class="terminal-status-bar flex items-center justify-between px-4 py-2 border-b border-slate-200 bg-white">
         <div class="flex items-center gap-3">
           <div class="flex items-center gap-2">
             <div
               class="h-2.5 w-2.5 rounded-full transition-colors duration-300"
               classList={{
-                "bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.5)]": status() === "connected",
-                "bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.5)] animate-pulse": status() === "connecting",
-                "bg-red-400 shadow-[0_0_8px_rgba(248,113,113,0.5)]": status() === "disconnected",
+                "bg-emerald-600": status() === "connected",
+                "bg-amber-500 animate-pulse": status() === "connecting",
+                "bg-rose-600": status() === "disconnected",
               }}
             />
             <Badge
@@ -262,7 +262,7 @@ export function Terminal(props: TerminalProps): JSX.Element {
             </Badge>
           </div>
 
-          <span class="text-xs text-gray-500 font-mono">
+          <span class="text-xs text-slate-500 font-mono">
             project:{props.projectId}
           </span>
         </div>
@@ -291,7 +291,7 @@ export function Terminal(props: TerminalProps): JSX.Element {
 
       {/* Error banner */}
       <Show when={errorMessage()}>
-        <div class="px-4 py-2 text-xs font-medium text-red-300 border-b border-red-500/20" style={{ background: "rgba(220,38,38,0.1)" }}>
+        <div class="px-4 py-2 text-xs font-medium text-rose-700 border-b border-rose-200 bg-rose-50">
           {errorMessage()}
         </div>
       </Show>

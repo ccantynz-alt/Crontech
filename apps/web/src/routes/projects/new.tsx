@@ -55,8 +55,8 @@ function StepIndicator(props: StepIndicatorProps): JSX.Element {
                   class="h-px w-8 transition-colors duration-300"
                   style={{
                     background: isCompleted()
-                      ? "rgba(139, 92, 246, 0.6)"
-                      : "rgba(255, 255, 255, 0.06)",
+                      ? "rgba(79, 70, 229, 0.6)"
+                      : "rgba(15, 23, 42, 0.08)",
                   }}
                 />
               </Show>
@@ -65,11 +65,11 @@ function StepIndicator(props: StepIndicatorProps): JSX.Element {
                   class="flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold transition-all duration-300"
                   style={{
                     background: isActive()
-                      ? "linear-gradient(135deg, #8b5cf6, #06b6d4)"
+                      ? "#4f46e5"
                       : isCompleted()
-                        ? "rgba(139, 92, 246, 0.3)"
-                        : "rgba(255, 255, 255, 0.06)",
-                    color: isActive() || isCompleted() ? "#fff" : "#6b7280",
+                        ? "rgba(79, 70, 229, 0.15)"
+                        : "rgba(15, 23, 42, 0.06)",
+                    color: isActive() ? "#fff" : isCompleted() ? "#4f46e5" : "#64748b",
                   }}
                 >
                   <Show when={isCompleted()} fallback={<>{stepNum + 1}</>}>
@@ -80,10 +80,10 @@ function StepIndicator(props: StepIndicatorProps): JSX.Element {
                   class="text-xs font-medium transition-colors duration-300"
                   style={{
                     color: isActive()
-                      ? "#fff"
+                      ? "#0f172a"
                       : isCompleted()
-                        ? "#a78bfa"
-                        : "#6b7280",
+                        ? "#4f46e5"
+                        : "#64748b",
                   }}
                 >
                   {label}
@@ -101,38 +101,38 @@ function StepIndicator(props: StepIndicatorProps): JSX.Element {
 
 function DnsInstructions(props: { domain: string }): JSX.Element {
   return (
-    <div class="rounded-xl border border-white/[0.06] bg-white/[0.02] p-5">
-      <h4 class="mb-3 text-sm font-semibold text-white">
+    <div class="rounded-xl border border-slate-200 bg-white p-5">
+      <h4 class="mb-3 text-sm font-semibold text-slate-900">
         DNS Configuration
       </h4>
-      <p class="mb-4 text-xs text-gray-500">
+      <p class="mb-4 text-xs text-slate-600">
         Add the following record to your domain's DNS provider to point{" "}
-        <span class="font-mono text-cyan-400">{props.domain}</span>{" "}
+        <span class="font-mono text-cyan-700">{props.domain}</span>{" "}
         to Crontech.
       </p>
-      <div class="overflow-x-auto rounded-lg border border-white/[0.06] bg-black/40">
+      <div class="overflow-x-auto rounded-lg border border-slate-200 bg-slate-50">
         <table class="w-full text-left text-xs">
           <thead>
-            <tr class="border-b border-white/[0.06]">
-              <th class="px-4 py-2 font-semibold text-gray-400">Type</th>
-              <th class="px-4 py-2 font-semibold text-gray-400">Name</th>
-              <th class="px-4 py-2 font-semibold text-gray-400">Value</th>
-              <th class="px-4 py-2 font-semibold text-gray-400">TTL</th>
+            <tr class="border-b border-slate-200">
+              <th class="px-4 py-2 font-semibold text-slate-600">Type</th>
+              <th class="px-4 py-2 font-semibold text-slate-600">Name</th>
+              <th class="px-4 py-2 font-semibold text-slate-600">Value</th>
+              <th class="px-4 py-2 font-semibold text-slate-600">TTL</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td class="px-4 py-2 font-mono text-violet-400">CNAME</td>
-              <td class="px-4 py-2 font-mono text-gray-300">{props.domain}</td>
-              <td class="px-4 py-2 font-mono text-cyan-400">
+              <td class="px-4 py-2 font-mono text-indigo-700">CNAME</td>
+              <td class="px-4 py-2 font-mono text-slate-800">{props.domain}</td>
+              <td class="px-4 py-2 font-mono text-cyan-700">
                 cname.crontech.ai
               </td>
-              <td class="px-4 py-2 text-gray-500">Auto</td>
+              <td class="px-4 py-2 text-slate-500">Auto</td>
             </tr>
           </tbody>
         </table>
       </div>
-      <p class="mt-3 text-[11px] text-gray-600">
+      <p class="mt-3 text-[11px] text-slate-500">
         DNS propagation can take up to 48 hours, but typically completes within
         minutes. SSL will be provisioned automatically.
       </p>
@@ -237,26 +237,26 @@ export default function NewProjectPage(): ReturnType<typeof ProtectedRoute> {
       />
       <Title>New Project — Crontech</Title>
 
-      <div class="min-h-screen bg-[#060606]">
+      <div class="min-h-screen bg-white">
         <div class="mx-auto max-w-2xl px-6 py-8 lg:px-8">
           {/* ── Breadcrumb ──────────────────────────────────────── */}
-          <div class="mb-6 flex items-center gap-2 text-xs text-gray-500">
+          <div class="mb-6 flex items-center gap-2 text-xs text-slate-500">
             <A
               href="/projects"
-              class="transition-colors hover:text-gray-300"
+              class="transition-colors hover:text-slate-800"
             >
               Projects
             </A>
             <span>/</span>
-            <span class="text-gray-300">New</span>
+            <span class="text-slate-800">New</span>
           </div>
 
           {/* ── Header ──────────────────────────────────────────── */}
           <div class="mb-8">
-            <h1 class="text-2xl font-bold tracking-tight text-white">
+            <h1 class="text-2xl font-bold tracking-tight text-slate-900">
               Create a new project
             </h1>
-            <p class="mt-1 text-sm text-gray-500">
+            <p class="mt-1 text-sm text-slate-600">
               Configure and deploy to the Crontech edge network.
             </p>
           </div>
@@ -267,17 +267,11 @@ export default function NewProjectPage(): ReturnType<typeof ProtectedRoute> {
           </div>
 
           {/* ── Step Content ─────────────────────────────────────── */}
-          <div
-            class="rounded-2xl border border-white/[0.06] p-6"
-            style={{
-              background:
-                "linear-gradient(135deg, rgba(17,17,17,0.9) 0%, rgba(10,10,10,0.95) 100%)",
-            }}
-          >
+          <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             {/* Step 0: Basics */}
             <Show when={step() === 0}>
               <div class="flex flex-col gap-5">
-                <h2 class="text-lg font-semibold text-white">
+                <h2 class="text-lg font-semibold text-slate-900">
                   Project basics
                 </h2>
 
@@ -313,7 +307,7 @@ export default function NewProjectPage(): ReturnType<typeof ProtectedRoute> {
             {/* Step 1: Configuration */}
             <Show when={step() === 1}>
               <div class="flex flex-col gap-5">
-                <h2 class="text-lg font-semibold text-white">
+                <h2 class="text-lg font-semibold text-slate-900">
                   Build configuration
                 </h2>
 
@@ -356,12 +350,12 @@ export default function NewProjectPage(): ReturnType<typeof ProtectedRoute> {
             {/* Step 2: Domain */}
             <Show when={step() === 2}>
               <div class="flex flex-col gap-5">
-                <h2 class="text-lg font-semibold text-white">
+                <h2 class="text-lg font-semibold text-slate-900">
                   Custom domain
                 </h2>
-                <p class="text-sm text-gray-500">
+                <p class="text-sm text-slate-600">
                   You can add a custom domain now or later from project settings.
-                  A <span class="font-mono text-cyan-400">.crontech.app</span> subdomain
+                  A <span class="font-mono text-cyan-700">.crontech.app</span> subdomain
                   will be assigned automatically.
                 </p>
 
@@ -380,7 +374,7 @@ export default function NewProjectPage(): ReturnType<typeof ProtectedRoute> {
 
             {/* ── Error display ──────────────────────────────────── */}
             <Show when={createProject.error()}>
-              <div class="mt-4 rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+              <div class="mt-4 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
                 {friendlyError(createProject.error())}
               </div>
             </Show>

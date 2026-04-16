@@ -109,7 +109,7 @@ const METRIC_CONFIGS: MetricConfig[] = [
     key: "cpu",
     name: "CPU Usage",
     icon: "\u{1F4BB}",
-    color: "#3b82f6",
+    color: "#4f46e5",
     unit: "%",
     generator: generateCpuData,
     formatCard: (data) => {
@@ -128,7 +128,7 @@ const METRIC_CONFIGS: MetricConfig[] = [
     key: "memory",
     name: "Memory Usage",
     icon: "\u{1F9E0}",
-    color: "#10b981",
+    color: "#059669",
     unit: "%",
     generator: generateMemoryData,
     formatCard: (data) => {
@@ -147,7 +147,7 @@ const METRIC_CONFIGS: MetricConfig[] = [
     key: "bandwidth",
     name: "Bandwidth",
     icon: "\u{1F4E1}",
-    color: "#a855f7",
+    color: "#7c3aed",
     unit: "MB/s",
     generator: generateBandwidthData,
     formatCard: (data) => {
@@ -165,7 +165,7 @@ const METRIC_CONFIGS: MetricConfig[] = [
     key: "requests",
     name: "Requests",
     icon: "\u26A1",
-    color: "#f59e0b",
+    color: "#ea580c",
     unit: "req/min",
     generator: generateRequestsData,
     formatCard: (data) => {
@@ -274,7 +274,7 @@ export default function ProjectMetricsPage(): ReturnType<typeof ProtectedRoute> 
         path={`/projects/${params.id}/metrics`}
       />
 
-      <div class="min-h-screen bg-[#060606]">
+      <div class="min-h-screen bg-white">
         <div class="mx-auto max-w-[1440px] px-6 py-8 lg:px-8">
           {/* ── Header ────────────────────────────────────────────── */}
           <div class="mb-8 flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
@@ -283,26 +283,20 @@ export default function ProjectMetricsPage(): ReturnType<typeof ProtectedRoute> 
                 <div
                   class="flex h-8 w-8 items-center justify-center rounded-lg text-sm"
                   style={{
-                    background: "linear-gradient(135deg, rgba(139,92,246,0.2), rgba(6,182,212,0.2))",
-                    color: "#a78bfa",
+                    background: "rgba(79,70,229,0.08)",
+                    color: "#4f46e5",
                   }}
                 >
                   {"\u{1F4CA}"}
                 </div>
-                <h1 class="text-2xl font-bold tracking-tight text-white">
+                <h1 class="text-2xl font-bold tracking-tight text-slate-900">
                   {projectName()}
                 </h1>
-                <span
-                  class="rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider"
-                  style={{
-                    background: "rgba(16,185,129,0.15)",
-                    color: "#10b981",
-                  }}
-                >
+                <span class="rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-emerald-700 border border-emerald-200">
                   Live
                 </span>
               </div>
-              <p class="text-sm text-gray-500">
+              <p class="text-sm text-slate-500">
                 Container metrics &middot; Real-time monitoring
               </p>
             </div>
@@ -313,16 +307,16 @@ export default function ProjectMetricsPage(): ReturnType<typeof ProtectedRoute> 
                 type="button"
                 class="flex items-center gap-2 rounded-lg border px-3 py-1.5 text-xs font-medium transition-all duration-200"
                 style={{
-                  "border-color": autoRefresh() ? "rgba(16,185,129,0.3)" : "rgba(255,255,255,0.08)",
-                  background: autoRefresh() ? "rgba(16,185,129,0.08)" : "rgba(255,255,255,0.03)",
-                  color: autoRefresh() ? "#10b981" : "#9ca3af",
+                  "border-color": autoRefresh() ? "rgb(167,243,208)" : "rgb(226,232,240)",
+                  background: autoRefresh() ? "rgb(236,253,245)" : "rgb(255,255,255)",
+                  color: autoRefresh() ? "#047857" : "#475569",
                 }}
                 onClick={() => setAutoRefresh((v) => !v)}
               >
                 <div
                   class="h-1.5 w-1.5 rounded-full"
                   style={{
-                    background: autoRefresh() ? "#10b981" : "#6b7280",
+                    background: autoRefresh() ? "#059669" : "#94a3b8",
                   }}
                   classList={{ "animate-pulse": autoRefresh() }}
                 />
@@ -330,18 +324,16 @@ export default function ProjectMetricsPage(): ReturnType<typeof ProtectedRoute> 
               </button>
 
               {/* Time range selector */}
-              <div
-                class="flex items-center gap-0.5 rounded-lg border border-white/[0.06] p-0.5"
-                style={{ background: "rgba(255,255,255,0.02)" }}
-              >
+              <div class="flex items-center gap-0.5 rounded-lg border border-slate-200 bg-slate-50 p-0.5">
                 <For each={TIME_RANGES}>
                   {(range) => (
                     <button
                       type="button"
                       class="rounded-md px-3 py-1.5 text-xs font-medium transition-all duration-200"
                       style={{
-                        background: timeRange() === range.value ? "rgba(139,92,246,0.15)" : "transparent",
-                        color: timeRange() === range.value ? "#c4b5fd" : "#6b7280",
+                        background: timeRange() === range.value ? "rgb(255,255,255)" : "transparent",
+                        color: timeRange() === range.value ? "#4f46e5" : "#64748b",
+                        "box-shadow": timeRange() === range.value ? "0 1px 2px rgba(0,0,0,0.05)" : "none",
                       }}
                       onClick={() => {
                         setTimeRange(range.value);
@@ -357,7 +349,7 @@ export default function ProjectMetricsPage(): ReturnType<typeof ProtectedRoute> 
               {/* Manual refresh */}
               <button
                 type="button"
-                class="rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-1.5 text-xs font-medium text-gray-400 transition-all duration-200 hover:border-white/[0.15] hover:bg-white/[0.06] hover:text-white"
+                class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition-all duration-200 hover:border-slate-300 hover:bg-slate-50"
                 onClick={() => setLastRefresh(Date.now())}
               >
                 Refresh
@@ -398,19 +390,19 @@ export default function ProjectMetricsPage(): ReturnType<typeof ProtectedRoute> 
               {(config) => {
                 const data = createMemo((): DataPoint[] => metricsData()[config.key] ?? []);
                 return (
-                  <div class="overflow-hidden rounded-2xl border border-white/[0.06] bg-[#0a0a0a]">
+                  <div class="overflow-hidden rounded-xl border border-slate-200 bg-white">
                     {/* Chart header */}
-                    <div class="flex items-center justify-between border-b border-white/[0.04] px-6 py-4">
+                    <div class="flex items-center justify-between border-b border-slate-200 px-6 py-4">
                       <div class="flex items-center gap-3">
                         <div
                           class="h-2 w-2 rounded-full"
                           style={{ background: config.color }}
                         />
-                        <span class="text-sm font-semibold text-white">
+                        <span class="text-sm font-semibold text-slate-900">
                           {config.name}
                         </span>
                       </div>
-                      <span class="text-xs text-gray-600">
+                      <span class="text-xs text-slate-500">
                         {rangeConfig().points} data points
                       </span>
                     </div>
@@ -439,24 +431,24 @@ export default function ProjectMetricsPage(): ReturnType<typeof ProtectedRoute> 
           </div>
 
           {/* ── Footer info bar ───────────────────────────────────── */}
-          <div class="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-xl border border-white/[0.04] bg-white/[0.02] px-5 py-3">
-            <div class="flex items-center gap-4 text-xs text-gray-600">
+          <div class="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-xl border border-slate-200 bg-slate-50 px-5 py-3">
+            <div class="flex items-center gap-4 text-xs text-slate-600">
               <span>
                 Region:{" "}
-                <span class="font-medium text-gray-400">us-east-1</span>
+                <span class="font-medium text-slate-900">us-east-1</span>
               </span>
-              <span class="h-3 w-px bg-white/[0.06]" />
+              <span class="h-3 w-px bg-slate-200" />
               <span>
                 Runtime:{" "}
-                <span class="font-medium text-gray-400">Bun 1.3.9</span>
+                <span class="font-medium text-slate-900">Bun 1.3.9</span>
               </span>
-              <span class="h-3 w-px bg-white/[0.06]" />
+              <span class="h-3 w-px bg-slate-200" />
               <span>
                 Edge:{" "}
-                <span class="font-medium text-gray-400">330+ cities</span>
+                <span class="font-medium text-slate-900">330+ cities</span>
               </span>
             </div>
-            <span class="text-[10px] text-gray-700">
+            <span class="text-[10px] text-slate-500">
               Last updated: {new Date(lastRefresh()).toLocaleTimeString()}
             </span>
           </div>

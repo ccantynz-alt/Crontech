@@ -18,30 +18,21 @@ interface StatCardProps {
 
 function StatCard(props: StatCardProps): JSX.Element {
   return (
-    <div
-      class="relative overflow-hidden rounded-2xl border border-white/[0.06] p-6 transition-all duration-300 hover:border-white/[0.12] hover:shadow-lg hover:shadow-black/20 group"
-      style={{
-        background: "linear-gradient(135deg, rgba(17,17,17,0.9) 0%, rgba(10,10,10,0.95) 100%)",
-      }}
-    >
-      <div
-        class="absolute -top-12 -right-12 h-32 w-32 rounded-full opacity-20 blur-3xl transition-opacity duration-500 group-hover:opacity-40"
-        style={{ background: props.accentColor }}
-      />
+    <div class="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 transition-all duration-300 hover:border-slate-300 hover:shadow-md group">
       <div class="relative z-10 flex items-start justify-between">
         <div class="flex flex-col gap-1">
-          <span class="text-xs font-medium uppercase tracking-widest text-gray-500">
+          <span class="text-xs font-medium uppercase tracking-widest text-slate-500">
             {props.label}
           </span>
-          <span class="text-3xl font-bold tracking-tight text-white">
+          <span class="text-3xl font-bold tracking-tight text-slate-900">
             {props.value}
           </span>
-          <span class="mt-1 text-xs font-medium text-gray-400">{props.sublabel}</span>
+          <span class="mt-1 text-xs font-medium text-slate-600">{props.sublabel}</span>
         </div>
         <div
           class="flex h-10 w-10 items-center justify-center rounded-xl text-lg"
           style={{
-            background: `linear-gradient(135deg, ${props.accentColor}22, ${props.accentColor}44)`,
+            background: `${props.accentColor}14`,
             color: props.accentColor,
           }}
         >
@@ -49,8 +40,8 @@ function StatCard(props: StatCardProps): JSX.Element {
         </div>
       </div>
       <div
-        class="absolute bottom-0 left-0 h-[2px] w-full opacity-60"
-        style={{ background: `linear-gradient(90deg, transparent, ${props.accentColor}, transparent)` }}
+        class="absolute bottom-0 left-0 h-[2px] w-full opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+        style={{ background: props.accentColor }}
       />
     </div>
   );
@@ -62,27 +53,27 @@ type HealthStatus = "ok" | "error" | "active" | "inactive";
 
 function HealthRow(props: { label: string; status: HealthStatus; detail?: string }): JSX.Element {
   const statusColor = (): string => {
-    if (props.status === "ok" || props.status === "active") return "#10b981";
-    if (props.status === "inactive") return "#6b7280";
-    return "#ef4444";
+    if (props.status === "ok" || props.status === "active") return "#059669";
+    if (props.status === "inactive") return "#64748b";
+    return "#e11d48";
   };
 
   return (
-    <div class="flex items-center justify-between rounded-xl border border-white/[0.04] bg-white/[0.02] px-4 py-3 transition-all duration-200 hover:border-white/[0.08] hover:bg-white/[0.03]">
+    <div class="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 transition-all duration-200 hover:border-slate-300 hover:bg-white">
       <div class="flex items-center gap-3">
         <div
           class="h-2.5 w-2.5 rounded-full"
-          style={{ background: statusColor(), "box-shadow": `0 0 8px ${statusColor()}80` }}
+          style={{ background: statusColor() }}
         />
-        <span class="text-sm font-medium text-gray-200">{props.label}</span>
+        <span class="text-sm font-medium text-slate-900">{props.label}</span>
       </div>
       <div class="flex items-center gap-3">
         <Show when={props.detail}>
-          <span class="text-xs text-gray-500">{props.detail}</span>
+          <span class="text-xs text-slate-600">{props.detail}</span>
         </Show>
         <span
           class="rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider"
-          style={{ background: `${statusColor()}18`, color: statusColor() }}
+          style={{ background: `${statusColor()}14`, color: statusColor() }}
         >
           {props.status}
         </span>
@@ -117,36 +108,36 @@ function UserRow(props: {
   pending: boolean;
 }): JSX.Element {
   const roleColor = (): string => {
-    if (props.user.role === "admin") return "#a78bfa";
-    if (props.user.role === "editor") return "#3b82f6";
-    return "#6b7280";
+    if (props.user.role === "admin") return "#4f46e5";
+    if (props.user.role === "editor") return "#0891b2";
+    return "#64748b";
   };
 
   return (
-    <div class="flex items-center gap-4 rounded-xl border border-white/[0.04] bg-white/[0.015] px-4 py-3.5 transition-all duration-200 hover:border-white/[0.08] hover:bg-white/[0.03]">
+    <div class="flex items-center gap-4 rounded-xl border border-slate-200 bg-white px-4 py-3.5 transition-all duration-200 hover:border-slate-300 hover:bg-slate-50">
       <div
         class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
-        style={{ background: `linear-gradient(135deg, ${roleColor()}60, ${roleColor()})` }}
+        style={{ background: roleColor() }}
       >
         {initialsFor(props.user)}
       </div>
       <div class="flex min-w-0 flex-1 flex-col">
-        <span class="text-sm font-medium text-gray-100">
+        <span class="text-sm font-medium text-slate-900">
           {props.user.displayName ?? props.user.email}
         </span>
-        <span class="text-xs text-gray-500">{props.user.email}</span>
+        <span class="text-xs text-slate-600">{props.user.email}</span>
       </div>
       <select
         value={props.user.role}
         disabled={props.pending}
         onChange={(e) => props.onChangeRole(e.currentTarget.value as UserRole)}
-        class="w-24 rounded-lg border border-white/[0.08] bg-white/[0.04] px-2 py-1.5 text-xs text-gray-200 outline-none transition-colors duration-200 focus:border-blue-500/50 disabled:opacity-50"
+        class="w-24 rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-900 outline-none transition-colors duration-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 disabled:opacity-50"
       >
         <option value="admin">admin</option>
         <option value="editor">editor</option>
         <option value="viewer">viewer</option>
       </select>
-      <span class="w-32 text-right text-xs text-gray-500">
+      <span class="w-32 text-right text-xs text-slate-500">
         {new Date(props.user.createdAt).toLocaleDateString()}
       </span>
     </div>
@@ -243,15 +234,15 @@ function AdminPageContent(): JSX.Element {
   };
 
   return (
-    <div class="min-h-screen bg-[#060606]">
+    <div class="min-h-screen bg-white">
       <Title>Admin Panel - Crontech</Title>
 
       <div class="mx-auto max-w-7xl px-6 py-8">
         {/* Header */}
         <div class="mb-8 flex items-end justify-between">
           <div>
-            <h1 class="text-3xl font-bold tracking-tight text-white">Admin Panel</h1>
-            <p class="mt-1 text-sm text-gray-500">
+            <h1 class="text-3xl font-bold tracking-tight text-slate-900">Admin Panel</h1>
+            <p class="mt-1 text-sm text-slate-600">
               Live platform data. All numbers below come from the database — nothing is mocked.
             </p>
           </div>
@@ -259,7 +250,7 @@ function AdminPageContent(): JSX.Element {
             <button
               type="button"
               onClick={refreshAll}
-              class="flex items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-2.5 text-sm font-medium text-gray-300 transition-all duration-200 hover:border-white/[0.15] hover:bg-white/[0.06] hover:text-white"
+              class="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition-all duration-200 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900"
             >
               <span class="text-base">&#8635;</span>
               Refresh
@@ -267,7 +258,7 @@ function AdminPageContent(): JSX.Element {
             <button
               type="button"
               onClick={handleExportUsers}
-              class="flex items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-2.5 text-sm font-medium text-gray-300 transition-all duration-200 hover:border-white/[0.15] hover:bg-white/[0.06] hover:text-white"
+              class="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition-all duration-200 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900"
             >
               <span class="text-base">&#128229;</span>
               Export Users
@@ -275,7 +266,7 @@ function AdminPageContent(): JSX.Element {
             <button
               type="button"
               onClick={() => navigate("/admin/support")}
-              class="flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-violet-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 transition-all duration-200 hover:shadow-blue-500/40 hover:brightness-110"
+              class="flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white transition-all duration-200 hover:bg-indigo-700"
             >
               <span class="text-base">&#128231;</span>
               Support Queue
@@ -296,28 +287,28 @@ function AdminPageContent(): JSX.Element {
                   value={s().totalUsers.toLocaleString()}
                   sublabel="Registered accounts"
                   icon="&#128101;"
-                  accentColor="#3b82f6"
+                  accentColor="#0891b2"
                 />
                 <StatCard
                   label="Active Subscriptions"
                   value={s().activeSubscriptions.toLocaleString()}
                   sublabel="Currently paying"
                   icon="&#128179;"
-                  accentColor="#8b5cf6"
+                  accentColor="#4f46e5"
                 />
                 <StatCard
                   label="Revenue (lifetime)"
                   value={fmtCurrency(s().totalRevenue)}
                   sublabel="Succeeded payments"
                   icon="&#128176;"
-                  accentColor="#10b981"
+                  accentColor="#059669"
                 />
                 <StatCard
                   label="AI Generations"
                   value={s().aiGenerations.toLocaleString()}
                   sublabel="Total events logged"
                   icon="&#9889;"
-                  accentColor="#f59e0b"
+                  accentColor="#d97706"
                 />
               </>
             )}
@@ -327,14 +318,11 @@ function AdminPageContent(): JSX.Element {
         <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
           {/* Recent Users - takes 2 cols */}
           <div class="lg:col-span-2">
-            <div
-              class="rounded-2xl border border-white/[0.06] p-6"
-              style={{ background: "linear-gradient(135deg, rgba(17,17,17,0.9) 0%, rgba(10,10,10,0.95) 100%)" }}
-            >
+            <div class="rounded-2xl border border-slate-200 bg-white p-6">
               <div class="mb-5 flex items-center justify-between">
                 <div>
-                  <h2 class="text-lg font-semibold text-white">Recent Users</h2>
-                  <p class="text-xs text-gray-500">
+                  <h2 class="text-lg font-semibold text-slate-900">Recent Users</h2>
+                  <p class="text-xs text-slate-600">
                     <Show when={users()} fallback={<span>Loading…</span>}>
                       {(list) => <span>{list().length} shown (latest 20)</span>}
                     </Show>
@@ -344,7 +332,7 @@ function AdminPageContent(): JSX.Element {
                   <select
                     value={filterRole()}
                     onChange={(e) => setFilterRole(e.currentTarget.value)}
-                    class="rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 py-2 text-xs text-gray-300 outline-none transition-colors duration-200 focus:border-blue-500/50"
+                    class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-900 outline-none transition-colors duration-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
                   >
                     <option value="all">All Roles</option>
                     <option value="admin">Admin</option>
@@ -357,18 +345,18 @@ function AdminPageContent(): JSX.Element {
                       placeholder="Search users..."
                       value={searchQuery()}
                       onInput={(e) => setSearchQuery(e.currentTarget.value)}
-                      class="w-56 rounded-lg border border-white/[0.08] bg-white/[0.04] py-2 pl-8 pr-3 text-xs text-gray-200 placeholder-gray-600 outline-none transition-colors duration-200 focus:border-blue-500/50"
+                      class="w-56 rounded-lg border border-slate-200 bg-white py-2 pl-8 pr-3 text-xs text-slate-900 placeholder-slate-400 outline-none transition-colors duration-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
                     />
-                    <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-600 text-xs">&#128270;</span>
+                    <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs">&#128270;</span>
                   </div>
                 </div>
               </div>
 
               <div class="mb-2 flex items-center gap-4 px-4 py-2">
                 <div class="w-9 shrink-0" />
-                <span class="min-w-0 flex-1 text-[10px] font-semibold uppercase tracking-widest text-gray-600">User</span>
-                <span class="w-24 text-[10px] font-semibold uppercase tracking-widest text-gray-600">Role</span>
-                <span class="w-32 text-right text-[10px] font-semibold uppercase tracking-widest text-gray-600">Joined</span>
+                <span class="min-w-0 flex-1 text-[10px] font-semibold uppercase tracking-widest text-slate-500">User</span>
+                <span class="w-24 text-[10px] font-semibold uppercase tracking-widest text-slate-500">Role</span>
+                <span class="w-32 text-right text-[10px] font-semibold uppercase tracking-widest text-slate-500">Joined</span>
               </div>
 
               <Show
@@ -376,7 +364,7 @@ function AdminPageContent(): JSX.Element {
                 fallback={
                   <div class="flex flex-col items-center gap-2 py-12">
                     <div class="loading-spinner" />
-                    <span class="text-sm text-gray-500">Loading users…</span>
+                    <span class="text-sm text-slate-600">Loading users…</span>
                   </div>
                 }
               >
@@ -395,8 +383,8 @@ function AdminPageContent(): JSX.Element {
                 </div>
                 <Show when={filteredUsers().length === 0}>
                   <div class="flex flex-col items-center gap-2 py-12">
-                    <span class="text-2xl text-gray-600">&#128269;</span>
-                    <span class="text-sm text-gray-500">
+                    <span class="text-2xl text-slate-400">&#128269;</span>
+                    <span class="text-sm text-slate-600">
                       <Show
                         when={(users() ?? []).length > 0}
                         fallback={<>No users in the database yet</>}
@@ -412,21 +400,15 @@ function AdminPageContent(): JSX.Element {
 
           {/* System Health - right col */}
           <div class="flex flex-col gap-6">
-            <div
-              class="rounded-2xl border border-white/[0.06] p-6"
-              style={{ background: "linear-gradient(135deg, rgba(17,17,17,0.9) 0%, rgba(10,10,10,0.95) 100%)" }}
-            >
+            <div class="rounded-2xl border border-slate-200 bg-white p-6">
               <div class="mb-4 flex items-center justify-between">
-                <h2 class="text-lg font-semibold text-white">System Health</h2>
+                <h2 class="text-lg font-semibold text-slate-900">System Health</h2>
                 <Show when={health()}>
                   {(h) => (
                     <Show when={h().database === "ok" && h().api === "ok"}>
                       <div class="flex items-center gap-2">
-                        <div
-                          class="h-2 w-2 rounded-full bg-emerald-400"
-                          style={{ "box-shadow": "0 0 8px #10b98180" }}
-                        />
-                        <span class="text-xs font-medium text-emerald-400">Operational</span>
+                        <div class="h-2 w-2 rounded-full bg-emerald-600" />
+                        <span class="text-xs font-medium text-emerald-700">Operational</span>
                       </div>
                     </Show>
                   )}
@@ -437,7 +419,7 @@ function AdminPageContent(): JSX.Element {
                 fallback={
                   <div class="flex flex-col items-center gap-2 py-6">
                     <div class="loading-spinner" />
-                    <span class="text-xs text-gray-500">Checking services…</span>
+                    <span class="text-xs text-slate-600">Checking services…</span>
                   </div>
                 }
               >
@@ -451,7 +433,7 @@ function AdminPageContent(): JSX.Element {
                       detail={`${h().flagsLoaded} flags`}
                     />
                     <HealthRow label="WebSocket" status={h().websocket} />
-                    <div class="mt-2 text-[10px] text-gray-600">
+                    <div class="mt-2 text-[10px] text-slate-500">
                       Last checked {new Date(h().timestamp).toLocaleTimeString()}
                     </div>
                   </div>
@@ -460,54 +442,51 @@ function AdminPageContent(): JSX.Element {
             </div>
 
             {/* Quick Actions */}
-            <div
-              class="rounded-2xl border border-white/[0.06] p-6"
-              style={{ background: "linear-gradient(135deg, rgba(17,17,17,0.9) 0%, rgba(10,10,10,0.95) 100%)" }}
-            >
-              <h2 class="mb-4 text-lg font-semibold text-white">Quick Actions</h2>
+            <div class="rounded-2xl border border-slate-200 bg-white p-6">
+              <h2 class="mb-4 text-lg font-semibold text-slate-900">Quick Actions</h2>
               <div class="flex flex-col gap-2">
                 <button
                   type="button"
                   onClick={() => navigate("/admin/support")}
-                  class="flex items-center gap-3 rounded-xl border border-white/[0.04] bg-white/[0.02] px-4 py-3 text-left transition-all duration-200 hover:border-white/[0.08] hover:bg-white/[0.04]"
+                  class="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 text-left transition-all duration-200 hover:border-slate-300 hover:bg-slate-50"
                 >
-                  <span class="flex h-8 w-8 items-center justify-center rounded-lg text-sm" style={{ background: "#3b82f618", color: "#3b82f6" }}>&#128231;</span>
+                  <span class="flex h-8 w-8 items-center justify-center rounded-lg text-sm" style={{ background: "rgba(8,145,178,0.08)", color: "#0891b2" }}>&#128231;</span>
                   <div>
-                    <span class="text-sm font-medium text-gray-200">Support Queue</span>
-                    <p class="text-[11px] text-gray-500">Review AI draft replies before they go out</p>
+                    <span class="text-sm font-medium text-slate-900">Support Queue</span>
+                    <p class="text-[11px] text-slate-600">Review AI draft replies before they go out</p>
                   </div>
                 </button>
                 <button
                   type="button"
                   onClick={() => navigate("/admin/progress")}
-                  class="flex items-center gap-3 rounded-xl border border-white/[0.04] bg-white/[0.02] px-4 py-3 text-left transition-all duration-200 hover:border-white/[0.08] hover:bg-white/[0.04]"
+                  class="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 text-left transition-all duration-200 hover:border-slate-300 hover:bg-slate-50"
                 >
-                  <span class="flex h-8 w-8 items-center justify-center rounded-lg text-sm" style={{ background: "#10b98118", color: "#10b981" }}>&#128203;</span>
+                  <span class="flex h-8 w-8 items-center justify-center rounded-lg text-sm" style={{ background: "rgba(5,150,105,0.08)", color: "#059669" }}>&#128203;</span>
                   <div>
-                    <span class="text-sm font-medium text-gray-200">Progress Board</span>
-                    <p class="text-[11px] text-gray-500">Track block status across the platform</p>
+                    <span class="text-sm font-medium text-slate-900">Progress Board</span>
+                    <p class="text-[11px] text-slate-600">Track block status across the platform</p>
                   </div>
                 </button>
                 <button
                   type="button"
                   onClick={handleExportUsers}
-                  class="flex items-center gap-3 rounded-xl border border-white/[0.04] bg-white/[0.02] px-4 py-3 text-left transition-all duration-200 hover:border-white/[0.08] hover:bg-white/[0.04]"
+                  class="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 text-left transition-all duration-200 hover:border-slate-300 hover:bg-slate-50"
                 >
-                  <span class="flex h-8 w-8 items-center justify-center rounded-lg text-sm" style={{ background: "#f59e0b18", color: "#f59e0b" }}>&#128229;</span>
+                  <span class="flex h-8 w-8 items-center justify-center rounded-lg text-sm" style={{ background: "rgba(217,119,6,0.08)", color: "#d97706" }}>&#128229;</span>
                   <div>
-                    <span class="text-sm font-medium text-gray-200">Export Users</span>
-                    <p class="text-[11px] text-gray-500">Download CSV of real users from the DB</p>
+                    <span class="text-sm font-medium text-slate-900">Export Users</span>
+                    <p class="text-[11px] text-slate-600">Download CSV of real users from the DB</p>
                   </div>
                 </button>
                 <button
                   type="button"
                   onClick={() => navigate("/status")}
-                  class="flex items-center gap-3 rounded-xl border border-white/[0.04] bg-white/[0.02] px-4 py-3 text-left transition-all duration-200 hover:border-white/[0.08] hover:bg-white/[0.04]"
+                  class="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 text-left transition-all duration-200 hover:border-slate-300 hover:bg-slate-50"
                 >
-                  <span class="flex h-8 w-8 items-center justify-center rounded-lg text-sm" style={{ background: "#a78bfa18", color: "#a78bfa" }}>&#128200;</span>
+                  <span class="flex h-8 w-8 items-center justify-center rounded-lg text-sm" style={{ background: "rgba(79,70,229,0.08)", color: "#4f46e5" }}>&#128200;</span>
                   <div>
-                    <span class="text-sm font-medium text-gray-200">Status Page</span>
-                    <p class="text-[11px] text-gray-500">Public uptime and incidents</p>
+                    <span class="text-sm font-medium text-slate-900">Status Page</span>
+                    <p class="text-[11px] text-slate-600">Public uptime and incidents</p>
                   </div>
                 </button>
               </div>
@@ -525,16 +504,11 @@ function StatSkeleton(props: { count: number }): JSX.Element {
   return (
     <For each={Array.from({ length: props.count })}>
       {() => (
-        <div
-          class="relative overflow-hidden rounded-2xl border border-white/[0.06] p-6"
-          style={{
-            background: "linear-gradient(135deg, rgba(17,17,17,0.9) 0%, rgba(10,10,10,0.95) 100%)",
-          }}
-        >
+        <div class="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6">
           <div class="flex flex-col gap-2">
-            <div class="h-3 w-24 animate-pulse rounded bg-white/[0.05]" />
-            <div class="h-8 w-32 animate-pulse rounded bg-white/[0.08]" />
-            <div class="h-3 w-20 animate-pulse rounded bg-white/[0.04]" />
+            <div class="h-3 w-24 animate-pulse rounded bg-slate-100" />
+            <div class="h-8 w-32 animate-pulse rounded bg-slate-200" />
+            <div class="h-3 w-20 animate-pulse rounded bg-slate-100" />
           </div>
         </div>
       )}

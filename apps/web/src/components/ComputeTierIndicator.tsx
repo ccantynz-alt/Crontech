@@ -15,17 +15,17 @@ interface ComputeTierIndicatorProps {
 }
 
 const TIER_CONFIG = {
-  client: { label: "Client GPU", color: "bg-green-500", cost: "$0", latency: "<10ms" },
-  edge: { label: "Edge", color: "bg-blue-500", cost: "$", latency: "<50ms" },
-  cloud: { label: "Cloud", color: "bg-purple-500", cost: "$$", latency: "<2s" },
+  client: { label: "Client GPU", color: "bg-emerald-600", cost: "$0", latency: "<10ms" },
+  edge: { label: "Edge", color: "bg-indigo-600", cost: "$", latency: "<50ms" },
+  cloud: { label: "Cloud", color: "bg-orange-600", cost: "$$", latency: "<2s" },
 } as const satisfies Record<string, { label: string; color: string; cost: string; latency: string }>;
 
 const STATUS_CONFIG: Record<ModelStatus, { label: string; color: string }> = {
-  idle: { label: "No model", color: "text-gray-400" },
-  loading: { label: "Loading...", color: "text-yellow-400" },
-  ready: { label: "Ready", color: "text-green-400" },
-  error: { label: "Error", color: "text-red-400" },
-  unavailable: { label: "Unavailable", color: "text-gray-500" },
+  idle: { label: "No model", color: "text-slate-500" },
+  loading: { label: "Loading...", color: "text-amber-600" },
+  ready: { label: "Ready", color: "text-emerald-700" },
+  error: { label: "Error", color: "text-rose-700" },
+  unavailable: { label: "Unavailable", color: "text-slate-500" },
 };
 
 export function ComputeTierIndicator(props: ComputeTierIndicatorProps): JSX.Element {
@@ -57,7 +57,7 @@ export function ComputeTierIndicator(props: ComputeTierIndicatorProps): JSX.Elem
       <div class={`inline-flex items-center gap-2 ${props.class ?? ""}`}>
         <span class={`inline-block w-2 h-2 rounded-full ${tierConfig().color}`} />
         <Text variant="caption">{tierConfig().label}</Text>
-        <Text variant="caption" class="text-gray-500">{tierConfig().cost}</Text>
+        <Text variant="caption" class="text-slate-500">{tierConfig().cost}</Text>
       </div>
     );
   }
@@ -75,17 +75,17 @@ export function ComputeTierIndicator(props: ComputeTierIndicatorProps): JSX.Elem
           </Badge>
         </Stack>
 
-        <Text variant="caption" class="text-gray-400">{tierReason()}</Text>
+        <Text variant="caption" class="text-slate-600">{tierReason()}</Text>
 
-        <div class="border-t border-gray-700 pt-2 mt-1">
+        <div class="border-t border-slate-200 pt-2 mt-1">
           <Stack direction="vertical" gap="xs">
             <Stack direction="horizontal" gap="sm" class="justify-between">
-              <Text variant="caption" class="text-gray-500">Latency</Text>
+              <Text variant="caption" class="text-slate-500">Latency</Text>
               <Text variant="caption">{tierConfig().latency}</Text>
             </Stack>
 
             <Stack direction="horizontal" gap="sm" class="justify-between">
-              <Text variant="caption" class="text-gray-500">Model</Text>
+              <Text variant="caption" class="text-slate-500">Model</Text>
               <Text variant="caption" class={statusConfig().color}>
                 {loadedModelName()} ({statusConfig().label})
               </Text>
@@ -95,11 +95,11 @@ export function ComputeTierIndicator(props: ComputeTierIndicatorProps): JSX.Elem
               {(gpuInfo) => (
                 <>
                   <Stack direction="horizontal" gap="sm" class="justify-between">
-                    <Text variant="caption" class="text-gray-500">GPU</Text>
+                    <Text variant="caption" class="text-slate-500">GPU</Text>
                     <Text variant="caption">{gpuInfo().vendor ?? "Unknown"}</Text>
                   </Stack>
                   <Stack direction="horizontal" gap="sm" class="justify-between">
-                    <Text variant="caption" class="text-gray-500">VRAM (est.)</Text>
+                    <Text variant="caption" class="text-slate-500">VRAM (est.)</Text>
                     <Text variant="caption">{gpuInfo().estimatedVRAMMB}MB</Text>
                   </Stack>
                 </>
@@ -107,13 +107,13 @@ export function ComputeTierIndicator(props: ComputeTierIndicatorProps): JSX.Elem
             </Show>
 
             <Show when={caps() && !caps()?.hasWebGPU}>
-              <Text variant="caption" class="text-yellow-500">
+              <Text variant="caption" class="text-amber-700">
                 WebGPU not available. Using server-side inference.
               </Text>
             </Show>
 
             <Show when={caps()?.supportedModels && caps()!.supportedModels.length > 0}>
-              <Text variant="caption" class="text-gray-500">
+              <Text variant="caption" class="text-slate-500">
                 {caps()!.supportedModels.length} model(s) supported on this device
               </Text>
             </Show>

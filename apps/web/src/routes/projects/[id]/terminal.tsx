@@ -82,12 +82,9 @@ function TerminalPage(): JSX.Element {
       />
       <Title>{`Terminal - ${project().name} | Crontech`}</Title>
 
-      <div class="flex flex-col h-screen" style={{ background: "#0a0a0a" }}>
+      <div class="flex flex-col h-screen bg-white">
         {/* Header */}
-        <header
-          class="flex items-center justify-between px-4 py-2.5 border-b border-white/[0.06] shrink-0"
-          style={{ background: "#111111" }}
-        >
+        <header class="flex items-center justify-between px-4 py-2.5 border-b border-slate-200 bg-white shrink-0">
           {/* Left section */}
           <div class="flex items-center gap-3">
             <Button
@@ -100,10 +97,10 @@ function TerminalPage(): JSX.Element {
               Back
             </Button>
 
-            <div class="h-5 w-px bg-white/[0.08]" />
+            <div class="h-5 w-px bg-slate-200" />
 
             <div class="flex items-center gap-2">
-              <span class="text-sm font-semibold text-white">{project().name}</span>
+              <span class="text-sm font-semibold text-slate-900">{project().name}</span>
               <Badge variant="default">{project().framework}</Badge>
               <Badge variant="default">{project().region}</Badge>
             </div>

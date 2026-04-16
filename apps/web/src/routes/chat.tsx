@@ -60,9 +60,9 @@ function getSessionToken(): string | null {
 
 function renderContent(content: string): string {
   return content
-    .replace(/```(\w*)\n([\s\S]*?)```/g, '<pre class="my-3 overflow-x-auto rounded-xl border border-white/[0.08] bg-black/40 p-4"><code class="text-xs leading-relaxed text-emerald-300">$2</code></pre>')
-    .replace(/`([^`]+)`/g, '<code class="rounded bg-white/[0.08] px-1.5 py-0.5 text-xs text-violet-300">$1</code>')
-    .replace(/\*\*(.+?)\*\*/g, '<strong class="font-semibold text-white">$1</strong>')
+    .replace(/```(\w*)\n([\s\S]*?)```/g, '<pre class="my-3 overflow-x-auto rounded-xl border border-slate-200 bg-slate-50 p-4"><code class="text-xs leading-relaxed text-emerald-700">$2</code></pre>')
+    .replace(/`([^`]+)`/g, '<code class="rounded bg-slate-100 px-1.5 py-0.5 text-xs text-indigo-700">$1</code>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong class="font-semibold text-slate-900">$1</strong>')
     .replace(/\n/g, "<br/>");
 }
 
@@ -84,13 +84,13 @@ function ConversationItem(props: {
       onMouseLeave={() => setShowDelete(false)}
       class={`group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-all duration-150 ${
         props.isActive
-          ? "border border-white/[0.1] bg-white/[0.06] text-white"
-          : "border border-transparent text-gray-400 hover:bg-white/[0.03] hover:text-gray-200"
+          ? "border border-slate-200 bg-white text-slate-900 shadow-sm"
+          : "border border-transparent text-slate-600 hover:bg-white hover:text-slate-900"
       }`}
     >
       <div class="flex min-w-0 flex-1 flex-col">
         <span class="truncate text-xs font-medium">{props.conv.title}</span>
-        <span class="text-[10px] text-gray-600">
+        <span class="text-[10px] text-slate-500">
           {props.conv.totalTokens.toLocaleString()} tokens
         </span>
       </div>
@@ -101,7 +101,7 @@ function ConversationItem(props: {
             e.stopPropagation();
             props.onDelete();
           }}
-          class="shrink-0 rounded-md p-1 text-gray-600 transition-colors hover:bg-red-500/10 hover:text-red-400"
+          class="shrink-0 rounded-md p-1 text-slate-500 transition-colors hover:bg-rose-50 hover:text-rose-700"
         >
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M18 6L6 18M6 6l12 12" />
@@ -120,11 +120,9 @@ function MessageBubble(props: { message: ChatMessage }): JSX.Element {
   return (
     <div class={`flex gap-3 ${isUser() ? "flex-row-reverse" : ""}`}>
       <div
-        class="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-xs font-bold"
+        class="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-xs font-bold text-white"
         style={{
-          background: isUser()
-            ? "linear-gradient(135deg, #3b82f6, #8b5cf6)"
-            : "linear-gradient(135deg, #f97316, #ef4444)",
+          background: isUser() ? "#4f46e5" : "#ea580c",
         }}
       >
         {isUser() ? "You" : "C"}
@@ -133,24 +131,24 @@ function MessageBubble(props: { message: ChatMessage }): JSX.Element {
       <div class={`flex max-w-[80%] flex-col gap-1.5 ${isUser() ? "items-end" : ""}`}>
         <Show when={isUser()} fallback={
           <div
-            class="rounded-2xl px-4 py-3 text-sm leading-relaxed bg-white/[0.04] border border-white/[0.06] text-gray-300"
+            class="rounded-2xl px-4 py-3 text-sm leading-relaxed bg-white border border-slate-200 text-slate-800"
             innerHTML={renderContent(props.message.content)}
           />
         }>
-          <div class="rounded-2xl px-4 py-3 text-sm leading-relaxed bg-gradient-to-br from-blue-600/20 to-violet-600/20 border border-blue-500/20 text-gray-200">
+          <div class="rounded-2xl px-4 py-3 text-sm leading-relaxed bg-indigo-50 border border-indigo-200 text-slate-900">
             <span style={{ "white-space": "pre-wrap" }}>{props.message.content}</span>
           </div>
         </Show>
         <div class="flex items-center gap-2 px-1">
           <Show when={props.message.model}>
-            <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider" style={{ background: "#f9731615", color: "#f97316" }}>
+            <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider border border-orange-200 bg-orange-50 text-orange-700">
               {props.message.model}
             </span>
           </Show>
           <Show when={props.message.outputTokens}>
-            <span class="text-[10px] text-gray-600">{props.message.outputTokens} tokens</span>
+            <span class="text-[10px] text-slate-500">{props.message.outputTokens} tokens</span>
           </Show>
-          <span class="text-[10px] text-gray-700">
+          <span class="text-[10px] text-slate-400">
             {props.message.createdAt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
           </span>
         </div>
@@ -390,38 +388,35 @@ export default function ChatPage(): JSX.Element {
   };
 
   return (
-    <div class="flex h-screen bg-[#050508]">
+    <div class="flex h-screen bg-white">
       <Title>Chat - Crontech</Title>
 
       {/* ── Left Sidebar: Conversations ─────────────────────────── */}
-      <div
-        class="flex w-72 shrink-0 flex-col border-r border-white/[0.06]"
-        style={{ background: "linear-gradient(180deg, rgba(10,10,14,1) 0%, rgba(6,6,10,1) 100%)" }}
-      >
+      <div class="flex w-72 shrink-0 flex-col border-r border-slate-200 bg-slate-50">
         {/* Header */}
-        <div class="border-b border-white/[0.06] px-5 py-4">
+        <div class="border-b border-slate-200 px-5 py-4">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-3">
               <div
                 class="flex h-10 w-10 items-center justify-center rounded-xl"
-                style={{ background: "linear-gradient(135deg, #f9731630, #ef444460)" }}
+                style={{ background: "rgba(234,88,12,0.08)", color: "#ea580c" }}
               >
-                <span class="text-lg" style={{ color: "#f97316" }}>&#9889;</span>
+                <span class="text-lg">&#9889;</span>
               </div>
               <div>
-                <h1 class="text-base font-bold text-white">Claude Chat</h1>
-                <p class="text-[10px] text-gray-600">Anthropic API Direct</p>
+                <h1 class="text-base font-bold text-slate-900">Claude Chat</h1>
+                <p class="text-[10px] text-slate-500">Anthropic API Direct</p>
               </div>
             </div>
           </div>
         </div>
 
         {/* New Chat Button */}
-        <div class="border-b border-white/[0.06] px-4 py-3">
+        <div class="border-b border-slate-200 px-4 py-3">
           <button
             type="button"
             onClick={() => void createConversation()}
-            class="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-white/[0.1] bg-white/[0.02] px-4 py-2.5 text-xs font-medium text-gray-400 transition-all hover:border-white/[0.2] hover:bg-white/[0.04] hover:text-white"
+            class="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-slate-300 bg-white px-4 py-2.5 text-xs font-medium text-slate-700 transition-all hover:border-slate-400 hover:bg-slate-100 hover:text-slate-900"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M12 5v14M5 12h14" />
@@ -434,8 +429,8 @@ export default function ChatPage(): JSX.Element {
         <div class="flex-1 overflow-y-auto px-3 py-2">
           <Show when={conversations().length > 0} fallback={
             <div class="flex flex-col items-center gap-2 py-12 text-center">
-              <span class="text-2xl opacity-30">&#128172;</span>
-              <span class="text-xs text-gray-600">No conversations yet</span>
+              <span class="text-2xl opacity-40">&#128172;</span>
+              <span class="text-xs text-slate-500">No conversations yet</span>
             </div>
           }>
             <div class="flex flex-col gap-0.5">
@@ -454,16 +449,16 @@ export default function ChatPage(): JSX.Element {
         </div>
 
         {/* Session Stats */}
-        <div class="border-t border-white/[0.06] px-5 py-4">
-          <span class="text-[10px] font-semibold uppercase tracking-widest text-gray-600">Session</span>
+        <div class="border-t border-slate-200 px-5 py-4">
+          <span class="text-[10px] font-semibold uppercase tracking-widest text-slate-500">Session</span>
           <div class="mt-2 grid grid-cols-2 gap-3">
             <div class="flex flex-col gap-0.5">
-              <span class="text-[10px] text-gray-600">Tokens</span>
-              <span class="text-sm font-bold text-orange-400">{sessionTokens().toLocaleString()}</span>
+              <span class="text-[10px] text-slate-500">Tokens</span>
+              <span class="text-sm font-bold text-orange-700">{sessionTokens().toLocaleString()}</span>
             </div>
             <div class="flex flex-col gap-0.5">
-              <span class="text-[10px] text-gray-600">Model</span>
-              <span class="truncate text-xs font-medium text-gray-400">{currentModel().name}</span>
+              <span class="text-[10px] text-slate-500">Model</span>
+              <span class="truncate text-xs font-medium text-slate-700">{currentModel().name}</span>
             </div>
           </div>
         </div>
@@ -472,15 +467,15 @@ export default function ChatPage(): JSX.Element {
       {/* ── Center: Chat Interface ────────────────────────────── */}
       <div class="flex flex-1 flex-col overflow-hidden">
         {/* Chat Header */}
-        <div class="flex items-center justify-between border-b border-white/[0.06] bg-[#08080c] px-6 py-3">
+        <div class="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-3">
           <div class="flex items-center gap-3">
-            <span class="text-sm font-semibold text-white">
+            <span class="text-sm font-semibold text-slate-900">
               {activeConvId()
                 ? conversations().find((c) => c.id === activeConvId())?.title ?? "Chat"
                 : "New Chat"}
             </span>
-            <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider" style={{ background: "#f9731615", color: "#f97316" }}>
-              <span class="h-1.5 w-1.5 rounded-full" style={{ background: "#f97316", "box-shadow": "0 0 6px #f9731640" }} />
+            <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider border border-orange-200 bg-orange-50 text-orange-700">
+              <span class="h-1.5 w-1.5 rounded-full bg-orange-600" />
               Anthropic
             </span>
           </div>
@@ -489,11 +484,11 @@ export default function ChatPage(): JSX.Element {
             <select
               value={selectedModel()}
               onChange={(e) => setSelectedModel(e.currentTarget.value)}
-              class="rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-1.5 text-[11px] font-medium text-gray-300 outline-none transition-all focus:border-orange-500/30"
+              class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-medium text-slate-700 outline-none transition-all focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
             >
               <For each={MODELS}>
                 {(model) => (
-                  <option value={model.id} class="bg-[#0a0a0e]">{model.name}</option>
+                  <option value={model.id}>{model.name}</option>
                 )}
               </For>
             </select>
@@ -502,8 +497,8 @@ export default function ChatPage(): JSX.Element {
               onClick={() => setShowSettings(!showSettings())}
               class={`rounded-lg border px-3 py-1.5 text-[11px] font-medium transition-all duration-200 ${
                 showSettings()
-                  ? "border-orange-500/30 bg-orange-500/10 text-orange-400"
-                  : "border-white/[0.06] bg-white/[0.03] text-gray-400 hover:text-white"
+                  ? "border-orange-200 bg-orange-50 text-orange-700"
+                  : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:text-slate-900"
               }`}
             >
               Settings
@@ -513,34 +508,34 @@ export default function ChatPage(): JSX.Element {
 
         {/* API Key Warning */}
         <Show when={!hasApiKey()}>
-          <div class="mx-6 mt-4 flex items-center gap-3 rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-3">
-            <span class="text-amber-400">&#9888;</span>
+          <div class="mx-6 mt-4 flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+            <span class="text-amber-700">&#9888;</span>
             <div class="flex-1">
-              <span class="text-xs font-medium text-amber-300">No Anthropic API key configured</span>
-              <p class="text-[11px] text-amber-400/60">Go to Settings &gt; AI Provider Keys to add your key, or set ANTHROPIC_API_KEY in your environment.</p>
+              <span class="text-xs font-medium text-amber-800">No Anthropic API key configured</span>
+              <p class="text-[11px] text-amber-700">Go to Settings &gt; AI Provider Keys to add your key, or set ANTHROPIC_API_KEY in your environment.</p>
             </div>
           </div>
         </Show>
 
         {/* Error Banner */}
         <Show when={error()}>
-          <div class="mx-6 mt-4 flex items-center gap-3 rounded-xl border border-red-500/20 bg-red-500/5 px-4 py-3">
-            <span class="text-red-400">&#10060;</span>
-            <span class="flex-1 text-xs text-red-300">{error()}</span>
-            <button type="button" onClick={() => setError(null)} class="text-xs text-red-500 hover:text-red-400">Dismiss</button>
+          <div class="mx-6 mt-4 flex items-center gap-3 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3">
+            <span class="text-rose-700">&#10060;</span>
+            <span class="flex-1 text-xs text-rose-700">{error()}</span>
+            <button type="button" onClick={() => setError(null)} class="text-xs text-rose-600 hover:text-rose-800">Dismiss</button>
           </div>
         </Show>
 
         {/* System Prompt Panel */}
         <Show when={showSettings()}>
-          <div class="border-b border-white/[0.06] bg-[#08080c] px-6 py-4">
+          <div class="border-b border-slate-200 bg-slate-50 px-6 py-4">
             <div class="flex flex-col gap-2">
-              <label class="text-[10px] font-semibold uppercase tracking-widest text-gray-600">System Prompt</label>
+              <label class="text-[10px] font-semibold uppercase tracking-widest text-slate-500">System Prompt</label>
               <textarea
                 value={systemPrompt()}
                 onInput={(e) => setSystemPrompt(e.currentTarget.value)}
                 rows={3}
-                class="w-full resize-none rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-3 text-xs text-gray-200 placeholder-gray-600 outline-none transition-all focus:border-orange-500/30"
+                class="w-full resize-none rounded-xl border border-slate-200 bg-white px-4 py-3 text-xs text-slate-900 placeholder-slate-400 outline-none transition-all focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
                 placeholder="You are a helpful assistant specialized in..."
               />
             </div>
@@ -555,12 +550,12 @@ export default function ChatPage(): JSX.Element {
               <div class="flex flex-col items-center gap-4 py-24">
                 <div
                   class="flex h-20 w-20 items-center justify-center rounded-3xl"
-                  style={{ background: "linear-gradient(135deg, #f9731620, #ef444420)" }}
+                  style={{ background: "rgba(234,88,12,0.08)", color: "#ea580c" }}
                 >
-                  <span class="text-4xl" style={{ color: "#f97316" }}>&#9889;</span>
+                  <span class="text-4xl">&#9889;</span>
                 </div>
-                <h2 class="text-xl font-bold text-white">Claude Chat</h2>
-                <p class="max-w-sm text-center text-sm text-gray-500">
+                <h2 class="text-xl font-bold text-slate-900">Claude Chat</h2>
+                <p class="max-w-sm text-center text-sm text-slate-600">
                   Direct Anthropic API access. No subscriptions. Pay only for what you use. Your API key, your data, your control.
                 </p>
                 <div class="mt-4 flex flex-wrap justify-center gap-2">
@@ -571,7 +566,7 @@ export default function ChatPage(): JSX.Element {
                         setInput(prompt);
                         textareaRef?.focus();
                       }}
-                      class="rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-2 text-xs text-gray-400 transition-all hover:border-white/[0.12] hover:bg-white/[0.04] hover:text-gray-200"
+                      class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs text-slate-700 transition-all hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900"
                     >
                       {prompt}
                     </button>
@@ -588,20 +583,20 @@ export default function ChatPage(): JSX.Element {
             <Show when={isStreaming()}>
               <div class="flex gap-3">
                 <div
-                  class="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-xs font-bold"
-                  style={{ background: "linear-gradient(135deg, #f97316, #ef4444)" }}
+                  class="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-xs font-bold text-white"
+                  style={{ background: "#ea580c" }}
                 >
                   C
                 </div>
-                <div class="max-w-[80%] rounded-2xl border border-white/[0.06] bg-white/[0.04] px-4 py-3">
+                <div class="max-w-[80%] rounded-2xl border border-slate-200 bg-white px-4 py-3">
                   <Show when={streamContent()} fallback={
                     <div class="flex items-center gap-1.5">
-                      <div class="h-2 w-2 animate-pulse rounded-full bg-orange-400" />
-                      <div class="h-2 w-2 animate-pulse rounded-full bg-orange-400" style={{ "animation-delay": "0.2s" }} />
-                      <div class="h-2 w-2 animate-pulse rounded-full bg-orange-400" style={{ "animation-delay": "0.4s" }} />
+                      <div class="h-2 w-2 animate-pulse rounded-full bg-orange-600" />
+                      <div class="h-2 w-2 animate-pulse rounded-full bg-orange-600" style={{ "animation-delay": "0.2s" }} />
+                      <div class="h-2 w-2 animate-pulse rounded-full bg-orange-600" style={{ "animation-delay": "0.4s" }} />
                     </div>
                   }>
-                    <div class="text-sm leading-relaxed text-gray-300" innerHTML={renderContent(streamContent())} />
+                    <div class="text-sm leading-relaxed text-slate-800" innerHTML={renderContent(streamContent())} />
                   </Show>
                 </div>
               </div>
@@ -612,9 +607,9 @@ export default function ChatPage(): JSX.Element {
         </div>
 
         {/* Input Area */}
-        <div class="border-t border-white/[0.06] bg-[#08080c] px-6 py-4">
+        <div class="border-t border-slate-200 bg-white px-6 py-4">
           <div class="mx-auto max-w-3xl">
-            <div class="flex items-end gap-3 rounded-2xl border border-white/[0.08] bg-white/[0.03] p-2 transition-all duration-200 focus-within:border-orange-500/30 focus-within:shadow-lg focus-within:shadow-orange-500/5">
+            <div class="flex items-end gap-3 rounded-2xl border border-slate-200 bg-white p-2 transition-all duration-200 focus-within:border-orange-500 focus-within:ring-2 focus-within:ring-orange-100">
               <textarea
                 ref={textareaRef}
                 value={input()}
@@ -622,14 +617,14 @@ export default function ChatPage(): JSX.Element {
                 onKeyDown={handleKeyDown}
                 placeholder="Message Claude..."
                 rows={1}
-                class="flex-1 resize-none bg-transparent px-3 py-2.5 text-sm text-gray-200 placeholder-gray-600 outline-none"
+                class="flex-1 resize-none bg-transparent px-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 outline-none"
                 style={{ "max-height": "120px" }}
               />
               <button
                 type="button"
                 onClick={() => void handleSend()}
                 disabled={!input().trim() || isStreaming()}
-                class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-r from-orange-600 to-red-600 text-white shadow-lg shadow-orange-500/20 transition-all duration-200 hover:shadow-orange-500/40 hover:brightness-110 disabled:opacity-30 disabled:shadow-none"
+                class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-orange-600 text-white transition-all duration-200 hover:bg-orange-700 disabled:opacity-30"
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M22 2L11 13" />
@@ -638,10 +633,10 @@ export default function ChatPage(): JSX.Element {
               </button>
             </div>
             <div class="mt-2 flex items-center justify-between px-1">
-              <span class="text-[10px] text-gray-700">
+              <span class="text-[10px] text-slate-400">
                 Shift+Enter for new line
               </span>
-              <span class="text-[10px] text-gray-700">
+              <span class="text-[10px] text-slate-400">
                 {currentModel().name} via Anthropic API
               </span>
             </div>

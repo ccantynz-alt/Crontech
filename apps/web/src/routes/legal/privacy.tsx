@@ -162,28 +162,28 @@ export default function PrivacyPage(): JSX.Element {
         description="How Crontech collects, uses, and protects your personal data. GDPR, CCPA, and international compliance."
         path="/legal/privacy"
       />
-      <div class="min-h-screen bg-[#0a0a0a] text-white">
+      <div class="min-h-screen bg-white">
         <div class="mx-auto max-w-4xl px-6 py-16 sm:px-8 lg:py-24">
           <Stack direction="vertical" gap="lg">
             <Stack direction="vertical" gap="sm">
-              <Text variant="h1" weight="bold" class="bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+              <Text variant="h1" weight="bold" class="text-slate-900">
                 Privacy Policy
               </Text>
-              <Text variant="caption" class="text-gray-500">
+              <Text variant="caption" class="text-slate-500">
                 Last updated: April 8, 2026 | Effective: April 8, 2026
               </Text>
             </Stack>
             <Separator />
             <For each={sections}>
               {(section) => (
-                <Card padding="md" class="border border-white/[0.06] bg-white/[0.02]">
+                <Card padding="md" class="border border-slate-200 bg-white">
                   <Stack direction="vertical" gap="sm">
-                    <Text variant="h4" weight="semibold" class="text-gray-100">
+                    <Text variant="h4" weight="semibold" class="text-slate-900">
                       {section.title}
                     </Text>
                     <For each={section.content}>
                       {(paragraph) => (
-                        <Text variant="body" class="text-gray-400 leading-relaxed">
+                        <Text variant="body" class="text-slate-600 leading-relaxed">
                           {paragraph}
                         </Text>
                       )}

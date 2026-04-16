@@ -84,8 +84,8 @@ function OverviewTab(props: { project: ProjectData }): JSX.Element {
             <InfoRow label="Status" value={p().status} />
           </div>
           <Show when={p().description}>
-            <div class="mt-2 rounded-lg border border-white/[0.06] bg-white/[0.02] p-3">
-              <Text variant="body" class="text-gray-400">{p().description}</Text>
+            <div class="mt-2 rounded-lg border border-slate-200 bg-slate-50 p-3">
+              <Text variant="body" class="text-slate-600">{p().description}</Text>
             </div>
           </Show>
         </Stack>
@@ -145,7 +145,7 @@ function OverviewTab(props: { project: ProjectData }): JSX.Element {
           <Show
             when={p().latestDeployment}
             fallback={
-              <Text variant="body" class="text-gray-500">No deployments yet</Text>
+              <Text variant="body" class="text-slate-500">No deployments yet</Text>
             }
           >
             {(dep) => (
@@ -154,17 +154,17 @@ function OverviewTab(props: { project: ProjectData }): JSX.Element {
                   <Badge variant={statusVariant(dep().status)} size="sm">
                     {dep().status}
                   </Badge>
-                  <Text variant="caption" class="text-gray-500">
+                  <Text variant="caption" class="text-slate-500">
                     {relativeTime(dep().createdAt)}
                   </Text>
                 </div>
                 <Show when={dep().commitMessage}>
-                  <Text variant="body" class="text-gray-300 text-sm">
+                  <Text variant="body" class="text-slate-700 text-sm">
                     {dep().commitMessage}
                   </Text>
                 </Show>
                 <Show when={dep().commitSha}>
-                  <Text variant="caption" class="font-mono text-gray-500">
+                  <Text variant="caption" class="font-mono text-slate-500">
                     {dep().commitSha?.slice(0, 7)}
                     <Show when={dep().branch}>
                       {" "}on {dep().branch}
@@ -197,7 +197,7 @@ function DomainsTab(props: {
           <Text variant="h4" weight="semibold">Add Custom Domain</Text>
           <Stack direction="horizontal" gap="sm" class="items-end">
             <div class="flex-1">
-              <label class="mb-1 block text-xs font-medium text-gray-400">
+              <label class="mb-1 block text-xs font-medium text-slate-600">
                 Domain
               </label>
               <input
@@ -205,7 +205,7 @@ function DomainsTab(props: {
                 value={newDomain()}
                 onInput={(e) => setNewDomain(e.currentTarget.value)}
                 placeholder="app.example.com"
-                class="w-full rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 py-2 text-sm text-white placeholder:text-gray-600 focus:border-violet-500/50 focus:outline-none"
+                class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100"
               />
             </div>
             <Button
@@ -232,13 +232,13 @@ function DomainsTab(props: {
           </Stack>
 
           {/* DNS Instructions */}
-          <div class="rounded-lg border border-amber-500/20 bg-amber-500/5 p-4">
-            <Text variant="caption" weight="semibold" class="text-amber-400">
+          <div class="rounded-lg border border-amber-200 bg-amber-50 p-4">
+            <Text variant="caption" weight="semibold" class="text-amber-700">
               DNS Configuration Required
             </Text>
-            <Text variant="caption" class="mt-1 text-gray-400">
+            <Text variant="caption" class="mt-1 text-slate-600">
               Point your domain's A record to{" "}
-              <span class="font-mono text-cyan-400">204.168.251.243</span>
+              <span class="font-mono text-cyan-700">204.168.251.243</span>
             </Text>
           </div>
         </Stack>
@@ -249,7 +249,7 @@ function DomainsTab(props: {
         when={props.domains.length > 0}
         fallback={
           <Card padding="lg">
-            <Text variant="body" class="text-center text-gray-500">
+            <Text variant="body" class="text-center text-slate-500">
               No custom domains configured yet. Add one above.
             </Text>
           </Card>
@@ -264,10 +264,10 @@ function DomainsTab(props: {
                     <div
                       class="h-2 w-2 rounded-full"
                       style={{
-                        background: domain.dnsVerified ? "#10b981" : "#f59e0b",
+                        background: domain.dnsVerified ? "#059669" : "#d97706",
                       }}
                     />
-                    <span class="font-mono text-sm text-white">{domain.domain}</span>
+                    <span class="font-mono text-sm text-slate-900">{domain.domain}</span>
                     <Show when={domain.isPrimary}>
                       <Badge variant="info" size="sm">Primary</Badge>
                     </Show>
@@ -347,33 +347,33 @@ function EnvVarsTab(props: { projectId: string }): JSX.Element {
           <Text variant="h4" weight="semibold">Add Environment Variable</Text>
           <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
             <div>
-              <label class="mb-1 block text-xs font-medium text-gray-400">Key</label>
+              <label class="mb-1 block text-xs font-medium text-slate-600">Key</label>
               <input
                 type="text"
                 value={newKey()}
                 onInput={(e) => setNewKey(e.currentTarget.value.toUpperCase())}
                 placeholder="DATABASE_URL"
-                class="w-full rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 py-2 text-sm font-mono text-white placeholder:text-gray-600 focus:border-violet-500/50 focus:outline-none"
+                class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-mono text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100"
               />
             </div>
             <div>
-              <label class="mb-1 block text-xs font-medium text-gray-400">Value</label>
+              <label class="mb-1 block text-xs font-medium text-slate-600">Value</label>
               <input
                 type="password"
                 value={newValue()}
                 onInput={(e) => setNewValue(e.currentTarget.value)}
                 placeholder="secret..."
-                class="w-full rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 py-2 text-sm text-white placeholder:text-gray-600 focus:border-violet-500/50 focus:outline-none"
+                class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100"
               />
             </div>
             <div>
-              <label class="mb-1 block text-xs font-medium text-gray-400">Environment</label>
+              <label class="mb-1 block text-xs font-medium text-slate-600">Environment</label>
               <select
                 value={newEnv()}
                 onChange={(e) =>
                   setNewEnv(e.currentTarget.value as "production" | "preview" | "development")
                 }
-                class="w-full rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 py-2 text-sm text-white focus:border-violet-500/50 focus:outline-none"
+                class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100"
               >
                 <option value="production">Production</option>
                 <option value="preview">Preview</option>
@@ -421,7 +421,7 @@ function EnvVarsTab(props: { projectId: string }): JSX.Element {
           when={envVarsQuery.data && envVarsQuery.data.length > 0}
           fallback={
             <Card padding="lg">
-              <Text variant="body" class="text-center text-gray-500">
+              <Text variant="body" class="text-center text-slate-500">
                 No environment variables set. Values are encrypted at rest.
               </Text>
             </Card>
@@ -433,11 +433,11 @@ function EnvVarsTab(props: { projectId: string }): JSX.Element {
                 <Card padding="sm">
                   <div class="flex items-center justify-between">
                     <div class="flex items-center gap-3">
-                      <span class="font-mono text-sm text-white">{envVar.key}</span>
+                      <span class="font-mono text-sm text-slate-900">{envVar.key}</span>
                       <Badge variant="default" size="sm">{envVar.environment}</Badge>
                     </div>
                     <Stack direction="horizontal" gap="sm" class="items-center">
-                      <Text variant="caption" class="text-gray-600">
+                      <Text variant="caption" class="text-slate-500">
                         {relativeTime(envVar.updatedAt)}
                       </Text>
                       <Button
@@ -479,9 +479,9 @@ function DeploymentsTab(props: { project: ProjectData }): JSX.Element {
         <Stack direction="horizontal" justify="between" align="center">
           <div>
             <Text variant="h4" weight="semibold">Trigger Deployment</Text>
-            <Text variant="caption" class="text-gray-500">
+            <Text variant="caption" class="text-slate-500">
               Deploy the latest commit from{" "}
-              <span class="font-mono text-cyan-400">
+              <span class="font-mono text-cyan-700">
                 {props.project.repoUrl ? "your repository" : "configured source"}
               </span>
             </Text>
@@ -510,7 +510,7 @@ function DeploymentsTab(props: { project: ProjectData }): JSX.Element {
         when={props.project.latestDeployment}
         fallback={
           <Card padding="lg">
-            <Text variant="body" class="text-center text-gray-500">
+            <Text variant="body" class="text-center text-slate-500">
               No deployments yet. Click "Deploy Now" to create your first deployment.
             </Text>
           </Card>
@@ -524,15 +524,15 @@ function DeploymentsTab(props: { project: ProjectData }): JSX.Element {
                   {dep().status}
                 </Badge>
                 <div>
-                  <Text variant="body" class="text-sm text-white">
+                  <Text variant="body" class="text-sm text-slate-900">
                     {dep().commitMessage ?? "Manual deployment"}
                   </Text>
-                  <Text variant="caption" class="text-gray-500">
+                  <Text variant="caption" class="text-slate-500">
                     {dep().commitSha?.slice(0, 7) ?? "—"} on {dep().branch ?? "main"}
                   </Text>
                 </div>
               </Stack>
-              <Text variant="caption" class="text-gray-500">
+              <Text variant="caption" class="text-slate-500">
                 {relativeTime(dep().createdAt)}
               </Text>
             </div>
@@ -567,16 +567,16 @@ function SettingsTab(props: { project: ProjectData }): JSX.Element {
       {/* Danger Zone */}
       <Card padding="lg">
         <Stack direction="vertical" gap="md">
-          <Text variant="h4" weight="semibold" class="text-red-400">
+          <Text variant="h4" weight="semibold" class="text-rose-700">
             Danger Zone
           </Text>
-          <div class="rounded-lg border border-red-500/20 bg-red-500/5 p-4">
+          <div class="rounded-lg border border-rose-200 bg-rose-50 p-4">
             <Stack direction="horizontal" justify="between" align="center">
               <div>
-                <Text variant="body" class="text-sm text-white">
+                <Text variant="body" class="text-sm text-slate-900">
                   Delete this project
                 </Text>
-                <Text variant="caption" class="text-gray-500">
+                <Text variant="caption" class="text-slate-600">
                   Permanently removes the project, all domains, env vars, and deployments.
                 </Text>
               </div>
@@ -635,11 +635,11 @@ function InfoRow(props: {
 }): JSX.Element {
   return (
     <div class="flex flex-col gap-0.5">
-      <span class="text-[11px] font-medium uppercase tracking-widest text-gray-500">
+      <span class="text-[11px] font-medium uppercase tracking-widest text-slate-500">
         {props.label}
       </span>
       <span
-        class="text-sm text-gray-200"
+        class="text-sm text-slate-800"
         classList={{ "font-mono": props.mono === true }}
       >
         {props.value}
@@ -650,9 +650,9 @@ function InfoRow(props: {
 
 function ConfigRow(props: { label: string; value: string }): JSX.Element {
   return (
-    <div class="flex items-center justify-between rounded-lg border border-white/[0.04] bg-white/[0.02] px-3 py-2">
-      <span class="text-xs text-gray-400">{props.label}</span>
-      <span class="font-mono text-xs text-gray-200">{props.value}</span>
+    <div class="flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+      <span class="text-xs text-slate-600">{props.label}</span>
+      <span class="font-mono text-xs text-slate-800">{props.value}</span>
     </div>
   );
 }
@@ -739,14 +739,14 @@ export default function ProjectDetailPage(): JSX.Element {
               {/* Header */}
               <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div class="flex items-center gap-4">
-                  <A href="/projects" class="text-gray-500 hover:text-white transition-colors">
+                  <A href="/projects" class="text-slate-500 hover:text-slate-900 transition-colors">
                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                       <path d="M12 15L7 10L12 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                     </svg>
                   </A>
                   <div>
                     <Text variant="h2" weight="bold">{project().name}</Text>
-                    <Text variant="caption" class="text-gray-500 font-mono">
+                    <Text variant="caption" class="text-slate-500 font-mono">
                       {project().slug}
                     </Text>
                   </div>
@@ -778,21 +778,21 @@ export default function ProjectDetailPage(): JSX.Element {
               </div>
 
               {/* Tab Navigation */}
-              <div class="flex gap-1 border-b border-white/[0.06] pb-px">
+              <div class="flex gap-1 border-b border-slate-200 pb-px">
                 <For each={tabs}>
                   {(tab) => (
                     <button
                       type="button"
                       class="relative px-4 py-2 text-sm font-medium transition-colors"
                       classList={{
-                        "text-white": activeTab() === tab.id,
-                        "text-gray-500 hover:text-gray-300": activeTab() !== tab.id,
+                        "text-slate-900": activeTab() === tab.id,
+                        "text-slate-500 hover:text-slate-700": activeTab() !== tab.id,
                       }}
                       onClick={() => setActiveTab(tab.id)}
                     >
                       {tab.label}
                       <Show when={activeTab() === tab.id}>
-                        <div class="absolute bottom-0 left-0 h-[2px] w-full bg-violet-500" />
+                        <div class="absolute bottom-0 left-0 h-[2px] w-full bg-indigo-600" />
                       </Show>
                     </button>
                   )}

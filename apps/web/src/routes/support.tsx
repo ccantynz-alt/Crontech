@@ -16,7 +16,7 @@ interface QuickLinkCard {
   title: string;
   description: string;
   href: string;
-  gradient: string;
+  accent: string;
 }
 
 // ── Data ────────────────────────────────────────────────────────────
@@ -28,7 +28,7 @@ const QUICK_LINKS: QuickLinkCard[] = [
     description:
       "Guides, API references, and tutorials for every feature in the platform.",
     href: "/docs",
-    gradient: "from-violet-600 to-indigo-600",
+    accent: "#4f46e5",
   },
   {
     icon: "\uD83D\uDC65",
@@ -36,7 +36,7 @@ const QUICK_LINKS: QuickLinkCard[] = [
     description:
       "Join thousands of developers building with Crontech on Discord.",
     href: "https://discord.gg/crontech",
-    gradient: "from-blue-600 to-cyan-600",
+    accent: "#0891b2",
   },
   {
     icon: "\uD83D\uDFE2",
@@ -44,7 +44,7 @@ const QUICK_LINKS: QuickLinkCard[] = [
     description:
       "Real-time operational status for all platform services.",
     href: "/status",
-    gradient: "from-emerald-600 to-teal-600",
+    accent: "#059669",
   },
   {
     icon: "\u2709\uFE0F",
@@ -52,7 +52,7 @@ const QUICK_LINKS: QuickLinkCard[] = [
     description:
       "Enterprise plans, SLAs, and custom deployments for large teams.",
     href: "mailto:sales@crontech.dev",
-    gradient: "from-orange-600 to-red-600",
+    accent: "#ea580c",
   },
 ];
 
@@ -114,20 +114,17 @@ function FAQAccordion(props: { item: FAQItem; index: number }): JSX.Element {
   const [open, setOpen] = createSignal(false);
 
   return (
-    <div
-      class="border-b transition-colors duration-200"
-      style={{ "border-color": "rgba(255,255,255,0.04)" }}
-    >
+    <div class="border-b border-slate-200 transition-colors duration-200">
       <button
         type="button"
-        class="flex w-full items-center justify-between py-5 text-left transition-colors hover:text-white/90"
+        class="flex w-full items-center justify-between py-5 text-left transition-colors hover:text-slate-900"
         onClick={() => setOpen(!open())}
       >
-        <span class="text-sm font-medium text-white/70 pr-8 leading-relaxed">
+        <span class="text-sm font-medium text-slate-800 pr-8 leading-relaxed">
           {props.item.question}
         </span>
         <svg
-          class="h-5 w-5 shrink-0 text-white/25 transition-transform duration-300"
+          class="h-5 w-5 shrink-0 text-slate-400 transition-transform duration-300"
           style={{
             transform: open() ? "rotate(180deg)" : "rotate(0deg)",
           }}
@@ -145,7 +142,7 @@ function FAQAccordion(props: { item: FAQItem; index: number }): JSX.Element {
       </button>
       <Show when={open()}>
         <div class="pb-5 pr-12">
-          <p class="text-sm text-white/40 leading-relaxed">
+          <p class="text-sm text-slate-600 leading-relaxed">
             {props.item.answer}
           </p>
         </div>
@@ -192,32 +189,15 @@ export default function SupportPage(): JSX.Element {
         path="/support"
       />
 
-      <div class="min-h-screen" style={{ background: "#0a0a0a" }}>
+      <div class="min-h-screen bg-white">
         {/* ── Hero ───────────────────────────────────────────────── */}
-        <div class="relative overflow-hidden">
-          <div
-            class="absolute inset-0 opacity-25"
-            style={{
-              background:
-                "radial-gradient(ellipse at 40% 50%, rgba(99,102,241,0.12) 0%, transparent 50%), radial-gradient(ellipse at 60% 30%, rgba(59,130,246,0.1) 0%, transparent 50%)",
-            }}
-          />
-
+        <div class="relative overflow-hidden border-b border-slate-200 bg-slate-50">
           <div class="relative mx-auto max-w-5xl px-6 pt-20 pb-12">
             <div class="flex flex-col items-center text-center">
-              <h1
-                class="text-5xl font-bold tracking-tight sm:text-6xl"
-                style={{
-                  background:
-                    "linear-gradient(135deg, #fff 0%, #93c5fd 50%, #6366f1 100%)",
-                  "-webkit-background-clip": "text",
-                  "-webkit-text-fill-color": "transparent",
-                  "line-height": "1.1",
-                }}
-              >
-                How can we help?
+              <h1 class="text-5xl font-bold tracking-tight text-slate-900 sm:text-6xl">
+                How can we <span class="text-indigo-600">help?</span>
               </h1>
-              <p class="mt-4 max-w-xl text-lg text-white/50">
+              <p class="mt-4 max-w-xl text-lg text-slate-600">
                 Most replies arrive within minutes. Our AI handles the
                 common questions instantly — everything else goes straight
                 to a human teammate.
@@ -225,16 +205,10 @@ export default function SupportPage(): JSX.Element {
 
               {/* Search bar */}
               <div class="mt-8 w-full max-w-xl">
-                <div
-                  class="relative rounded-2xl border border-white/[0.08] overflow-hidden"
-                  style={{
-                    background: "rgba(255,255,255,0.03)",
-                    "backdrop-filter": "blur(12px)",
-                  }}
-                >
+                <div class="relative rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
                   <div class="absolute inset-y-0 left-4 flex items-center pointer-events-none">
                     <svg
-                      class="h-5 w-5 text-white/30"
+                      class="h-5 w-5 text-slate-400"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -250,7 +224,7 @@ export default function SupportPage(): JSX.Element {
                   <input
                     type="text"
                     placeholder="Search for answers..."
-                    class="w-full bg-transparent py-4 pl-12 pr-4 text-white placeholder-white/30 outline-none text-sm"
+                    class="w-full bg-transparent py-4 pl-12 pr-4 text-slate-900 placeholder-slate-400 outline-none text-sm"
                   />
                 </div>
               </div>
@@ -259,34 +233,31 @@ export default function SupportPage(): JSX.Element {
         </div>
 
         {/* ── Quick Link Cards ────────────────────────────────────── */}
-        <div class="mx-auto max-w-5xl px-6 pb-16">
+        <div class="mx-auto max-w-5xl px-6 pt-16 pb-16">
           <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <For each={QUICK_LINKS}>
               {(link) => (
                 <A
                   href={link.href}
-                  class="group relative overflow-hidden rounded-2xl border border-white/[0.06] p-6 transition-all duration-300 hover:scale-[1.02] hover:border-white/[0.12]"
-                  style={{
-                    background:
-                      "linear-gradient(145deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)",
-                    "backdrop-filter": "blur(12px)",
-                    "text-decoration": "none",
-                  }}
+                  class="group relative overflow-hidden rounded-xl border border-slate-200 bg-white p-6 transition-all duration-300 hover:border-slate-300 hover:shadow-md"
+                  style={{ "text-decoration": "none" }}
                 >
-                  {/* Gradient accent */}
+                  {/* Accent bar */}
                   <div
-                    class={`absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r ${link.gradient} opacity-60 transition-opacity duration-300 group-hover:opacity-100`}
+                    class="absolute inset-x-0 top-0 h-[2px] opacity-60 transition-opacity duration-300 group-hover:opacity-100"
+                    style={{ background: link.accent }}
                   />
 
                   <div
-                    class={`flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${link.gradient} text-lg mb-4 shadow-lg`}
+                    class="flex h-10 w-10 items-center justify-center rounded-xl text-lg mb-4"
+                    style={{ background: `${link.accent}14`, color: link.accent }}
                   >
                     {link.icon}
                   </div>
-                  <h3 class="text-sm font-semibold text-white/80 mb-1 group-hover:text-white transition-colors">
+                  <h3 class="text-sm font-semibold text-slate-900 mb-1">
                     {link.title}
                   </h3>
-                  <p class="text-xs text-white/35 leading-relaxed">
+                  <p class="text-xs text-slate-600 leading-relaxed">
                     {link.description}
                   </p>
                 </A>
@@ -301,22 +272,16 @@ export default function SupportPage(): JSX.Element {
             <Badge variant="info" size="sm">
               FAQ
             </Badge>
-            <h2 class="mt-4 text-2xl font-bold text-white/90">
+            <h2 class="mt-4 text-2xl font-bold text-slate-900">
               Frequently asked questions
             </h2>
-            <p class="mt-2 text-white/40 text-sm">
+            <p class="mt-2 text-slate-600 text-sm">
               Quick answers to the most common questions about the
               platform
             </p>
           </div>
 
-          <div
-            class="rounded-2xl border border-white/[0.06] px-6"
-            style={{
-              background: "rgba(255,255,255,0.02)",
-              "backdrop-filter": "blur(12px)",
-            }}
-          >
+          <div class="rounded-2xl border border-slate-200 bg-white px-6">
             <For each={FAQ_ITEMS}>
               {(item, index) => (
                 <FAQAccordion item={item} index={index()} />
@@ -328,38 +293,31 @@ export default function SupportPage(): JSX.Element {
         {/* ── Contact Form ────────────────────────────────────────── */}
         <div class="mx-auto max-w-3xl px-6 pb-16">
           <div class="text-center mb-10">
-            <h2 class="text-2xl font-bold text-white/90">
+            <h2 class="text-2xl font-bold text-slate-900">
               Send us a message
             </h2>
-            <p class="mt-2 text-white/40 text-sm">
+            <p class="mt-2 text-slate-600 text-sm">
               Cannot find what you need? Our team typically responds
               within 5 minutes during business hours
             </p>
           </div>
 
-          <div
-            class="rounded-2xl border border-white/[0.06] p-8"
-            style={{
-              background:
-                "linear-gradient(145deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)",
-              "backdrop-filter": "blur(12px)",
-            }}
-          >
+          <div class="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
             <Show
               when={!submitted()}
               fallback={
                 <div class="py-12 text-center">
                   <div class="text-4xl mb-4">{"\u2705"}</div>
-                  <h3 class="text-lg font-semibold text-white/80 mb-2">
+                  <h3 class="text-lg font-semibold text-slate-900 mb-2">
                     Message sent
                   </h3>
-                  <p class="text-white/40 text-sm mb-6">
+                  <p class="text-slate-600 text-sm mb-6">
                     We received your message and will respond shortly.
                     Check your inbox.
                   </p>
                   <button
                     type="button"
-                    class="rounded-xl bg-white/[0.06] px-5 py-2.5 text-sm text-white/60 hover:bg-white/[0.1] transition-colors"
+                    class="rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm text-slate-700 hover:border-slate-300 hover:bg-slate-50 transition-colors"
                     onClick={() => setSubmitted(false)}
                   >
                     Send another message
@@ -373,7 +331,7 @@ export default function SupportPage(): JSX.Element {
                   <div>
                     <label
                       for="support-name"
-                      class="block text-xs font-medium text-white/40 mb-1.5"
+                      class="block text-xs font-medium text-slate-600 mb-1.5"
                     >
                       Name
                     </label>
@@ -386,7 +344,7 @@ export default function SupportPage(): JSX.Element {
                         setName(e.currentTarget.value)
                       }
                       required
-                      class="w-full rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-3 text-sm text-white placeholder-white/25 outline-none focus:border-violet-500/40 transition-colors"
+                      class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder-slate-400 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
                     />
                   </div>
 
@@ -394,7 +352,7 @@ export default function SupportPage(): JSX.Element {
                   <div>
                     <label
                       for="support-email"
-                      class="block text-xs font-medium text-white/40 mb-1.5"
+                      class="block text-xs font-medium text-slate-600 mb-1.5"
                     >
                       Email
                     </label>
@@ -407,7 +365,7 @@ export default function SupportPage(): JSX.Element {
                         setEmail(e.currentTarget.value)
                       }
                       required
-                      class="w-full rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-3 text-sm text-white placeholder-white/25 outline-none focus:border-violet-500/40 transition-colors"
+                      class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder-slate-400 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
                     />
                   </div>
                 </div>
@@ -416,7 +374,7 @@ export default function SupportPage(): JSX.Element {
                 <div>
                   <label
                     for="support-subject"
-                    class="block text-xs font-medium text-white/40 mb-1.5"
+                    class="block text-xs font-medium text-slate-600 mb-1.5"
                   >
                     Subject
                   </label>
@@ -426,10 +384,10 @@ export default function SupportPage(): JSX.Element {
                     onChange={(e) =>
                       setSubject(e.currentTarget.value)
                     }
-                    class="w-full rounded-xl border border-white/[0.08] bg-[#111] px-4 py-3 text-sm text-white/70 outline-none focus:border-violet-500/40 transition-colors appearance-none"
+                    class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors appearance-none"
                     style={{
                       "background-image":
-                        "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='rgba(255,255,255,0.3)' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E\")",
+                        "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='rgba(100,116,139,0.7)' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E\")",
                       "background-repeat": "no-repeat",
                       "background-position": "right 16px center",
                     }}
@@ -446,7 +404,7 @@ export default function SupportPage(): JSX.Element {
                 <div>
                   <label
                     for="support-message"
-                    class="block text-xs font-medium text-white/40 mb-1.5"
+                    class="block text-xs font-medium text-slate-600 mb-1.5"
                   >
                     Message
                   </label>
@@ -459,18 +417,14 @@ export default function SupportPage(): JSX.Element {
                     }
                     required
                     rows={6}
-                    class="w-full rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-3 text-sm text-white placeholder-white/25 outline-none focus:border-violet-500/40 transition-colors resize-none"
+                    class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder-slate-400 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors resize-none"
                   />
                 </div>
 
                 <button
                   type="submit"
                   disabled={submitting()}
-                  class="w-full rounded-xl py-3 text-sm font-semibold text-white transition-all duration-200 hover:scale-[1.01] disabled:opacity-50 disabled:cursor-not-allowed"
-                  style={{
-                    background:
-                      "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
-                  }}
+                  class="w-full rounded-xl bg-indigo-600 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {submitting()
                     ? "Sending..."
@@ -483,19 +437,12 @@ export default function SupportPage(): JSX.Element {
 
         {/* ── Community Section ───────────────────────────────────── */}
         <div class="mx-auto max-w-5xl px-6 pb-20">
-          <div
-            class="rounded-2xl border border-white/[0.06] p-10"
-            style={{
-              background:
-                "linear-gradient(145deg, rgba(99,102,241,0.06) 0%, rgba(139,92,246,0.03) 50%, rgba(59,130,246,0.05) 100%)",
-              "backdrop-filter": "blur(12px)",
-            }}
-          >
+          <div class="rounded-2xl border border-slate-200 bg-slate-50 p-10">
             <div class="text-center mb-8">
-              <h2 class="text-2xl font-bold text-white/90">
+              <h2 class="text-2xl font-bold text-slate-900">
                 Join the community
               </h2>
-              <p class="mt-2 text-white/40 text-sm max-w-lg mx-auto">
+              <p class="mt-2 text-slate-600 text-sm max-w-lg mx-auto">
                 Connect with thousands of developers building the next
                 generation of AI-powered applications. Get help, share
                 ideas, and contribute to the platform.
@@ -508,12 +455,12 @@ export default function SupportPage(): JSX.Element {
                 href="https://discord.gg/crontech"
                 target="_blank"
                 rel="noopener noreferrer"
-                class="group flex items-center gap-4 rounded-xl border border-white/[0.06] p-4 transition-all duration-200 hover:border-indigo-500/20 hover:bg-white/[0.02]"
+                class="group flex items-center gap-4 rounded-xl border border-slate-200 bg-white p-4 transition-all duration-200 hover:border-indigo-300 hover:shadow-sm"
                 style={{ "text-decoration": "none" }}
               >
                 <div
                   class="flex h-10 w-10 items-center justify-center rounded-xl shrink-0"
-                  style={{ background: "rgba(88,101,242,0.15)" }}
+                  style={{ background: "rgba(88,101,242,0.12)" }}
                 >
                   <svg
                     class="h-5 w-5"
@@ -524,10 +471,10 @@ export default function SupportPage(): JSX.Element {
                   </svg>
                 </div>
                 <div>
-                  <span class="block text-sm font-semibold text-white/80 group-hover:text-white transition-colors">
+                  <span class="block text-sm font-semibold text-slate-900">
                     Discord
                   </span>
-                  <span class="block text-xs text-white/30">
+                  <span class="block text-xs text-slate-500">
                     Chat with the community
                   </span>
                 </div>
@@ -538,26 +485,26 @@ export default function SupportPage(): JSX.Element {
                 href="https://github.com/crontech-dev"
                 target="_blank"
                 rel="noopener noreferrer"
-                class="group flex items-center gap-4 rounded-xl border border-white/[0.06] p-4 transition-all duration-200 hover:border-white/[0.15] hover:bg-white/[0.02]"
+                class="group flex items-center gap-4 rounded-xl border border-slate-200 bg-white p-4 transition-all duration-200 hover:border-slate-300 hover:shadow-sm"
                 style={{ "text-decoration": "none" }}
               >
                 <div
                   class="flex h-10 w-10 items-center justify-center rounded-xl shrink-0"
-                  style={{ background: "rgba(255,255,255,0.08)" }}
+                  style={{ background: "rgba(15,23,42,0.06)" }}
                 >
                   <svg
                     class="h-5 w-5"
                     viewBox="0 0 24 24"
-                    fill="rgba(255,255,255,0.8)"
+                    fill="rgb(15,23,42)"
                   >
                     <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
                   </svg>
                 </div>
                 <div>
-                  <span class="block text-sm font-semibold text-white/80 group-hover:text-white transition-colors">
+                  <span class="block text-sm font-semibold text-slate-900">
                     GitHub
                   </span>
-                  <span class="block text-xs text-white/30">
+                  <span class="block text-xs text-slate-500">
                     Browse source and issues
                   </span>
                 </div>

@@ -99,37 +99,37 @@ function statusConfig(status: RawStatus | "unreachable"): StatusStyle {
     case "ok":
       return {
         label: "Operational",
-        color: "rgb(52,211,153)",
-        bgColor: "rgba(52,211,153,0.1)",
-        dotColor: "rgb(52,211,153)",
+        color: "rgb(4,120,87)", // emerald-700
+        bgColor: "rgb(236,253,245)", // emerald-50
+        dotColor: "rgb(16,185,129)", // emerald-500
       };
     case "degraded":
       return {
         label: "Degraded",
-        color: "rgb(251,191,36)",
-        bgColor: "rgba(251,191,36,0.1)",
-        dotColor: "rgb(251,191,36)",
+        color: "rgb(161,98,7)", // amber-700
+        bgColor: "rgb(254,252,232)", // amber-50
+        dotColor: "rgb(245,158,11)", // amber-500
       };
     case "down":
       return {
         label: "Outage",
-        color: "rgb(248,113,113)",
-        bgColor: "rgba(248,113,113,0.1)",
-        dotColor: "rgb(248,113,113)",
+        color: "rgb(190,18,60)", // rose-700
+        bgColor: "rgb(255,241,242)", // rose-50
+        dotColor: "rgb(244,63,94)", // rose-500
       };
     case "unreachable":
       return {
         label: "Monitor unreachable",
-        color: "rgb(248,113,113)",
-        bgColor: "rgba(248,113,113,0.1)",
-        dotColor: "rgb(248,113,113)",
+        color: "rgb(190,18,60)",
+        bgColor: "rgb(255,241,242)",
+        dotColor: "rgb(244,63,94)",
       };
     default:
       return {
         label: "Unknown",
-        color: "rgb(156,163,175)",
-        bgColor: "rgba(156,163,175,0.1)",
-        dotColor: "rgb(156,163,175)",
+        color: "rgb(71,85,105)", // slate-600
+        bgColor: "rgb(248,250,252)", // slate-50
+        dotColor: "rgb(148,163,184)", // slate-400
       };
   }
 }
@@ -198,7 +198,7 @@ function HistoryBar(props: { history: ReadonlyArray<HealthSnapshot> }): JSX.Elem
     <Show
       when={props.history.length > 0}
       fallback={
-        <div class="flex h-8 items-center justify-center rounded-md border border-white/[0.04] bg-white/[0.02] text-xs text-white/30">
+        <div class="flex h-8 items-center justify-center rounded-md border border-slate-200 bg-slate-50 text-xs text-slate-500">
           No health snapshots retained yet.
         </div>
       }
@@ -213,8 +213,8 @@ function HistoryBar(props: { history: ReadonlyArray<HealthSnapshot> }): JSX.Elem
             });
             return (
               <div
-                class="h-full min-w-[2px] flex-1 rounded-sm transition-opacity duration-200 hover:opacity-80"
-                style={{ background: cfg.dotColor, opacity: "0.7" }}
+                class="h-full min-w-[2px] flex-1 rounded-sm transition-opacity duration-200 hover:opacity-100"
+                style={{ background: cfg.dotColor, opacity: "0.85" }}
                 title={`${whenLabel} — ${cfg.label}`}
               />
             );
@@ -338,31 +338,15 @@ export default function StatusPage(): JSX.Element {
         path="/status"
       />
 
-      <div class="min-h-screen" style={{ background: "#0a0a0a" }}>
+      <div class="min-h-screen bg-white">
         {/* Hero */}
-        <div class="relative overflow-hidden">
-          <div
-            class="absolute inset-0 opacity-20"
-            style={{
-              background:
-                "radial-gradient(ellipse at 50% 0%, rgba(52,211,153,0.15) 0%, transparent 60%)",
-            }}
-          />
+        <div class="relative overflow-hidden border-b border-slate-200 bg-slate-50">
           <div class="relative mx-auto max-w-4xl px-6 pt-20 pb-12">
             <div class="flex flex-col items-center text-center">
-              <h1
-                class="text-4xl font-bold tracking-tight sm:text-5xl"
-                style={{
-                  background:
-                    "linear-gradient(135deg, #fff 0%, #34d399 50%, #10b981 100%)",
-                  "-webkit-background-clip": "text",
-                  "-webkit-text-fill-color": "transparent",
-                  "line-height": "1.1",
-                }}
-              >
-                System Status
+              <h1 class="text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl">
+                System <span class="text-emerald-700">Status</span>
               </h1>
-              <p class="mt-3 text-sm text-white/40">
+              <p class="mt-3 text-sm text-slate-500">
                 Last snapshot: {lastUpdatedLabel()}
               </p>
 
@@ -370,7 +354,7 @@ export default function StatusPage(): JSX.Element {
                 class="mt-8 w-full max-w-lg rounded-2xl border p-6"
                 style={{
                   background: overall().bgColor,
-                  "border-color": `${overall().color}22`,
+                  "border-color": `${overall().color}33`,
                 }}
               >
                 <div class="flex items-center justify-center gap-3">
@@ -389,7 +373,7 @@ export default function StatusPage(): JSX.Element {
                   </span>
                 </div>
                 <Show when={data.error}>
-                  <p class="mt-2 text-xs text-white/40">
+                  <p class="mt-2 text-xs text-slate-600">
                     Could not reach the monitor endpoint. The API may be restarting or
                     the browser may be offline. Retrying every 30s.
                   </p>
@@ -400,10 +384,10 @@ export default function StatusPage(): JSX.Element {
         </div>
 
         {/* Services */}
-        <div class="mx-auto max-w-4xl px-6 pb-8">
+        <div class="mx-auto max-w-4xl px-6 pt-10 pb-8">
           <div class="mb-6 flex items-center justify-between">
-            <h2 class="text-lg font-semibold text-white/80">Service Status</h2>
-            <span class="font-mono text-xs text-white/25">
+            <h2 class="text-lg font-semibold text-slate-900">Service Status</h2>
+            <span class="font-mono text-xs text-slate-500">
               {current()?.services.length ?? 0} services monitored
             </span>
           </div>
@@ -411,20 +395,17 @@ export default function StatusPage(): JSX.Element {
           <Show
             when={current()}
             fallback={
-              <div
-                class="rounded-2xl border border-white/[0.06] p-10 text-center"
-                style={{ background: "rgba(255,255,255,0.02)" }}
-              >
+              <div class="rounded-2xl border border-slate-200 bg-white p-10 text-center">
                 <Show when={data.loading}>
-                  <p class="text-sm text-white/40">Loading health data…</p>
+                  <p class="text-sm text-slate-600">Loading health data…</p>
                 </Show>
                 <Show when={data.error}>
-                  <p class="text-sm text-white/60">
+                  <p class="text-sm text-slate-700">
                     Monitor endpoint unreachable. No live service data to display.
                   </p>
                 </Show>
                 <Show when={!data.loading && !data.error && !current()}>
-                  <p class="text-sm text-white/50">
+                  <p class="text-sm text-slate-600">
                     Monitor is running but has not published a snapshot yet. Check back in a minute.
                   </p>
                 </Show>
@@ -432,42 +413,35 @@ export default function StatusPage(): JSX.Element {
             }
           >
             {(snap) => (
-              <div
-                class="overflow-hidden rounded-2xl border border-white/[0.06]"
-                style={{
-                  background:
-                    "linear-gradient(145deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0.005) 100%)",
-                  "backdrop-filter": "blur(12px)",
-                }}
-              >
+              <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white">
                 <For each={snap().services}>
                   {(service, index) => {
                     const cfg = statusConfig(service.status);
                     const meta = serviceMeta(service.name);
                     return (
                       <div
-                        class="flex items-center gap-4 px-6 py-4 transition-colors duration-200 hover:bg-white/[0.02]"
+                        class="flex items-center gap-4 px-6 py-4 transition-colors duration-200 hover:bg-slate-50"
                         style={{
                           "border-bottom":
                             index() < snap().services.length - 1
-                              ? "1px solid rgba(255,255,255,0.04)"
+                              ? "1px solid rgb(226,232,240)"
                               : "none",
                         }}
                       >
                         <span class="w-8 shrink-0 text-center text-lg">{meta.icon}</span>
                         <div class="min-w-0 flex-1">
                           <div class="flex items-center gap-2">
-                            <span class="text-sm font-medium text-white/80">{meta.label}</span>
+                            <span class="text-sm font-medium text-slate-900">{meta.label}</span>
                           </div>
-                          <span class="text-xs text-white/30">
+                          <span class="text-xs text-slate-500">
                             {service.detail ?? meta.description}
                           </span>
                         </div>
 
                         <div class="hidden shrink-0 items-center gap-6 sm:flex">
                           <div class="text-right">
-                            <span class="block text-xs text-white/25">Latency</span>
-                            <span class="font-mono text-sm text-white/60">
+                            <span class="block text-xs text-slate-500">Latency</span>
+                            <span class="font-mono text-sm text-slate-700">
                               {service.latencyMs > 0 ? `${service.latencyMs}ms` : "—"}
                             </span>
                           </div>
@@ -496,46 +470,40 @@ export default function StatusPage(): JSX.Element {
 
         {/* Recent history bar */}
         <div class="mx-auto max-w-4xl px-6 pb-8">
-          <div
-            class="rounded-2xl border border-white/[0.06] p-6"
-            style={{
-              background: "rgba(255,255,255,0.02)",
-              "backdrop-filter": "blur(12px)",
-            }}
-          >
+          <div class="rounded-2xl border border-slate-200 bg-white p-6">
             <div class="mb-4 flex items-center justify-between">
-              <h3 class="text-sm font-semibold text-white/60">
+              <h3 class="text-sm font-semibold text-slate-900">
                 Recent Uptime
-                <span class="ml-2 font-normal text-white/30">
+                <span class="ml-2 font-normal text-slate-500">
                   (window: {formatWindow(history())}, {history().length} snapshots)
                 </span>
               </h3>
-              <div class="flex items-center gap-4 text-xs text-white/30">
+              <div class="flex items-center gap-4 text-xs text-slate-500">
                 <span class="flex items-center gap-1.5">
                   <span
                     class="inline-block h-2 w-2 rounded-sm"
-                    style={{ background: "rgb(52,211,153)", opacity: "0.7" }}
+                    style={{ background: "rgb(16,185,129)" }}
                   />
                   Operational
                 </span>
                 <span class="flex items-center gap-1.5">
                   <span
                     class="inline-block h-2 w-2 rounded-sm"
-                    style={{ background: "rgb(251,191,36)", opacity: "0.7" }}
+                    style={{ background: "rgb(245,158,11)" }}
                   />
                   Degraded
                 </span>
                 <span class="flex items-center gap-1.5">
                   <span
                     class="inline-block h-2 w-2 rounded-sm"
-                    style={{ background: "rgb(248,113,113)", opacity: "0.7" }}
+                    style={{ background: "rgb(244,63,94)" }}
                   />
                   Outage
                 </span>
               </div>
             </div>
             <HistoryBar history={history()} />
-            <p class="mt-3 text-xs text-white/25">
+            <p class="mt-3 text-xs text-slate-500">
               The API retains the last 1,000 health checks (one per minute). Longer
               history requires a dedicated time-series store — tracked under BLK-011.
             </p>
@@ -576,13 +544,10 @@ export default function StatusPage(): JSX.Element {
               return (
                 <For each={stats}>
                   {(stat) => (
-                    <div
-                      class="rounded-xl border border-white/[0.06] p-4 text-center"
-                      style={{ background: "rgba(255,255,255,0.02)" }}
-                    >
-                      <div class="text-xl font-bold text-white/80">{stat.value}</div>
-                      <div class="mt-1 text-xs text-white/40">{stat.label}</div>
-                      <div class="mt-0.5 text-xs text-white/20">{stat.sub}</div>
+                    <div class="rounded-xl border border-slate-200 bg-white p-4 text-center">
+                      <div class="text-xl font-bold text-slate-900">{stat.value}</div>
+                      <div class="mt-1 text-xs text-slate-600">{stat.label}</div>
+                      <div class="mt-0.5 text-xs text-slate-400">{stat.sub}</div>
                     </div>
                   )}
                 </For>
@@ -593,25 +558,19 @@ export default function StatusPage(): JSX.Element {
 
         {/* Incident history — derived from real snapshots */}
         <div class="mx-auto max-w-4xl px-6 pb-20">
-          <h2 class="mb-6 text-lg font-semibold text-white/80">
+          <h2 class="mb-6 text-lg font-semibold text-slate-900">
             Incidents in retained window
           </h2>
           {(() => {
             const incidents = deriveIncidents(history());
             if (incidents.length === 0) {
               return (
-                <div
-                  class="rounded-2xl border border-white/[0.06] p-8 text-center"
-                  style={{
-                    background: "rgba(255,255,255,0.02)",
-                    "backdrop-filter": "blur(12px)",
-                  }}
-                >
-                  <div class="mb-3 text-3xl opacity-30">{"\u2705"}</div>
-                  <p class="font-medium text-white/50">
+                <div class="rounded-2xl border border-slate-200 bg-white p-8 text-center">
+                  <div class="mb-3 text-3xl opacity-60">{"\u2705"}</div>
+                  <p class="font-medium text-slate-900">
                     No incidents in the retained history window
                   </p>
-                  <p class="mt-1 text-sm text-white/25">
+                  <p class="mt-1 text-sm text-slate-500">
                     {history().length === 0
                       ? "(no snapshots yet)"
                       : `All ${history().length} snapshots reported healthy.`}
@@ -629,13 +588,7 @@ export default function StatusPage(): JSX.Element {
                     const durationMs = end.getTime() - start.getTime();
                     const durationSec = Math.max(60, Math.floor(durationMs / 1000));
                     return (
-                      <div
-                        class="rounded-2xl border border-white/[0.06] p-5"
-                        style={{
-                          background: "rgba(255,255,255,0.02)",
-                          "backdrop-filter": "blur(12px)",
-                        }}
-                      >
+                      <div class="rounded-2xl border border-slate-200 bg-white p-5">
                         <div class="flex items-start justify-between gap-4">
                           <div>
                             <div class="flex items-center gap-2">
@@ -645,11 +598,11 @@ export default function StatusPage(): JSX.Element {
                               >
                                 {cfg.label}
                               </span>
-                              <span class="text-sm text-white/70">
+                              <span class="text-sm text-slate-700">
                                 {start.toLocaleString()} — {end.toLocaleString()}
                               </span>
                             </div>
-                            <p class="mt-2 text-xs text-white/40">
+                            <p class="mt-2 text-xs text-slate-500">
                               Duration: {formatUptime(durationSec)} · Affected:{" "}
                               {incident.affected.length > 0
                                 ? incident.affected.join(", ")

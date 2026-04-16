@@ -22,29 +22,17 @@ interface StatCardProps {
 
 function StatCard(props: StatCardProps): JSX.Element {
   return (
-    <div
-      class="relative overflow-hidden rounded-2xl border border-white/[0.06] p-6 transition-all duration-300 hover:border-white/[0.12] hover:shadow-lg hover:shadow-black/20 group"
-      style={{
-        background:
-          "linear-gradient(135deg, rgba(17,17,17,0.9) 0%, rgba(10,10,10,0.95) 100%)",
-      }}
-    >
-      {/* Glow accent */}
-      <div
-        class="absolute -top-12 -right-12 h-32 w-32 rounded-full opacity-20 blur-3xl transition-opacity duration-500 group-hover:opacity-40"
-        style={{ background: props.accentColor }}
-      />
-
+    <div class="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 transition-all duration-300 hover:border-slate-300 hover:shadow-md group">
       <div class="relative z-10 flex items-start justify-between">
         <div class="flex flex-col gap-1">
-          <span class="text-xs font-medium uppercase tracking-widest text-gray-500">
+          <span class="text-xs font-medium uppercase tracking-widest text-slate-500">
             {props.label}
           </span>
-          <span class="text-3xl font-bold tracking-tight text-white">
+          <span class="text-3xl font-bold tracking-tight text-slate-900">
             {props.value}
           </span>
           <Show when={props.delta}>
-            <span class="mt-1 text-xs font-medium text-emerald-400">
+            <span class="mt-1 text-xs font-medium text-emerald-700">
               {props.delta}
             </span>
           </Show>
@@ -52,7 +40,7 @@ function StatCard(props: StatCardProps): JSX.Element {
         <div
           class="flex h-10 w-10 items-center justify-center rounded-xl text-lg"
           style={{
-            background: `linear-gradient(135deg, ${props.accentColor}22, ${props.accentColor}44)`,
+            background: `${props.accentColor}14`,
             color: props.accentColor,
           }}
         >
@@ -60,12 +48,10 @@ function StatCard(props: StatCardProps): JSX.Element {
         </div>
       </div>
 
-      {/* Bottom shimmer line */}
+      {/* Bottom accent line */}
       <div
-        class="absolute bottom-0 left-0 h-[2px] w-full opacity-60"
-        style={{
-          background: `linear-gradient(90deg, transparent, ${props.accentColor}, transparent)`,
-        }}
+        class="absolute bottom-0 left-0 h-[2px] w-full opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+        style={{ background: props.accentColor }}
       />
     </div>
   );
@@ -85,26 +71,18 @@ interface QuickActionProps {
 
 function QuickAction(props: QuickActionProps): JSX.Element {
   return (
-    <div class="group relative overflow-hidden rounded-2xl border border-white/[0.06] bg-[#0d0d0d] p-5 transition-all duration-300 hover:border-white/[0.12] hover:shadow-xl hover:shadow-black/30">
-      {/* Subtle gradient hover overlay */}
-      <div
-        class="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-        style={{
-          background: `linear-gradient(135deg, ${props.gradient}08, transparent 70%)`,
-        }}
-      />
-
+    <div class="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 transition-all duration-300 hover:border-slate-300 hover:shadow-md">
       <div class="relative z-10 flex flex-col gap-3">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-3">
             <span class="text-xl">{props.icon}</span>
-            <span class="text-sm font-semibold text-white">{props.title}</span>
+            <span class="text-sm font-semibold text-slate-900">{props.title}</span>
           </div>
           <Show when={props.badge}>
             <span
               class="rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider"
               style={{
-                background: `${props.gradient}20`,
+                background: `${props.gradient}14`,
                 color: props.gradient,
               }}
             >
@@ -112,10 +90,10 @@ function QuickAction(props: QuickActionProps): JSX.Element {
             </span>
           </Show>
         </div>
-        <p class="text-xs leading-relaxed text-gray-500">{props.description}</p>
+        <p class="text-xs leading-relaxed text-slate-600">{props.description}</p>
         <A href={props.href}>
           <button
-            class="mt-1 rounded-lg border border-white/[0.08] bg-white/[0.03] px-4 py-2 text-xs font-medium text-gray-300 transition-all duration-200 hover:border-white/[0.15] hover:bg-white/[0.06] hover:text-white"
+            class="mt-1 rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-medium text-slate-700 transition-all duration-200 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900"
             type="button"
           >
             {props.label}
@@ -139,21 +117,21 @@ interface ActivityItemProps {
 
 function ActivityItem(props: ActivityItemProps): JSX.Element {
   const inner = (
-    <div class="flex items-start gap-4 rounded-xl border border-transparent px-4 py-3 transition-all duration-200 hover:border-white/[0.04] hover:bg-white/[0.02]">
+    <div class="flex items-start gap-4 rounded-xl border border-transparent px-4 py-3 transition-all duration-200 hover:border-slate-200 hover:bg-slate-50">
       <div
         class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-sm"
         style={{
-          background: `${props.accentColor}15`,
+          background: `${props.accentColor}14`,
           color: props.accentColor,
         }}
       >
         {props.icon}
       </div>
       <div class="flex min-w-0 flex-1 flex-col gap-0.5">
-        <span class="text-sm font-medium text-gray-200">{props.title}</span>
-        <span class="text-xs text-gray-500">{props.description}</span>
+        <span class="text-sm font-medium text-slate-900">{props.title}</span>
+        <span class="text-xs text-slate-600">{props.description}</span>
       </div>
-      <span class="shrink-0 text-[11px] text-gray-600">{props.time}</span>
+      <span class="shrink-0 text-[11px] text-slate-500">{props.time}</span>
     </div>
   );
 
@@ -168,15 +146,15 @@ function ActivityItem(props: ActivityItemProps): JSX.Element {
 
 function UsageMetric(props: { label: string; value: string; color: string }): JSX.Element {
   return (
-    <div class="flex items-center justify-between rounded-lg border border-white/[0.04] bg-white/[0.015] px-4 py-3">
+    <div class="flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
       <div class="flex items-center gap-3">
         <span
           class="h-2.5 w-2.5 rounded-full"
           style={{ background: props.color }}
         />
-        <span class="text-xs text-gray-500">{props.label}</span>
+        <span class="text-xs text-slate-600">{props.label}</span>
       </div>
-      <span class="font-mono text-sm font-semibold text-gray-200">{props.value}</span>
+      <span class="font-mono text-sm font-semibold text-slate-900">{props.value}</span>
     </div>
   );
 }
@@ -239,9 +217,9 @@ export default function DashboardPage(): ReturnType<typeof ProtectedRoute> {
   // email, sentinel) lives on /status, which reads the /health/monitor
   // endpoint directly. No more fabricated "always green" indicators.
   const apiIndicator = createMemo(() => {
-    if (health.loading()) return { status: "Checking…", color: "#6b7280" };
-    if (health.data()?.status === "ok") return { status: "Online", color: "#10b981" };
-    return { status: "Degraded", color: "#ef4444" };
+    if (health.loading()) return { status: "Checking…", color: "#64748b" };
+    if (health.data()?.status === "ok") return { status: "Online", color: "#059669" };
+    return { status: "Degraded", color: "#e11d48" };
   });
 
   // ── Activity feed: real data or get-started checklist ──
@@ -250,22 +228,22 @@ export default function DashboardPage(): ReturnType<typeof ProtectedRoute> {
   );
 
   const getStartedItems: ActivityItemProps[] = [
-    { icon: "\u{2795}", title: "Create your first project", description: "Set up a new site, app, or API project", time: "Step 1", accentColor: "#8b5cf6", href: "/builder" },
-    { icon: "\u{2728}", title: "Try the Composer", description: "Generate a component tree from a prompt. Routes through client GPU, edge, or cloud.", time: "Step 2", accentColor: "#f43f5e", href: "/builder" },
-    { icon: "\u{26A1}", title: "Open Claude Chat", description: "Direct API access -- your key, your data, your control", time: "Step 3", accentColor: "#f97316", href: "/chat" },
-    { icon: "\u{1F511}", title: "Configure API keys", description: "Add your OpenAI, Anthropic, or other provider keys", time: "Step 4", accentColor: "#06b6d4", href: "/settings" },
-    { icon: "\u{1F4CB}", title: "Browse templates", description: "Start from a battle-tested blueprint and customize", time: "Step 5", accentColor: "#10b981", href: "/templates" },
+    { icon: "\u{2795}", title: "Create your first project", description: "Set up a new site, app, or API project", time: "Step 1", accentColor: "#4f46e5", href: "/builder" },
+    { icon: "\u{2728}", title: "Try the Composer", description: "Generate a component tree from a prompt. Routes through client GPU, edge, or cloud.", time: "Step 2", accentColor: "#e11d48", href: "/builder" },
+    { icon: "\u{26A1}", title: "Open Claude Chat", description: "Direct API access -- your key, your data, your control", time: "Step 3", accentColor: "#ea580c", href: "/chat" },
+    { icon: "\u{1F511}", title: "Configure API keys", description: "Add your OpenAI, Anthropic, or other provider keys", time: "Step 4", accentColor: "#0891b2", href: "/settings" },
+    { icon: "\u{1F4CB}", title: "Browse templates", description: "Start from a battle-tested blueprint and customize", time: "Step 5", accentColor: "#059669", href: "/templates" },
   ];
 
   const quickActions: QuickActionProps[] = [
-    { title: "Component Composer", description: "Generate validated SolidJS component trees from a prompt. Three-tier routing, zero boilerplate.", href: "/builder", label: "Open Composer", badge: "Popular", icon: "\u{1F680}", gradient: "#8b5cf6" },
-    { title: "Video Editor", description: "GPU-accelerated editing straight in the browser. Effects, transitions, encoding -- all on-device.", href: "/video", label: "Open editor", badge: "WebGPU", icon: "\u{1F3AC}", gradient: "#f43f5e" },
-    { title: "Real-Time Collaboration", description: "Start a session. Invite your team. Let AI agents co-author alongside them.", href: "/collab", label: "Start session", icon: "\u{1F91D}", gradient: "#06b6d4" },
-    { title: "AI Playground", description: "Test prompts, swap models, tune agents. Ship from notebook to production in one click.", href: "/ai-playground", label: "Open playground", icon: "\u{1F9EA}", gradient: "#10b981" },
-    { title: "Claude Chat", description: "Direct Anthropic API access. No subscriptions. Your key, your data, your control.", href: "/chat", label: "Open chat", icon: "\u{26A1}", gradient: "#f97316" },
-    { title: "Repositories", description: "Your repos, PRs, branches, issues, and CI status. All in one command center.", href: "/repos", label: "View repos", icon: "\u{1F4BB}", gradient: "#a78bfa" },
-    { title: "Templates", description: "Start from a battle-tested blueprint. Clone, customize, deploy in under five minutes.", href: "/templates", label: "Browse templates", icon: "\u{1F4CB}", gradient: "#f59e0b" },
-    { title: "Docs & Guides", description: "Learn the platform like the pros. Architecture deep-dives, recipes, and API reference.", href: "/docs", label: "Read docs", icon: "\u{1F4D6}", gradient: "#6366f1" },
+    { title: "Component Composer", description: "Generate validated SolidJS component trees from a prompt. Three-tier routing, zero boilerplate.", href: "/builder", label: "Open Composer", badge: "Popular", icon: "\u{1F680}", gradient: "#4f46e5" },
+    { title: "Video Editor", description: "GPU-accelerated editing straight in the browser. Effects, transitions, encoding -- all on-device.", href: "/video", label: "Open editor", badge: "WebGPU", icon: "\u{1F3AC}", gradient: "#e11d48" },
+    { title: "Real-Time Collaboration", description: "Start a session. Invite your team. Let AI agents co-author alongside them.", href: "/collab", label: "Start session", icon: "\u{1F91D}", gradient: "#0891b2" },
+    { title: "AI Playground", description: "Test prompts, swap models, tune agents. Ship from notebook to production in one click.", href: "/ai-playground", label: "Open playground", icon: "\u{1F9EA}", gradient: "#059669" },
+    { title: "Claude Chat", description: "Direct Anthropic API access. No subscriptions. Your key, your data, your control.", href: "/chat", label: "Open chat", icon: "\u{26A1}", gradient: "#ea580c" },
+    { title: "Repositories", description: "Your repos, PRs, branches, issues, and CI status. All in one command center.", href: "/repos", label: "View repos", icon: "\u{1F4BB}", gradient: "#7c3aed" },
+    { title: "Templates", description: "Start from a battle-tested blueprint. Clone, customize, deploy in under five minutes.", href: "/templates", label: "Browse templates", icon: "\u{1F4CB}", gradient: "#d97706" },
+    { title: "Docs & Guides", description: "Learn the platform like the pros. Architecture deep-dives, recipes, and API reference.", href: "/docs", label: "Read docs", icon: "\u{1F4D6}", gradient: "#4f46e5" },
   ];
 
   return (
@@ -273,55 +251,47 @@ export default function DashboardPage(): ReturnType<typeof ProtectedRoute> {
       <OnboardingWizard />
       <Title>Dashboard — Crontech</Title>
 
-      <div class="min-h-screen bg-[#060606]">
+      <div class="min-h-screen bg-white">
         <div class="mx-auto max-w-[1400px] px-6 py-8 lg:px-8">
           {/* ── Header ──────────────────────────────────────────────── */}
           <div class="mb-8 flex flex-col gap-1">
-            <span class="text-xs font-medium uppercase tracking-widest text-gray-600">
+            <span class="text-xs font-medium uppercase tracking-widest text-slate-500">
               {new Date().toLocaleDateString(undefined, {
                 weekday: "long",
                 month: "long",
                 day: "numeric",
               })}
             </span>
-            <h1 class="text-3xl font-bold tracking-tight text-white">
+            <h1 class="text-3xl font-bold tracking-tight text-slate-900">
               {greeting()},{" "}
-              <span
-                class="bg-clip-text text-transparent"
-                style={{
-                  "background-image":
-                    "linear-gradient(135deg, #8b5cf6, #06b6d4)",
-                }}
-              >
-                {firstName()}
-              </span>
+              <span class="text-indigo-600">{firstName()}</span>
             </h1>
-            <p class="text-sm text-gray-500">
+            <p class="text-sm text-slate-600">
               Your command center. Everything you need, one click away.
             </p>
           </div>
 
           {/* ── System Status Bar ───────────────────────────────────── */}
-          <div class="mb-8 flex flex-wrap items-center gap-4 rounded-xl border border-white/[0.04] bg-white/[0.02] px-5 py-3">
-            <span class="text-xs font-semibold uppercase tracking-widest text-gray-500">
+          <div class="mb-8 flex flex-wrap items-center gap-4 rounded-xl border border-slate-200 bg-slate-50 px-5 py-3">
+            <span class="text-xs font-semibold uppercase tracking-widest text-slate-500">
               System Status
             </span>
-            <div class="h-4 w-px bg-white/[0.08]" />
+            <div class="h-4 w-px bg-slate-200" />
             <div class="flex items-center gap-2">
               <div
                 class="h-1.5 w-1.5 rounded-full"
                 style={{ background: apiIndicator().color }}
               />
-              <span class="text-xs text-gray-400">
+              <span class="text-xs text-slate-600">
                 API:{" "}
-                <span class="font-medium text-gray-300">
+                <span class="font-medium text-slate-900">
                   {apiIndicator().status}
                 </span>
               </span>
             </div>
             <A
               href="/status"
-              class="ml-auto text-xs text-violet-400 transition-colors hover:text-violet-300"
+              class="ml-auto text-xs text-indigo-600 transition-colors hover:text-indigo-700"
             >
               Full service status →
             </A>
@@ -333,13 +303,13 @@ export default function DashboardPage(): ReturnType<typeof ProtectedRoute> {
               label="Total Projects"
               value={userList.loading() ? "--" : fmt(userList.data()?.total)}
               icon="\u{1F4C1}"
-              accentColor="#8b5cf6"
+              accentColor="#4f46e5"
             />
             <StatCard
               label="Deployments"
               value={usage.loading() ? "--" : fmt(usage.data()?.featureUsage)}
               icon="\u{1F680}"
-              accentColor="#06b6d4"
+              accentColor="#0891b2"
             />
             <StatCard
               label="AI Generations"
@@ -350,7 +320,7 @@ export default function DashboardPage(): ReturnType<typeof ProtectedRoute> {
                   : undefined
               }
               icon="\u{1F916}"
-              accentColor="#10b981"
+              accentColor="#059669"
             />
             <StatCard
               label="Unread Alerts"
@@ -360,28 +330,28 @@ export default function DashboardPage(): ReturnType<typeof ProtectedRoute> {
                   : String((unread.data() ?? []).length)
               }
               icon="\u{1F514}"
-              accentColor="#f59e0b"
+              accentColor="#d97706"
             />
           </div>
 
           {/* ── Main Grid: Activity + Charts ────────────────────────── */}
           <div class="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
             {/* Recent Activity / Get Started */}
-            <div class="lg:col-span-2 overflow-hidden rounded-2xl border border-white/[0.06] bg-[#0d0d0d]">
-              <div class="flex items-center justify-between border-b border-white/[0.06] px-6 py-4">
+            <div class="lg:col-span-2 overflow-hidden rounded-2xl border border-slate-200 bg-white">
+              <div class="flex items-center justify-between border-b border-slate-200 px-6 py-4">
                 <div class="flex items-center gap-3">
-                  <div class="h-2 w-2 animate-pulse rounded-full bg-emerald-400" />
-                  <span class="text-sm font-semibold text-white">
+                  <div class="h-2 w-2 animate-pulse rounded-full bg-emerald-600" />
+                  <span class="text-sm font-semibold text-slate-900">
                     <Show when={hasProducts()} fallback="Get Started">
                       Recent Activity
                     </Show>
                   </span>
                 </div>
-                <A href="/settings" class="text-xs text-gray-500 hover:text-gray-400 transition-colors">
+                <A href="/settings" class="text-xs text-slate-600 hover:text-slate-900 transition-colors">
                   View all
                 </A>
               </div>
-              <div class="divide-y divide-white/[0.03] p-2">
+              <div class="divide-y divide-slate-100 p-2">
                 <Show
                   when={hasProducts()}
                   fallback={
@@ -419,10 +389,10 @@ export default function DashboardPage(): ReturnType<typeof ProtectedRoute> {
                         )}
                         accentColor={
                           evt.category === "ai_generation"
-                            ? "#8b5cf6"
+                            ? "#4f46e5"
                             : evt.category === "feature_usage"
-                              ? "#f59e0b"
-                              : "#06b6d4"
+                              ? "#d97706"
+                              : "#0891b2"
                         }
                       />
                     )}
@@ -432,10 +402,10 @@ export default function DashboardPage(): ReturnType<typeof ProtectedRoute> {
             </div>
 
             {/* Usage summary — real numbers from analytics, no faked charts */}
-            <div class="overflow-hidden rounded-2xl border border-white/[0.06] bg-[#0d0d0d]">
-              <div class="flex items-center justify-between border-b border-white/[0.06] px-6 py-4">
-                <span class="text-sm font-semibold text-white">Usage summary</span>
-                <span class="text-[10px] font-semibold uppercase tracking-wider text-gray-600">
+            <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+              <div class="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+                <span class="text-sm font-semibold text-slate-900">Usage summary</span>
+                <span class="text-[10px] font-semibold uppercase tracking-wider text-slate-500">
                   all-time
                 </span>
               </div>
@@ -443,19 +413,19 @@ export default function DashboardPage(): ReturnType<typeof ProtectedRoute> {
                 <UsageMetric
                   label="AI generations"
                   value={usage.loading() ? "…" : fmt(usage.data()?.aiGenerations)}
-                  color="#10b981"
+                  color="#059669"
                 />
                 <UsageMetric
                   label="Page views"
                   value={usage.loading() ? "…" : fmt(usage.data()?.pageViews)}
-                  color="#8b5cf6"
+                  color="#4f46e5"
                 />
                 <UsageMetric
                   label="Feature events"
                   value={usage.loading() ? "…" : fmt(usage.data()?.featureUsage)}
-                  color="#06b6d4"
+                  color="#0891b2"
                 />
-                <p class="mt-2 text-[11px] leading-relaxed text-gray-600">
+                <p class="mt-2 text-[11px] leading-relaxed text-slate-500">
                   Time-series charts arrive with the analytics rollup service
                   (BLK-011). Until then, these are the aggregate counts from
                   your analytics events.
@@ -467,10 +437,10 @@ export default function DashboardPage(): ReturnType<typeof ProtectedRoute> {
           {/* ── Quick Actions ───────────────────────────────────────── */}
           <div class="mb-8">
             <div class="mb-4 flex items-center gap-3">
-              <span class="text-sm font-semibold text-white">
+              <span class="text-sm font-semibold text-slate-900">
                 Quick Actions
               </span>
-              <div class="h-px flex-1 bg-white/[0.04]" />
+              <div class="h-px flex-1 bg-slate-200" />
             </div>
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               <For each={quickActions}>
@@ -492,16 +462,19 @@ export default function DashboardPage(): ReturnType<typeof ProtectedRoute> {
           <ProgressTracker />
 
           {/* ── Account Card ────────────────────────────────────────── */}
-          <div class="mt-8 overflow-hidden rounded-2xl border border-white/[0.06] bg-[#0d0d0d] p-6">
+          <div class="mt-8 overflow-hidden rounded-2xl border border-slate-200 bg-white p-6">
             <div class="mb-4 flex items-center gap-3">
-              <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600/20 to-cyan-600/20 text-sm font-bold text-white">
+              <div
+                class="flex h-10 w-10 items-center justify-center rounded-xl text-sm font-bold"
+                style={{ background: "rgba(79,70,229,0.08)", color: "#4f46e5" }}
+              >
                 {firstName().charAt(0).toUpperCase()}
               </div>
               <div class="flex flex-col">
-                <span class="text-sm font-semibold text-white">
+                <span class="text-sm font-semibold text-slate-900">
                   {auth.currentUser()?.displayName ?? "Unknown"}
                 </span>
-                <span class="text-xs text-gray-500">
+                <span class="text-xs text-slate-600">
                   {auth.currentUser()?.email ?? "--"}
                 </span>
               </div>
@@ -509,7 +482,7 @@ export default function DashboardPage(): ReturnType<typeof ProtectedRoute> {
                 {auth.currentUser()?.role ?? "member"}
               </Badge>
             </div>
-            <div class="flex items-center gap-6 text-xs text-gray-500">
+            <div class="flex items-center gap-6 text-xs text-slate-600">
               <span>
                 Member since{" "}
                 {auth.currentUser()?.createdAt
@@ -520,7 +493,7 @@ export default function DashboardPage(): ReturnType<typeof ProtectedRoute> {
               </span>
               <A
                 href="/settings"
-                class="font-medium text-violet-400 hover:text-violet-300 transition-colors"
+                class="font-medium text-indigo-600 hover:text-indigo-700 transition-colors"
               >
                 Manage account
               </A>
