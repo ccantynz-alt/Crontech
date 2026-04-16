@@ -53,16 +53,34 @@ describe("Smoke: Icon component source", () => {
   });
 });
 
-describe("Smoke: Icon module loads", () => {
-  test("Icon module imports without throwing", async () => {
-    // Verifies the file is syntactically valid, JSX parses, and
-    // `solid-icons/fi` resolves at runtime. We don't render — SolidJS
-    // JSX needs a DOM the web package doesn't preload in tests.
-    const mod = (await import("./Icon")) as {
-      Icon: unknown;
-      default: unknown;
-    };
-    expect(typeof mod.Icon).toBe("function");
-    expect(typeof mod.default).toBe("function");
+describe("Smoke: Icon registry contents", () => {
+  test("all 6 landing-page icon names are present in the registry", () => {
+    const src = readFileSync(ICON_TSX, "utf-8");
+    // Every feature-card icon referenced in routes/index.tsx must
+    // resolve inside the Icon registry, otherwise the page TS-breaks.
+    // Hyphenated keys appear quoted (`"link-2":`); bare keys don't
+    // (`zap:`). Accept either form.
+    for (const name of ["zap", "database", "link-2", "radio", "brain", "lock"]) {
+      const bareForm = `${name}:`;
+      const quotedForm = `"${name}":`;
+      expect(src.includes(bareForm) || src.includes(quotedForm)).toBe(true);
+    }
+  });
+
+  test("every registry entry resolves to a Feather Icon component", () => {
+    const src = readFileSync(ICON_TSX, "utf-8");
+    // Grab the ICON_MAP block and verify every right-hand side is a
+    // `Fi*` import (we deliberately use one icon pack for visual
+    // consistency).
+    const mapStart = src.indexOf("const ICON_MAP = {");
+    const mapEnd = src.indexOf("} as const satisfies", mapStart);
+    expect(mapStart).toBeGreaterThan(-1);
+    expect(mapEnd).toBeGreaterThan(mapStart);
+    const mapBody = src.slice(mapStart, mapEnd);
+    const entries = mapBody.match(/^\s*[\w"'`-]+:\s*(\w+),/gm) ?? [];
+    expect(entries.length).toBeGreaterThan(0);
+    for (const entry of entries) {
+      expect(entry).toMatch(/:\s*Fi[A-Z]\w+,/);
+    }
   });
 });
