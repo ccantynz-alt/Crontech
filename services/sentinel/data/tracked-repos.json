@@ -10,7 +10,7 @@
       "defaultBranch": "canary",
       "lastKnownRelease": "v16.3.0-canary.0",
       "lastKnownReleaseAt": "2026-04-17T16:09:30Z",
-      "lastCommitCheckAt": "2026-04-17T18:09:38.924Z",
+      "lastCommitCheckAt": "2026-04-17T21:20:44.221Z",
       "baselineCommitsPerWeek": 100
     },
     {
@@ -23,7 +23,7 @@
       "defaultBranch": "main",
       "lastKnownRelease": "static-middleware@0.4.5",
       "lastKnownReleaseAt": "2026-03-25T23:06:25Z",
-      "lastCommitCheckAt": "2026-04-17T18:09:44.440Z",
+      "lastCommitCheckAt": "2026-04-17T21:20:48.254Z",
       "baselineCommitsPerWeek": 1
     },
     {
@@ -36,8 +36,8 @@
       "defaultBranch": "main",
       "lastKnownRelease": "@sveltejs/kit@2.57.1",
       "lastKnownReleaseAt": "2026-04-09T21:45:47Z",
-      "lastCommitCheckAt": "2026-04-17T18:09:44.755Z",
-      "baselineCommitsPerWeek": 13
+      "lastCommitCheckAt": "2026-04-17T21:20:48.559Z",
+      "baselineCommitsPerWeek": 11
     },
     {
       "owner": "QwikDev",
@@ -62,8 +62,8 @@
       "defaultBranch": "main",
       "lastKnownRelease": "astro@6.1.7",
       "lastKnownReleaseAt": "2026-04-15T18:07:56Z",
-      "lastCommitCheckAt": "2026-04-17T18:09:45.234Z",
-      "baselineCommitsPerWeek": 33
+      "lastCommitCheckAt": "2026-04-17T21:20:48.758Z",
+      "baselineCommitsPerWeek": 38
     },
     {
       "owner": "honojs",
@@ -75,7 +75,7 @@
       "defaultBranch": "main",
       "lastKnownRelease": "v4.12.14",
       "lastKnownReleaseAt": "2026-04-15T06:15:10Z",
-      "lastCommitCheckAt": "2026-04-17T18:09:39.104Z",
+      "lastCommitCheckAt": "2026-04-17T21:20:44.404Z",
       "baselineCommitsPerWeek": 6
     },
     {
@@ -88,7 +88,7 @@
       "defaultBranch": "main",
       "lastKnownRelease": "v2.0.0-beta.0",
       "lastKnownReleaseAt": "2026-03-03T23:09:19Z",
-      "lastCommitCheckAt": "2026-04-17T18:09:39.280Z",
+      "lastCommitCheckAt": "2026-04-17T21:20:44.533Z",
       "baselineCommitsPerWeek": 0
     },
     {
@@ -101,7 +101,7 @@
       "defaultBranch": "main",
       "lastKnownRelease": "v11.16.0",
       "lastKnownReleaseAt": "2026-03-28T10:24:00Z",
-      "lastCommitCheckAt": "2026-04-17T18:09:39.462Z",
+      "lastCommitCheckAt": "2026-04-17T21:20:44.833Z",
       "baselineCommitsPerWeek": 2
     },
     {
@@ -114,8 +114,8 @@
       "defaultBranch": "main",
       "lastKnownRelease": "ai@5.0.179",
       "lastKnownReleaseAt": "2026-04-17T03:47:01Z",
-      "lastCommitCheckAt": "2026-04-17T18:09:40.395Z",
-      "baselineCommitsPerWeek": 86
+      "lastCommitCheckAt": "2026-04-17T21:20:45.344Z",
+      "baselineCommitsPerWeek": 90
     },
     {
       "owner": "langchain-ai",
@@ -140,8 +140,8 @@
       "defaultBranch": "main",
       "lastKnownRelease": "wrangler@4.83.0",
       "lastKnownReleaseAt": "2026-04-15T09:28:42Z",
-      "lastCommitCheckAt": "2026-04-17T18:09:41.443Z",
-      "baselineCommitsPerWeek": 52
+      "lastCommitCheckAt": "2026-04-17T21:20:46.012Z",
+      "baselineCommitsPerWeek": 57
     },
     {
       "owner": "cloudflare",
@@ -166,7 +166,7 @@
       "defaultBranch": "master",
       "lastKnownRelease": "v1.26.04",
       "lastKnownReleaseAt": "2026-04-09T14:38:08Z",
-      "lastCommitCheckAt": "2026-04-17T18:09:42.040Z",
+      "lastCommitCheckAt": "2026-04-17T21:20:46.467Z",
       "baselineCommitsPerWeek": 100
     },
     {
@@ -179,7 +179,7 @@
       "defaultBranch": "main",
       "lastKnownRelease": "precompiled-2026-04-17-c34b8ec",
       "lastKnownReleaseAt": "2026-04-17T01:53:03Z",
-      "lastCommitCheckAt": "2026-04-17T18:09:43.992Z",
+      "lastCommitCheckAt": "2026-04-17T21:20:47.884Z",
       "baselineCommitsPerWeek": 99
     },
     {
@@ -296,10 +296,10 @@
       "defaultBranch": "main",
       "lastKnownRelease": null,
       "lastKnownReleaseAt": null,
-      "lastCommitCheckAt": "2026-04-17T18:09:44.211Z",
+      "lastCommitCheckAt": "2026-04-17T21:20:48.090Z",
       "baselineCommitsPerWeek": 0
     }
   ],
-  "lastUpdated": "2026-04-17T18:09:45.683Z",
+  "lastUpdated": "2026-04-17T21:20:48.758Z",
   "schemaVersion": 1
 }
