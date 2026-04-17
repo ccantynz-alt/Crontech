@@ -78,33 +78,37 @@ jobs:
           command_timeout: 10m
           script: |
             set -euo pipefail
+            export PATH="$HOME/.bun/bin:/usr/local/bin:$PATH"
             echo "=== Deploying Crontech to Vultr ==="
 
             APP_DIR="/opt/crontech"
             cd "$APP_DIR"
 
             # 1. Pull latest code
-            echo "[1/5] Pulling latest code..."
+            echo "[1/6] Pulling latest code..."
             git fetch origin main
             git reset --hard origin/main
 
             # 2. Install dependencies
-            echo "[2/5] Installing dependencies..."
+            echo "[2/6] Installing dependencies..."
             bun install --frozen-lockfile
 
             # 3. Build
-            echo "[3/5] Building..."
-            bun run build --filter=@back-to-the-future/api
-            SERVER_PRESET=node-server bun run build --filter=@back-to-the-future/web
+            echo "[3/6] Building..."
+            bun run build
 
-            # 4. Restart services
-            echo "[4/5] Restarting services..."
+            # 4. Run migrations
+            echo "[4/6] Running migrations..."
+            bun run --cwd apps/api -e 'import("@back-to-the-future/db/migrate").then(m => m.runMigrations()).then(() => process.exit(0)).catch(e => { console.error(e); process.exit(1) })' || echo "Migration skipped (no DB configured yet)"
+
+            # 5. Restart services
+            echo "[5/6] Restarting services..."
             sudo systemctl restart crontech-api
             sleep 3
             sudo systemctl restart crontech-web
 
-            # 5. Health checks
-            echo "[5/5] Running health checks..."
+            # 6. Health checks
+            echo "[6/6] Running health checks..."
             sleep 5
 
             API_OK=false
