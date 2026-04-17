@@ -1,0 +1,174 @@
+# Crontech Platform — Production Caddyfile
+# Automatic HTTPS via Let's Encrypt. HTTP/2 + HTTP/3.
+#
+# This Caddyfile is mounted into the Caddy container by
+# docker-compose.production.yml. All upstreams are Docker-internal
+# service names (not 127.0.0.1 — Caddy runs inside the compose network).
+#
+# Cache-Control strategy:
+#   /_build/*, /assets/*  -> content-hashed by Vinxi, safe to cache forever
+#   /api/*                -> dynamic, never cached
+#   root statics (.ico)   -> short TTL so new deploys replace them
+#   HTML (everything else)-> never cached, new deploys go live immediately
+
+# ── Global options ────────────────────────────────────────────────────
+
+{
+	# Enable HTTP/3 (QUIC) on all servers
+	servers {
+		protocols h1 h2 h2c h3
+	}
+
+	# Let's Encrypt email for certificate notifications
+	email {$ACME_EMAIL:admin@crontech.ai}
+
+	# Admin API — enabled on localhost only for health checks.
+	# Not exposed to the internet (Caddy container has no host port for 2019).
+	admin :2019
+}
+
+# ── crontech.ai -> Web App (SolidStart SSR) ──────────────────────────
+
+crontech.ai {
+	encode gzip zstd
+
+	# ── Matchers ──────────────────────────────────────────────────────
+	# Hashed immutable assets: content-addressed by Vinxi.
+	@hashedAssets path /_build/* /assets/*
+	# API passthrough from SSR: dynamic responses.
+	@apiPaths path /api/*
+	# Root-level static files with short TTL.
+	@rootStatics path *.ico *.png *.jpg *.jpeg *.svg *.webp *.xml *.txt *.json *.webmanifest
+	# Everything else (HTML, SSR output) — must NEVER cache.
+	@htmlish {
+		not path /_build/* /assets/* /api/* *.ico *.png *.jpg *.jpeg *.svg *.webp *.xml *.txt *.json *.webmanifest
+	}
+
+	# ── Cache-Control ─────────────────────────────────────────────────
+	header @hashedAssets Cache-Control "public, max-age=31536000, immutable"
+	header @apiPaths Cache-Control "no-cache, no-store, must-revalidate"
+	header @rootStatics Cache-Control "public, max-age=3600, must-revalidate"
+	header @htmlish {
+		Cache-Control "no-cache, no-store, must-revalidate"
+		Pragma "no-cache"
+		Expires "0"
+	}
+
+	# ── Security headers (every response) ─────────────────────────────
+	header {
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "SAMEORIGIN"
+		X-XSS-Protection "1; mode=block"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
+		Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()"
+		# Remove server identity header
+		-Server
+	}
+
+	reverse_proxy web:3000 {
+		health_uri /
+		health_interval 30s
+		health_timeout 5s
+
+		# Pass original client info to the application
+		header_up X-Real-IP {remote_host}
+		header_up X-Forwarded-For {remote_host}
+		header_up X-Forwarded-Proto {scheme}
+	}
+
+	log {
+		output file /var/log/caddy/crontech-web.log {
+			roll_size 50mb
+			roll_keep 5
+			roll_keep_for 168h
+		}
+		format json
+		level INFO
+	}
+}
+
+# ── www.crontech.ai -> redirect to apex ──────────────────────────────
+
+www.crontech.ai {
+	redir https://crontech.ai{uri} permanent
+}
+
+# ── api.crontech.ai -> API Server (Hono + Bun) ──────────────────────
+
+api.crontech.ai {
+	encode gzip zstd
+
+	# API responses are dynamic — never cache.
+	header {
+		Cache-Control "no-cache, no-store, must-revalidate"
+		Pragma "no-cache"
+		Expires "0"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		X-XSS-Protection "1; mode=block"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
+		Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()"
+		# Remove server identity header
+		-Server
+	}
+
+	reverse_proxy api:3001 {
+		health_uri /api/health
+		health_interval 30s
+		health_timeout 5s
+
+		header_up X-Real-IP {remote_host}
+		header_up X-Forwarded-For {remote_host}
+		header_up X-Forwarded-Proto {scheme}
+	}
+
+	log {
+		output file /var/log/caddy/crontech-api.log {
+			roll_size 50mb
+			roll_keep 5
+			roll_keep_for 168h
+		}
+		format json
+		level INFO
+	}
+}
+
+# ── *.crontech.app -> Deployer (customer project subdomains) ─────────
+# Placeholder for BLK-009. The deployer service does not exist yet.
+# When it ships, uncomment this block and wire it to the deployer
+# container on port 8080.
+
+# *.crontech.app {
+# 	encode gzip zstd
+#
+# 	tls {
+# 		on_demand
+# 	}
+#
+# 	header {
+# 		X-Content-Type-Options "nosniff"
+# 		X-Frame-Options "SAMEORIGIN"
+# 		Strict-Transport-Security "max-age=63072000; includeSubDomains"
+# 		Referrer-Policy "strict-origin-when-cross-origin"
+# 		-Server
+# 	}
+#
+# 	reverse_proxy deployer:8080 {
+# 		header_up X-Real-IP {remote_host}
+# 		header_up X-Forwarded-For {remote_host}
+# 		header_up X-Forwarded-Proto {scheme}
+# 		header_up X-Forwarded-Host {host}
+# 	}
+#
+# 	log {
+# 		output file /var/log/caddy/crontech-deployer.log {
+# 			roll_size 50mb
+# 			roll_keep 5
+# 			roll_keep_for 168h
+# 		}
+# 		format json
+# 		level INFO
+# 	}
+# }
