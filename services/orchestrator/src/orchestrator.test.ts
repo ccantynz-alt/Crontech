@@ -1,16 +1,13 @@
 // ── Deploy Orchestrator Tests ──────────────────────────────────────────
 
-import { describe, test, expect, beforeEach } from "bun:test";
+import { describe, test, expect } from "bun:test";
 import type {
   AppDeployment,
-  AppStatus,
   Container,
   ContainerInspect,
   CaddyRoute,
-  CaddyConfig,
   DeployRequest,
   DeploymentsManifest,
-  FrameworkDetection,
   LogEntry,
   PortAllocation,
 } from "./types";

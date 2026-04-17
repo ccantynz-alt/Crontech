@@ -151,16 +151,19 @@ app.get("/logs/:app/stream", (c) => {
 // ── Start Server ──────────────────────────────────────────────────────
 
 const PORT = Number(process.env["ORCHESTRATOR_PORT"] ?? "9000");
+// In Docker, bind to 0.0.0.0 so other containers can reach us.
+// On bare metal, default to 127.0.0.1 for security (localhost only).
+const HOSTNAME = process.env["ORCHESTRATOR_HOSTNAME"] ?? "127.0.0.1";
 
 startHealthMonitor();
 
 Bun.serve({
   fetch: app.fetch,
   port: PORT,
-  hostname: "127.0.0.1",
+  hostname: HOSTNAME,
 });
 
-console.log(`[orchestrator] Deploy orchestrator running on http://127.0.0.1:${PORT}`);
+console.log(`[orchestrator] Deploy orchestrator running on http://${HOSTNAME}:${PORT}`);
 console.log("[orchestrator] Health monitor active (30s interval)");
 
 export default app;

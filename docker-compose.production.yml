@@ -305,6 +305,7 @@ services:
     environment:
       - NODE_ENV=production
       - ORCHESTRATOR_PORT=9000
+      - ORCHESTRATOR_HOSTNAME=0.0.0.0
       - GIT_SHA=${GIT_SHA:-unknown}
     networks:
       - crontech-internal
