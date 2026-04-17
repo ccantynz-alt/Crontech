@@ -144,8 +144,8 @@ function FeatureCard(props: Feature): JSX.Element {
             <div
               class="flex h-12 w-12 items-center justify-center rounded-xl"
               style={{
-                background: "linear-gradient(135deg, var(--color-primary-light), color-mix(in oklab, var(--color-primary-light) 70%, var(--color-accent)))",
-                color: "var(--color-primary)",
+                background: "linear-gradient(135deg, #eef2ff, #e8e0ff)",
+                color: "#4f46e5",
               }}
             >
               <Icon name={props.icon} size={22} />
@@ -154,8 +154,8 @@ function FeatureCard(props: Feature): JSX.Element {
               <span
                 class="shrink-0 rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-wider"
                 style={{
-                  background: "var(--color-primary-light)",
-                  color: "var(--color-primary)",
+                  background: "#eef2ff",
+                  color: "#4f46e5",
                 }}
               >
                 {props.badge}
@@ -171,7 +171,7 @@ function FeatureCard(props: Feature): JSX.Element {
               {props.title}
             </h3>
             <p
-              class="text-[0.9rem] leading-[1.65]"
+              class="text-[0.9rem] leading-[1.7]"
               style={{ color: "var(--color-text-secondary)" }}
             >
               {props.description}
@@ -180,7 +180,7 @@ function FeatureCard(props: Feature): JSX.Element {
 
           <div
             class="mt-auto flex items-center gap-1.5 pt-3 text-sm font-medium"
-            style={{ color: "var(--color-primary)" }}
+            style={{ color: "#4f46e5" }}
           >
             <span>Learn more</span>
             <span class="transition-transform duration-200 group-hover:translate-x-1">&#8594;</span>
@@ -202,7 +202,7 @@ function StepCard(props: Step & { isLast: boolean }): JSX.Element {
           style={{
             background: "var(--color-bg-elevated)",
             border: "1px solid var(--color-border)",
-            "box-shadow": "var(--shadow-sm)",
+            "box-shadow": "0 4px 12px rgba(0,0,0,0.06)",
           }}
         >
           {props.icon}
@@ -210,9 +210,9 @@ function StepCard(props: Step & { isLast: boolean }): JSX.Element {
         <div
           class="absolute -top-2.5 -right-2.5 flex h-7 w-7 items-center justify-center rounded-lg text-[11px] font-bold"
           style={{
-            background: "var(--color-primary)",
+            background: "linear-gradient(135deg, #4f46e5, #7c3aed)",
             color: "#fff",
-            "box-shadow": "0 2px 8px rgba(37,99,235,0.3)",
+            "box-shadow": "0 2px 8px rgba(79,70,229,0.4)",
           }}
         >
           {props.number}
@@ -226,7 +226,7 @@ function StepCard(props: Step & { isLast: boolean }): JSX.Element {
         {props.title}
       </h3>
       <p
-        class="max-w-[280px] text-[0.9rem] leading-[1.65]"
+        class="max-w-[280px] text-[0.9rem] leading-[1.7]"
         style={{ color: "var(--color-text-secondary)" }}
       >
         {props.description}
@@ -244,12 +244,15 @@ function StepCard(props: Step & { isLast: boolean }): JSX.Element {
 function StatBlock(props: Stat): JSX.Element {
   return (
     <div class="flex flex-col items-center justify-center gap-2 px-6 py-10 sm:py-12">
-      <span class="landing-gradient-text text-2xl font-extrabold tracking-tight sm:text-3xl">
+      <span
+        class="text-2xl font-extrabold tracking-tight sm:text-3xl"
+        style={{ color: "#fff" }}
+      >
         {props.value}
       </span>
       <span
         class="text-[11px] font-medium uppercase tracking-[0.16em]"
-        style={{ color: "var(--color-text-muted)" }}
+        style={{ color: "rgba(255,255,255,0.5)" }}
       >
         {props.label}
       </span>
@@ -263,14 +266,14 @@ function TechPillarCard(props: TechPillar): JSX.Element {
   return (
     <div class="landing-card relative overflow-hidden p-8">
       <div
-        class="absolute top-0 left-0 right-0 h-[2px]"
+        class="absolute top-0 left-0 right-0 h-[3px]"
         style={{
-          background: "linear-gradient(90deg, var(--color-primary), var(--color-accent))",
+          background: "linear-gradient(90deg, #4f46e5, #7c3aed, #a78bfa)",
         }}
       />
       <span
         class="mb-4 inline-block text-xs font-semibold uppercase tracking-[0.14em]"
-        style={{ color: "var(--color-primary)" }}
+        style={{ color: "#4f46e5" }}
       >
         {props.label}
       </span>
@@ -281,7 +284,7 @@ function TechPillarCard(props: TechPillar): JSX.Element {
         {props.title}
       </h3>
       <p
-        class="text-[0.9rem] leading-[1.65]"
+        class="text-[0.9rem] leading-[1.7]"
         style={{ color: "var(--color-text-secondary)" }}
       >
         {props.description}
@@ -303,27 +306,27 @@ export default function Home(): JSX.Element {
         path="/"
       />
 
-      <div style={{ background: "var(--color-bg)" }}>
-        {/* ── Hero ──────────────────────────────────────────────── */}
-        <section class="landing-hero-bg">
-          <div class="relative z-10 mx-auto max-w-[1120px] px-6 pt-28 pb-24 lg:px-8 lg:pt-40 lg:pb-32">
+      <div>
+        {/* ── Hero (dark) ──────────────────────────────────────── */}
+        <section class="landing-hero">
+          <div class="relative z-10 mx-auto max-w-[1120px] px-6 pt-28 pb-24 lg:px-8 lg:pt-44 lg:pb-36">
             <div class="flex flex-col items-center text-center">
               {/* Announcement badge */}
               <div
                 class="mb-10 inline-flex items-center gap-2.5 rounded-full px-4 py-2"
                 style={{
-                  border: "1px solid var(--color-border)",
-                  background: "var(--color-bg-elevated)",
-                  "box-shadow": "var(--shadow-sm)",
+                  border: "1px solid rgba(255,255,255,0.12)",
+                  background: "rgba(255,255,255,0.06)",
+                  "backdrop-filter": "blur(8px)",
                 }}
               >
                 <div
                   class="h-2 w-2 rounded-full animate-pulse"
-                  style={{ background: "var(--color-success)" }}
+                  style={{ background: "#34d399" }}
                 />
                 <span
                   class="text-[0.8125rem] font-medium"
-                  style={{ color: "var(--color-text-secondary)" }}
+                  style={{ color: "rgba(255,255,255,0.7)" }}
                 >
                   Now in early access
                 </span>
@@ -331,8 +334,8 @@ export default function Home(): JSX.Element {
 
               {/* Headline */}
               <h1
-                class="max-w-4xl text-[2.75rem] font-extrabold leading-[1.1] tracking-[-0.025em] sm:text-[3.25rem] lg:text-[4rem]"
-                style={{ color: "var(--color-text)" }}
+                class="max-w-4xl text-[2.75rem] font-extrabold leading-[1.08] tracking-[-0.03em] sm:text-[3.5rem] lg:text-[4.25rem]"
+                style={{ color: "#fff" }}
               >
                 The developer platform{" "}
                 <span class="landing-gradient-text">
@@ -342,8 +345,8 @@ export default function Home(): JSX.Element {
 
               {/* Subheading */}
               <p
-                class="mt-7 max-w-2xl text-[1.0625rem] leading-[1.7] sm:text-lg"
-                style={{ color: "var(--color-text-secondary)" }}
+                class="mt-7 max-w-2xl text-[1.0625rem] leading-[1.75] sm:text-lg"
+                style={{ color: "rgba(255,255,255,0.6)" }}
               >
                 Backend and frontend, joined as one product. Hosting, database,
                 auth, AI, real-time, and billing &mdash; every layer your app
@@ -354,24 +357,24 @@ export default function Home(): JSX.Element {
               {/* CTAs */}
               <div class="mt-12 flex flex-col items-center gap-4 sm:flex-row">
                 <A href="/register">
-                  <Button variant="primary" size="lg">
+                  <button class="landing-hero-btn-primary" type="button">
                     Start building &#8594;
-                  </Button>
+                  </button>
                 </A>
                 <Show
                   when={auth.isAuthenticated()}
                   fallback={
                     <A href="/pricing">
-                      <Button variant="outline" size="lg">
+                      <button class="landing-hero-btn-outline" type="button">
                         See pricing
-                      </Button>
+                      </button>
                     </A>
                   }
                 >
                   <A href="/dashboard">
-                    <Button variant="outline" size="lg">
+                    <button class="landing-hero-btn-outline" type="button">
                       Open dashboard
-                    </Button>
+                    </button>
                   </A>
                 </Show>
               </div>
@@ -392,12 +395,12 @@ export default function Home(): JSX.Element {
                   {(tech) => (
                     <span
                       class="text-[0.6875rem] font-medium uppercase tracking-[0.18em] transition-colors duration-200"
-                      style={{ color: "var(--color-text-faint)" }}
+                      style={{ color: "rgba(255,255,255,0.3)" }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.color = "var(--color-text-secondary)";
+                        e.currentTarget.style.color = "rgba(255,255,255,0.6)";
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.color = "var(--color-text-faint)";
+                        e.currentTarget.style.color = "rgba(255,255,255,0.3)";
                       }}
                     >
                       {tech}
@@ -409,18 +412,15 @@ export default function Home(): JSX.Element {
           </div>
         </section>
 
-        {/* ── Stats strip ───────────────────────────────────────── */}
-        <section>
-          <div class="mx-auto max-w-[1120px] px-6 lg:px-8">
-            <hr class="landing-divider" />
-          </div>
+        {/* ── Stats strip (dark-to-light transition) ────────────── */}
+        <section class="landing-stats-section">
           <div class="mx-auto max-w-[1120px] px-6 lg:px-8">
             <div class="grid grid-cols-2 sm:grid-cols-4">
               <For each={stats}>
                 {(stat, i) => (
                   <div
                     style={{
-                      "border-right": i() < stats.length - 1 ? "1px solid var(--color-border)" : "none",
+                      "border-right": i() < stats.length - 1 ? "1px solid rgba(255,255,255,0.08)" : "none",
                     }}
                   >
                     <StatBlock value={stat.value} label={stat.label} />
@@ -429,19 +429,16 @@ export default function Home(): JSX.Element {
               </For>
             </div>
           </div>
-          <div class="mx-auto max-w-[1120px] px-6 lg:px-8">
-            <hr class="landing-divider" />
-          </div>
         </section>
 
         {/* ── Platform layers ───────────────────────────────────── */}
-        <section class="py-28 lg:py-36">
+        <section class="py-28 lg:py-36" style={{ background: "var(--color-bg)" }}>
           <div class="mx-auto max-w-[1120px] px-6 lg:px-8">
             <div class="mb-16 flex flex-col items-center text-center">
               <div class="landing-section-label">
                 <div
                   class="h-1.5 w-1.5 rounded-full"
-                  style={{ background: "var(--color-primary)" }}
+                  style={{ background: "#4f46e5" }}
                 />
                 Platform
               </div>
@@ -479,14 +476,18 @@ export default function Home(): JSX.Element {
         {/* ── How it works ──────────────────────────────────────── */}
         <section
           class="py-28 lg:py-36"
-          style={{ background: "var(--color-bg-subtle)" }}
+          style={{
+            background: "var(--color-bg-subtle)",
+            "border-top": "1px solid var(--color-border)",
+            "border-bottom": "1px solid var(--color-border)",
+          }}
         >
           <div class="mx-auto max-w-[1120px] px-6 lg:px-8">
             <div class="mb-16 flex flex-col items-center text-center">
               <div class="landing-section-label">
                 <div
                   class="h-1.5 w-1.5 rounded-full"
-                  style={{ background: "var(--color-primary)" }}
+                  style={{ background: "#4f46e5" }}
                 />
                 Onboarding
               </div>
@@ -522,7 +523,7 @@ export default function Home(): JSX.Element {
         </section>
 
         {/* ── Tech pillars ──────────────────────────────────────── */}
-        <section class="py-28 lg:py-36">
+        <section class="py-28 lg:py-36" style={{ background: "var(--color-bg)" }}>
           <div class="mx-auto max-w-[1120px] px-6 lg:px-8">
             <div class="grid grid-cols-1 gap-5 lg:grid-cols-3">
               <For each={techPillars}>
@@ -538,12 +539,12 @@ export default function Home(): JSX.Element {
           </div>
         </section>
 
-        {/* ── Bottom CTA ────────────────────────────────────────── */}
+        {/* ── Bottom CTA (dark) ─────────────────────────────────── */}
         <section class="landing-cta-section">
           <div class="relative z-10 mx-auto max-w-[800px] px-6 py-28 text-center lg:px-8 lg:py-36">
             <h2
               class="text-[1.875rem] font-bold tracking-tight sm:text-[2.25rem] lg:text-[2.75rem]"
-              style={{ color: "var(--color-text)" }}
+              style={{ color: "#fff" }}
             >
               The developer platform{" "}
               <span class="landing-gradient-text">
@@ -552,21 +553,21 @@ export default function Home(): JSX.Element {
             </h2>
             <p
               class="mt-6 text-[1.0625rem] leading-[1.7] sm:text-lg"
-              style={{ color: "var(--color-text-secondary)" }}
+              style={{ color: "rgba(255,255,255,0.6)" }}
             >
               One product. Every layer. Built for teams who refuse to settle
               for yesterday&#39;s tools.
             </p>
             <div class="mt-12 flex flex-col items-center justify-center gap-4 sm:flex-row">
               <A href="/register">
-                <Button variant="primary" size="lg">
+                <button class="landing-hero-btn-primary" type="button">
                   Start building &#8594;
-                </Button>
+                </button>
               </A>
               <A href="/dashboard">
-                <Button variant="outline" size="lg">
+                <button class="landing-hero-btn-outline" type="button">
                   Explore the platform
-                </Button>
+                </button>
               </A>
             </div>
           </div>
