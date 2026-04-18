@@ -8,8 +8,8 @@
       "category": "framework",
       "description": "React framework for production. Primary competitor in full-stack web.",
       "defaultBranch": "canary",
-      "lastKnownRelease": "v16.2.1-canary.33",
-      "lastKnownReleaseAt": "2026-04-11T23:44:03Z",
+      "lastKnownRelease": "v16.3.0-canary.1",
+      "lastKnownReleaseAt": "2026-04-17T23:45:49Z",
       "lastCommitCheckAt": "2026-04-12T02:51:39.833Z",
       "baselineCommitsPerWeek": 100
     },
@@ -73,8 +73,8 @@
       "category": "backend",
       "description": "Ultrafast web framework. Our backend runtime. Must track closely.",
       "defaultBranch": "main",
-      "lastKnownRelease": "v4.12.12",
-      "lastKnownReleaseAt": "2026-04-07T04:15:34Z",
+      "lastKnownRelease": "v4.12.14",
+      "lastKnownReleaseAt": "2026-04-15T06:15:10Z",
       "lastCommitCheckAt": "2026-04-12T02:51:40.275Z",
       "baselineCommitsPerWeek": 9
     },
@@ -112,8 +112,8 @@
       "category": "ai",
       "description": "AI SDK for streaming responses and generative UI. Core AI orchestration layer.",
       "defaultBranch": "main",
-      "lastKnownRelease": "@ai-sdk/google@3.0.62",
-      "lastKnownReleaseAt": "2026-04-11T16:23:09Z",
+      "lastKnownRelease": "ai@5.0.179",
+      "lastKnownReleaseAt": "2026-04-17T03:47:01Z",
       "lastCommitCheckAt": "2026-04-10T21:20:15.693Z",
       "baselineCommitsPerWeek": 70
     },
@@ -138,8 +138,8 @@
       "category": "backend",
       "description": "Wrangler + Workers tooling. We run on this today; we also compete on DX.",
       "defaultBranch": "main",
-      "lastKnownRelease": "wrangler@4.81.1",
-      "lastKnownReleaseAt": "2026-04-09T15:35:47Z",
+      "lastKnownRelease": "wrangler@4.83.0",
+      "lastKnownReleaseAt": "2026-04-15T09:28:42Z",
       "lastCommitCheckAt": "2026-04-10T21:20:15.956Z",
       "baselineCommitsPerWeek": 33
     },
@@ -313,6 +313,6 @@
       "baselineCommitsPerWeek": 0
     }
   ],
-  "lastUpdated": "2026-04-12T02:51:41.165Z",
+  "lastUpdated": "2026-04-18T07:50:01.119Z",
   "schemaVersion": 1
 }
