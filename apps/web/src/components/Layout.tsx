@@ -131,7 +131,7 @@ export function Layout(props: LayoutProps): JSX.Element {
       <header class="navbar">
         <div class="navbar-left">
           <A href="/" class="navbar-logo">
-            <Text variant="h4" weight="bold">BTF</Text>
+            <Text variant="h4" weight="bold">Crontech</Text>
           </A>
           <nav class="navbar-links">
             <NavLink href="/" label="Home" />
