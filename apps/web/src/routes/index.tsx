@@ -144,9 +144,9 @@ function FeatureCard(props: Feature): JSX.Element {
             <div
               class="flex h-11 w-11 items-center justify-center rounded-xl"
               style={{
-                background: "linear-gradient(135deg, rgba(79,70,229,0.08), rgba(139,92,246,0.08))",
-                color: "#4f46e5",
-                border: "1px solid rgba(79,70,229,0.1)",
+                background: "linear-gradient(135deg, rgba(99,102,241,0.15), rgba(139,92,246,0.15))",
+                color: "#a5b4fc",
+                border: "1px solid rgba(99,102,241,0.2)",
               }}
             >
               <Icon name={props.icon} size={20} />
@@ -155,9 +155,9 @@ function FeatureCard(props: Feature): JSX.Element {
               <span
                 class="shrink-0 rounded-md px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider"
                 style={{
-                  background: "rgba(79,70,229,0.06)",
-                  color: "#4f46e5",
-                  border: "1px solid rgba(79,70,229,0.1)",
+                  background: "rgba(99,102,241,0.12)",
+                  color: "#a5b4fc",
+                  border: "1px solid rgba(99,102,241,0.2)",
                 }}
               >
                 {props.badge}
@@ -168,13 +168,13 @@ function FeatureCard(props: Feature): JSX.Element {
           <div class="flex flex-col gap-2.5">
             <h3
               class="text-[1.0625rem] font-semibold tracking-tight"
-              style={{ color: "var(--color-text)" }}
+              style={{ color: "#f0f0f5" }}
             >
               {props.title}
             </h3>
             <p
               class="text-[0.875rem] leading-[1.75]"
-              style={{ color: "var(--color-text-secondary)" }}
+              style={{ color: "rgba(255,255,255,0.55)" }}
             >
               {props.description}
             </p>
@@ -182,7 +182,7 @@ function FeatureCard(props: Feature): JSX.Element {
 
           <div
             class="mt-auto flex items-center gap-1.5 pt-3 text-sm font-medium transition-colors duration-200 group-hover:opacity-80"
-            style={{ color: "#4f46e5" }}
+            style={{ color: "#818cf8" }}
           >
             <span>Learn more</span>
             <span class="transition-transform duration-200 group-hover:translate-x-1.5">{"\u2192"}</span>
@@ -202,9 +202,9 @@ function StepCard(props: Step & { isLast: boolean }): JSX.Element {
         <div
           class="flex h-16 w-16 items-center justify-center rounded-2xl text-2xl"
           style={{
-            background: "var(--color-bg-elevated)",
-            border: "1px solid var(--color-border)",
-            "box-shadow": "0 2px 8px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)",
+            background: "rgba(255,255,255,0.04)",
+            border: "1px solid rgba(255,255,255,0.08)",
+            "box-shadow": "0 2px 8px rgba(0,0,0,0.2)",
           }}
         >
           {props.icon}
@@ -212,9 +212,9 @@ function StepCard(props: Step & { isLast: boolean }): JSX.Element {
         <div
           class="absolute -top-2 -right-2 flex h-6 w-6 items-center justify-center rounded-md text-[10px] font-bold"
           style={{
-            background: "linear-gradient(135deg, #4f46e5, #6d5ce7)",
+            background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
             color: "#fff",
-            "box-shadow": "0 2px 6px rgba(79,70,229,0.3)",
+            "box-shadow": "0 2px 6px rgba(99,102,241,0.4)",
           }}
         >
           {props.number}
@@ -223,13 +223,13 @@ function StepCard(props: Step & { isLast: boolean }): JSX.Element {
 
       <h3
         class="text-lg font-semibold tracking-tight"
-        style={{ color: "var(--color-text)" }}
+        style={{ color: "#f0f0f5" }}
       >
         {props.title}
       </h3>
       <p
         class="max-w-[280px] text-[0.875rem] leading-[1.75]"
-        style={{ color: "var(--color-text-secondary)" }}
+        style={{ color: "rgba(255,255,255,0.55)" }}
       >
         {props.description}
       </p>
@@ -270,24 +270,24 @@ function TechPillarCard(props: TechPillar): JSX.Element {
       <div
         class="absolute top-0 left-0 right-0 h-[2px]"
         style={{
-          background: "linear-gradient(90deg, #4f46e5, #6d5ce7, #a78bfa)",
+          background: "linear-gradient(90deg, #6366f1, #8b5cf6, #a78bfa)",
         }}
       />
       <span
         class="mb-5 inline-block text-[11px] font-semibold uppercase tracking-[0.16em]"
-        style={{ color: "#4f46e5" }}
+        style={{ color: "#818cf8" }}
       >
         {props.label}
       </span>
       <h3
         class="mb-3 text-xl font-bold tracking-tight"
-        style={{ color: "var(--color-text)" }}
+        style={{ color: "#f0f0f5" }}
       >
         {props.title}
       </h3>
       <p
         class="text-[0.875rem] leading-[1.75]"
-        style={{ color: "var(--color-text-secondary)" }}
+        style={{ color: "rgba(255,255,255,0.55)" }}
       >
         {props.description}
       </p>
@@ -437,25 +437,25 @@ export default function Home(): JSX.Element {
         </section>
 
         {/* ── Platform layers ───────────────────────────────────── */}
-        <section class="py-28 lg:py-36" style={{ background: "var(--color-bg)" }}>
+        <section class="landing-dark-section py-28 lg:py-36">
           <div class="mx-auto max-w-[1120px] px-6 lg:px-8">
             <div class="mb-16 flex flex-col items-center text-center">
               <div class="landing-section-label">
                 <div
                   class="h-1.5 w-1.5 rounded-full"
-                  style={{ background: "#4f46e5" }}
+                  style={{ background: "#818cf8" }}
                 />
                 Platform
               </div>
               <h2
                 class="max-w-2xl text-[1.875rem] font-bold tracking-tight sm:text-[2.25rem]"
-                style={{ color: "var(--color-text)" }}
+                style={{ color: "#f0f0f5" }}
               >
                 Every layer your app needs, in one product
               </h2>
               <p
                 class="mt-5 max-w-xl text-[1.0625rem] leading-[1.7]"
-                style={{ color: "var(--color-text-muted)" }}
+                style={{ color: "rgba(255,255,255,0.5)" }}
               >
                 Stop stitching together a dozen services. Crontech is one
                 product with one dashboard and one bill.
@@ -479,32 +479,25 @@ export default function Home(): JSX.Element {
         </section>
 
         {/* ── How it works ──────────────────────────────────────── */}
-        <section
-          class="py-28 lg:py-36"
-          style={{
-            background: "var(--color-bg-subtle)",
-            "border-top": "1px solid var(--color-border)",
-            "border-bottom": "1px solid var(--color-border)",
-          }}
-        >
+        <section class="landing-dark-section-alt py-28 lg:py-36">
           <div class="mx-auto max-w-[1120px] px-6 lg:px-8">
             <div class="mb-16 flex flex-col items-center text-center">
               <div class="landing-section-label">
                 <div
                   class="h-1.5 w-1.5 rounded-full"
-                  style={{ background: "#4f46e5" }}
+                  style={{ background: "#818cf8" }}
                 />
                 Onboarding
               </div>
               <h2
                 class="max-w-2xl text-[1.875rem] font-bold tracking-tight sm:text-[2.25rem]"
-                style={{ color: "var(--color-text)" }}
+                style={{ color: "#f0f0f5" }}
               >
                 Move your app to Crontech in three steps
               </h2>
               <p
                 class="mt-5 max-w-xl text-[1.0625rem] leading-[1.7]"
-                style={{ color: "var(--color-text-muted)" }}
+                style={{ color: "rgba(255,255,255,0.5)" }}
               >
                 No rebuild. No long migration. Bring the code you already have,
                 layer Crontech underneath, ship.
@@ -528,7 +521,7 @@ export default function Home(): JSX.Element {
         </section>
 
         {/* ── Tech pillars ──────────────────────────────────────── */}
-        <section class="py-28 lg:py-36" style={{ background: "var(--color-bg)" }}>
+        <section class="landing-dark-section py-28 lg:py-36">
           <div class="mx-auto max-w-[1120px] px-6 lg:px-8">
             <div class="grid grid-cols-1 gap-5 lg:grid-cols-3">
               <For each={techPillars}>
