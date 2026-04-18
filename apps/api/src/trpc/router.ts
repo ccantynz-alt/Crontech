@@ -31,6 +31,8 @@ import { flywheelRouter } from "./procedures/flywheel";
 import { voiceRouter } from "./procedures/voice";
 import { launchRouter } from "./procedures/launch";
 import { usageRouter } from "./procedures/usage";
+import { dnsImportRouter } from "./procedures/dns-import";
+import { dnsRouter } from "./procedures/dns";
 
 export const appRouter = router({
   health: publicProcedure.query(() => {
@@ -74,6 +76,8 @@ export const appRouter = router({
   voice: voiceRouter,
   launch: launchRouter,
   usage: usageRouter,
+  dnsImport: dnsImportRouter,
+  dns: dnsRouter,
 });
 
 export type AppRouter = typeof appRouter;
