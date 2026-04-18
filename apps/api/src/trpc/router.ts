@@ -23,6 +23,7 @@ import { uiRouter } from "./procedures/ui";
 import { storageRouter } from "./procedures/storage";
 import { reposRouter } from "./procedures/repos";
 import { projectsRouter } from "./procedures/projects";
+import { deploymentsRouter } from "./procedures/deployments";
 import { importRouter } from "./procedures/importProject";
 import { aiDeployRouter } from "./procedures/aiDeploy";
 import { theatreRouter } from "./procedures/theatre";
@@ -64,6 +65,7 @@ export const appRouter = router({
   storage: storageRouter,
   repos: reposRouter,
   projects: projectsRouter,
+  deployments: deploymentsRouter,
   import: importRouter,
   aiDeploy: aiDeployRouter,
   theatre: theatreRouter,
