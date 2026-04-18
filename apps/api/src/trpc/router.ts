@@ -35,6 +35,8 @@ import { dnsImportRouter } from "./procedures/dns-import";
 import { dnsRouter } from "./procedures/dns";
 import { domainSearchRouter } from "./procedures/domain-search";
 import { domainsRouter } from "./procedures/domains";
+import { esimRouter } from "./procedures/esim";
+import { smsRouter } from "./procedures/sms";
 
 export const appRouter = router({
   health: publicProcedure.query(() => {
@@ -82,6 +84,8 @@ export const appRouter = router({
   dns: dnsRouter,
   domainSearch: domainSearchRouter,
   domains: domainsRouter,
+  esim: esimRouter,
+  sms: smsRouter,
 });
 
 export type AppRouter = typeof appRouter;

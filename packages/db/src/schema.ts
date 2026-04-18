@@ -976,3 +976,137 @@ export const domainRegistrations = sqliteTable("domain_registrations", {
     .notNull()
     .$defaultFn(() => new Date()),
 });
+
+// =============================================================================
+// BLK-029 — Airalo eSIM reseller.
+// `esim_orders` persists every eSIM data plan we've sold on a customer's
+// behalf via the Airalo Partner API. Wholesale cost and retail markup are
+// both captured at sale time (microdollars, to dodge FP drift) so revenue
+// reporting can be driven from the DB without re-querying Airalo. The
+// `airalo_order_id` handle is needed for follow-up install-info refreshes.
+// `esim_packages_cache` is an additive, lightweight read-through cache of
+// the Airalo package catalogue so pricing pages stay fast + stable between
+// Airalo API hits.
+// Additive only: no existing table or column is touched.
+// =============================================================================
+export const esimOrders = sqliteTable("esim_orders", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  packageId: text("package_id").notNull(),
+  airaloOrderId: text("airalo_order_id").notNull(),
+  countryCode: text("country_code"),
+  dataGb: integer("data_gb").notNull().default(0),
+  validityDays: integer("validity_days").notNull().default(0),
+  costMicrodollars: integer("cost_microdollars").notNull().default(0),
+  markupMicrodollars: integer("markup_microdollars").notNull().default(0),
+  status: text("status", {
+    enum: ["pending", "active", "delivered", "expired", "refunded", "cancelled"],
+  })
+    .notNull()
+    .default("pending"),
+  iccid: text("iccid"),
+  lpaString: text("lpa_string"),
+  qrCodeDataUrl: text("qr_code_data_url"),
+  purchasedAt: integer("purchased_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+});
+
+export const esimPackagesCache = sqliteTable("esim_packages_cache", {
+  id: text("id").primaryKey(),
+  airaloPackageId: text("airalo_package_id").notNull().unique(),
+  countryCode: text("country_code"),
+  name: text("name").notNull(),
+  dataGb: integer("data_gb").notNull().default(0),
+  validityDays: integer("validity_days").notNull().default(0),
+  wholesaleMicrodollars: integer("wholesale_microdollars").notNull().default(0),
+  lastSyncedAt: integer("last_synced_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+});
+
+// =============================================================================
+// BLK-030 — Native SMS (Sinch-backed) send/receive infrastructure.
+// `sms_messages` is an append-only log of every inbound + outbound SMS we
+// process on behalf of a customer. Cost + markup live in microdollars
+// (1 USD = 1_000_000 µ$) so the aggregator pipeline can total revenue
+// without floating-point drift. `segments` records the billable part
+// count Sinch charges us for a given body. `sms_numbers` is the pool of
+// phone numbers each customer has leased; `sms_webhook_subscriptions`
+// links a customer's own webhook URL to a specific MSISDN so inbound MO
+// messages are fanned out to their endpoint via the existing webhook
+// engine.
+// Additive only: no existing table or column is touched.
+// =============================================================================
+export const smsMessages = sqliteTable("sms_messages", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  direction: text("direction", { enum: ["send", "receive"] }).notNull(),
+  fromNumber: text("from_number").notNull(),
+  toNumber: text("to_number").notNull(),
+  body: text("body").notNull(),
+  segments: integer("segments").notNull().default(1),
+  status: text("status", {
+    enum: ["queued", "sent", "delivered", "failed", "received"],
+  }).notNull(),
+  providerMessageId: text("provider_message_id"),
+  costMicrodollars: integer("cost_microdollars").notNull().default(0),
+  markupMicrodollars: integer("markup_microdollars").notNull().default(0),
+  errorCode: text("error_code"),
+  errorMessage: text("error_message"),
+  sentAt: integer("sent_at", { mode: "timestamp" }),
+  deliveredAt: integer("delivered_at", { mode: "timestamp" }),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+});
+
+export const smsNumbers = sqliteTable("sms_numbers", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  e164Number: text("e164_number").notNull().unique(),
+  countryCode: text("country_code").notNull(),
+  sinchNumberId: text("sinch_number_id").notNull(),
+  /** JSON-encoded string array, e.g. ["sms","voice","mms"]. */
+  capabilities: text("capabilities").notNull().default('["sms"]'),
+  monthlyCostMicrodollars: integer("monthly_cost_microdollars")
+    .notNull()
+    .default(0),
+  purchasedAt: integer("purchased_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+  releasedAt: integer("released_at", { mode: "timestamp" }),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+});
+
+export const smsWebhookSubscriptions = sqliteTable(
+  "sms_webhook_subscriptions",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    e164Number: text("e164_number").notNull(),
+    customerWebhookUrl: text("customer_webhook_url").notNull(),
+    hmacSecret: text("hmac_secret").notNull(),
+    /** JSON-encoded string array, e.g. ["inbound","delivered","failed"]. */
+    events: text("events").notNull().default('["inbound"]'),
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+);

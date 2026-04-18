@@ -15,7 +15,7 @@ import { resolve as resolvePath } from "node:path";
 process.env["DATABASE_URL"] = `file:${resolvePath(import.meta.dir, "..", "local.db")}`;
 import "./test-setup";
 
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, test } from "bun:test";
@@ -220,10 +220,7 @@ describe("lintMigrationFile over the real migrations directory", () => {
     // (missing breakpoint, CREATE TABLE without IF NOT EXISTS, etc).
     for (const m of migrations) {
       const path = join(DEFAULT_MIGRATIONS_FOLDER, m.file);
-      const contents = Bun.file(path);
-      // Bun.file returns a BunFile; sync read via readFileSync is fine too.
-      // Using the filesystem reader for consistency:
-      const text = require("node:fs").readFileSync(path, "utf8") as string;
+      const text = readFileSync(path, "utf8");
       const errs = lintMigrationFile(m.file, text).filter((f) => f.severity === "error");
       if (errs.length > 0) {
         throw new Error(
@@ -232,8 +229,6 @@ describe("lintMigrationFile over the real migrations directory", () => {
             .join(", ")}`,
         );
       }
-      // Silence unused-variable linter if the BunFile reference is not used elsewhere.
-      void contents;
     }
   });
 
@@ -247,7 +242,7 @@ describe("lintMigrationFile over the real migrations directory", () => {
 CREATE INDEX foo_idx ON foo (id);
 `,
       );
-      const text = require("node:fs").readFileSync(broken, "utf8") as string;
+      const text = readFileSync(broken, "utf8");
       const out = lintMigrationFile(broken, text);
       const rules = new Set(out.map((f) => f.rule));
       expect(rules.has("missing-breakpoint")).toBe(true);

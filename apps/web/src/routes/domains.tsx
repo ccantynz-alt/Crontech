@@ -462,7 +462,7 @@ export default function DomainsPage(): JSX.Element {
                                   </p>
                                 </div>
                                 <A
-                                  href="/domains/purchase"
+                                  href={`/domains?register=${encodeURIComponent(r.domain)}`}
                                   aria-label={`Register ${r.domain}`}
                                   class="inline-flex items-center rounded-lg px-4 py-2 text-sm font-medium transition"
                                   style={{

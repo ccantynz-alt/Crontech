@@ -73,9 +73,12 @@ describe("domains route — smoke", () => {
     expect(src).toContain("trpc.domainSearch.search.query");
   });
 
-  test("includes a Register action pointing at a purchase route", () => {
+  test("includes a Register action that deep-links back to /domains", () => {
     const src = readFileSync(ROUTE_PATH, "utf-8");
-    expect(src).toContain("/domains/purchase");
+    // The registrar purchase route is owned by BLK-024; we deep-link
+    // via ?register=<domain> so the link-checker stays green while
+    // BLK-024 builds the purchase flow.
+    expect(src).toContain("/domains?register=");
     expect(src).toContain("Register");
   });
 
