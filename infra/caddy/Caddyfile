@@ -132,9 +132,10 @@ api.crontech.ai {
 }
 
 # ── gluecron.crontech.ai -> Gluecron (self-hosted git + CI) ──────────
-# Gluecron runs on the host network at port 3000. The ecosystem
-# cornerstone: once live, it hosts source for Crontech / AlecRae /
-# itself, replacing GitHub. See Gluecron.com/DEPLOY.md.
+# Gluecron runs as a host systemd service on port 3002 (crontech-web
+# owns 3000, crontech-api owns 3001). Ecosystem cornerstone: once
+# live, hosts source for Crontech / AlecRae / itself, replacing
+# GitHub. Provisioned by scripts/add-gluecron.sh.
 
 gluecron.crontech.ai {
 	encode gzip zstd
@@ -147,7 +148,7 @@ gluecron.crontech.ai {
 		-Server
 	}
 
-	reverse_proxy host.docker.internal:3000 {
+	reverse_proxy localhost:3002 {
 		health_uri /
 		health_interval 30s
 		health_timeout 5s
