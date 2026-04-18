@@ -1813,6 +1813,15 @@ textarea:focus-visible {
 
 .landing-stats-section {
   background: linear-gradient(180deg, #101d30 0%, #0c1525 30%, #0a0e17 100%);
+  padding: 4rem 0;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+@media (min-width: 1024px) {
+  .landing-stats-section {
+    padding: 5rem 0;
+  }
 }
 
 .landing-hero-btn-primary {
