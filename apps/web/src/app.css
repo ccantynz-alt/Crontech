@@ -1847,14 +1847,14 @@ textarea:focus-visible {
 }
 
 .landing-dark-section {
-  background: #0a0e17;
-  color: #e5e5e5;
+  background: #0a0e17 !important;
+  color: #e5e5e5 !important;
   border-top: 1px solid rgba(255,255,255,0.06);
 }
 
 .landing-dark-section-alt {
-  background: #0d1220;
-  color: #e5e5e5;
+  background: #0d1220 !important;
+  color: #e5e5e5 !important;
   border-top: 1px solid rgba(255,255,255,0.08);
   border-bottom: 1px solid rgba(255,255,255,0.08);
 }
@@ -1928,10 +1928,25 @@ textarea:focus-visible {
 }
 
 .landing-stats-section {
-  background: linear-gradient(180deg, #101d30 0%, #0c1525 30%, #0a0e17 100%);
+  background: linear-gradient(180deg, #101d30 0%, #0c1525 30%, #0a0e17 100%) !important;
+  color: #e5e5e5 !important;
   padding: 5rem 0;
   border-top: 1px solid rgba(255,255,255,0.08);
   border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.landing-cta-section {
+  background: linear-gradient(180deg, #0a0e17 0%, #0c1929 30%, #080f1a 100%) !important;
+  color: #fff !important;
+}
+
+/* Ensure landing-card visible on its dark parent — guard against opacity-on-white */
+.landing-dark-section .landing-card,
+.landing-dark-section-alt .landing-card,
+.landing-stats-section .landing-card,
+.landing-cta-section .landing-card {
+  background: rgba(255,255,255,0.04) !important;
+  border: 1px solid rgba(255,255,255,0.10) !important;
 }
 
 @media (min-width: 768px) {
