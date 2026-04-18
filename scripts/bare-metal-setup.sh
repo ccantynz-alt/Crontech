@@ -218,6 +218,12 @@ else
     log_ok "Existing cluster at ${PG_DATA_DIR} — skipping initdb"
 fi
 
+# Postgres refuses to start if the data dir is anything more permissive
+# than 0700 or 0750. `chown` in step 2 sometimes leaves it 0755 depending
+# on the umask of the pg16 apt postinst. Force it here — idempotent.
+chown -R postgres:postgres "${PG_DATA_DIR}"
+chmod 0700 "${PG_DATA_DIR}"
+
 # Lock down postgresql.conf: SCRAM-only, listen on localhost only.
 sudo -u postgres tee "${PG_DATA_DIR}/postgresql.conf.d-crontech.conf" >/dev/null <<'CONF'
 # Managed by scripts/bare-metal-setup.sh — do not edit by hand.
