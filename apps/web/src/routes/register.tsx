@@ -34,7 +34,7 @@ interface PasswordStrengthInfo {
 }
 
 function getPasswordStrength(password: string): PasswordStrengthInfo {
-  if (!password) return { score: 0, label: "", color: "#e5e7eb" };
+  if (!password) return { score: 0, label: "", color: "var(--color-bg-muted)" };
 
   let score = 0;
   if (password.length >= 8) score++;
@@ -53,17 +53,17 @@ function getPasswordStrength(password: string): PasswordStrengthInfo {
   };
 
   const colors: Record<number, string> = {
-    0: "#ef4444",
-    1: "#f97316",
-    2: "#eab308",
-    3: "#22c55e",
-    4: "#06b6d4",
+    0: "var(--color-danger)",
+    1: "var(--color-warning)",
+    2: "var(--color-warning)",
+    3: "var(--color-success)",
+    4: "var(--color-primary)",
   };
 
   return {
     score: finalScore,
     label: labels[finalScore] ?? "Very weak",
-    color: colors[finalScore] ?? "#ef4444",
+    color: colors[finalScore] ?? "var(--color-danger)",
   };
 }
 
@@ -255,9 +255,9 @@ export default function RegisterPage(): ReturnType<typeof Stack> {
               style={{
                 width: "100%",
                 "border-radius": "12px",
-                border: "1px solid rgba(59, 130, 246, 0.25)",
+                border: "1px solid color-mix(in oklab, var(--color-primary) 25%, transparent)",
                 background:
-                  "linear-gradient(135deg, rgba(59, 130, 246, 0.08), rgba(139, 92, 246, 0.08))",
+                  "linear-gradient(135deg, color-mix(in oklab, var(--color-primary) 8%, transparent), color-mix(in oklab, var(--color-primary-light) 8%, transparent))",
                 padding: "14px 16px",
               }}
             >
@@ -276,9 +276,9 @@ export default function RegisterPage(): ReturnType<typeof Stack> {
               style={{
                 width: "100%",
                 "border-radius": "12px",
-                border: "1px solid rgba(167, 139, 250, 0.25)",
+                border: "1px solid color-mix(in oklab, var(--color-primary-light) 25%, transparent)",
                 background:
-                  "linear-gradient(135deg, rgba(139, 92, 246, 0.08), rgba(59, 130, 246, 0.05))",
+                  "linear-gradient(135deg, color-mix(in oklab, var(--color-primary-light) 8%, transparent), color-mix(in oklab, var(--color-primary) 5%, transparent))",
                 padding: "14px 16px",
               }}
             >
@@ -353,7 +353,7 @@ export default function RegisterPage(): ReturnType<typeof Stack> {
                   style={{
                     flex: "1",
                     height: "1px",
-                    background: "var(--border-color, #e5e7eb)",
+                    background: "var(--color-border)",
                   }}
                 />
                 <Text variant="caption" class="text-muted">
@@ -363,7 +363,7 @@ export default function RegisterPage(): ReturnType<typeof Stack> {
                   style={{
                     flex: "1",
                     height: "1px",
-                    background: "var(--border-color, #e5e7eb)",
+                    background: "var(--color-border)",
                   }}
                 />
               </div>
@@ -432,7 +432,7 @@ export default function RegisterPage(): ReturnType<typeof Stack> {
                     background: "none",
                     border: "none",
                     cursor: "pointer",
-                    color: "var(--text-muted, #6b7280)",
+                    color: "var(--color-text-muted)",
                     "font-size": "13px",
                   }}
                 >
@@ -459,7 +459,7 @@ export default function RegisterPage(): ReturnType<typeof Stack> {
                           background:
                             i < passwordStrength().score
                               ? passwordStrength().color
-                              : "var(--border-color, #e5e7eb)",
+                              : "var(--color-bg-muted)",
                           transition: "background 0.2s ease",
                         }}
                       />
@@ -499,7 +499,7 @@ export default function RegisterPage(): ReturnType<typeof Stack> {
               />
 
               <Show when={!passwordsMatch() && confirmPassword().length > 0}>
-                <Text variant="caption" style={{ color: "#ef4444" }}>
+                <Text variant="caption" style={{ color: "var(--color-danger)" }}>
                   Passwords do not match
                 </Text>
               </Show>
@@ -570,7 +570,7 @@ export default function RegisterPage(): ReturnType<typeof Stack> {
                 style={{
                   width: "240px",
                   height: "8px",
-                  background: "#e5e7eb",
+                  background: "var(--color-bg-muted)",
                   "border-radius": "9999px",
                   overflow: "hidden",
                 }}
@@ -579,7 +579,7 @@ export default function RegisterPage(): ReturnType<typeof Stack> {
                   style={{
                     width: `${progress()}%`,
                     height: "100%",
-                    background: "linear-gradient(90deg, #6366f1, #8b5cf6)",
+                    background: "var(--color-primary)",
                     transition: "width 0.3s ease",
                   }}
                 />

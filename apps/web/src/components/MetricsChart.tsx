@@ -275,7 +275,7 @@ export function MetricsChart(props: MetricsChartProps): JSX.Element {
                 x2={containerWidth() - PADDING.right}
                 y1={y}
                 y2={y}
-                stroke="rgba(15,23,42,0.08)"
+                stroke="rgba(255,255,255,0.04)"
                 stroke-width="1"
               />
             );
@@ -293,7 +293,7 @@ export function MetricsChart(props: MetricsChartProps): JSX.Element {
                 x={PADDING.left - 10}
                 y={y + 4}
                 text-anchor="end"
-                fill="rgba(100,116,139,0.9)"
+                fill="rgba(255,255,255,0.3)"
                 font-size="11"
                 font-family="system-ui, -apple-system, sans-serif"
               >
@@ -310,7 +310,7 @@ export function MetricsChart(props: MetricsChartProps): JSX.Element {
               x={tick.x}
               y={chartHeight() - 6}
               text-anchor="middle"
-              fill="rgba(100,116,139,0.9)"
+              fill="rgba(255,255,255,0.3)"
               font-size="11"
               font-family="system-ui, -apple-system, sans-serif"
             >
@@ -352,7 +352,7 @@ export function MetricsChart(props: MetricsChartProps): JSX.Element {
                 x2={t().x}
                 y1={PADDING.top}
                 y2={PADDING.top + plotHeight()}
-                stroke="rgba(15,23,42,0.15)"
+                stroke="rgba(255,255,255,0.1)"
                 stroke-width="1"
                 stroke-dasharray="4 4"
               />
@@ -362,7 +362,7 @@ export function MetricsChart(props: MetricsChartProps): JSX.Element {
                 cy={t().y}
                 r="5"
                 fill={props.color}
-                stroke="#ffffff"
+                stroke="#0a0a0a"
                 stroke-width="2"
               />
               {/* Outer glow ring */}
@@ -384,15 +384,18 @@ export function MetricsChart(props: MetricsChartProps): JSX.Element {
       <Show when={tooltip()}>
         {(t) => (
           <div
-            class="pointer-events-none absolute z-20 flex flex-col items-center gap-0.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 shadow-md"
+            class="pointer-events-none absolute z-20 flex flex-col items-center gap-0.5 rounded-lg border border-[var(--color-border)] px-3 py-1.5"
             style={{
               left: `${Math.min(Math.max(t().x, 60), containerWidth() - 60)}px`,
               top: `${Math.max(t().y - 56, 0)}px`,
               transform: "translateX(-50%)",
+              background: "var(--color-bg-elevated)",
+              "backdrop-filter": "blur(12px)",
+              "box-shadow": `0 4px 24px rgba(0,0,0,0.2)`,
             }}
           >
-            <span class="text-sm font-semibold text-slate-900">{t().value}</span>
-            <span class="text-[10px] text-slate-500">{t().time}</span>
+            <span class="text-sm font-semibold" style={{ color: "var(--color-text)" }}>{t().value}</span>
+            <span class="text-[10px]" style={{ color: "var(--color-text-muted)" }}>{t().time}</span>
           </div>
         )}
       </Show>

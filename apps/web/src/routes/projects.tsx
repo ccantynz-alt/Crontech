@@ -91,7 +91,14 @@ interface ProjectCardProps {
 function ProjectCard(props: ProjectCardProps): JSX.Element {
   return (
     <A href={`/projects/${props.id}`} class="block group">
-      <div class="relative overflow-hidden rounded-xl border border-slate-200 bg-white p-5 transition-all duration-300 hover:border-slate-300 hover:shadow-md">
+      <div
+        class="relative overflow-hidden rounded-2xl p-5 transition-all duration-300"
+        style={{
+          background: "var(--color-bg-elevated)",
+          border: "1px solid var(--color-border)",
+        }}
+      >
+
         <div class="relative z-10 flex flex-col gap-4">
           {/* Header: name + status */}
           <div class="flex items-start justify-between gap-3">
@@ -99,7 +106,7 @@ function ProjectCard(props: ProjectCardProps): JSX.Element {
               <span class="text-xl shrink-0">
                 {frameworkIcon(props.framework ?? "")}
               </span>
-              <h3 class="text-sm font-semibold text-slate-900 truncate">
+              <h3 class="text-sm font-semibold truncate" style={{ color: "var(--color-text)" }}>
                 {props.name}
               </h3>
             </div>
@@ -114,25 +121,23 @@ function ProjectCard(props: ProjectCardProps): JSX.Element {
           {/* Details */}
           <div class="flex flex-col gap-2">
             <div class="flex items-center gap-2">
-              <span class="text-[11px] font-medium uppercase tracking-wider text-slate-500">
+              <span class="text-[11px] font-medium uppercase tracking-wider" style={{ color: "var(--color-text-secondary)" }}>
                 Framework
               </span>
-              <span class="text-xs text-slate-700">{props.framework ?? "Unknown"}</span>
+              <span class="text-xs" style={{ color: "var(--color-text)" }}>{props.framework ?? "Unknown"}</span>
             </div>
 
             <div class="flex items-center gap-2">
-              <span class="text-[11px] font-medium uppercase tracking-wider text-slate-500">
+              <span class="text-[11px] font-medium uppercase tracking-wider" style={{ color: "var(--color-text-secondary)" }}>
                 Updated
               </span>
-              <span class="text-xs text-slate-600">
+              <span class="text-xs" style={{ color: "var(--color-text-muted)" }}>
                 {relativeTime(props.updatedAt)}
               </span>
             </div>
           </div>
         </div>
 
-        {/* Bottom accent */}
-        <div class="absolute bottom-0 left-0 h-[2px] w-full opacity-0 transition-opacity duration-500 group-hover:opacity-100 bg-indigo-600" />
       </div>
     </A>
   );
@@ -143,15 +148,12 @@ function ProjectCard(props: ProjectCardProps): JSX.Element {
 function EmptyState(): JSX.Element {
   return (
     <div class="flex flex-col items-center justify-center gap-6 py-24">
-      <div
-        class="flex h-20 w-20 items-center justify-center rounded-2xl"
-        style={{ background: "rgba(79,70,229,0.08)" }}
-      >
+      <div class="flex h-20 w-20 items-center justify-center rounded-2xl" style={{ background: "var(--color-bg-subtle)" }}>
         <span class="text-4xl">{"\u{1F680}"}</span>
       </div>
       <div class="flex flex-col items-center gap-2 text-center">
-        <h2 class="text-xl font-bold text-slate-900">No projects yet</h2>
-        <p class="max-w-sm text-sm text-slate-600">
+        <h2 class="text-xl font-bold" style={{ color: "var(--color-text)" }}>No projects yet</h2>
+        <p class="max-w-sm text-sm" style={{ color: "var(--color-text-secondary)" }}>
           Deploy your first app on Crontech. Connect a repo or start from a
           template and have it live on the edge in under a minute.
         </p>
@@ -182,15 +184,15 @@ export default function ProjectsPage(): ReturnType<typeof ProtectedRoute> {
       />
       <Title>Projects — Crontech</Title>
 
-      <div class="min-h-screen bg-white">
+      <div class="min-h-screen" style={{ background: "var(--color-bg)" }}>
         <div class="mx-auto max-w-[1400px] px-6 py-8 lg:px-8">
           {/* ── Header ─────────────────────────────────────────────── */}
           <div class="mb-8 flex items-center justify-between gap-4">
             <div class="flex flex-col gap-1">
-              <h1 class="text-3xl font-bold tracking-tight text-slate-900">
+              <h1 class="text-3xl font-bold tracking-tight" style={{ color: "var(--color-text)" }}>
                 Projects
               </h1>
-              <p class="text-sm text-slate-600">
+              <p class="text-sm" style={{ color: "var(--color-text-secondary)" }}>
                 Your deployed apps and sites on the Crontech edge network.
               </p>
             </div>

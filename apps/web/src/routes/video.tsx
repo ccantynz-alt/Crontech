@@ -108,7 +108,7 @@ export default function VideoPage(): JSX.Element {
     const comment: TimelineComment = {
       id: `c-${Date.now()}`,
       author: "You",
-      color: "#60a5fa",
+      color: "var(--color-primary)",
       time: currentTime(),
       text,
       timestamp: "just now",
@@ -151,8 +151,25 @@ export default function VideoPage(): JSX.Element {
               <Text variant="body" class="text-muted">
                 WebGPU-accelerated &middot; Real-time collaboration
               </Text>
-              <span class={`inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-medium ${syncStatus() === "synced" ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-amber-200 bg-amber-50 text-amber-700"}`}>
-                <span class={`h-1.5 w-1.5 rounded-full ${syncStatus() === "synced" ? "bg-emerald-500" : "bg-amber-500 animate-pulse"}`} />
+              <span
+                class="inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-medium"
+                style={{
+                  background: syncStatus() === "synced"
+                    ? "color-mix(in oklab, var(--color-success) 10%, transparent)"
+                    : "color-mix(in oklab, var(--color-warning) 10%, transparent)",
+                  color: syncStatus() === "synced"
+                    ? "var(--color-success)"
+                    : "var(--color-warning)",
+                }}
+              >
+                <span
+                  class={`h-1.5 w-1.5 rounded-full ${syncStatus() !== "synced" ? "animate-pulse" : ""}`}
+                  style={{
+                    background: syncStatus() === "synced"
+                      ? "var(--color-success)"
+                      : "var(--color-warning)",
+                  }}
+                />
                 {syncStatus() === "synced" ? "Synced" : "Syncing..."}
               </span>
             </Stack>
@@ -163,7 +180,7 @@ export default function VideoPage(): JSX.Element {
               <For each={MOCK_COLLABORATORS.filter((c) => c.online)}>
                 {(collab) => (
                   <div
-                    class="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white text-[10px] font-bold text-white"
+                    class="flex h-8 w-8 items-center justify-center rounded-full border-2 border-[var(--color-bg)] text-[10px] font-bold text-white"
                     style={{ "background-color": collab.color }}
                     title={`${collab.name} (online)`}
                   >
@@ -323,7 +340,7 @@ export default function VideoPage(): JSX.Element {
                 {showComments() ? "Hide Comments" : "Show Comments"} ({comments().length})
               </Button>
             </Stack>
-            <div class="relative mt-2 h-6 rounded-lg bg-slate-50 border border-slate-200 overflow-hidden">
+            <div class="relative mt-2 h-6 rounded-lg border border-[var(--color-border)] overflow-hidden" style={{ background: "var(--color-bg-subtle)" }}>
               <For each={MOCK_COLLABORATORS.filter((c) => c.online)}>
                 {(collab) => (
                   <div
@@ -361,7 +378,7 @@ export default function VideoPage(): JSX.Element {
               <Text variant="h4" weight="semibold">Timeline Comments</Text>
               <For each={comments()}>
                 {(comment) => (
-                  <div class="flex items-start gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3">
+                  <div class="flex items-start gap-3 rounded-lg p-3" style={{ background: "var(--color-bg-subtle)" }}>
                     <div
                       class="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[9px] font-bold text-white"
                       style={{ "background-color": comment.color }}
@@ -386,7 +403,8 @@ export default function VideoPage(): JSX.Element {
                   value={newComment()}
                   onInput={(e) => setNewComment(e.currentTarget.value)}
                   onKeyDown={(e) => e.key === "Enter" && addComment()}
-                  class="flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                  class="flex-1 rounded-lg border border-[var(--color-border)] px-3 py-2 text-sm outline-none"
+                  style={{ background: "var(--color-bg-muted)", color: "var(--color-text)" }}
                 />
                 <Button variant="primary" size="sm" onClick={addComment}>Post</Button>
               </Stack>
@@ -400,7 +418,7 @@ export default function VideoPage(): JSX.Element {
             <Stack direction="vertical" gap="sm">
               <Stack direction="horizontal" justify="between" align="center">
                 <Stack direction="horizontal" gap="sm" align="center">
-                  <div class="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-50 text-[10px] font-bold text-emerald-700 border border-emerald-200">AI</div>
+                  <div class="flex h-7 w-7 items-center justify-center rounded-full text-[10px] font-bold" style={{ background: "color-mix(in oklab, var(--color-success) 20%, transparent)", color: "var(--color-success)" }}>AI</div>
                   <Text variant="h4" weight="semibold">AI Video Assistant</Text>
                 </Stack>
                 <Badge variant="default" size="sm">Client GPU &middot; $0/token</Badge>
@@ -408,8 +426,8 @@ export default function VideoPage(): JSX.Element {
               <div class="max-h-64 overflow-y-auto space-y-2">
                 <For each={chatMessages()}>
                   {(msg) => (
-                    <div class={`rounded-lg p-3 text-sm ${msg.role === "ai" ? "border border-emerald-200 bg-emerald-50 text-slate-700" : "border border-indigo-200 bg-indigo-50 text-slate-700 ml-8"}`}>
-                      <span class="font-semibold text-slate-900">{msg.role === "ai" ? "AI: " : "You: "}</span>
+                    <div class={`rounded-lg p-3 text-sm border border-[var(--color-border)] ${msg.role === "ai" ? "bg-[var(--color-bg-subtle)]" : "bg-[var(--color-bg-elevated)] ml-8"}`} style={{ color: "var(--color-text-secondary)" }}>
+                      <span class="font-semibold" style={{ color: "var(--color-text)" }}>{msg.role === "ai" ? "AI: " : "You: "}</span>
                       {msg.text}
                     </div>
                   )}
@@ -422,7 +440,8 @@ export default function VideoPage(): JSX.Element {
                   value={chatInput()}
                   onInput={(e) => setChatInput(e.currentTarget.value)}
                   onKeyDown={(e) => e.key === "Enter" && sendChatMessage()}
-                  class="flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                  class="flex-1 rounded-lg border border-[var(--color-border)] px-3 py-2 text-sm outline-none"
+                  style={{ background: "var(--color-bg-subtle)", color: "var(--color-text)" }}
                 />
                 <Button variant="primary" size="sm" onClick={sendChatMessage}>Send</Button>
               </Stack>

@@ -39,8 +39,8 @@ const PLANS: PlanTier[] = [
       "1 GB storage",
     ],
     highlighted: false,
-    ctaLabel: "Start free",
-    accentColor: "#64748b",
+    ctaLabel: "Join waitlist",
+    accentColor: "var(--color-text-muted)",
   },
   {
     id: "pro",
@@ -62,7 +62,7 @@ const PLANS: PlanTier[] = [
     ],
     highlighted: true,
     ctaLabel: "Start building",
-    accentColor: "#4f46e5",
+    accentColor: "var(--color-primary)",
   },
   {
     id: "enterprise",
@@ -86,7 +86,7 @@ const PLANS: PlanTier[] = [
     ],
     highlighted: false,
     ctaLabel: "Talk to the team",
-    accentColor: "#7c3aed",
+    accentColor: "var(--color-primary-light)",
   },
 ];
 
@@ -138,27 +138,40 @@ function PlanCard(props: { plan: PlanTier; isAnnual: boolean }): JSX.Element {
   const isCustom = (): boolean => props.plan.monthlyPrice === -1;
 
   const handleCtaClick = (): void => {
+    // Pre-launch: every plan routes to the waitlist/contact flow.
+    // Billing is disabled at the tRPC layer (see billing.ts and the
+    // STRIPE_ENABLED env flag) until the attorney package is signed
+    // off and customer onboarding opens post-launch.
     if (props.plan.id === "enterprise") {
       window.location.href = "/support?topic=enterprise";
-    } else if (props.plan.id === "pro") {
-      window.location.href = "/register?plan=pro&billing=" + (props.isAnnual ? "annual" : "monthly");
     } else {
-      window.location.href = "/register?plan=free";
+      window.location.href = "/support?topic=waitlist&plan=" + props.plan.id;
     }
   };
 
   return (
     <div
-      class={`relative flex flex-col rounded-2xl border p-6 transition-all duration-200 ${
+      class={`relative flex flex-col rounded-2xl p-6 transition-all duration-300 ${
         props.plan.highlighted
-          ? "border-indigo-200 bg-white shadow-lg ring-1 ring-indigo-100"
-          : "border-slate-200 bg-white hover:border-slate-300 hover:shadow-md"
+          ? "shadow-2xl"
+          : ""
       }`}
+      style={{
+        background: props.plan.highlighted
+          ? "var(--color-bg-elevated)"
+          : "var(--color-bg-subtle)",
+        border: props.plan.highlighted
+          ? "1px solid var(--color-primary)"
+          : "1px solid var(--color-border)",
+      }}
     >
       {/* Popular badge */}
       <Show when={props.plan.highlighted}>
         <div class="absolute -top-3 left-1/2 -translate-x-1/2">
-          <span class="whitespace-nowrap rounded-full bg-indigo-600 px-4 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white shadow-sm">
+          <span
+            class="rounded-full px-4 py-1.5 text-[10px] font-bold uppercase tracking-wider"
+            style={{ background: "var(--color-primary)", color: "var(--color-primary-text)" }}
+          >
             Most Popular
           </span>
         </div>
@@ -167,9 +180,9 @@ function PlanCard(props: { plan: PlanTier; isAnnual: boolean }): JSX.Element {
       {/* Header */}
       <div class="mb-6">
         <div class="flex items-center gap-2">
-          <h3 class="text-lg font-bold text-slate-900">{props.plan.name}</h3>
+          <h3 class="text-lg font-bold" style={{ color: "var(--color-text)" }}>{props.plan.name}</h3>
         </div>
-        <p class="mt-1 text-xs text-slate-500">{props.plan.description}</p>
+        <p class="mt-1 text-xs" style={{ color: "var(--color-text-muted)" }}>{props.plan.description}</p>
       </div>
 
       {/* Price */}
@@ -178,17 +191,17 @@ function PlanCard(props: { plan: PlanTier; isAnnual: boolean }): JSX.Element {
           when={!isCustom()}
           fallback={
             <div>
-              <span class="text-4xl font-bold tracking-tight text-slate-900">Custom</span>
-              <p class="mt-1 text-xs text-slate-500">Tailored to your needs</p>
+              <span class="text-4xl font-bold tracking-tight" style={{ color: "var(--color-text)" }}>Custom</span>
+              <p class="mt-1 text-xs" style={{ color: "var(--color-text-muted)" }}>Tailored to your needs</p>
             </div>
           }
         >
           <div class="flex items-baseline gap-1">
-            <span class="text-4xl font-bold tracking-tight text-slate-900">${price()}</span>
-            <span class="text-sm text-slate-500">/mo</span>
+            <span class="text-4xl font-bold tracking-tight" style={{ color: "var(--color-text)" }}>${price()}</span>
+            <span class="text-sm" style={{ color: "var(--color-text-muted)" }}>/mo</span>
           </div>
           <Show when={props.isAnnual && price() > 0}>
-            <p class="mt-1 text-xs font-semibold text-emerald-700">
+            <p class="mt-1 text-xs" style={{ color: "var(--color-success)" }}>
               Save ${(props.plan.monthlyPrice - props.plan.annualPrice) * 12}/year
             </p>
           </Show>
@@ -201,9 +214,20 @@ function PlanCard(props: { plan: PlanTier; isAnnual: boolean }): JSX.Element {
         onClick={handleCtaClick}
         class={`mb-6 w-full rounded-xl py-3 text-sm font-semibold transition-all duration-200 ${
           props.plan.highlighted
-            ? "bg-indigo-600 text-white shadow-sm hover:bg-indigo-700 hover:shadow-md"
-            : "border border-slate-200 bg-white text-slate-800 hover:border-slate-300 hover:bg-slate-50"
+            ? "hover:brightness-110"
+            : ""
         }`}
+        style={{
+          background: props.plan.highlighted
+            ? "var(--color-primary)"
+            : "var(--color-bg-muted)",
+          color: props.plan.highlighted
+            ? "var(--color-primary-text)"
+            : "var(--color-text-secondary)",
+          border: props.plan.highlighted
+            ? "none"
+            : "1px solid var(--color-border)",
+        }}
       >
         {props.plan.ctaLabel}
       </button>
@@ -213,8 +237,8 @@ function PlanCard(props: { plan: PlanTier; isAnnual: boolean }): JSX.Element {
         <For each={props.plan.features}>
           {(feature) => (
             <div class="flex items-start gap-2.5">
-              <span class="mt-0.5 text-sm" style={{ color: props.plan.accentColor }}>{"\u2713"}</span>
-              <span class="text-sm text-slate-700">{feature}</span>
+              <span class="mt-0.5 text-sm" style={{ color: props.plan.accentColor }}>&#10003;</span>
+              <span class="text-sm" style={{ color: "var(--color-text-secondary)" }}>{feature}</span>
             </div>
           )}
         </For>
@@ -229,18 +253,18 @@ function FAQSection(props: { item: FAQItem }): JSX.Element {
   const [isOpen, setIsOpen] = createSignal(false);
 
   return (
-    <div class="border-b border-slate-200 last:border-b-0">
+    <div style={{ "border-bottom": "1px solid var(--color-border)" }}>
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen())}
-        class="flex w-full items-center justify-between py-5 text-left transition-colors duration-200 hover:text-slate-900"
+        class="flex w-full items-center justify-between py-5 text-left transition-colors duration-200"
       >
-        <span class="pr-8 text-sm font-medium text-slate-800">{props.item.question}</span>
-        <span class={`shrink-0 text-lg text-slate-500 transition-transform duration-300 ${isOpen() ? "rotate-45" : ""}`}>+</span>
+        <span class="pr-8 text-sm font-medium" style={{ color: "var(--color-text-secondary)" }}>{props.item.question}</span>
+        <span class={`shrink-0 text-lg transition-transform duration-300 ${isOpen() ? "rotate-45" : ""}`} style={{ color: "var(--color-text-muted)" }}>+</span>
       </button>
       <Show when={isOpen()}>
         <div class="pb-5">
-          <p class="text-sm leading-relaxed text-slate-600">{props.item.answer}</p>
+          <p class="text-sm leading-relaxed" style={{ color: "var(--color-text-muted)" }}>{props.item.answer}</p>
         </div>
       </Show>
     </div>
@@ -257,13 +281,13 @@ function FeatureCell(props: { value: boolean | string }): JSX.Element {
         fallback={
           <Show
             when={props.value === true}
-            fallback={<span class="text-slate-300">--</span>}
+            fallback={<span style={{ color: "var(--color-text-faint)" }}>--</span>}
           >
-            <span class="text-emerald-700">{"\u2713"}</span>
+            <span style={{ color: "var(--color-success)" }}>&#10003;</span>
           </Show>
         }
       >
-        <span class="text-slate-700">{props.value as string}</span>
+        <span style={{ color: "var(--color-text-secondary)" }}>{props.value as string}</span>
       </Show>
     </td>
   );
@@ -275,52 +299,67 @@ export default function PricingPage(): JSX.Element {
   const [isAnnual, setIsAnnual] = createSignal(true);
 
   return (
-    <div class="min-h-screen bg-white">
+    <div class="min-h-screen" style={{ background: "var(--color-bg)" }}>
       <Title>Pricing — Crontech</Title>
 
       {/* Hero */}
-      <div class="relative overflow-hidden border-b border-slate-200 bg-slate-50">
+      <div class="relative overflow-hidden">
         <div class="relative mx-auto max-w-6xl px-6 pt-16 pb-12 text-center">
-          <h1 class="text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl">
+          <h1 class="text-4xl font-bold tracking-tight sm:text-5xl" style={{ color: "var(--color-text)" }}>
             Pricing that scales with what you ship
           </h1>
-          <p class="mx-auto mt-4 max-w-2xl text-base text-slate-600">
+          <p class="mx-auto mt-4 max-w-2xl text-base" style={{ color: "var(--color-text-muted)" }}>
             Free to start. On-device AI inference at $0. Edge and cloud compute when you need more power. No hidden fees, no surprise bills, no credit card to begin.
           </p>
 
           {/* Billing Toggle */}
           <div class="mt-8 flex items-center justify-center gap-4">
-            <span class={`text-sm font-medium transition-colors ${!isAnnual() ? "text-slate-900" : "text-slate-500"}`}>Monthly</span>
+            <span
+              class="text-sm font-medium transition-colors"
+              style={{ color: !isAnnual() ? "var(--color-text)" : "var(--color-text-muted)" }}
+            >Monthly</span>
             <button
               type="button"
               onClick={() => setIsAnnual(!isAnnual())}
-              class={`relative h-7 w-14 rounded-full transition-all duration-300 ${isAnnual() ? "bg-indigo-600" : "bg-slate-300"}`}
-              aria-label="Toggle billing period"
+              class="relative h-7 w-14 rounded-full transition-all duration-300"
+              style={{ background: isAnnual() ? "var(--color-primary)" : "var(--color-bg-muted)" }}
             >
-              <div class={`absolute top-0.5 h-6 w-6 rounded-full bg-white shadow-sm transition-all duration-300 ${isAnnual() ? "left-[30px]" : "left-0.5"}`} />
+              <div
+                class={`absolute top-0.5 h-6 w-6 rounded-full shadow-md transition-all duration-300 ${isAnnual() ? "left-[30px]" : "left-0.5"}`}
+                style={{ background: "var(--color-text)" }}
+              />
             </button>
-            <span class={`text-sm font-medium transition-colors ${isAnnual() ? "text-slate-900" : "text-slate-500"}`}>
+            <span
+              class="text-sm font-medium transition-colors"
+              style={{ color: isAnnual() ? "var(--color-text)" : "var(--color-text-muted)" }}
+            >
               Annual
-              <span class="ml-1.5 whitespace-nowrap rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">Save 17%</span>
+              <span
+                class="ml-1.5 rounded-full px-2 py-0.5 text-[10px] font-semibold"
+                style={{ background: "var(--color-success-bg)", color: "var(--color-success)" }}
+              >Save 17%</span>
             </span>
           </div>
         </div>
       </div>
 
       {/* Founding customer banner */}
-      <div class="mx-auto max-w-4xl px-6 pt-10 pb-6">
-        <div class="rounded-2xl border border-indigo-200 bg-indigo-50 px-6 py-5 text-center">
-          <p class="text-xs font-semibold uppercase tracking-widest text-indigo-700">
+      <div class="mx-auto max-w-4xl px-6 pb-10">
+        <div
+          class="rounded-2xl px-6 py-5 text-center"
+          style={{ background: "var(--color-bg-elevated)", border: "1px solid var(--color-border)" }}
+        >
+          <p class="text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--color-primary-light)" }}>
             Founding customer program · private beta
           </p>
-          <p class="mt-2 text-sm text-slate-700">
-            The first wave of paid customers lock in <span class="font-semibold text-slate-900">50% off any plan for life</span> and a direct line to the team building the platform.
+          <p class="mt-2 text-sm" style={{ color: "var(--color-text-secondary)" }}>
+            The first wave of paid customers lock in <span class="font-semibold" style={{ color: "var(--color-text)" }}>50% off any plan for life</span> and a direct line to the team building the platform.
           </p>
         </div>
       </div>
 
       {/* Plan Cards */}
-      <div class="mx-auto max-w-6xl px-6 pb-16 pt-6">
+      <div class="mx-auto max-w-6xl px-6 pb-16">
         <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
           <For each={PLANS}>
             {(plan) => <PlanCard plan={plan} isAnnual={isAnnual()} />}
@@ -330,22 +369,28 @@ export default function PricingPage(): JSX.Element {
 
       {/* Feature Comparison Table */}
       <div class="mx-auto max-w-5xl px-6 pb-20">
-        <h2 class="mb-8 text-center text-2xl font-bold text-slate-900">Feature Comparison</h2>
-        <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <h2 class="mb-8 text-center text-2xl font-bold" style={{ color: "var(--color-text)" }}>Feature Comparison</h2>
+        <div
+          class="overflow-hidden rounded-2xl"
+          style={{ background: "var(--color-bg-elevated)", border: "1px solid var(--color-border)" }}
+        >
           <table class="w-full">
             <thead>
-              <tr class="border-b border-slate-200 bg-slate-50">
-                <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-widest text-slate-500">Feature</th>
-                <th class="px-4 py-4 text-center text-xs font-semibold uppercase tracking-widest text-slate-500">Free</th>
-                <th class="px-4 py-4 text-center text-xs font-semibold uppercase tracking-widest text-indigo-600">Pro</th>
-                <th class="px-4 py-4 text-center text-xs font-semibold uppercase tracking-widest text-indigo-700">Enterprise</th>
+              <tr style={{ "border-bottom": "1px solid var(--color-border-strong)" }}>
+                <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--color-text-muted)" }}>Feature</th>
+                <th class="px-4 py-4 text-center text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--color-text-muted)" }}>Free</th>
+                <th class="px-4 py-4 text-center text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--color-primary)" }}>Pro</th>
+                <th class="px-4 py-4 text-center text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--color-primary-light)" }}>Enterprise</th>
               </tr>
             </thead>
             <tbody>
               <For each={COMPARISON_FEATURES}>
                 {(feature) => (
-                  <tr class="border-b border-slate-100 transition-colors hover:bg-slate-50 last:border-b-0">
-                    <td class="px-6 py-3 text-sm text-slate-700">{feature.name}</td>
+                  <tr
+                    class="transition-colors"
+                    style={{ "border-bottom": "1px solid var(--color-border)" }}
+                  >
+                    <td class="px-6 py-3 text-sm" style={{ color: "var(--color-text-secondary)" }}>{feature.name}</td>
                     <FeatureCell value={feature.free} />
                     <FeatureCell value={feature.pro} />
                     <FeatureCell value={feature.enterprise} />
@@ -359,8 +404,11 @@ export default function PricingPage(): JSX.Element {
 
       {/* FAQ Section */}
       <div class="mx-auto max-w-3xl px-6 pb-20">
-        <h2 class="mb-8 text-center text-2xl font-bold text-slate-900">Frequently Asked Questions</h2>
-        <div class="rounded-2xl border border-slate-200 bg-white px-6 shadow-sm">
+        <h2 class="mb-8 text-center text-2xl font-bold" style={{ color: "var(--color-text)" }}>Frequently Asked Questions</h2>
+        <div
+          class="rounded-2xl px-6"
+          style={{ background: "var(--color-bg-elevated)", border: "1px solid var(--color-border)" }}
+        >
           <For each={FAQ_ITEMS}>
             {(item) => <FAQSection item={item} />}
           </For>
@@ -369,24 +417,29 @@ export default function PricingPage(): JSX.Element {
 
       {/* CTA Banner */}
       <div class="mx-auto max-w-4xl px-6 pb-20">
-        <div class="relative overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 px-8 py-12 text-center">
+        <div
+          class="relative overflow-hidden rounded-2xl px-8 py-12 text-center"
+          style={{ background: "var(--color-bg-elevated)", border: "1px solid var(--color-border)" }}
+        >
           <div class="relative">
-            <h3 class="text-2xl font-bold text-slate-900">Ready to build on the next decade's stack?</h3>
-            <p class="mt-2 text-sm text-slate-600">
+            <h3 class="text-2xl font-bold" style={{ color: "var(--color-text)" }}>Ready to build on the next decade's stack?</h3>
+            <p class="mt-2 text-sm" style={{ color: "var(--color-text-secondary)" }}>
               Start free with on-device AI inference. Upgrade when you need the edge or the cloud.
             </p>
             <div class="mt-6 flex items-center justify-center gap-4">
               <button
                 type="button"
                 onClick={() => { window.location.href = "/register?plan=free"; }}
-                class="rounded-xl bg-indigo-600 px-8 py-3 text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:bg-indigo-700 hover:shadow-md"
+                class="rounded-xl px-8 py-3 text-sm font-semibold transition-all duration-200 hover:brightness-110"
+                style={{ background: "var(--color-primary)", color: "var(--color-primary-text)" }}
               >
-                Start building
+                Join waitlist
               </button>
               <button
                 type="button"
                 onClick={() => { window.location.href = "/support?topic=enterprise"; }}
-                class="rounded-xl border border-slate-300 bg-white px-8 py-3 text-sm font-medium text-slate-800 transition-all hover:border-slate-400 hover:bg-slate-50"
+                class="rounded-xl px-8 py-3 text-sm font-medium transition-all"
+                style={{ background: "var(--color-bg-muted)", color: "var(--color-text-secondary)", border: "1px solid var(--color-border)" }}
               >
                 Talk to the team
               </button>

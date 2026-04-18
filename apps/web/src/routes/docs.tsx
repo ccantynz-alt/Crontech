@@ -33,7 +33,7 @@ const DOC_CATEGORIES: DocCategory[] = [
       "Set up your first project in under five minutes. Install the CLI, scaffold an app, deploy to the edge, and see it live.",
     articles: 12,
     tags: ["setup", "quickstart", "install"],
-    gradient: "from-indigo-500 to-indigo-600",
+    gradient: "var(--color-primary)",
   },
   {
     id: "api-reference",
@@ -43,7 +43,7 @@ const DOC_CATEGORIES: DocCategory[] = [
       "Full reference for every tRPC procedure, REST endpoint, and WebSocket channel. Type-safe schemas, request/response shapes, and curl examples.",
     articles: 34,
     tags: ["tRPC", "REST", "WebSocket", "endpoints"],
-    gradient: "from-blue-600 to-cyan-600",
+    gradient: "var(--color-primary)",
   },
   {
     id: "ai-sdk",
@@ -53,7 +53,7 @@ const DOC_CATEGORIES: DocCategory[] = [
       "Three-tier compute routing, client-side WebGPU inference, streaming completions, generative UI, and multi-agent orchestration with LangGraph.",
     articles: 18,
     tags: ["AI", "WebGPU", "inference", "agents"],
-    gradient: "from-purple-600 to-pink-600",
+    gradient: "var(--color-primary)",
   },
   {
     id: "components",
@@ -63,7 +63,7 @@ const DOC_CATEGORIES: DocCategory[] = [
       "Zod-schema-driven, AI-composable component catalog. Every primitive from Button to DataTable, with live examples and prop documentation.",
     articles: 42,
     tags: ["UI", "Zod", "SolidJS", "catalog"],
-    gradient: "from-emerald-600 to-teal-600",
+    gradient: "var(--color-success)",
   },
   {
     id: "deployment",
@@ -73,7 +73,7 @@ const DOC_CATEGORIES: DocCategory[] = [
       "Deploy to Cloudflare Workers, Pages, Fly.io, and Modal.com GPU clusters. CI/CD pipelines, environment variables, and canary rollouts.",
     articles: 9,
     tags: ["deploy", "edge", "CI/CD", "Cloudflare"],
-    gradient: "from-orange-600 to-red-600",
+    gradient: "var(--color-warning)",
   },
   {
     id: "guides",
@@ -83,7 +83,7 @@ const DOC_CATEGORIES: DocCategory[] = [
       "Step-by-step walkthroughs for real-world workflows: building a SaaS app, integrating Stripe billing, real-time collaboration, and video processing.",
     articles: 15,
     tags: ["tutorial", "walkthrough", "patterns"],
-    gradient: "from-amber-500 to-yellow-500",
+    gradient: "var(--color-warning)",
   },
   {
     id: "collaboration",
@@ -93,7 +93,7 @@ const DOC_CATEGORIES: DocCategory[] = [
       "Real-time multi-user editing with Yjs CRDTs. Presence, cursors, conflict resolution, and AI agents as first-class collaborators.",
     articles: 8,
     tags: ["CRDT", "Yjs", "real-time", "multiplayer"],
-    gradient: "from-sky-600 to-blue-600",
+    gradient: "var(--color-primary)",
   },
   {
     id: "security",
@@ -103,7 +103,7 @@ const DOC_CATEGORIES: DocCategory[] = [
       "Passkey/WebAuthn authentication, zero-trust architecture, RBAC, audit trails, encryption at rest and in transit, and compliance certifications.",
     articles: 11,
     tags: ["auth", "passkeys", "encryption", "compliance"],
-    gradient: "from-rose-600 to-red-600",
+    gradient: "var(--color-danger)",
   },
 ];
 
@@ -139,34 +139,42 @@ function DocCategoryCard(props: { category: DocCategory }): JSX.Element {
       class="group block"
       style={{ "text-decoration": "none" }}
     >
-      <div class="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 transition-all duration-200 hover:border-slate-300 hover:shadow-md">
+      <div
+        class="relative overflow-hidden rounded-2xl border border-[var(--color-border)] p-6 transition-all duration-300 hover:scale-[1.02] hover:border-[var(--color-border-strong)]"
+        style={{
+          background: "var(--color-bg-subtle)",
+          "backdrop-filter": "blur(12px)",
+        }}
+      >
         {/* Gradient accent bar */}
         <div
-          class={`absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r ${props.category.gradient} opacity-80 transition-opacity duration-300 group-hover:opacity-100`}
+          class="absolute inset-x-0 top-0 h-[2px] opacity-60 transition-opacity duration-300 group-hover:opacity-100"
+          style={{ background: props.category.gradient }}
         />
 
         <div class="flex items-start gap-4">
           <div
-            class={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${props.category.gradient} text-xl text-white shadow-sm`}
+            class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-xl"
+            style={{ background: props.category.gradient }}
           >
             {props.category.icon}
           </div>
           <div class="min-w-0 flex-1">
             <div class="flex items-center gap-2 mb-1">
-              <span class="text-lg font-semibold text-slate-900 transition-colors">
+              <span class="text-lg font-semibold transition-colors" style={{ color: "var(--color-text)" }}>
                 {props.category.title}
               </span>
-              <span class="whitespace-nowrap rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-500 font-mono">
+              <span class="rounded-full px-2 py-0.5 text-xs font-mono" style={{ background: "var(--color-bg-elevated)", color: "var(--color-text-muted)" }}>
                 {props.category.articles}
               </span>
             </div>
-            <p class="text-sm text-slate-600 leading-relaxed mb-3">
+            <p class="text-sm leading-relaxed mb-3" style={{ color: "var(--color-text-muted)" }}>
               {props.category.description}
             </p>
             <div class="flex flex-wrap gap-1.5">
               <For each={props.category.tags}>
                 {(tag) => (
-                  <span class="rounded-md bg-slate-100 px-2 py-0.5 text-xs text-slate-500 font-mono">
+                  <span class="rounded-md px-2 py-0.5 text-xs font-mono" style={{ background: "var(--color-bg-elevated)", color: "var(--color-text-muted)" }}>
                     {tag}
                   </span>
                 )}
@@ -176,7 +184,7 @@ function DocCategoryCard(props: { category: DocCategory }): JSX.Element {
         </div>
 
         {/* Arrow indicator */}
-        <div class="absolute right-5 top-1/2 -translate-y-1/2 text-slate-300 transition-all duration-300 group-hover:translate-x-1 group-hover:text-slate-500">
+        <div class="absolute right-5 top-1/2 -translate-y-1/2 transition-all duration-300 group-hover:translate-x-1" style={{ color: "var(--color-text-faint)" }}>
           <svg
             width="20"
             height="20"
@@ -222,28 +230,53 @@ export default function DocsPage(): JSX.Element {
         path="/docs"
       />
 
-      <div class="min-h-screen bg-white">
+      <div class="min-h-screen" style={{ background: "var(--color-bg)" }}>
         {/* ── Hero Section ───────────────────────────────────────────── */}
-        <div class="relative overflow-hidden border-b border-slate-200 bg-slate-50">
+        <div class="relative overflow-hidden">
+          {/* Background gradient mesh */}
+          <div
+            class="absolute inset-0 opacity-30"
+            style={{
+              background:
+                "radial-gradient(ellipse at 20% 50%, color-mix(in oklab, var(--color-primary) 15%, transparent) 0%, transparent 50%), radial-gradient(ellipse at 80% 20%, color-mix(in oklab, var(--color-primary) 10%, transparent) 0%, transparent 50%), radial-gradient(ellipse at 50% 80%, color-mix(in oklab, var(--color-primary) 8%, transparent) 0%, transparent 50%)",
+            }}
+          />
+
           <div class="relative mx-auto max-w-6xl px-6 pt-20 pb-16">
             <div class="flex flex-col items-center text-center">
               <Badge variant="info" size="sm">
                 149 articles across 8 categories
               </Badge>
-              <h1 class="mt-6 text-5xl font-bold tracking-tight text-slate-900 sm:text-6xl" style={{ "line-height": "1.1" }}>
+              <h1
+                class="mt-6 text-5xl font-bold tracking-tight sm:text-6xl"
+                style={{
+                  background:
+                    "linear-gradient(135deg, var(--color-text) 0%, var(--color-primary-hover) 50%, var(--color-primary) 100%)",
+                  "-webkit-background-clip": "text",
+                  "-webkit-text-fill-color": "transparent",
+                  "line-height": "1.1",
+                }}
+              >
                 Documentation
               </h1>
-              <p class="mt-4 max-w-2xl text-lg text-slate-600">
+              <p class="mt-4 max-w-2xl text-lg" style={{ color: "var(--color-text-muted)" }}>
                 Everything you need to build, deploy, and scale with Crontech.
                 From first install to production-grade AI agents.
               </p>
 
               {/* ── Search Bar ──────────────────────────────────────── */}
               <div class="mt-8 w-full max-w-xl">
-                <div class="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                <div
+                  class="relative rounded-2xl border border-[var(--color-border)] overflow-hidden"
+                  style={{
+                    background: "var(--color-bg-subtle)",
+                    "backdrop-filter": "blur(12px)",
+                  }}
+                >
                   <div class="absolute inset-y-0 left-4 flex items-center pointer-events-none">
                     <svg
-                      class="h-5 w-5 text-slate-400"
+                      class="h-5 w-5"
+                      style={{ color: "var(--color-text-faint)" }}
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -263,10 +296,11 @@ export default function DocsPage(): JSX.Element {
                     onInput={(e) =>
                       setSearchQuery(e.currentTarget.value)
                     }
-                    class="w-full bg-transparent py-4 pl-12 pr-4 text-slate-900 placeholder-slate-400 outline-none text-sm"
+                    class="w-full bg-transparent py-4 pl-12 pr-4 outline-none text-sm"
+                    style={{ color: "var(--color-text)" }}
                   />
                   <div class="absolute inset-y-0 right-4 flex items-center pointer-events-none">
-                    <kbd class="rounded border border-slate-200 bg-slate-100 px-2 py-0.5 text-xs text-slate-500 font-mono">
+                    <kbd class="rounded border border-[var(--color-border)] px-2 py-0.5 text-xs font-mono" style={{ background: "var(--color-bg-elevated)", color: "var(--color-text-faint)" }}>
                       /
                     </kbd>
                   </div>
@@ -277,25 +311,26 @@ export default function DocsPage(): JSX.Element {
         </div>
 
         {/* ── Quick Links ─────────────────────────────────────────── */}
-        <div class="mx-auto max-w-6xl px-6 pt-10 pb-8">
+        <div class="mx-auto max-w-6xl px-6 pb-8">
           <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <For each={QUICK_LINKS}>
               {(link) => (
                 <A
                   href={link.href}
-                  class="group flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 transition-all duration-200 hover:border-slate-300 hover:shadow-sm"
-                  style={{ "text-decoration": "none" }}
+                  class="group flex items-center gap-3 rounded-xl border border-[var(--color-border)] px-4 py-3 transition-all duration-200 hover:border-[var(--color-border-strong)]"
+                  style={{ "text-decoration": "none", background: "var(--color-bg-subtle)" }}
                 >
                   <div class="flex-1 min-w-0">
-                    <span class="block text-sm font-medium text-slate-800 group-hover:text-slate-900 transition-colors">
+                    <span class="block text-sm font-medium transition-colors" style={{ color: "var(--color-text)" }}>
                       {link.label}
                     </span>
-                    <span class="block text-xs text-slate-500 font-mono mt-0.5 truncate">
+                    <span class="block text-xs font-mono mt-0.5 truncate" style={{ color: "var(--color-text-faint)" }}>
                       {link.description}
                     </span>
                   </div>
                   <svg
-                    class="h-4 w-4 shrink-0 text-slate-300 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-slate-500"
+                    class="h-4 w-4 shrink-0 transition-transform duration-200 group-hover:translate-x-0.5"
+                    style={{ color: "var(--color-text-faint)" }}
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -320,7 +355,7 @@ export default function DocsPage(): JSX.Element {
             <aside class="lg:col-span-1">
               <div class="sticky top-20 space-y-6">
                 <div>
-                  <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-3">
+                  <h3 class="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: "var(--color-text-faint)" }}>
                     Categories
                   </h3>
                   <nav class="space-y-0.5">
@@ -328,14 +363,14 @@ export default function DocsPage(): JSX.Element {
                       {(cat) => (
                         <a
                           href={`#${cat.id}`}
-                          class="flex items-center justify-between rounded-lg px-3 py-2 text-sm text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900"
-                          style={{ "text-decoration": "none" }}
+                          class="flex items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors"
+                          style={{ "text-decoration": "none", color: "var(--color-text-muted)" }}
                         >
                           <span class="flex items-center gap-2">
                             <span>{cat.icon}</span>
                             <span>{cat.title}</span>
                           </span>
-                          <span class="text-xs text-slate-400 font-mono">
+                          <span class="text-xs font-mono" style={{ color: "var(--color-text-faint)" }}>
                             {cat.articles}
                           </span>
                         </a>
@@ -345,26 +380,29 @@ export default function DocsPage(): JSX.Element {
                 </div>
 
                 {/* SDK versions */}
-                <div class="rounded-xl border border-slate-200 bg-white p-4">
-                  <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-3">
+                <div
+                  class="rounded-xl border border-[var(--color-border)] p-4"
+                  style={{ background: "var(--color-bg-subtle)" }}
+                >
+                  <h3 class="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: "var(--color-text-faint)" }}>
                     SDK Versions
                   </h3>
                   <div class="space-y-2 text-sm">
                     <div class="flex justify-between">
-                      <span class="text-slate-600">@crontech/cli</span>
-                      <span class="text-emerald-700 font-mono text-xs">
+                      <span style={{ color: "var(--color-text-muted)" }}>@crontech/cli</span>
+                      <span class="font-mono text-xs" style={{ color: "var(--color-success)" }}>
                         v0.8.2
                       </span>
                     </div>
                     <div class="flex justify-between">
-                      <span class="text-slate-600">@crontech/sdk</span>
-                      <span class="text-emerald-700 font-mono text-xs">
+                      <span style={{ color: "var(--color-text-muted)" }}>@crontech/sdk</span>
+                      <span class="font-mono text-xs" style={{ color: "var(--color-success)" }}>
                         v0.6.1
                       </span>
                     </div>
                     <div class="flex justify-between">
-                      <span class="text-slate-600">@crontech/ai</span>
-                      <span class="text-emerald-700 font-mono text-xs">
+                      <span style={{ color: "var(--color-text-muted)" }}>@crontech/ai</span>
+                      <span class="font-mono text-xs" style={{ color: "var(--color-success)" }}>
                         v0.4.0
                       </span>
                     </div>
@@ -379,18 +417,19 @@ export default function DocsPage(): JSX.Element {
                 when={filteredCategories().length > 0}
                 fallback={
                   <div class="flex flex-col items-center justify-center py-20 text-center">
-                    <div class="text-4xl mb-4 opacity-60">
+                    <div class="text-4xl mb-4 opacity-30">
                       {"\uD83D\uDD0D"}
                     </div>
-                    <p class="text-slate-700 text-lg">
+                    <p class="text-lg" style={{ color: "var(--color-text-muted)" }}>
                       No results for "{searchQuery()}"
                     </p>
-                    <p class="text-slate-500 text-sm mt-1">
+                    <p class="text-sm mt-1" style={{ color: "var(--color-text-faint)" }}>
                       Try a different search term or browse the categories
                     </p>
                     <button
                       type="button"
-                      class="mt-4 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-colors"
+                      class="mt-4 rounded-lg px-4 py-2 text-sm transition-colors"
+                      style={{ background: "var(--color-bg-elevated)", color: "var(--color-text-secondary)" }}
                       onClick={() => setSearchQuery("")}
                     >
                       Clear search
@@ -410,7 +449,7 @@ export default function DocsPage(): JSX.Element {
               {/* ── Popular Articles ─────────────────────────────────── */}
               <Show when={searchQuery() === ""}>
                 <div class="mt-16">
-                  <h2 class="text-lg font-semibold text-slate-900 mb-6">
+                  <h2 class="text-lg font-semibold mb-6" style={{ color: "var(--color-text)" }}>
                     Popular articles
                   </h2>
                   <div class="space-y-2">
@@ -450,18 +489,18 @@ export default function DocsPage(): JSX.Element {
                     ].map((article) => (
                       <a
                         href={`/docs/${article.category.toLowerCase().replace(/\s+/g, "-")}/${article.title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`}
-                        class="group flex items-center justify-between rounded-xl border border-slate-200 bg-white px-5 py-4 transition-all duration-200 hover:border-slate-300 hover:shadow-sm"
+                        class="group flex items-center justify-between rounded-xl border border-[var(--color-border)] px-5 py-4 transition-all duration-200 hover:border-[var(--color-border-strong)]"
                         style={{ "text-decoration": "none" }}
                       >
                         <div>
-                          <span class="text-sm text-slate-700 group-hover:text-slate-900 transition-colors">
+                          <span class="text-sm transition-colors" style={{ color: "var(--color-text-secondary)" }}>
                             {article.title}
                           </span>
-                          <span class="ml-3 text-xs text-slate-500 font-mono">
+                          <span class="ml-3 text-xs font-mono" style={{ color: "var(--color-text-faint)" }}>
                             {article.category}
                           </span>
                         </div>
-                        <span class="text-xs text-slate-400 shrink-0 ml-4">
+                        <span class="text-xs shrink-0 ml-4" style={{ color: "var(--color-text-faint)" }}>
                           {article.readTime}
                         </span>
                       </a>

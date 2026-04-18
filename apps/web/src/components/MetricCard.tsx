@@ -20,9 +20,9 @@ export interface MetricCardProps {
 // ── Helpers ──────────────────────────────────────────────────────────
 
 const STATUS_COLORS: Record<MetricCardProps["status"], string> = {
-  healthy: "#059669",
-  warning: "#d97706",
-  critical: "#e11d48",
+  healthy: "var(--color-success)",
+  warning: "var(--color-warning)",
+  critical: "var(--color-danger)",
 };
 
 function sparklinePath(values: number[], width: number, height: number): string {
@@ -95,15 +95,11 @@ export function MetricCard(props: MetricCardProps): JSX.Element {
 
   return (
     <div
-      class="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 transition-all duration-300 hover:border-slate-300 hover:shadow-md"
+      class="group relative overflow-hidden rounded-2xl border border-[var(--color-border)] p-5 transition-all duration-300 hover:border-[var(--color-border-hover)]"
+      style={{
+        background: "var(--color-bg-elevated)",
+      }}
     >
-      {/* Subtle bottom shimmer */}
-      <div
-        class="absolute bottom-0 left-0 h-[2px] w-full opacity-40 transition-opacity duration-300 group-hover:opacity-80"
-        style={{
-          background: `linear-gradient(90deg, transparent, ${accentColor()}, transparent)`,
-        }}
-      />
 
       <div class="relative z-10">
         {/* Header row: label + sparkline */}
@@ -113,23 +109,23 @@ export function MetricCard(props: MetricCardProps): JSX.Element {
               <span
                 class="inline-flex h-6 w-6 items-center justify-center rounded-md text-xs"
                 style={{
-                  background: `${accentColor()}14`,
+                  background: `${accentColor()}18`,
                   color: accentColor(),
                 }}
               >
                 {props.icon ?? "\u{1F4CA}"}
               </span>
-              <span class="text-xs font-medium uppercase tracking-widest text-slate-500">
+              <span class="text-xs font-medium uppercase tracking-widest text-[var(--color-text-muted)]">
                 {props.name}
               </span>
             </div>
 
             {/* Value row */}
             <div class="mt-2 flex items-baseline gap-2">
-              <span class="text-3xl font-bold tracking-tight text-slate-900">
+              <span class="text-3xl font-bold tracking-tight" style={{ color: "var(--color-text)" }}>
                 {props.value}
               </span>
-              <span class="text-sm text-slate-500">{props.unit ?? ""}</span>
+              <span class="text-sm text-[var(--color-text-muted)]">{props.unit ?? ""}</span>
             </div>
 
             {/* Trend row */}
@@ -141,7 +137,7 @@ export function MetricCard(props: MetricCardProps): JSX.Element {
               >
                 {trendUp() ? "\u2191" : "\u2193"} {changeText()}
               </span>
-              <span class="text-[10px] text-slate-500">vs prev period</span>
+              <span class="text-[10px] text-[var(--color-text-faint)]">vs prev period</span>
             </div>
           </div>
 
@@ -182,7 +178,7 @@ export function MetricCard(props: MetricCardProps): JSX.Element {
             class="h-1.5 w-1.5 rounded-full"
             style={{ background: accentColor() }}
           />
-          <span class="text-[10px] font-medium uppercase tracking-wider text-slate-500">
+          <span class="text-[10px] font-medium uppercase tracking-wider text-[var(--color-text-faint)]">
             {props.status}
           </span>
         </div>

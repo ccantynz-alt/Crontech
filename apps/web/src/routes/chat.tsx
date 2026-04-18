@@ -60,9 +60,9 @@ function getSessionToken(): string | null {
 
 function renderContent(content: string): string {
   return content
-    .replace(/```(\w*)\n([\s\S]*?)```/g, '<pre class="my-3 overflow-x-auto rounded-xl border border-slate-200 bg-slate-50 p-4"><code class="text-xs leading-relaxed text-emerald-700">$2</code></pre>')
-    .replace(/`([^`]+)`/g, '<code class="rounded bg-slate-100 px-1.5 py-0.5 text-xs text-indigo-700">$1</code>')
-    .replace(/\*\*(.+?)\*\*/g, '<strong class="font-semibold text-slate-900">$1</strong>')
+    .replace(/```(\w*)\n([\s\S]*?)```/g, '<pre class="my-3 overflow-x-auto rounded-xl p-4" style="background:var(--color-bg-inset);border:1px solid var(--color-border)"><code class="text-xs leading-relaxed" style="color:var(--color-primary-light)">$2</code></pre>')
+    .replace(/`([^`]+)`/g, '<code class="rounded px-1.5 py-0.5 text-xs" style="background:var(--color-bg-muted);color:var(--color-primary-light)">$1</code>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong class="font-semibold" style="color:var(--color-text)">$1</strong>')
     .replace(/\n/g, "<br/>");
 }
 
@@ -82,15 +82,16 @@ function ConversationItem(props: {
       onClick={props.onClick}
       onMouseEnter={() => setShowDelete(true)}
       onMouseLeave={() => setShowDelete(false)}
-      class={`group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-all duration-150 ${
-        props.isActive
-          ? "border border-slate-200 bg-white text-slate-900 shadow-sm"
-          : "border border-transparent text-slate-600 hover:bg-white hover:text-slate-900"
-      }`}
+      class="group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-all duration-150"
+      style={{
+        background: props.isActive ? "var(--color-bg-elevated)" : "transparent",
+        color: props.isActive ? "var(--color-text)" : "var(--color-text-secondary)",
+        border: props.isActive ? "1px solid var(--color-border)" : "1px solid transparent",
+      }}
     >
       <div class="flex min-w-0 flex-1 flex-col">
         <span class="truncate text-xs font-medium">{props.conv.title}</span>
-        <span class="text-[10px] text-slate-500">
+        <span class="text-[10px]" style={{ color: "var(--color-text-faint)" }}>
           {props.conv.totalTokens.toLocaleString()} tokens
         </span>
       </div>
@@ -101,7 +102,8 @@ function ConversationItem(props: {
             e.stopPropagation();
             props.onDelete();
           }}
-          class="shrink-0 rounded-md p-1 text-slate-500 transition-colors hover:bg-rose-50 hover:text-rose-700"
+          class="shrink-0 rounded-md p-1 transition-colors hover:bg-[color-mix(in_oklab,var(--color-danger)_10%,transparent)] hover:text-[var(--color-danger)]"
+          style={{ color: "var(--color-text-faint)" }}
         >
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M18 6L6 18M6 6l12 12" />
@@ -120,9 +122,12 @@ function MessageBubble(props: { message: ChatMessage }): JSX.Element {
   return (
     <div class={`flex gap-3 ${isUser() ? "flex-row-reverse" : ""}`}>
       <div
-        class="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-xs font-bold text-white"
+        class="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-xs font-bold"
         style={{
-          background: isUser() ? "#4f46e5" : "#ea580c",
+          background: isUser()
+            ? "var(--color-primary)"
+            : "var(--color-bg-elevated)",
+          color: isUser() ? "var(--color-primary-text)" : "var(--color-text)",
         }}
       >
         {isUser() ? "You" : "C"}
@@ -131,24 +136,39 @@ function MessageBubble(props: { message: ChatMessage }): JSX.Element {
       <div class={`flex max-w-[80%] flex-col gap-1.5 ${isUser() ? "items-end" : ""}`}>
         <Show when={isUser()} fallback={
           <div
-            class="rounded-2xl px-4 py-3 text-sm leading-relaxed bg-white border border-slate-200 text-slate-800"
+            class="chat-content rounded-2xl px-4 py-3 text-sm leading-relaxed"
+            style={{
+              background: "var(--color-bg-muted)",
+              border: "1px solid var(--color-border)",
+              color: "var(--color-text-secondary)",
+            }}
             innerHTML={renderContent(props.message.content)}
           />
         }>
-          <div class="rounded-2xl px-4 py-3 text-sm leading-relaxed bg-indigo-50 border border-indigo-200 text-slate-900">
+          <div
+            class="chat-content rounded-2xl px-4 py-3 text-sm leading-relaxed"
+            style={{
+              background: "var(--color-primary)",
+              border: "1px solid var(--color-border)",
+              color: "var(--color-primary-text)",
+            }}
+          >
             <span style={{ "white-space": "pre-wrap" }}>{props.message.content}</span>
           </div>
         </Show>
         <div class="flex items-center gap-2 px-1">
           <Show when={props.message.model}>
-            <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider border border-orange-200 bg-orange-50 text-orange-700">
+            <span
+              class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider"
+              style={{ background: "var(--color-bg-elevated)", color: "var(--color-primary-light)" }}
+            >
               {props.message.model}
             </span>
           </Show>
           <Show when={props.message.outputTokens}>
-            <span class="text-[10px] text-slate-500">{props.message.outputTokens} tokens</span>
+            <span class="text-[10px]" style={{ color: "var(--color-text-faint)" }}>{props.message.outputTokens} tokens</span>
           </Show>
-          <span class="text-[10px] text-slate-400">
+          <span class="text-[10px]" style={{ color: "var(--color-text-faint)" }}>
             {props.message.createdAt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
           </span>
         </div>
@@ -388,35 +408,43 @@ export default function ChatPage(): JSX.Element {
   };
 
   return (
-    <div class="flex h-screen bg-white">
+    <div class="flex h-screen" style={{ background: "var(--color-bg)" }}>
       <Title>Chat - Crontech</Title>
 
       {/* ── Left Sidebar: Conversations ─────────────────────────── */}
-      <div class="flex w-72 shrink-0 flex-col border-r border-slate-200 bg-slate-50">
+      <div
+        class="flex w-72 shrink-0 flex-col"
+        style={{ background: "var(--color-bg-subtle)", "border-right": "1px solid var(--color-border)" }}
+      >
         {/* Header */}
-        <div class="border-b border-slate-200 px-5 py-4">
+        <div class="px-5 py-4" style={{ "border-bottom": "1px solid var(--color-border)" }}>
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-3">
               <div
                 class="flex h-10 w-10 items-center justify-center rounded-xl"
-                style={{ background: "rgba(234,88,12,0.08)", color: "#ea580c" }}
+                style={{ background: "var(--color-bg-elevated)" }}
               >
-                <span class="text-lg">&#9889;</span>
+                <span class="text-lg" style={{ color: "var(--color-primary-light)" }}>&#9889;</span>
               </div>
               <div>
-                <h1 class="text-base font-bold text-slate-900">Claude Chat</h1>
-                <p class="text-[10px] text-slate-500">Anthropic API Direct</p>
+                <h1 class="text-base font-bold" style={{ color: "var(--color-text)" }}>Claude Chat</h1>
+                <p class="text-[10px]" style={{ color: "var(--color-text-faint)" }}>Anthropic API Direct</p>
               </div>
             </div>
           </div>
         </div>
 
         {/* New Chat Button */}
-        <div class="border-b border-slate-200 px-4 py-3">
+        <div class="px-4 py-3" style={{ "border-bottom": "1px solid var(--color-border)" }}>
           <button
             type="button"
             onClick={() => void createConversation()}
-            class="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-slate-300 bg-white px-4 py-2.5 text-xs font-medium text-slate-700 transition-all hover:border-slate-400 hover:bg-slate-100 hover:text-slate-900"
+            class="flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-xs font-medium transition-all"
+            style={{
+              background: "var(--color-bg-inset)",
+              color: "var(--color-text-secondary)",
+              border: "1px dashed var(--color-border)",
+            }}
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M12 5v14M5 12h14" />
@@ -429,8 +457,8 @@ export default function ChatPage(): JSX.Element {
         <div class="flex-1 overflow-y-auto px-3 py-2">
           <Show when={conversations().length > 0} fallback={
             <div class="flex flex-col items-center gap-2 py-12 text-center">
-              <span class="text-2xl opacity-40">&#128172;</span>
-              <span class="text-xs text-slate-500">No conversations yet</span>
+              <span class="text-2xl opacity-30">&#128172;</span>
+              <span class="text-xs" style={{ color: "var(--color-text-faint)" }}>No conversations yet</span>
             </div>
           }>
             <div class="flex flex-col gap-0.5">
@@ -449,16 +477,16 @@ export default function ChatPage(): JSX.Element {
         </div>
 
         {/* Session Stats */}
-        <div class="border-t border-slate-200 px-5 py-4">
-          <span class="text-[10px] font-semibold uppercase tracking-widest text-slate-500">Session</span>
+        <div class="px-5 py-4" style={{ "border-top": "1px solid var(--color-border)" }}>
+          <span class="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--color-text-faint)" }}>Session</span>
           <div class="mt-2 grid grid-cols-2 gap-3">
             <div class="flex flex-col gap-0.5">
-              <span class="text-[10px] text-slate-500">Tokens</span>
-              <span class="text-sm font-bold text-orange-700">{sessionTokens().toLocaleString()}</span>
+              <span class="text-[10px]" style={{ color: "var(--color-text-faint)" }}>Tokens</span>
+              <span class="text-sm font-bold" style={{ color: "var(--color-primary-light)" }}>{sessionTokens().toLocaleString()}</span>
             </div>
             <div class="flex flex-col gap-0.5">
-              <span class="text-[10px] text-slate-500">Model</span>
-              <span class="truncate text-xs font-medium text-slate-700">{currentModel().name}</span>
+              <span class="text-[10px]" style={{ color: "var(--color-text-faint)" }}>Model</span>
+              <span class="truncate text-xs font-medium" style={{ color: "var(--color-text-secondary)" }}>{currentModel().name}</span>
             </div>
           </div>
         </div>
@@ -467,15 +495,21 @@ export default function ChatPage(): JSX.Element {
       {/* ── Center: Chat Interface ────────────────────────────── */}
       <div class="flex flex-1 flex-col overflow-hidden">
         {/* Chat Header */}
-        <div class="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-3">
+        <div
+          class="flex items-center justify-between px-6 py-3"
+          style={{ background: "var(--color-bg-subtle)", "border-bottom": "1px solid var(--color-border)" }}
+        >
           <div class="flex items-center gap-3">
-            <span class="text-sm font-semibold text-slate-900">
+            <span class="text-sm font-semibold" style={{ color: "var(--color-text)" }}>
               {activeConvId()
                 ? conversations().find((c) => c.id === activeConvId())?.title ?? "Chat"
                 : "New Chat"}
             </span>
-            <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider border border-orange-200 bg-orange-50 text-orange-700">
-              <span class="h-1.5 w-1.5 rounded-full bg-orange-600" />
+            <span
+              class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider"
+              style={{ background: "var(--color-bg-elevated)", color: "var(--color-primary-light)" }}
+            >
+              <span class="h-1.5 w-1.5 rounded-full" style={{ background: "var(--color-primary-light)" }} />
               Anthropic
             </span>
           </div>
@@ -484,22 +518,28 @@ export default function ChatPage(): JSX.Element {
             <select
               value={selectedModel()}
               onChange={(e) => setSelectedModel(e.currentTarget.value)}
-              class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-medium text-slate-700 outline-none transition-all focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
+              class="rounded-lg px-3 py-1.5 text-[11px] font-medium outline-none transition-all"
+              style={{
+                background: "var(--color-bg-inset)",
+                border: "1px solid var(--color-border)",
+                color: "var(--color-text-secondary)",
+              }}
             >
               <For each={MODELS}>
                 {(model) => (
-                  <option value={model.id}>{model.name}</option>
+                  <option value={model.id} style={{ background: "var(--color-bg-elevated)" }}>{model.name}</option>
                 )}
               </For>
             </select>
             <button
               type="button"
               onClick={() => setShowSettings(!showSettings())}
-              class={`rounded-lg border px-3 py-1.5 text-[11px] font-medium transition-all duration-200 ${
-                showSettings()
-                  ? "border-orange-200 bg-orange-50 text-orange-700"
-                  : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:text-slate-900"
-              }`}
+              class="rounded-lg px-3 py-1.5 text-[11px] font-medium transition-all duration-200"
+              style={{
+                background: showSettings() ? "var(--color-bg-elevated)" : "var(--color-bg-inset)",
+                border: showSettings() ? "1px solid var(--color-primary-light)" : "1px solid var(--color-border)",
+                color: showSettings() ? "var(--color-primary-light)" : "var(--color-text-secondary)",
+              }}
             >
               Settings
             </button>
@@ -508,34 +548,45 @@ export default function ChatPage(): JSX.Element {
 
         {/* API Key Warning */}
         <Show when={!hasApiKey()}>
-          <div class="mx-6 mt-4 flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
-            <span class="text-amber-700">&#9888;</span>
+          <div
+            class="mx-6 mt-4 flex items-center gap-3 rounded-xl px-4 py-3"
+            style={{ background: "var(--color-bg-elevated)", border: "1px solid var(--color-border)" }}
+          >
+            <span style={{ color: "var(--color-primary-light)" }}>&#9888;</span>
             <div class="flex-1">
-              <span class="text-xs font-medium text-amber-800">No Anthropic API key configured</span>
-              <p class="text-[11px] text-amber-700">Go to Settings &gt; AI Provider Keys to add your key, or set ANTHROPIC_API_KEY in your environment.</p>
+              <span class="text-xs font-medium" style={{ color: "var(--color-text)" }}>No Anthropic API key configured</span>
+              <p class="text-[11px]" style={{ color: "var(--color-text-muted)" }}>Go to Settings &gt; AI Provider Keys to add your key, or set ANTHROPIC_API_KEY in your environment.</p>
             </div>
           </div>
         </Show>
 
         {/* Error Banner */}
         <Show when={error()}>
-          <div class="mx-6 mt-4 flex items-center gap-3 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3">
-            <span class="text-rose-700">&#10060;</span>
-            <span class="flex-1 text-xs text-rose-700">{error()}</span>
-            <button type="button" onClick={() => setError(null)} class="text-xs text-rose-600 hover:text-rose-800">Dismiss</button>
+          <div
+            class="mx-6 mt-4 flex items-center gap-3 rounded-xl px-4 py-3"
+            style={{ background: "var(--color-bg-elevated)", border: "1px solid var(--color-border-strong)" }}
+          >
+            <span style={{ color: "var(--color-text-secondary)" }}>&#10060;</span>
+            <span class="flex-1 text-xs" style={{ color: "var(--color-text-secondary)" }}>{error()}</span>
+            <button type="button" onClick={() => setError(null)} class="text-xs" style={{ color: "var(--color-text-muted)" }}>Dismiss</button>
           </div>
         </Show>
 
         {/* System Prompt Panel */}
         <Show when={showSettings()}>
-          <div class="border-b border-slate-200 bg-slate-50 px-6 py-4">
+          <div class="px-6 py-4" style={{ background: "var(--color-bg-subtle)", "border-bottom": "1px solid var(--color-border)" }}>
             <div class="flex flex-col gap-2">
-              <label class="text-[10px] font-semibold uppercase tracking-widest text-slate-500">System Prompt</label>
+              <label class="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--color-text-faint)" }}>System Prompt</label>
               <textarea
                 value={systemPrompt()}
                 onInput={(e) => setSystemPrompt(e.currentTarget.value)}
                 rows={3}
-                class="w-full resize-none rounded-xl border border-slate-200 bg-white px-4 py-3 text-xs text-slate-900 placeholder-slate-400 outline-none transition-all focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
+                class="w-full resize-none rounded-xl px-4 py-3 text-xs outline-none transition-all"
+                style={{
+                  background: "var(--color-bg-inset)",
+                  border: "1px solid var(--color-border)",
+                  color: "var(--color-text-secondary)",
+                }}
                 placeholder="You are a helpful assistant specialized in..."
               />
             </div>
@@ -550,12 +601,12 @@ export default function ChatPage(): JSX.Element {
               <div class="flex flex-col items-center gap-4 py-24">
                 <div
                   class="flex h-20 w-20 items-center justify-center rounded-3xl"
-                  style={{ background: "rgba(234,88,12,0.08)", color: "#ea580c" }}
+                  style={{ background: "var(--color-bg-elevated)" }}
                 >
-                  <span class="text-4xl">&#9889;</span>
+                  <span class="text-4xl" style={{ color: "var(--color-primary-light)" }}>&#9889;</span>
                 </div>
-                <h2 class="text-xl font-bold text-slate-900">Claude Chat</h2>
-                <p class="max-w-sm text-center text-sm text-slate-600">
+                <h2 class="text-xl font-bold" style={{ color: "var(--color-text)" }}>Claude Chat</h2>
+                <p class="max-w-sm text-center text-sm" style={{ color: "var(--color-text-muted)" }}>
                   Direct Anthropic API access. No subscriptions. Pay only for what you use. Your API key, your data, your control.
                 </p>
                 <div class="mt-4 flex flex-wrap justify-center gap-2">
@@ -566,7 +617,12 @@ export default function ChatPage(): JSX.Element {
                         setInput(prompt);
                         textareaRef?.focus();
                       }}
-                      class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs text-slate-700 transition-all hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900"
+                      class="rounded-xl px-4 py-2 text-xs transition-all"
+                      style={{
+                        background: "var(--color-bg-inset)",
+                        border: "1px solid var(--color-border)",
+                        color: "var(--color-text-secondary)",
+                      }}
                     >
                       {prompt}
                     </button>
@@ -583,20 +639,23 @@ export default function ChatPage(): JSX.Element {
             <Show when={isStreaming()}>
               <div class="flex gap-3">
                 <div
-                  class="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-xs font-bold text-white"
-                  style={{ background: "#ea580c" }}
+                  class="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-xs font-bold"
+                  style={{ background: "var(--color-bg-elevated)", color: "var(--color-text)" }}
                 >
                   C
                 </div>
-                <div class="max-w-[80%] rounded-2xl border border-slate-200 bg-white px-4 py-3">
+                <div
+                  class="max-w-[80%] rounded-2xl px-4 py-3"
+                  style={{ background: "var(--color-bg-muted)", border: "1px solid var(--color-border)" }}
+                >
                   <Show when={streamContent()} fallback={
                     <div class="flex items-center gap-1.5">
-                      <div class="h-2 w-2 animate-pulse rounded-full bg-orange-600" />
-                      <div class="h-2 w-2 animate-pulse rounded-full bg-orange-600" style={{ "animation-delay": "0.2s" }} />
-                      <div class="h-2 w-2 animate-pulse rounded-full bg-orange-600" style={{ "animation-delay": "0.4s" }} />
+                      <div class="h-2 w-2 animate-pulse rounded-full" style={{ background: "var(--color-primary-light)" }} />
+                      <div class="h-2 w-2 animate-pulse rounded-full" style={{ background: "var(--color-primary-light)", "animation-delay": "0.2s" }} />
+                      <div class="h-2 w-2 animate-pulse rounded-full" style={{ background: "var(--color-primary-light)", "animation-delay": "0.4s" }} />
                     </div>
                   }>
-                    <div class="text-sm leading-relaxed text-slate-800" innerHTML={renderContent(streamContent())} />
+                    <div class="text-sm leading-relaxed" style={{ color: "var(--color-text-secondary)" }} innerHTML={renderContent(streamContent())} />
                   </Show>
                 </div>
               </div>
@@ -607,9 +666,12 @@ export default function ChatPage(): JSX.Element {
         </div>
 
         {/* Input Area */}
-        <div class="border-t border-slate-200 bg-white px-6 py-4">
+        <div class="px-6 py-4" style={{ background: "var(--color-bg-subtle)", "border-top": "1px solid var(--color-border)" }}>
           <div class="mx-auto max-w-3xl">
-            <div class="flex items-end gap-3 rounded-2xl border border-slate-200 bg-white p-2 transition-all duration-200 focus-within:border-orange-500 focus-within:ring-2 focus-within:ring-orange-100">
+            <div
+              class="flex items-end gap-3 rounded-2xl p-2 transition-all duration-200"
+              style={{ background: "var(--color-bg-inset)", border: "1px solid var(--color-border)" }}
+            >
               <textarea
                 ref={textareaRef}
                 value={input()}
@@ -617,14 +679,15 @@ export default function ChatPage(): JSX.Element {
                 onKeyDown={handleKeyDown}
                 placeholder="Message Claude..."
                 rows={1}
-                class="flex-1 resize-none bg-transparent px-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 outline-none"
-                style={{ "max-height": "120px" }}
+                class="flex-1 resize-none bg-transparent px-3 py-2.5 text-sm outline-none"
+                style={{ color: "var(--color-text-secondary)", "max-height": "120px" }}
               />
               <button
                 type="button"
                 onClick={() => void handleSend()}
                 disabled={!input().trim() || isStreaming()}
-                class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-orange-600 text-white transition-all duration-200 hover:bg-orange-700 disabled:opacity-30"
+                class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-all duration-200 disabled:opacity-30"
+                style={{ background: "var(--color-primary)", color: "var(--color-primary-text)" }}
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M22 2L11 13" />
@@ -633,10 +696,10 @@ export default function ChatPage(): JSX.Element {
               </button>
             </div>
             <div class="mt-2 flex items-center justify-between px-1">
-              <span class="text-[10px] text-slate-400">
+              <span class="text-[10px]" style={{ color: "var(--color-text-faint)" }}>
                 Shift+Enter for new line
               </span>
-              <span class="text-[10px] text-slate-400">
+              <span class="text-[10px]" style={{ color: "var(--color-text-faint)" }}>
                 {currentModel().name} via Anthropic API
               </span>
             </div>

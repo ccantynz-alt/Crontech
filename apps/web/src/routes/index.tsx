@@ -4,77 +4,61 @@ import type { JSX } from "solid-js";
 import { Button } from "@back-to-the-future/ui";
 import { useAuth } from "../stores";
 import { SEOHead } from "../components/SEOHead";
-
-// BLK-008 — light-first Stripe-direction landing. Restricted accents
-// (indigo primary, cyan secondary, emerald positive) sit on a white
-// canvas with slate neutrals. BLK-003 copy is locked; only visuals move.
-
-const ACCENT = {
-  primary: "#4f46e5", // indigo-600 — brand / CTAs
-  secondary: "#0891b2", // cyan-600 — platform/technical
-  positive: "#059669", // emerald-600 — live/built-in
-} as const;
+import { Icon, type IconName } from "../components/Icon";
 
 // ── Data ────────────────────────────────────────────────────────────
 
 interface Feature {
-  icon: string;
+  icon: IconName;
   title: string;
   description: string;
   href: string;
-  accent: string;
   badge?: string | undefined;
 }
 
 const features: Feature[] = [
   {
-    icon: "\u26A1",
+    icon: "zap",
     title: "Edge Compute",
     description:
-      "Cloudflare Workers at the edge. Sub-5ms cold starts across 330+ cities. No containers, no regions, no capacity planning. Your code lives next to your users.",
+      "Cloudflare Workers at the edge. Sub-5ms cold starts across 330+ cities. No containers, no regions, no capacity planning.",
     href: "/deployments",
-    accent: ACCENT.primary,
     badge: "Core",
   },
   {
-    icon: "\u{1F5C4}\uFE0F",
+    icon: "database",
     title: "Unified Data",
     description:
-      "Turso SQLite replicas at the edge for zero-latency reads. Neon Postgres when you need the full engine. Qdrant for vector search. All type-safe through Drizzle.",
-    href: "/database",
-    accent: ACCENT.secondary,
+      "Turso SQLite replicas at the edge for zero-latency reads. Neon Postgres when you need the full engine. Qdrant for vector search.",
+    href: "/admin",
   },
   {
-    icon: "\u{1F517}",
+    icon: "link-2",
     title: "Type-Safe APIs",
     description:
-      "tRPC v11 end to end. Change a server type, see the client error instantly. No OpenAPI specs, no codegen step, no drift between backend and frontend. Ever.",
-    href: "/docs",
-    accent: ACCENT.primary,
+      "tRPC v11 end to end. Change a server type, see the client error instantly. No OpenAPI specs, no codegen step, no drift.",
+    href: "/pricing",
   },
   {
-    icon: "\u{1F310}",
+    icon: "radio",
     title: "Real-Time Layer",
     description:
-      "WebSockets, SSE, and Yjs CRDTs on every edge node. Multi-user editing with AI agents as first-class peers. Conflict-free by mathematics, not by lock.",
-    href: "/collab",
-    accent: ACCENT.secondary,
+      "WebSockets, SSE, and Yjs CRDTs on every edge node. Multi-user editing with AI agents as first-class peers.",
+    href: "/chat",
   },
   {
-    icon: "\u{1F9E0}",
+    icon: "brain",
     title: "AI Runtime",
     description:
-      "Three-tier compute routes inference where it is cheapest: client GPU (free), edge (sub-5ms), or cloud H100s on demand. Generative UI and streaming native to the platform.",
-    href: "/ai-playground",
-    accent: ACCENT.primary,
+      "Three-tier compute routes inference where it is cheapest: client GPU, edge, or cloud H100s on demand. Generative UI and streaming native.",
+    href: "/chat",
   },
   {
-    icon: "\u{1F512}",
+    icon: "lock",
     title: "Auth + Admin",
     description:
-      "Passkeys, OAuth, 2FA. Role-based access control. Audit logs, analytics, and user management. A full admin dashboard ships with the platform, not as a separate product.",
+      "Passkeys, OAuth, 2FA. Role-based access control. Audit logs, analytics, and user management. Ships with the platform.",
     href: "/admin",
-    accent: ACCENT.positive,
     badge: "Built-in",
   },
 ];
@@ -83,7 +67,6 @@ interface Step {
   number: string;
   title: string;
   description: string;
-  accent: string;
   icon: string;
 }
 
@@ -92,24 +75,21 @@ const steps: Step[] = [
     number: "01",
     title: "Connect",
     description:
-      "Point your domain at Crontech. Your app moves to the edge. DNS propagation is the longest step in the whole process.",
-    accent: ACCENT.primary,
+      "Point your domain at Crontech. Your app moves to the edge. DNS propagation is the longest step.",
     icon: "\u{1F50C}",
   },
   {
     number: "02",
     title: "Compose",
     description:
-      "Pick the layers you need \u2014 data, auth, AI, real-time, billing. One config line each, not one vendor contract each.",
-    accent: ACCENT.secondary,
+      "Pick the layers you need \u2014 data, auth, AI, real-time, billing. One config line each.",
     icon: "\u{1F9F1}",
   },
   {
     number: "03",
     title: "Ship",
     description:
-      "Git push deploys. Type-safe end to end. Every layer observable. Global in seconds, with no infrastructure to manage.",
-    accent: ACCENT.positive,
+      "Git push deploys. Type-safe end to end. Every layer observable. Global in seconds.",
     icon: "\u{1F680}",
   },
 ];
@@ -117,21 +97,19 @@ const steps: Step[] = [
 interface Stat {
   value: string;
   label: string;
-  color: string;
 }
 
 const stats: Stat[] = [
-  { value: "\u003C 5ms", label: "Edge Cold Start", color: ACCENT.primary },
-  { value: "330+", label: "Cities Worldwide", color: ACCENT.secondary },
-  { value: "End-to-End", label: "Type Safety", color: ACCENT.primary },
-  { value: "Built-In", label: "Auth, RBAC, Audit", color: ACCENT.positive },
+  { value: "< 5ms", label: "Edge Cold Start" },
+  { value: "330+", label: "Cities Worldwide" },
+  { value: "End-to-End", label: "Type Safety" },
+  { value: "Built-In", label: "Auth, RBAC, Audit" },
 ];
 
 interface TechPillar {
   label: string;
   title: string;
   description: string;
-  labelColor: string;
 }
 
 const techPillars: TechPillar[] = [
@@ -140,21 +118,18 @@ const techPillars: TechPillar[] = [
     title: "Replace your entire stack",
     description:
       "Hosting, database, authentication, AI, real-time collaboration, payments, email, and storage. One product. One dashboard. One bill.",
-    labelColor: "text-indigo-600",
   },
   {
     label: "Built on the bleeding edge",
     title: "The fastest stack on the web",
     description:
       "Cloudflare Workers for sub-5ms cold starts. SolidJS for the fastest reactivity. Bun + Hono for the fastest runtime. Type-safe end to end.",
-    labelColor: "text-cyan-700",
   },
   {
     label: "AI-native at every layer",
     title: "AI is the architecture, not an add-on",
     description:
-      "AI agents, generative UI, three-tier compute routing, RAG pipelines, and real-time AI co-authoring. Native to the platform from the ground up.",
-    labelColor: "text-emerald-700",
+      "AI agents, generative UI, three-tier compute routing, RAG pipelines, and real-time AI co-authoring. Native from the ground up.",
   },
 ];
 
@@ -162,47 +137,53 @@ const techPillars: TechPillar[] = [
 
 function FeatureCard(props: Feature): JSX.Element {
   return (
-    <A href={props.href} class="group block">
-      <div class="relative h-full overflow-hidden rounded-xl border border-slate-200 bg-white p-6 transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md">
-        <div class="relative z-10 flex h-full flex-col gap-4">
+    <A href={props.href} class="block group" style={{ "text-decoration": "none" }}>
+      <div class="landing-card h-full p-7">
+        <div class="flex h-full flex-col gap-5">
           <div class="flex items-start justify-between gap-3">
-            <div class="flex items-center gap-3">
-              <div
-                class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-base"
-                style={{
-                  background: `${props.accent}14`,
-                  color: props.accent,
-                }}
-              >
-                {props.icon}
-              </div>
-              <span class="text-base font-semibold text-slate-900">
-                {props.title}
-              </span>
+            <div
+              class="flex h-12 w-12 items-center justify-center rounded-xl"
+              style={{
+                background: "linear-gradient(135deg, #eef2ff, #e8e0ff)",
+                color: "#4f46e5",
+              }}
+            >
+              <Icon name={props.icon} size={22} />
             </div>
             <Show when={props.badge}>
               <span
-                class="shrink-0 whitespace-nowrap rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider"
+                class="shrink-0 rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-wider"
                 style={{
-                  background: `${props.accent}14`,
-                  color: props.accent,
+                  background: "#eef2ff",
+                  color: "#4f46e5",
                 }}
               >
                 {props.badge}
               </span>
             </Show>
           </div>
-          <p class="text-sm leading-relaxed text-slate-600">
-            {props.description}
-          </p>
+
+          <div class="flex flex-col gap-2">
+            <h3
+              class="text-[1.0625rem] font-semibold tracking-tight"
+              style={{ color: "var(--color-text)" }}
+            >
+              {props.title}
+            </h3>
+            <p
+              class="text-[0.9rem] leading-[1.7]"
+              style={{ color: "var(--color-text-secondary)" }}
+            >
+              {props.description}
+            </p>
+          </div>
+
           <div
-            class="mt-auto flex items-center gap-1.5 pt-2 text-xs font-semibold"
-            style={{ color: props.accent }}
+            class="mt-auto flex items-center gap-1.5 pt-3 text-sm font-medium"
+            style={{ color: "#4f46e5" }}
           >
             <span>Learn more</span>
-            <span class="transition-transform duration-200 group-hover:translate-x-0.5">
-              {"\u2192"}
-            </span>
+            <span class="transition-transform duration-200 group-hover:translate-x-1">&#8594;</span>
           </div>
         </div>
       </div>
@@ -212,30 +193,48 @@ function FeatureCard(props: Feature): JSX.Element {
 
 // ── Step Card ───────────────────────────────────────────────────────
 
-function StepCard(props: Step): JSX.Element {
+function StepCard(props: Step & { isLast: boolean }): JSX.Element {
   return (
-    <div class="group relative flex flex-col items-center gap-5 text-center">
+    <div class="relative flex flex-col items-center gap-5 text-center">
       <div class="relative">
         <div
-          class="flex h-20 w-20 items-center justify-center rounded-2xl text-2xl transition-transform duration-200 group-hover:scale-105"
+          class="flex h-16 w-16 items-center justify-center rounded-2xl text-2xl"
           style={{
-            background: `${props.accent}14`,
-            border: `1px solid ${props.accent}33`,
+            background: "var(--color-bg-elevated)",
+            border: "1px solid var(--color-border)",
+            "box-shadow": "0 4px 12px rgba(0,0,0,0.06)",
           }}
         >
-          <span style={{ color: props.accent }}>{props.icon}</span>
+          {props.icon}
         </div>
         <div
-          class="absolute -right-2 -top-2 flex h-7 w-7 items-center justify-center rounded-lg text-[11px] font-bold text-white shadow-sm"
-          style={{ background: props.accent }}
+          class="absolute -top-2.5 -right-2.5 flex h-7 w-7 items-center justify-center rounded-lg text-[11px] font-bold"
+          style={{
+            background: "linear-gradient(135deg, #4f46e5, #7c3aed)",
+            color: "#fff",
+            "box-shadow": "0 2px 8px rgba(79,70,229,0.4)",
+          }}
         >
           {props.number}
         </div>
       </div>
-      <h3 class="text-xl font-bold text-slate-900">{props.title}</h3>
-      <p class="max-w-xs text-sm leading-relaxed text-slate-600">
+
+      <h3
+        class="text-lg font-semibold tracking-tight"
+        style={{ color: "var(--color-text)" }}
+      >
+        {props.title}
+      </h3>
+      <p
+        class="max-w-[280px] text-[0.9rem] leading-[1.7]"
+        style={{ color: "var(--color-text-secondary)" }}
+      >
         {props.description}
       </p>
+
+      <Show when={!props.isLast}>
+        <div class="landing-step-connector" />
+      </Show>
     </div>
   );
 }
@@ -244,14 +243,17 @@ function StepCard(props: Step): JSX.Element {
 
 function StatBlock(props: Stat): JSX.Element {
   return (
-    <div class="flex flex-col items-center gap-1 px-6 py-6">
+    <div class="flex flex-col items-center justify-center gap-2 px-6 py-10 sm:py-12">
       <span
-        class="text-2xl font-bold tracking-tight sm:text-3xl"
-        style={{ color: props.color }}
+        class="text-2xl font-extrabold tracking-tight sm:text-3xl"
+        style={{ color: "#fff" }}
       >
         {props.value}
       </span>
-      <span class="text-[11px] font-semibold uppercase tracking-widest text-slate-500">
+      <span
+        class="text-[11px] font-medium uppercase tracking-[0.16em]"
+        style={{ color: "rgba(255,255,255,0.5)" }}
+      >
         {props.label}
       </span>
     </div>
@@ -262,14 +264,31 @@ function StatBlock(props: Stat): JSX.Element {
 
 function TechPillarCard(props: TechPillar): JSX.Element {
   return (
-    <div class="group relative overflow-hidden rounded-xl border border-slate-200 bg-white p-8 transition-all duration-200 hover:border-slate-300 hover:shadow-md">
+    <div class="landing-card relative overflow-hidden p-8">
+      <div
+        class="absolute top-0 left-0 right-0 h-[3px]"
+        style={{
+          background: "linear-gradient(90deg, #4f46e5, #7c3aed, #a78bfa)",
+        }}
+      />
       <span
-        class={`mb-3 inline-block text-xs font-semibold uppercase tracking-widest ${props.labelColor}`}
+        class="mb-4 inline-block text-xs font-semibold uppercase tracking-[0.14em]"
+        style={{ color: "#4f46e5" }}
       >
         {props.label}
       </span>
-      <h3 class="mb-3 text-xl font-bold text-slate-900">{props.title}</h3>
-      <p class="text-sm leading-relaxed text-slate-600">{props.description}</p>
+      <h3
+        class="mb-3 text-xl font-bold tracking-tight"
+        style={{ color: "var(--color-text)" }}
+      >
+        {props.title}
+      </h3>
+      <p
+        class="text-[0.9rem] leading-[1.7]"
+        style={{ color: "var(--color-text-secondary)" }}
+      >
+        {props.description}
+      </p>
     </div>
   );
 }
@@ -287,77 +306,81 @@ export default function Home(): JSX.Element {
         path="/"
       />
 
-      <div class="min-h-screen overflow-x-hidden bg-white">
-        {/* ── Hero ──────────────────────────────────────────────── */}
-        <section class="relative overflow-hidden">
-          {/* Subtle dotted grid — professional, not cyberpunk */}
-          <div
-            class="pointer-events-none absolute inset-0 opacity-[0.4]"
-            style={{
-              "background-image":
-                "radial-gradient(rgba(15,23,42,0.07) 1px, transparent 1px)",
-              "background-size": "28px 28px",
-              "mask-image":
-                "linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0.6) 60%, rgba(0,0,0,0) 100%)",
-              "-webkit-mask-image":
-                "linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0.6) 60%, rgba(0,0,0,0) 100%)",
-            }}
-          />
-
-          <div class="relative z-10 mx-auto max-w-[1200px] px-6 pb-20 pt-20 lg:px-8 lg:pb-28 lg:pt-28">
+      <div>
+        {/* ── Hero (dark) ──────────────────────────────────────── */}
+        <section class="landing-hero">
+          <div class="relative z-10 mx-auto max-w-[1120px] px-6 pt-28 pb-24 lg:px-8 lg:pt-44 lg:pb-36">
             <div class="flex flex-col items-center text-center">
               {/* Announcement badge */}
-              <div class="mb-8 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3.5 py-1.5 shadow-sm">
-                <span class="relative flex h-2 w-2">
-                  <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-                  <span class="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-                </span>
-                <span class="text-xs font-medium text-slate-600">
+              <div
+                class="mb-10 inline-flex items-center gap-2.5 rounded-full px-4 py-2"
+                style={{
+                  border: "1px solid rgba(255,255,255,0.12)",
+                  background: "rgba(255,255,255,0.06)",
+                  "backdrop-filter": "blur(8px)",
+                }}
+              >
+                <div
+                  class="h-2 w-2 rounded-full animate-pulse"
+                  style={{ background: "#34d399" }}
+                />
+                <span
+                  class="text-[0.8125rem] font-medium"
+                  style={{ color: "rgba(255,255,255,0.7)" }}
+                >
                   Now in early access
                 </span>
               </div>
 
-              {/* Doctrine headline — per docs/POSITIONING.md (BLK-003 locked) */}
-              <h1 class="max-w-4xl text-4xl font-extrabold leading-[1.08] tracking-tight text-slate-900 sm:text-5xl lg:text-[4rem]">
+              {/* Headline */}
+              <h1
+                class="max-w-4xl text-[2.75rem] font-extrabold leading-[1.08] tracking-[-0.03em] sm:text-[3.5rem] lg:text-[4.25rem]"
+                style={{ color: "#fff" }}
+              >
                 The developer platform{" "}
-                <span class="text-indigo-600">for the next decade.</span>
+                <span class="landing-gradient-text">
+                  for the next decade.
+                </span>
               </h1>
 
-              {/* Subhead */}
-              <p class="mt-6 max-w-2xl text-base leading-relaxed text-slate-600 sm:text-lg">
+              {/* Subheading */}
+              <p
+                class="mt-7 max-w-2xl text-[1.0625rem] leading-[1.75] sm:text-lg"
+                style={{ color: "rgba(255,255,255,0.6)" }}
+              >
                 Backend and frontend, joined as one product. Hosting, database,
-                auth, AI, real-time, and billing {"\u2014"} every layer your app
+                auth, AI, real-time, and billing &mdash; every layer your app
                 needs, type-safe end to end, built on the bleeding edge and
                 ready the moment your team is.
               </p>
 
               {/* CTAs */}
-              <div class="mt-10 flex flex-col items-center gap-3 sm:flex-row">
+              <div class="mt-12 flex flex-col items-center gap-4 sm:flex-row">
                 <A href="/register">
-                  <Button variant="primary" size="lg">
-                    Start building {"\u2192"}
-                  </Button>
+                  <button class="landing-hero-btn-primary" type="button">
+                    Start building &#8594;
+                  </button>
                 </A>
                 <Show
                   when={auth.isAuthenticated()}
                   fallback={
-                    <A href="/docs">
-                      <Button variant="outline" size="lg">
-                        See the docs
-                      </Button>
+                    <A href="/pricing">
+                      <button class="landing-hero-btn-outline" type="button">
+                        See pricing
+                      </button>
                     </A>
                   }
                 >
                   <A href="/dashboard">
-                    <Button variant="outline" size="lg">
+                    <button class="landing-hero-btn-outline" type="button">
                       Open dashboard
-                    </Button>
+                    </button>
                   </A>
                 </Show>
               </div>
 
               {/* Tech stack strip */}
-              <div class="mt-16 flex flex-wrap items-center justify-center gap-x-8 gap-y-3">
+              <div class="mt-20 flex flex-wrap items-center justify-center gap-x-10 gap-y-3">
                 <For
                   each={[
                     "SolidJS",
@@ -370,7 +393,16 @@ export default function Home(): JSX.Element {
                   ]}
                 >
                   {(tech) => (
-                    <span class="text-xs font-semibold uppercase tracking-widest text-slate-400 transition-colors duration-200 hover:text-slate-600">
+                    <span
+                      class="text-[0.6875rem] font-medium uppercase tracking-[0.18em] transition-colors duration-200"
+                      style={{ color: "rgba(255,255,255,0.3)" }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.color = "rgba(255,255,255,0.6)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.color = "rgba(255,255,255,0.3)";
+                      }}
+                    >
                       {tech}
                     </span>
                   )}
@@ -380,17 +412,19 @@ export default function Home(): JSX.Element {
           </div>
         </section>
 
-        {/* ── Stats strip ───────────────────────────────────────── */}
-        <section class="border-y border-slate-200 bg-slate-50">
-          <div class="mx-auto max-w-[1200px] px-6 lg:px-8">
-            <div class="grid grid-cols-2 divide-x divide-slate-200 sm:grid-cols-4">
+        {/* ── Stats strip (dark-to-light transition) ────────────── */}
+        <section class="landing-stats-section">
+          <div class="mx-auto max-w-[1120px] px-6 lg:px-8">
+            <div class="grid grid-cols-2 sm:grid-cols-4">
               <For each={stats}>
-                {(stat) => (
-                  <StatBlock
-                    value={stat.value}
-                    label={stat.label}
-                    color={stat.color}
-                  />
+                {(stat, i) => (
+                  <div
+                    style={{
+                      "border-right": i() < stats.length - 1 ? "1px solid rgba(255,255,255,0.08)" : "none",
+                    }}
+                  >
+                    <StatBlock value={stat.value} label={stat.label} />
+                  </div>
                 )}
               </For>
             </div>
@@ -398,16 +432,26 @@ export default function Home(): JSX.Element {
         </section>
 
         {/* ── Platform layers ───────────────────────────────────── */}
-        <section class="relative py-24 lg:py-28">
-          <div class="mx-auto max-w-[1200px] px-6 lg:px-8">
-            <div class="mb-14 flex flex-col items-center text-center">
-              <span class="mb-4 text-xs font-semibold uppercase tracking-widest text-indigo-600">
+        <section class="py-28 lg:py-36" style={{ background: "var(--color-bg)" }}>
+          <div class="mx-auto max-w-[1120px] px-6 lg:px-8">
+            <div class="mb-16 flex flex-col items-center text-center">
+              <div class="landing-section-label">
+                <div
+                  class="h-1.5 w-1.5 rounded-full"
+                  style={{ background: "#4f46e5" }}
+                />
                 Platform
-              </span>
-              <h2 class="max-w-2xl text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+              </div>
+              <h2
+                class="max-w-2xl text-[1.875rem] font-bold tracking-tight sm:text-[2.25rem]"
+                style={{ color: "var(--color-text)" }}
+              >
                 Every layer your app needs, in one product
               </h2>
-              <p class="mt-4 max-w-xl text-base leading-relaxed text-slate-600">
+              <p
+                class="mt-5 max-w-xl text-[1.0625rem] leading-[1.7]"
+                style={{ color: "var(--color-text-muted)" }}
+              >
                 Stop stitching together a dozen services. Crontech is one
                 product with one dashboard and one bill.
               </p>
@@ -421,7 +465,6 @@ export default function Home(): JSX.Element {
                     title={feature.title}
                     description={feature.description}
                     href={feature.href}
-                    accent={feature.accent}
                     badge={feature.badge}
                   />
                 )}
@@ -431,30 +474,47 @@ export default function Home(): JSX.Element {
         </section>
 
         {/* ── How it works ──────────────────────────────────────── */}
-        <section class="relative border-y border-slate-200 bg-slate-50 py-24 lg:py-28">
-          <div class="mx-auto max-w-[1200px] px-6 lg:px-8">
-            <div class="mb-14 flex flex-col items-center text-center">
-              <span class="mb-4 text-xs font-semibold uppercase tracking-widest text-cyan-700">
+        <section
+          class="py-28 lg:py-36"
+          style={{
+            background: "var(--color-bg-subtle)",
+            "border-top": "1px solid var(--color-border)",
+            "border-bottom": "1px solid var(--color-border)",
+          }}
+        >
+          <div class="mx-auto max-w-[1120px] px-6 lg:px-8">
+            <div class="mb-16 flex flex-col items-center text-center">
+              <div class="landing-section-label">
+                <div
+                  class="h-1.5 w-1.5 rounded-full"
+                  style={{ background: "#4f46e5" }}
+                />
                 Onboarding
-              </span>
-              <h2 class="max-w-2xl text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+              </div>
+              <h2
+                class="max-w-2xl text-[1.875rem] font-bold tracking-tight sm:text-[2.25rem]"
+                style={{ color: "var(--color-text)" }}
+              >
                 Move your app to Crontech in three steps
               </h2>
-              <p class="mt-4 max-w-xl text-base leading-relaxed text-slate-600">
+              <p
+                class="mt-5 max-w-xl text-[1.0625rem] leading-[1.7]"
+                style={{ color: "var(--color-text-muted)" }}
+              >
                 No rebuild. No long migration. Bring the code you already have,
                 layer Crontech underneath, ship.
               </p>
             </div>
 
-            <div class="grid grid-cols-1 gap-12 sm:grid-cols-3 sm:gap-8">
+            <div class="grid grid-cols-1 gap-14 sm:grid-cols-3 sm:gap-8">
               <For each={steps}>
-                {(step) => (
+                {(step, i) => (
                   <StepCard
                     number={step.number}
                     title={step.title}
                     description={step.description}
-                    accent={step.accent}
                     icon={step.icon}
+                    isLast={i() === steps.length - 1}
                   />
                 )}
               </For>
@@ -463,16 +523,15 @@ export default function Home(): JSX.Element {
         </section>
 
         {/* ── Tech pillars ──────────────────────────────────────── */}
-        <section class="py-24 lg:py-28">
-          <div class="mx-auto max-w-[1200px] px-6 lg:px-8">
-            <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <section class="py-28 lg:py-36" style={{ background: "var(--color-bg)" }}>
+          <div class="mx-auto max-w-[1120px] px-6 lg:px-8">
+            <div class="grid grid-cols-1 gap-5 lg:grid-cols-3">
               <For each={techPillars}>
                 {(pillar) => (
                   <TechPillarCard
                     label={pillar.label}
                     title={pillar.title}
                     description={pillar.description}
-                    labelColor={pillar.labelColor}
                   />
                 )}
               </For>
@@ -480,27 +539,35 @@ export default function Home(): JSX.Element {
           </div>
         </section>
 
-        {/* ── Bottom CTA ────────────────────────────────────────── */}
-        <section class="relative border-t border-slate-200 bg-slate-50 py-24 lg:py-28">
-          <div class="relative z-10 mx-auto max-w-[800px] px-6 text-center lg:px-8">
-            <h2 class="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl lg:text-5xl">
+        {/* ── Bottom CTA (dark) ─────────────────────────────────── */}
+        <section class="landing-cta-section">
+          <div class="relative z-10 mx-auto max-w-[800px] px-6 py-28 text-center lg:px-8 lg:py-36">
+            <h2
+              class="text-[1.875rem] font-bold tracking-tight sm:text-[2.25rem] lg:text-[2.75rem]"
+              style={{ color: "#fff" }}
+            >
               The developer platform{" "}
-              <span class="text-indigo-600">for the next decade.</span>
+              <span class="landing-gradient-text">
+                for the next decade.
+              </span>
             </h2>
-            <p class="mt-5 text-base leading-relaxed text-slate-600 sm:text-lg">
+            <p
+              class="mt-6 text-[1.0625rem] leading-[1.7] sm:text-lg"
+              style={{ color: "rgba(255,255,255,0.6)" }}
+            >
               One product. Every layer. Built for teams who refuse to settle
-              for yesterday{"\u2019"}s tools.
+              for yesterday&#39;s tools.
             </p>
-            <div class="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <div class="mt-12 flex flex-col items-center justify-center gap-4 sm:flex-row">
               <A href="/register">
-                <Button variant="primary" size="lg">
-                  Start building {"\u2192"}
-                </Button>
+                <button class="landing-hero-btn-primary" type="button">
+                  Start building &#8594;
+                </button>
               </A>
               <A href="/dashboard">
-                <Button variant="outline" size="lg">
+                <button class="landing-hero-btn-outline" type="button">
                   Explore the platform
-                </Button>
+                </button>
               </A>
             </div>
           </div>

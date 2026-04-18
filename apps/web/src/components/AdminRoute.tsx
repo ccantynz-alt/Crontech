@@ -42,18 +42,19 @@ export function AdminRoute(props: AdminRouteProps): JSX.Element {
     <div class="flex min-h-[60vh] flex-col items-center justify-center gap-4">
       <div
         class="flex h-16 w-16 items-center justify-center rounded-2xl text-2xl"
-        style={{ background: "rgba(225,29,72,0.08)", color: "#e11d48" }}
+        style={{ background: "color-mix(in oklab, var(--color-danger) 10%, transparent)", color: "var(--color-danger)" }}
       >
         &#128274;
       </div>
-      <h2 class="text-xl font-bold text-slate-900">Access Denied</h2>
-      <p class="max-w-sm text-center text-sm text-slate-600">
+      <h2 class="text-xl font-bold" style={{ color: "var(--color-text)" }}>Access Denied</h2>
+      <p class="max-w-sm text-center text-sm" style={{ color: "var(--color-text-muted)" }}>
         This area is restricted to administrators. If you believe this is an error, contact your account administrator.
       </p>
       <button
         type="button"
         onClick={() => navigate("/dashboard", { replace: true })}
-        class="mt-2 rounded-xl border border-slate-200 bg-white px-6 py-2.5 text-sm font-medium text-slate-700 transition-all hover:border-slate-300 hover:bg-slate-50"
+        class="mt-2 rounded-xl border border-[var(--color-border)] px-6 py-2.5 text-sm font-medium transition-all hover:border-[var(--color-border-hover)]"
+        style={{ background: "var(--color-bg-elevated)", color: "var(--color-text-secondary)" }}
       >
         Go to Dashboard
       </button>

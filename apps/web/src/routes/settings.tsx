@@ -16,11 +16,12 @@ function TabButton(props: { label: string; icon: string; isActive: boolean; onCl
     <button
       type="button"
       onClick={props.onClick}
-      class={`flex items-center gap-2.5 rounded-xl px-4 py-2.5 text-sm font-medium transition-all duration-200 ${
-        props.isActive
-          ? "border border-slate-200 bg-white text-slate-900 shadow-sm"
-          : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-      }`}
+      class="flex items-center gap-2.5 rounded-xl px-4 py-2.5 text-sm font-medium transition-all duration-200"
+      style={{
+        color: props.isActive ? "var(--color-text)" : "var(--color-text-muted)",
+        background: props.isActive ? "var(--color-bg-muted)" : "transparent",
+        border: props.isActive ? "1px solid var(--color-border-strong)" : "1px solid transparent",
+      }}
     >
       <span class="text-base">{props.icon}</span>
       {props.label}
@@ -32,10 +33,13 @@ function TabButton(props: { label: string; icon: string; isActive: boolean; onCl
 
 function SettingsSection(props: { title: string; description: string; children: JSX.Element }): JSX.Element {
   return (
-    <div class="rounded-2xl border border-slate-200 bg-white p-6">
+    <div
+      class="rounded-2xl p-6"
+      style={{ background: "var(--color-bg-elevated)", border: "1px solid var(--color-border)" }}
+    >
       <div class="mb-5">
-        <h3 class="text-base font-semibold text-slate-900">{props.title}</h3>
-        <p class="mt-0.5 text-xs text-slate-600">{props.description}</p>
+        <h3 class="text-base font-semibold" style={{ color: "var(--color-text)" }}>{props.title}</h3>
+        <p class="mt-0.5 text-xs" style={{ color: "var(--color-text-muted)" }}>{props.description}</p>
       </div>
       {props.children}
     </div>
@@ -55,19 +59,24 @@ function SettingsInput(props: {
 }): JSX.Element {
   return (
     <div class="flex flex-col gap-1.5">
-      <label class="text-xs font-medium uppercase tracking-widest text-slate-500">{props.label}</label>
+      <label class="text-xs font-medium uppercase tracking-widest" style={{ color: "var(--color-text-muted)" }}>{props.label}</label>
       <input
         type={props.type ?? "text"}
         value={props.value}
         onInput={(e) => props.onInput(e.currentTarget.value)}
         placeholder={props.placeholder}
         disabled={props.disabled}
-        class={`w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all duration-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 ${
-          props.disabled ? "cursor-not-allowed opacity-50 bg-slate-50" : ""
+        class={`w-full rounded-xl px-4 py-3 text-sm outline-none transition-all duration-200 ${
+          props.disabled ? "cursor-not-allowed opacity-50" : ""
         }`}
+        style={{
+          border: "1px solid var(--color-border)",
+          background: "var(--color-bg-subtle)",
+          color: "var(--color-text)",
+        }}
       />
       <Show when={props.hint}>
-        <span class="text-[11px] text-slate-500">{props.hint}</span>
+        <span class="text-[11px]" style={{ color: "var(--color-text-faint)" }}>{props.hint}</span>
       </Show>
     </div>
   );
@@ -130,8 +139,8 @@ function ProfileTab(): JSX.Element {
               <div
                 class={`rounded-xl border px-4 py-3 text-xs font-medium ${
                   msg().type === "success"
-                    ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-                    : "border-rose-200 bg-rose-50 text-rose-700"
+                    ? "border-[var(--color-success-border)] bg-[var(--color-success-bg)] text-[var(--color-success)]"
+                    : "border-[var(--color-danger-border)] bg-[var(--color-danger-bg)] text-[var(--color-danger)]"
                 }`}
               >
                 {msg().text}
@@ -142,14 +151,14 @@ function ProfileTab(): JSX.Element {
           {/* Avatar — initials only until upload pipeline ships */}
           <div class="flex items-center gap-5">
             <div
-              class="flex h-20 w-20 items-center justify-center rounded-2xl text-2xl font-bold text-white"
-              style={{ background: "#4f46e5" }}
+              class="flex h-20 w-20 items-center justify-center rounded-2xl text-2xl font-bold"
+              style={{ background: "var(--color-primary)", color: "var(--color-text)" }}
             >
               {initials()}
             </div>
             <div class="flex flex-col gap-1">
-              <span class="text-sm font-medium text-slate-900">Avatar</span>
-              <span class="text-xs text-slate-600">
+              <span class="text-sm font-medium text-[var(--color-text)]">Avatar</span>
+              <span class="text-xs text-[var(--color-text-muted)]">
                 Auto-generated from your initials. Custom uploads arrive with
                 the file-storage pipeline.
               </span>
@@ -177,7 +186,8 @@ function ProfileTab(): JSX.Element {
               type="button"
               disabled={save.loading() || !name().trim() || name().trim() === initialName}
               onClick={() => void handleSave()}
-              class="rounded-xl bg-indigo-600 px-6 py-2.5 text-sm font-semibold text-white transition-all duration-200 hover:bg-indigo-700 disabled:opacity-40"
+              class="rounded-xl px-6 py-2.5 text-sm font-semibold transition-all duration-200 hover:brightness-110 disabled:opacity-40"
+              style={{ background: "var(--color-primary)", color: "var(--color-text)" }}
             >
               {save.loading() ? "Saving…" : "Save Changes"}
             </button>
@@ -213,47 +223,47 @@ function AccountTab(): JSX.Element {
         description="The ways you can authenticate into Crontech today."
       >
         <div class="flex flex-col gap-4">
-          <div class="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-4">
+          <div class="flex items-center justify-between rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-subtle)] px-4 py-4">
             <div class="flex items-center gap-3">
               <span
                 class="flex h-10 w-10 items-center justify-center rounded-xl text-lg"
-                style={{ background: "rgba(5,150,105,0.08)", color: "#059669" }}
+                style={{ background: "color-mix(in oklab, var(--color-success) 10%, transparent)", color: "var(--color-success)" }}
               >
                 &#128272;
               </span>
               <div>
-                <span class="text-sm font-medium text-slate-900">Passkey (WebAuthn)</span>
-                <p class="text-xs text-slate-600">
+                <span class="text-sm font-medium text-[var(--color-text)]">Passkey (WebAuthn)</span>
+                <p class="text-xs text-[var(--color-text-muted)]">
                   Biometric sign-in bound to this origin. Phishing-immune.
                 </p>
               </div>
             </div>
-            <span class="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-emerald-700">
+            <span class="rounded-full bg-[var(--color-success-bg)] px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-[var(--color-success)]">
               Supported
             </span>
           </div>
 
-          <div class="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-4">
+          <div class="flex items-center justify-between rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-subtle)] px-4 py-4">
             <div class="flex items-center gap-3">
               <span
                 class="flex h-10 w-10 items-center justify-center rounded-xl text-lg"
-                style={{ background: "rgba(79,70,229,0.08)", color: "#4f46e5" }}
+                style={{ background: "color-mix(in oklab, var(--color-primary) 10%, transparent)", color: "var(--color-primary)" }}
               >
                 G
               </span>
               <div>
-                <span class="text-sm font-medium text-slate-900">Google OAuth</span>
-                <p class="text-xs text-slate-600">
+                <span class="text-sm font-medium text-[var(--color-text)]">Google OAuth</span>
+                <p class="text-xs text-[var(--color-text-muted)]">
                   One-click sign-in via a Google account.
                 </p>
               </div>
             </div>
-            <span class="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-emerald-700">
+            <span class="rounded-full bg-[var(--color-success-bg)] px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-[var(--color-success)]">
               Supported
             </span>
           </div>
 
-          <div class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-[11px] leading-relaxed text-slate-600">
+          <div class="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-subtle)] px-4 py-3 text-[11px] leading-relaxed text-[var(--color-text-faint)]">
             TOTP 2FA, multi-device session listing, and "revoke all sessions"
             arrive with the auth hardening block. Those controls aren't
             rendered here yet because the backend for them isn't live — we'd
@@ -266,21 +276,21 @@ function AccountTab(): JSX.Element {
         title="Account"
         description="Metadata the server actually knows about you."
       >
-        <div class="flex flex-col gap-2 text-xs text-slate-600">
+        <div class="flex flex-col gap-2 text-xs text-[var(--color-text-muted)]">
           <Show when={auth.currentUser()}>
             {(user) => (
               <>
-                <div class="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                <div class="flex items-center justify-between rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-subtle)] px-4 py-3">
                   <span>User ID</span>
-                  <code class="font-mono text-[11px] text-slate-700">{user().id}</code>
+                  <code class="font-mono text-[11px] text-[var(--color-text-muted)]">{user().id}</code>
                 </div>
-                <div class="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                <div class="flex items-center justify-between rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-subtle)] px-4 py-3">
                   <span>Role</span>
-                  <span class="font-medium text-slate-900">{user().role}</span>
+                  <span class="font-medium text-[var(--color-text-secondary)]">{user().role}</span>
                 </div>
-                <div class="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                <div class="flex items-center justify-between rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-subtle)] px-4 py-3">
                   <span>Member since</span>
-                  <span class="font-medium text-slate-900">
+                  <span class="font-medium text-[var(--color-text-secondary)]">
                     {new Date(user().createdAt).toLocaleDateString(undefined, {
                       year: "numeric",
                       month: "long",
@@ -291,11 +301,11 @@ function AccountTab(): JSX.Element {
               </>
             )}
           </Show>
-          <p class="mt-3 text-[11px] leading-relaxed text-slate-500">
+          <p class="mt-3 text-[11px] leading-relaxed text-[var(--color-text-faint)]">
             Account deletion isn't self-service yet — cascading delete across
             projects, files, keys, subscriptions, and audit rows is still on
             the build list. To close an account today, email{" "}
-            <code class="font-mono text-slate-700">support@crontech.ai</code>.
+            <code class="font-mono text-[var(--color-text-muted)]">support@crontech.ai</code>.
           </p>
         </div>
       </SettingsSection>
@@ -378,7 +388,7 @@ function ApiKeysTab(): JSX.Element {
         <div class="flex flex-col gap-4">
           <Show when={error()}>
             {(msg) => (
-              <div class="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-xs font-medium text-rose-700">
+              <div class="rounded-xl border border-[var(--color-danger-border)] bg-[var(--color-danger-bg)] px-4 py-3 text-xs font-medium text-[var(--color-danger)]">
                 {msg()}
               </div>
             )}
@@ -387,32 +397,37 @@ function ApiKeysTab(): JSX.Element {
           {/* Just-created key — shown exactly once */}
           <Show when={revealedKey()}>
             {(reveal) => (
-              <div class="rounded-xl border border-amber-200 bg-amber-50 p-5">
+              <div class="rounded-xl border border-[var(--color-warning-border)] bg-[var(--color-warning-bg)] p-5">
                 <div class="mb-3 flex items-start justify-between gap-3">
                   <div>
-                    <p class="text-sm font-semibold text-amber-800">
+                    <p class="text-sm font-semibold text-[var(--color-warning)]">
                       Save this key now — it will not be shown again.
                     </p>
-                    <p class="mt-1 text-xs text-amber-700">
+                    <p class="mt-1 text-xs text-[var(--color-warning)]">
                       Name: <span class="font-mono">{reveal().name}</span>
                     </p>
                   </div>
                   <button
                     type="button"
                     onClick={() => setRevealedKey(null)}
-                    class="text-[11px] text-amber-700 hover:text-amber-900"
+                    class="text-[11px] text-[var(--color-warning)]/60 hover:text-[var(--color-warning)]"
                   >
                     Dismiss
                   </button>
                 </div>
-                <div class="flex items-center gap-2 rounded-lg border border-amber-200 bg-white px-3 py-2.5">
-                  <code class="flex-1 break-all font-mono text-xs text-amber-900">
+                <div class="flex items-center gap-2 rounded-lg border border-[var(--color-border)] px-3 py-2.5" style={{ background: "var(--color-bg-muted)" }}>
+                  <code class="flex-1 break-all font-mono text-xs" style={{ color: "var(--color-warning)" }}>
                     {reveal().rawKey}
                   </code>
                   <button
                     type="button"
                     onClick={() => handleCopy(reveal().id, reveal().rawKey)}
-                    class="shrink-0 rounded-lg border border-amber-300 bg-amber-100 px-3 py-1.5 text-[11px] font-semibold text-amber-900 transition-all hover:bg-amber-200"
+                    class="shrink-0 rounded-lg px-3 py-1.5 text-[11px] font-semibold transition-all hover:brightness-110"
+                    style={{
+                      border: "1px solid color-mix(in oklab, var(--color-warning) 30%, transparent)",
+                      background: "color-mix(in oklab, var(--color-warning) 10%, transparent)",
+                      color: "var(--color-warning)",
+                    }}
                   >
                     {copiedId() === reveal().id ? "Copied!" : "Copy"}
                   </button>
@@ -425,7 +440,7 @@ function ApiKeysTab(): JSX.Element {
           <Show
             when={!keys.loading() && (keys.data() ?? []).length > 0}
             fallback={
-              <div class="rounded-xl border border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-center text-xs text-slate-600">
+              <div class="rounded-xl border border-dashed border-[var(--color-border)] bg-[var(--color-bg-subtle)] px-4 py-6 text-center text-xs text-[var(--color-text-muted)]">
                 <Show when={keys.loading()} fallback="No API keys yet. Generate one below.">
                   Loading keys…
                 </Show>
@@ -442,30 +457,36 @@ function ApiKeysTab(): JSX.Element {
                 });
                 const isConfirming = createMemo((): boolean => confirmRevoke() === key.id);
                 return (
-                  <div class="flex items-center gap-4 rounded-xl border border-slate-200 bg-white px-4 py-3.5 transition-all duration-200 hover:border-slate-300 hover:bg-slate-50">
+                  <div class="flex items-center gap-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-subtle)] px-4 py-3.5 transition-all duration-200 hover:border-[var(--color-border-hover)]">
                     <div
                       class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-sm"
                       style={{
-                        background: expired() ? "rgba(100,116,139,0.08)" : "rgba(5,150,105,0.08)",
-                        color: expired() ? "#64748b" : "#059669",
+                        background: expired() ? "color-mix(in oklab, var(--color-text-muted) 10%, transparent)" : "color-mix(in oklab, var(--color-success) 10%, transparent)",
+                        color: expired() ? "var(--color-text-muted)" : "var(--color-success)",
                       }}
                     >
                       &#128273;
                     </div>
                     <div class="flex min-w-0 flex-1 flex-col">
                       <div class="flex items-center gap-2">
-                        <span class="text-sm font-medium text-slate-900">{key.name}</span>
+                        <span class="text-sm font-medium text-[var(--color-text)]">{key.name}</span>
                         <Show when={expired()}>
-                          <span class="rounded-full border border-rose-200 bg-rose-50 px-2 py-0.5 text-[9px] font-semibold uppercase text-rose-700">
+                          <span
+                            class="rounded-full px-2 py-0.5 text-[9px] font-semibold uppercase"
+                            style={{
+                              background: "color-mix(in oklab, var(--color-danger) 15%, transparent)",
+                              color: "var(--color-danger)",
+                            }}
+                          >
                             Expired
                           </span>
                         </Show>
                       </div>
-                      <code class="text-xs font-mono text-slate-500">{key.maskedKey}</code>
+                      <code class="text-xs font-mono text-[var(--color-text-muted)]">{key.maskedKey}</code>
                     </div>
                     <div class="hidden flex-col items-end gap-0.5 sm:flex">
-                      <span class="text-[11px] text-slate-600">Created {formatDate(key.createdAt)}</span>
-                      <span class="text-[11px] text-slate-500">Last used {formatDate(key.lastUsedAt)}</span>
+                      <span class="text-[11px] text-[var(--color-text-muted)]">Created {formatDate(key.createdAt)}</span>
+                      <span class="text-[11px] text-[var(--color-text-faint)]">Last used {formatDate(key.lastUsedAt)}</span>
                     </div>
                     <Show
                       when={!isConfirming()}
@@ -474,7 +495,7 @@ function ApiKeysTab(): JSX.Element {
                           <button
                             type="button"
                             onClick={() => setConfirmRevoke(null)}
-                            class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-medium text-slate-700 transition-all hover:bg-slate-50 hover:text-slate-900"
+                            class="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-muted)] px-3 py-1.5 text-[11px] font-medium text-[var(--color-text-muted)] transition-all hover:text-[var(--color-text)]"
                           >
                             Cancel
                           </button>
@@ -482,7 +503,8 @@ function ApiKeysTab(): JSX.Element {
                             type="button"
                             disabled={revokeKey.loading()}
                             onClick={() => void handleRevoke(key.id)}
-                            class="rounded-lg bg-rose-600 px-3 py-1.5 text-[11px] font-semibold text-white transition-all hover:bg-rose-700 disabled:opacity-50"
+                            class="rounded-lg px-3 py-1.5 text-[11px] font-semibold transition-all hover:brightness-110 disabled:opacity-50"
+                            style={{ background: "var(--color-danger)", color: "var(--color-text)" }}
                           >
                             {revokeKey.loading() ? "Revoking…" : "Confirm revoke"}
                           </button>
@@ -492,7 +514,7 @@ function ApiKeysTab(): JSX.Element {
                       <button
                         type="button"
                         onClick={() => setConfirmRevoke(key.id)}
-                        class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-medium text-slate-700 transition-all hover:border-rose-200 hover:bg-rose-50 hover:text-rose-700"
+                        class="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-muted)] px-3 py-1.5 text-[11px] font-medium text-[var(--color-text-muted)] transition-all hover:border-[color-mix(in_oklab,var(--color-danger)_20%,transparent)] hover:bg-[color-mix(in_oklab,var(--color-danger)_10%,transparent)] hover:text-[var(--color-danger)]"
                       >
                         Revoke
                       </button>
@@ -504,8 +526,8 @@ function ApiKeysTab(): JSX.Element {
           </Show>
 
           {/* Generate New Key */}
-          <div class="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-5">
-            <h4 class="mb-3 text-sm font-semibold text-slate-900">Generate New Key</h4>
+          <div class="rounded-xl border border-dashed border-[var(--color-border)] bg-[var(--color-bg-subtle)] p-5">
+            <h4 class="mb-3 text-sm font-semibold text-[var(--color-text-secondary)]">Generate New Key</h4>
             <div class="flex items-end gap-3">
               <div class="flex-1">
                 <SettingsInput
@@ -519,12 +541,13 @@ function ApiKeysTab(): JSX.Element {
                 type="button"
                 disabled={!newKeyName().trim() || createKey.loading()}
                 onClick={() => void handleGenerate()}
-                class="shrink-0 rounded-xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-indigo-700 disabled:opacity-40"
+                class="shrink-0 rounded-xl px-5 py-3 text-sm font-semibold transition-all duration-200 hover:brightness-110 disabled:opacity-40"
+                style={{ background: "var(--color-primary)", color: "var(--color-text)" }}
               >
                 {createKey.loading() ? "Generating…" : "Generate Key"}
               </button>
             </div>
-            <p class="mt-3 text-[11px] text-slate-500">
+            <p class="mt-3 text-[11px] text-[var(--color-text-faint)]">
               Keys use the <code class="font-mono">btf_sk_</code> prefix. Only
               the SHA-256 hash is stored — we cannot recover the raw key if
               you lose it, so copy it out of the banner above on creation.
@@ -560,19 +583,19 @@ function NotificationsTab(): JSX.Element {
       description="Category-level channel preferences arrive with the notifications preference store. In-app alerts already work — the bell icon in the top nav shows your real unread feed."
     >
       <div class="flex flex-col gap-3">
-        <div class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800">
+        <div class="rounded-xl border border-[var(--color-warning-border)] bg-[var(--color-warning-bg)] px-4 py-3 text-xs text-[var(--color-warning)]">
           These toggles aren't wired yet. Rather than save them to a
           server-less signal that evaporates on refresh, we're leaving
           them disabled until the preferences table lands.
         </div>
         <For each={items}>
           {(item) => (
-            <div class="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-4 opacity-70">
+            <div class="flex items-center justify-between rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-subtle)] px-4 py-4 opacity-70">
               <div>
-                <span class="text-sm font-medium text-slate-900">{item.label}</span>
-                <p class="text-xs text-slate-600">{item.description}</p>
+                <span class="text-sm font-medium text-[var(--color-text-secondary)]">{item.label}</span>
+                <p class="text-xs text-[var(--color-text-muted)]">{item.description}</p>
               </div>
-              <span class="rounded-full border border-slate-200 bg-white px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+              <span class="rounded-full border border-[var(--color-border)] bg-[var(--color-bg-subtle)] px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
                 Coming soon
               </span>
             </div>
@@ -585,10 +608,10 @@ function NotificationsTab(): JSX.Element {
 
 // ── Appearance Tab ───────────────────────────────────────────────────
 //
-// Light mode is the only theme the platform actually renders right now —
+// Dark mode is the only theme the platform actually renders right now —
 // the app shell, component library, and marketing pages are all built
-// against the light palette. A theme/accent preference table doesn't
-// exist yet, so instead of letting the user pick a dark theme that
+// against the dark palette. A theme/accent preference table doesn't
+// exist yet, so instead of letting the user pick a light theme that
 // would do nothing (or partially render), we describe what's live and
 // what's coming.
 
@@ -599,20 +622,20 @@ function AppearanceTab(): JSX.Element {
         title="Theme"
         description="The current visual appearance of the platform."
       >
-        <div class="flex items-center gap-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-4">
-          <div class="flex h-12 w-16 items-center justify-center rounded-lg border border-slate-200 bg-white">
-            <div class="h-2 w-8 rounded-full bg-slate-300" />
+        <div class="flex items-center gap-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-subtle)] px-4 py-4">
+          <div class="flex h-12 w-16 items-center justify-center rounded-lg border border-[var(--color-border)]" style={{ background: "var(--color-bg-subtle)" }}>
+            <div class="h-2 w-8 rounded-full" style={{ background: "var(--color-text-secondary)" }} />
           </div>
           <div class="flex flex-1 flex-col">
-            <span class="text-sm font-medium text-slate-900">Light</span>
-            <p class="text-xs text-slate-600">
-              The only theme Crontech currently renders. Dark and System
-              modes arrive once the component library has both palettes
-              wired — rendering them today would leave half the UI
-              unreadable.
+            <span class="text-sm font-medium text-[var(--color-text)]">Dark</span>
+            <p class="text-xs text-[var(--color-text-muted)]">
+              The only theme Crontech currently renders. Light and System
+              modes arrive once the component library is re-themed against
+              a light palette — rendering them today would leave half the
+              UI unreadable.
             </p>
           </div>
-          <span class="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-emerald-700">
+          <span class="rounded-full bg-[var(--color-success-bg)] px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-[var(--color-success)]">
             Active
           </span>
         </div>
@@ -622,9 +645,9 @@ function AppearanceTab(): JSX.Element {
         title="Accent Color"
         description="User-selectable accents arrive with the preferences store."
       >
-        <div class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800">
+        <div class="rounded-xl border border-[var(--color-warning-border)] bg-[var(--color-warning-bg)] px-4 py-3 text-xs text-[var(--color-warning)]">
           There's no preferences table to persist a chosen accent yet,
-          and the current UI ships with indigo/cyan accents baked in.
+          and the current UI ships with violet/blue gradients baked in.
           Swatches will return once both pieces are wired.
         </div>
       </SettingsSection>
@@ -699,39 +722,39 @@ function GitHubTokenSection(): JSX.Element {
         <Show when={ghMessage()}>
           {(msg) => (
             <div class={`rounded-xl border px-4 py-3 text-xs font-medium ${
-              msg().type === "success" ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-rose-200 bg-rose-50 text-rose-700"
+              msg().type === "success" ? "border-[var(--color-success-border)] bg-[var(--color-success-bg)] text-[var(--color-success)]" : "border-[var(--color-danger-border)] bg-[var(--color-danger-bg)] text-[var(--color-danger)]"
             }`}>{msg().text}</div>
           )}
         </Show>
 
         <Show when={savedGh()}>
           {(key) => (
-            <div class="flex items-center gap-4 rounded-xl border border-slate-200 bg-white px-4 py-3.5">
-              <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg" style={{ background: "rgba(79,70,229,0.08)", color: "#4f46e5" }}>
+            <div class="flex items-center gap-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-subtle)] px-4 py-3.5">
+              <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg" style={{ background: "color-mix(in oklab, var(--color-primary-light) 10%, transparent)", color: "var(--color-primary-light)" }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65S8.93 17.38 9 18v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>
               </div>
               <div class="flex min-w-0 flex-1 flex-col">
                 <div class="flex items-center gap-2">
-                  <span class="text-sm font-medium text-slate-900">GitHub</span>
-                  <span class="rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[9px] font-semibold uppercase text-emerald-700">Active</span>
+                  <span class="text-sm font-medium text-[var(--color-text)]">GitHub</span>
+                  <span class="rounded-full bg-[var(--color-success-bg)] px-2 py-0.5 text-[9px] font-semibold uppercase text-[var(--color-success)]">Active</span>
                 </div>
-                <code class="text-xs font-mono text-slate-500">{key().prefix}</code>
+                <code class="text-xs font-mono text-[var(--color-text-muted)]">{key().prefix}</code>
               </div>
-              <span class="hidden text-[11px] text-slate-500 sm:block">Added {key().createdAt}</span>
+              <span class="hidden text-[11px] text-[var(--color-text-muted)] sm:block">Added {key().createdAt}</span>
               <Show when={!ghDeleteConfirm()} fallback={
                 <div class="flex items-center gap-1.5">
-                  <button type="button" onClick={() => setGhDeleteConfirm(false)} class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900">Cancel</button>
-                  <button type="button" onClick={() => void handleGhDelete()} class="rounded-lg bg-rose-600 px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-rose-700">Delete</button>
+                  <button type="button" onClick={() => setGhDeleteConfirm(false)} class="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-muted)] px-3 py-1.5 text-[11px] font-medium text-[var(--color-text-muted)] hover:text-[var(--color-text)]">Cancel</button>
+                  <button type="button" onClick={() => void handleGhDelete()} class="rounded-lg px-3 py-1.5 text-[11px] font-semibold transition-all hover:brightness-110" style={{ background: "var(--color-danger)", color: "var(--color-text)" }}>Delete</button>
                 </div>
               }>
-                <button type="button" onClick={() => setGhDeleteConfirm(true)} class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-medium text-slate-700 hover:border-rose-200 hover:bg-rose-50 hover:text-rose-700">Remove</button>
+                <button type="button" onClick={() => setGhDeleteConfirm(true)} class="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-muted)] px-3 py-1.5 text-[11px] font-medium text-[var(--color-text-muted)] hover:border-[color-mix(in_oklab,var(--color-danger)_20%,transparent)] hover:bg-[color-mix(in_oklab,var(--color-danger)_10%,transparent)] hover:text-[var(--color-danger)]">Remove</button>
               </Show>
             </div>
           )}
         </Show>
 
-        <div class="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-5">
-          <h4 class="mb-3 text-sm font-semibold text-slate-900">{savedGh() ? "Replace Token" : "Add GitHub Token"}</h4>
+        <div class="rounded-xl border border-dashed border-[var(--color-border)] bg-[var(--color-bg-subtle)] p-5">
+          <h4 class="mb-3 text-sm font-semibold text-[var(--color-text-secondary)]">{savedGh() ? "Replace Token" : "Add GitHub Token"}</h4>
           <div class="flex items-end gap-3">
             <div class="flex-1">
               <SettingsInput label="GitHub PAT" value={ghToken()} onInput={setGhToken} type="password" placeholder="ghp_xxxxxxxxxxxx" hint="Generate at github.com/settings/tokens (needs repo scope)" />
@@ -740,7 +763,8 @@ function GitHubTokenSection(): JSX.Element {
               type="button"
               disabled={!ghToken().trim() || ghSaving()}
               onClick={() => void handleGhSave()}
-              class="shrink-0 rounded-xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-indigo-700 disabled:opacity-40"
+              class="shrink-0 rounded-xl px-5 py-3 text-sm font-semibold transition-all duration-200 hover:brightness-110 disabled:opacity-40"
+              style={{ background: "var(--color-primary)", color: "var(--color-text)" }}
             >
               {ghSaving() ? "Saving..." : "Save Token"}
             </button>
@@ -824,8 +848,8 @@ function AIProvidersTab(): JSX.Element {
             {(msg) => (
               <div class={`rounded-xl border px-4 py-3 text-xs font-medium ${
                 msg().type === "success"
-                  ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-                  : "border-rose-200 bg-rose-50 text-rose-700"
+                  ? "border-[var(--color-success-border)] bg-[var(--color-success-bg)] text-[var(--color-success)]"
+                  : "border-[var(--color-danger-border)] bg-[var(--color-danger-bg)] text-[var(--color-danger)]"
               }`}>
                 {msg().text}
               </div>
@@ -835,27 +859,27 @@ function AIProvidersTab(): JSX.Element {
           {/* Existing key display */}
           <Show when={savedKey()}>
             {(key) => (
-              <div class="flex items-center gap-4 rounded-xl border border-slate-200 bg-white px-4 py-3.5">
-                <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-sm" style={{ background: "rgba(234,88,12,0.08)", color: "#ea580c" }}>
+              <div class="flex items-center gap-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-subtle)] px-4 py-3.5">
+                <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-sm" style={{ background: "color-mix(in oklab, var(--color-warning) 10%, transparent)", color: "var(--color-warning)" }}>
                   &#9889;
                 </div>
                 <div class="flex min-w-0 flex-1 flex-col">
                   <div class="flex items-center gap-2">
-                    <span class="text-sm font-medium text-slate-900">Anthropic (Claude)</span>
-                    <span class="rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[9px] font-semibold uppercase text-emerald-700">Active</span>
+                    <span class="text-sm font-medium text-[var(--color-text)]">Anthropic (Claude)</span>
+                    <span class="rounded-full bg-[var(--color-success-bg)] px-2 py-0.5 text-[9px] font-semibold uppercase text-[var(--color-success)]">Active</span>
                   </div>
-                  <code class="text-xs font-mono text-slate-500">{key().prefix}</code>
+                  <code class="text-xs font-mono text-[var(--color-text-muted)]">{key().prefix}</code>
                 </div>
                 <div class="hidden flex-col items-end gap-0.5 sm:flex">
-                  <span class="text-[11px] text-slate-500">Added {key().createdAt}</span>
+                  <span class="text-[11px] text-[var(--color-text-muted)]">Added {key().createdAt}</span>
                 </div>
                 <Show when={!deleteConfirm()} fallback={
                   <div class="flex items-center gap-1.5">
-                    <button type="button" onClick={() => setDeleteConfirm(false)} class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-medium text-slate-700 transition-all hover:bg-slate-50 hover:text-slate-900">Cancel</button>
-                    <button type="button" onClick={() => void handleDelete()} class="rounded-lg bg-rose-600 px-3 py-1.5 text-[11px] font-semibold text-white transition-all hover:bg-rose-700">Delete</button>
+                    <button type="button" onClick={() => setDeleteConfirm(false)} class="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-muted)] px-3 py-1.5 text-[11px] font-medium text-[var(--color-text-muted)] transition-all hover:text-[var(--color-text)]">Cancel</button>
+                    <button type="button" onClick={() => void handleDelete()} class="rounded-lg px-3 py-1.5 text-[11px] font-semibold transition-all hover:brightness-110" style={{ background: "var(--color-danger)", color: "var(--color-text)" }}>Delete</button>
                   </div>
                 }>
-                  <button type="button" onClick={() => setDeleteConfirm(true)} class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-medium text-slate-700 transition-all hover:border-rose-200 hover:bg-rose-50 hover:text-rose-700">
+                  <button type="button" onClick={() => setDeleteConfirm(true)} class="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-muted)] px-3 py-1.5 text-[11px] font-medium text-[var(--color-text-muted)] transition-all hover:border-[color-mix(in_oklab,var(--color-danger)_20%,transparent)] hover:bg-[color-mix(in_oklab,var(--color-danger)_10%,transparent)] hover:text-[var(--color-danger)]">
                     Remove
                   </button>
                 </Show>
@@ -864,8 +888,8 @@ function AIProvidersTab(): JSX.Element {
           </Show>
 
           {/* Add new key */}
-          <div class="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-5">
-            <h4 class="mb-3 text-sm font-semibold text-slate-900">{savedKey() ? "Replace Key" : "Add API Key"}</h4>
+          <div class="rounded-xl border border-dashed border-[var(--color-border)] bg-[var(--color-bg-subtle)] p-5">
+            <h4 class="mb-3 text-sm font-semibold text-[var(--color-text-secondary)]">{savedKey() ? "Replace Key" : "Add API Key"}</h4>
             <div class="flex items-end gap-3">
               <div class="flex-1">
                 <SettingsInput
@@ -881,12 +905,13 @@ function AIProvidersTab(): JSX.Element {
                 type="button"
                 disabled={!anthropicKey().trim() || saving()}
                 onClick={() => void handleSave()}
-                class="shrink-0 rounded-xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-indigo-700 disabled:opacity-40"
+                class="shrink-0 rounded-xl px-5 py-3 text-sm font-semibold transition-all duration-200 hover:brightness-110 disabled:opacity-40"
+                style={{ background: "var(--color-danger)", color: "var(--color-text)" }}
               >
                 {saving() ? "Saving..." : "Save Key"}
               </button>
             </div>
-            <p class="mt-3 text-[11px] text-slate-500">
+            <p class="mt-3 text-[11px] text-[var(--color-text-faint)]">
               Your key is encrypted at rest. Only the prefix is stored in plaintext for identification.
             </p>
           </div>
@@ -895,18 +920,18 @@ function AIProvidersTab(): JSX.Element {
           <GitHubTokenSection />
 
           {/* Cost comparison */}
-          <div class="rounded-xl border border-slate-200 bg-slate-50 p-5">
-            <h4 class="mb-3 text-sm font-semibold text-slate-900">Cost Comparison</h4>
+          <div class="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-subtle)] p-5">
+            <h4 class="mb-3 text-sm font-semibold text-[var(--color-text-secondary)]">Cost Comparison</h4>
             <div class="grid grid-cols-2 gap-4">
-              <div class="rounded-lg border border-rose-200 bg-rose-50 p-4">
-                <span class="text-xs text-slate-600">Subscriptions</span>
-                <div class="mt-1 text-2xl font-bold text-rose-700">$1,800<span class="text-sm font-normal text-slate-500">/mo</span></div>
-                <span class="text-[10px] text-slate-500">Fixed cost, whether you use it or not</span>
+              <div class="rounded-lg p-4" style={{ border: "1px solid color-mix(in oklab, var(--color-danger) 10%, transparent)", background: "color-mix(in oklab, var(--color-danger) 5%, transparent)" }}>
+                <span class="text-xs text-[var(--color-text-muted)]">Subscriptions</span>
+                <div class="mt-1 text-2xl font-bold text-[var(--color-danger)]">$1,800<span class="text-sm font-normal text-[var(--color-text-faint)]">/mo</span></div>
+                <span class="text-[10px] text-[var(--color-text-faint)]">Fixed cost, whether you use it or not</span>
               </div>
-              <div class="rounded-lg border border-emerald-200 bg-emerald-50 p-4">
-                <span class="text-xs text-slate-600">API Direct</span>
-                <div class="mt-1 text-2xl font-bold text-emerald-700">Pay-per-use</div>
-                <span class="text-[10px] text-slate-500">$3/1M input tokens with Sonnet</span>
+              <div class="rounded-lg p-4" style={{ border: "1px solid color-mix(in oklab, var(--color-success) 10%, transparent)", background: "color-mix(in oklab, var(--color-success) 5%, transparent)" }}>
+                <span class="text-xs text-[var(--color-text-muted)]">API Direct</span>
+                <div class="mt-1 text-2xl font-bold text-[var(--color-success)]">Pay-per-use</div>
+                <span class="text-[10px] text-[var(--color-text-faint)]">$3/1M input tokens with Sonnet</span>
               </div>
             </div>
           </div>
@@ -935,18 +960,18 @@ export default function SettingsPage(): JSX.Element {
   const tabs = createMemo(() => allTabs.filter((t) => !t.adminOnly || isAdmin()));
 
   return (
-    <div class="min-h-screen bg-white">
+    <div class="min-h-screen" style={{ background: "var(--color-bg)" }}>
       <Title>Settings - Crontech</Title>
 
       <div class="mx-auto max-w-5xl px-6 py-8">
         {/* Header */}
         <div class="mb-8">
-          <h1 class="text-3xl font-bold tracking-tight text-slate-900">Settings</h1>
-          <p class="mt-1 text-sm text-slate-600">Manage your account, security, and preferences</p>
+          <h1 class="text-3xl font-bold tracking-tight" style={{ color: "var(--color-text)" }}>Settings</h1>
+          <p class="mt-1 text-sm text-[var(--color-text-muted)]">Manage your account, security, and preferences</p>
         </div>
 
         {/* Tab Navigation */}
-        <div class="mb-8 flex flex-wrap gap-1 rounded-2xl border border-slate-200 bg-slate-50 p-1.5">
+        <div class="mb-8 flex flex-wrap gap-1 rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-subtle)] p-1.5">
           <For each={tabs()}>
             {(tab) => (
               <TabButton
