@@ -4,6 +4,8 @@ import {
   FiCpu,
   FiDatabase,
   FiExternalLink,
+  FiEyeOff,
+  FiFileText,
   FiGlobe,
   FiLayers,
   FiLink,
@@ -11,6 +13,8 @@ import {
   FiLock,
   FiMessageSquare,
   FiRadio,
+  FiServer,
+  FiSettings,
   FiShield,
   FiShieldOff,
   FiSmartphone,
@@ -58,6 +62,10 @@ const ICON_MAP = {
   layers: FiLayers,
   "message-square": FiMessageSquare,
   smartphone: FiSmartphone,
+  settings: FiSettings,
+  "file-text": FiFileText,
+  "eye-off": FiEyeOff,
+  server: FiServer,
 } as const satisfies Record<string, IconTypes>;
 
 export type IconName = keyof typeof ICON_MAP;
