@@ -161,3 +161,28 @@ What's NOT cancelled:
 - Skip 3, do 1+2: DNS is ours but source still lives on GitHub. That's fine as an intermediate state.
 
 **Order matters. Do 1 → 2 → 3.**
+
+---
+
+## Gotchas we hit on the first live run (2026-04-19)
+
+These are in the scripts now — but documented here so future eyes know why:
+
+1. **Vultr bare metal defaults SSH to key-only.** `PermitRootLogin prohibit-password` in sshd_config. Password auth will be denied no matter what you type. Solutions:
+   - Use the SSH key from the deploy form (whichever one you picked when provisioning)
+   - OR use **vSerial** from the Vultr dashboard — that bypasses sshd entirely and accepts root password from Vultr's "Show Password" in server Overview
+   - OR from iPad: import the private key into a proper SSH client (Termius, Blink) via their Key File section — never paste the key into chat
+
+2. **Postgres initdb `--pwfile=<(...)` fails under sudo.** Bash process substitution creates `/dev/fd/N` owned by root; `sudo -u postgres` can't read it. Script now uses a temp file chowned to postgres. (Fixed in commit 6083435.)
+
+3. **psql `:'var'` does NOT substitute inside PL/pgSQL DO blocks.** The dollar-quoting makes psql treat it as literal text, so the server sees `:'crontech_password'` and chokes. Script now uses `\gexec` pattern which runs at psql-client-side where `:'var'` expands. (Fixed in commit a2e819f.)
+
+4. **Postgres data dir must be 0700 or 0750.** Ubuntu's apt postinst can leave it 0755, which Postgres refuses at startup. Script now chmods 0700 after initdb. (Fixed in commit 896db1e.)
+
+5. **Git refuses "dubious ownership" after the script chowns `/opt/crontech` to `deploy`.** When you come back and try `git pull` as root, git bails. Fix: `git config --global --add safe.directory /opt/crontech` before the first pull.
+
+6. **Stopping the postgres restart loop.** If postgres is in a crash loop (wrong perms, bad config), `sudo systemctl stop postgres` before chmod — otherwise the next restart races your chmod.
+
+7. **iPad SSH paste wraps URLs in `<>`.** iPad auto-linking adds angle brackets around anything that starts with `https://` on multi-line paste. Symptom: bash says `No such file or directory` with `<URL>` in the error. Workarounds: paste into Notes first (strips auto-linking), or paste line-by-line, or use PowerShell on PC.
+
+---
