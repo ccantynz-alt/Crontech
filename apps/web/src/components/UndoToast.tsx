@@ -39,15 +39,15 @@ let nextId = 1;
 /**
  * Push a new undo toast onto the stack. Returns the id so callers can
  * programmatically dismiss it (rare — typically the toast manages itself).
+ *
+ * `setTimeout` is used unguarded — it exists in browsers, Node, and Bun
+ * (this code never runs at SSR module-evaluation time, only in response
+ * to user actions, so leaking timers on the server is a non-issue).
  */
 export function enqueueUndo(desc: UndoToastDescriptor): number {
   const id = nextId++;
   const toast: UndoToast = { ...desc, id, startedAt: Date.now() };
   setToasts((prev) => [...prev, toast]);
-
-  // SSR safety — `setTimeout` is fine on Node, but we don't want the
-  // toast queue to leak references on the server build.
-  if (typeof window === "undefined") return id;
 
   const handle: ReturnType<typeof setTimeout> = setTimeout(() => {
     timers.delete(id);

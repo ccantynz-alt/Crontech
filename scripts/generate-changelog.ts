@@ -30,7 +30,7 @@ import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { spawnSync } from "node:child_process";
-import { z } from "zod";
+import { z } from "../packages/schemas/src/index";
 
 // ── Public types ──────────────────────────────────────────────────
 

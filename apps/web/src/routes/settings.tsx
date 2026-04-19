@@ -372,17 +372,18 @@ function ApiKeysTab(): JSX.Element {
   // remove it from the local cache immediately, then either restore it
   // (on undo / commit failure) or fire the real `apiKeys.revoke` tRPC
   // mutation when the timeout expires.
-  type KeyRow = ReturnType<typeof keys.data> extends ReadonlyArray<infer T> ? T : never;
+  type KeyRow = NonNullable<ReturnType<typeof keys.data>>[number];
+  const readKeys = (): KeyRow[] => Array.from((keys.data() ?? []) as readonly KeyRow[]);
   const undoableRevoke = useOptimisticMutation<{ id: string; name: string; snapshot: KeyRow | undefined }>({
     apply: ({ id }) => {
-      keys.mutate(((keys.data() ?? []) as ReadonlyArray<KeyRow>).filter((k) => k.id !== id));
+      keys.mutate(readKeys().filter((k) => k.id !== id));
     },
     rollback: ({ snapshot }) => {
       if (!snapshot) {
         invalidateQueries("api-keys");
         return;
       }
-      keys.mutate([...((keys.data() ?? []) as ReadonlyArray<KeyRow>), snapshot]);
+      keys.mutate([...readKeys(), snapshot]);
     },
     commit: ({ id }) => revokeKey.mutate({ id }),
     undoable: 30_000,
@@ -392,8 +393,7 @@ function ApiKeysTab(): JSX.Element {
 
   const handleRevoke = async (id: string): Promise<void> => {
     setError(null);
-    const list = (keys.data() ?? []) as ReadonlyArray<KeyRow>;
-    const target = list.find((k) => k.id === id);
+    const target = readKeys().find((k) => k.id === id);
     if (!target) return;
     setConfirmRevoke(null);
     // Drop the reveal banner if the user just revoked the key they were viewing.

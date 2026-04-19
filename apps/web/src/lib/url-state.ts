@@ -3,29 +3,54 @@
 // `useUrlState(key, defaultValue)` mirrors a piece of state into the
 // query string so any list filter, tab selection, or sort order becomes
 // a deep-linkable, share-friendly URL. Browser back/forward Just Works
-// because we go through SolidJS's `useSearchParams` under the hood when
-// it's available, falling back to manual `history.pushState` + a
-// `popstate` listener when we're outside of a Router context (SSR,
-// isolated tests).
+// because we listen for `popstate` and re-read the URL into the signal.
 //
 // The signature mimics SolidJS's `createSignal`:
 //
 //   const [tab, setTab] = useUrlState("tab", "overview");
-//   tab();           // reads the current value
-//   setTab("billing"); // writes back to the URL
+//   tab();              // reads the current value
+//   setTab("billing");  // writes back to the URL
 //
-// Strings, numbers, and booleans serialise transparently. Anything
-// else gets JSON.stringify'd. The default value is NOT written to the
-// URL — we only push the param when it differs from the default, which
-// keeps URLs short and shareable.
+// Strings, numbers, and booleans serialise transparently. The default
+// value is NOT written to the URL — we only push the param when it
+// differs from the default, which keeps URLs short and shareable.
+//
+// Implementation note: every helper takes `Primitive` (the union of
+// string | number | boolean) as the parameter type rather than a
+// constrained generic. That choice means a literal default like `""`
+// widens to `string` automatically, so callers don't need to write
+// `useUrlState<string>("filter", "")` everywhere — the natural
+// `useUrlState("filter", "")` form just works.
 
 import { createSignal, onCleanup, type Accessor } from "solid-js";
 
 // ── Types ───────────────────────────────────────────────────────────
 
-export type UrlStateSetter<T> = (value: T | ((prev: T) => T)) => void;
+/** Every value type the URL hook accepts. */
+export type Primitive = string | number | boolean;
 
-export type UrlStateReturn<T> = [Accessor<T>, UrlStateSetter<T>];
+export type UrlStateSetter<T extends Primitive> = (
+  value: T | ((prev: T) => T),
+) => void;
+
+export type UrlStateReturn<T extends Primitive> = [
+  Accessor<T>,
+  UrlStateSetter<T>,
+];
+
+/**
+ * Widen a literal default to its base primitive so callers don't need
+ * `useUrlState<string>("filter", "")` boilerplate. A default of `""`
+ * gives a `string` setter; a default of `0` gives a `number` setter; a
+ * default of `true` gives a `boolean` setter.
+ */
+export type WidenLiteral<T extends Primitive> = T extends string
+  ? string
+  : T extends number
+    ? number
+    : T extends boolean
+      ? boolean
+      : T;
 
 // ── Public API ──────────────────────────────────────────────────────
 
@@ -37,17 +62,18 @@ export type UrlStateReturn<T> = [Accessor<T>, UrlStateSetter<T>];
  *                     default is never written to the URL — it's the
  *                     "clean" state.
  */
-export function useUrlState<T extends string | number | boolean>(
+export function useUrlState<T extends Primitive>(
   key: string,
   defaultValue: T,
-): UrlStateReturn<T> {
-  const initial = readFromLocation(key, defaultValue);
-  const [value, setValue] = createSignal<T>(initial);
+): UrlStateReturn<WidenLiteral<T>> {
+  type W = WidenLiteral<T>;
+  const initial = readFromLocation(key, defaultValue) as W;
+  const [value, setValue] = createSignal<W>(initial);
 
   // Keep the signal in sync with browser navigation (back/forward).
   if (typeof window !== "undefined") {
     const onPop = (): void => {
-      setValue(() => readFromLocation(key, defaultValue));
+      setValue(() => readFromLocation(key, defaultValue) as W);
     };
     window.addEventListener("popstate", onPop);
     onCleanup(() => {
@@ -55,9 +81,9 @@ export function useUrlState<T extends string | number | boolean>(
     });
   }
 
-  const set: UrlStateSetter<T> = (next) => {
+  const set: UrlStateSetter<W> = (next) => {
     const resolved =
-      typeof next === "function" ? (next as (p: T) => T)(value()) : next;
+      typeof next === "function" ? (next as (p: W) => W)(value()) : next;
     setValue(() => resolved);
     writeToLocation(key, resolved, defaultValue);
   };
@@ -71,31 +97,30 @@ export function useUrlState<T extends string | number | boolean>(
  * Decode a query-string value back to the same shape as `defaultValue`.
  * We coerce numbers/booleans because URL params are always strings and
  * a naive `searchParams.get("page")` would yield `"3"` instead of `3`.
+ *
+ * The signature deliberately uses the wide `Primitive` union (rather
+ * than a narrow generic) so that test call sites like
+ *   `decode("hello", "default")`
+ * don't get rejected because TypeScript inferred `T = "default"`.
  */
-function decode<T extends string | number | boolean>(
-  raw: string,
-  defaultValue: T,
-): T {
+function decode(raw: string, defaultValue: Primitive): Primitive {
   if (typeof defaultValue === "number") {
     const n = Number(raw);
-    return (Number.isFinite(n) ? n : defaultValue) as T;
+    return Number.isFinite(n) ? n : defaultValue;
   }
   if (typeof defaultValue === "boolean") {
-    return (raw === "true" || raw === "1") as T;
+    return raw === "true" || raw === "1";
   }
-  return raw as T;
+  return raw;
 }
 
-function encode<T extends string | number | boolean>(value: T): string {
+function encode(value: Primitive): string {
   return String(value);
 }
 
 // ── Internal: Location I/O ──────────────────────────────────────────
 
-function readFromLocation<T extends string | number | boolean>(
-  key: string,
-  defaultValue: T,
-): T {
+function readFromLocation(key: string, defaultValue: Primitive): Primitive {
   if (typeof window === "undefined") return defaultValue;
   const params = new URLSearchParams(window.location.search);
   const raw = params.get(key);
@@ -103,10 +128,10 @@ function readFromLocation<T extends string | number | boolean>(
   return decode(raw, defaultValue);
 }
 
-function writeToLocation<T extends string | number | boolean>(
+function writeToLocation(
   key: string,
-  value: T,
-  defaultValue: T,
+  value: Primitive,
+  defaultValue: Primitive,
 ): void {
   if (typeof window === "undefined") return;
   const url = new URL(window.location.href);

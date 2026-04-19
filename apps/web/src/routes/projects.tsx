@@ -184,7 +184,7 @@ export default function ProjectsPage(): ReturnType<typeof ProtectedRoute> {
   // forward also walks through filter changes, which is the deep-
   // linking promise we want to deliver.
   const [filter, setFilter] = useUrlState("filter", "");
-  const [statusFilter, setStatusFilter] = useUrlState<string>("status", "all");
+  const [statusFilter, setStatusFilter] = useUrlState("status", "all");
 
   const navigate = useNavigate();
 
