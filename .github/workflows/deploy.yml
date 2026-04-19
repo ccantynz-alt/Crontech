@@ -40,6 +40,9 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
+      - name: Validate migrations
+        run: bun run db:validate
+
       - name: Type check
         run: bun run check
 
@@ -72,7 +75,7 @@ jobs:
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.VULTR_SERVER_IP }}
-          username: deploy
+          username: root
           key: ${{ secrets.VULTR_SSH_KEY }}
           script_stop: true
           command_timeout: 10m
