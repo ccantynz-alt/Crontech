@@ -38,6 +38,7 @@
 
 import { and, eq } from "drizzle-orm";
 import {
+  buildMinutesUsage,
   db as defaultDb,
   deploymentLogs,
   deployments,
@@ -755,6 +756,27 @@ export async function runBuild(
       finishedAt: completedAt,
       isCurrent: true,
     });
+
+    // ── BLK-010: record build-minute usage for metered billing ──
+    // Non-fatal: a failure here must never mark the deploy as failed.
+    // Usage reporting to Stripe happens later via the usage-reporter.
+    try {
+      const minutesUsed =
+        Math.max(0, buildDurationMs ?? totalDurationMs) / 60000;
+      await db.insert(buildMinutesUsage).values({
+        id: crypto.randomUUID(),
+        userId: project.userId,
+        deploymentId,
+        minutesUsed,
+        recordedAt: completedAt,
+        reportedToStripeAt: null,
+      });
+    } catch (usageErr) {
+      console.warn(
+        `[build-runner] failed to record build_minutes_usage for ${deploymentId}:`,
+        usageErr instanceof Error ? usageErr.message : String(usageErr),
+      );
+    }
 
     await writeLog(
       db,
