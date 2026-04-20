@@ -1,0 +1,43 @@
+
+[GateTest] Crawling https://crontech.ai (max 8 pages)...
+
+
+[1m[36m========================================[0m
+[1m[36m  GATETEST - Quality Assurance Gate[0m
+[1m[36m========================================[0m
+[2m  Modules: liveCrawler[0m
+
+  [34m[RUN][0m liveCrawler [31m[FAIL][0m [2m(1 errors, 394ms)[0m
+    [31mx[0m [31mcrawl:error:http-error[0m
+      [33mfix: Check server routes and ensure all pages return 200 status[0m
+
+[1m[36m----------------------------------------[0m
+[1m[41m[37m  GATE: BLOCKED  [0m
+
+  Modules:  0/1 passed
+  Checks:   2/3 passed
+  Errors:   [31m1[0m
+  Warnings: [33m0[0m
+  Time:     395ms
+
+[31m  Failed modules:[0m
+    [31m- liveCrawler: 1 error(s): crawl:error:http-error[0m
+
+[2m  Report generated at 2026-04-20T08:44:32.028Z[0m
+[1m[36m========================================[0m
+
+
+# GateTest Live Crawl Report
+# URL: https://crontech.ai
+# Pages scanned: 1
+# Generated: 2026-04-20T08:44:32.026Z
+
+## RESULT: ISSUES FOUND — FIX REQUIRED
+
+### Page Errors (1)
+- **http-error** at https://crontech.ai
+  HTTP 403 Forbidden
+
+## ACTION REQUIRED
+Fix all issues listed above and run `gatetest --module liveCrawler` again.
+Do not deploy until this report shows ALL CLEAR.

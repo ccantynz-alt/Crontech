@@ -269,7 +269,7 @@ export default function Home(): JSX.Element {
       <div>
         {/* ── Hero (dark) ──────────────────────────────────────── */}
         <section class="landing-hero">
-          <div class="relative z-10 mx-auto max-w-[1120px] px-6 pt-40 pb-44 lg:px-8 lg:pt-52 lg:pb-56">
+          <div class="relative z-10 mx-auto max-w-[1120px] px-6 pt-32 pb-32 md:pt-40 md:pb-36 lg:px-8 lg:pt-44 lg:pb-40">
             <div class="flex flex-col items-center text-center">
               {/* Announcement badge */}
               <div class="landing-hero-badge mb-10">
@@ -313,13 +313,15 @@ export default function Home(): JSX.Element {
                 </A>
               </div>
 
-              {/* Proof strip */}
-              <div class="landing-tech-strip-wrap mt-28">
+              {/* Proof strip — CSS grid auto-fit handles 5 items on
+                  desktop, 2-3 rows on iPad landscape, 1 per row on
+                  phone without the flex-wrap jostle. */}
+              <div class="landing-tech-strip-wrap mt-20">
                 <div class="landing-tech-strip-divider" aria-hidden="true" />
                 <div class="landing-tech-strip">
                   <For
                     each={[
-                      "Built for SOC 2 Type II from day one",
+                      "Built for SOC 2 Type II",
                       "Hash-chained audit log",
                       "SBOM on every build",
                       "Self-hostable in your VPC",
@@ -339,14 +341,10 @@ export default function Home(): JSX.Element {
         {/* ── Signals strip (dark-to-light transition) ────────────── */}
         <section class="landing-stats-section">
           <div class="mx-auto max-w-[1120px] px-6 lg:px-8">
-            <div class="grid grid-cols-2 sm:grid-cols-4">
+            <div class="landing-stats-grid">
               <For each={signals}>
-                {(signal, i) => (
-                  <div
-                    style={{
-                      "border-right": i() < signals.length - 1 ? "1px solid rgba(255,255,255,0.06)" : "none",
-                    }}
-                  >
+                {(signal) => (
+                  <div class="landing-stat-cell">
                     <SignalBlock value={signal.value} label={signal.label} />
                   </div>
                 )}
@@ -356,7 +354,7 @@ export default function Home(): JSX.Element {
         </section>
 
         {/* ── The Problem ───────────────────────────────────────── */}
-        <section class="landing-dark-section py-32 lg:py-44">
+        <section class="landing-dark-section py-28 lg:py-36">
           <div class="mx-auto max-w-[1120px] px-6 lg:px-8">
             <div class="mb-20 flex flex-col items-center text-center">
               <div class="landing-section-label">
@@ -397,7 +395,7 @@ export default function Home(): JSX.Element {
         </section>
 
         {/* ── The Solution ──────────────────────────────────────── */}
-        <section class="landing-dark-section-alt py-32 lg:py-44">
+        <section class="landing-dark-section-alt py-28 lg:py-36">
           <div class="mx-auto max-w-[1120px] px-6 lg:px-8">
             <div class="mb-20 flex flex-col items-center text-center">
               <div class="landing-section-label">
@@ -439,7 +437,7 @@ export default function Home(): JSX.Element {
         </section>
 
         {/* ── How it works ──────────────────────────────────────── */}
-        <section class="landing-dark-section py-32 lg:py-44">
+        <section class="landing-dark-section py-28 lg:py-36">
           <div class="mx-auto max-w-[1120px] px-6 lg:px-8">
             <div class="mb-20 flex flex-col items-center text-center">
               <div class="landing-section-label">
@@ -481,7 +479,7 @@ export default function Home(): JSX.Element {
         </section>
 
         {/* ── Social proof / signals ─────────────────────────────── */}
-        <section class="landing-dark-section-alt py-32 lg:py-44">
+        <section class="landing-dark-section-alt py-28 lg:py-36">
           <div class="mx-auto max-w-[1120px] px-6 lg:px-8">
             <div class="grid grid-cols-1 gap-5 lg:grid-cols-2">
               <div class="landing-card relative overflow-hidden p-8">
@@ -566,7 +564,7 @@ export default function Home(): JSX.Element {
 
         {/* ── Bottom CTA (dark) ─────────────────────────────────── */}
         <section class="landing-cta-section">
-          <div class="relative z-10 mx-auto max-w-[800px] px-6 py-40 text-center lg:px-8 lg:py-52">
+          <div class="relative z-10 mx-auto max-w-[800px] px-6 py-28 text-center lg:px-8 lg:py-36">
             <h2
               class="text-[1.875rem] font-bold tracking-tight sm:text-[2.25rem] lg:text-[2.75rem]"
               style={{ color: "#0f172a" }}

@@ -1,0 +1,65 @@
+{
+  "tool": "gatetest",
+  "version": "1.0.0",
+  "run": "AFTER",
+  "runAt": "2026-04-20T08:47:00Z",
+  "targets": {
+    "localDevServer": "http://localhost:3000",
+    "staticSourceRoot": "/home/user/crontech-landing-v2"
+  },
+  "crawl": {
+    "url": "http://localhost:3000",
+    "pagesScanned": 8,
+    "modulesActuallyRun": ["liveCrawler"],
+    "result": "BLOCKED",
+    "errors": [
+      { "rule": "crawl:error:missing-title", "note": "Pre-existing SSR head-tag timing issue in SolidStart — unrelated to this landing-page fix. Not in scope per Craig's instructions (hero/stats/tech-row/rhythm only)." }
+    ]
+  },
+  "staticModules": {
+    "visual": {
+      "result": "BLOCKED",
+      "errors": 12,
+      "note": "All 12 errors are pre-existing: 7x visual:font-fallback in apps/web/src/app.css, 1x visual:body-overflow-hidden in apps/web/src/app.css, 3x visual:img-dimensions in apps/web/src/routes/repos.tsx, 1x visual:img-dimensions in packages/ui/src/components/Avatar.tsx. None are in the files I changed. None correspond to Craig's reported bugs."
+    },
+    "accessibility": {
+      "result": "BLOCKED",
+      "note": "Pre-existing errors in unrelated components (CommandPalette.tsx input-label, CookieConsent.tsx + DeploymentLogs.tsx reduced-motion-js, GenerativeUI.tsx input-label). Not regressed by this fix."
+    },
+    "links": {
+      "result": "PASSED",
+      "checks": 3,
+      "note": "Clean. No regressions from the Playwright removal or the landing-page restructure."
+    }
+  },
+  "craigReportedBugsFixed": [
+    {
+      "bug": "Stats row misaligned — third column taller due to mid-hyphen wrap",
+      "fixed": true,
+      "howFixed": "CSS grid with grid-auto-rows: 1fr forces equal cell heights; white-space: nowrap + word-break: keep-all on .landing-stat-value prevents mid-hyphen wrap; max-width: 18ch on .landing-stat-label caps line length predictably.",
+      "flaggedByGatetest": false
+    },
+    {
+      "bug": "Hero is left-heavy / unbalanced",
+      "fixed": true,
+      "howFixed": "Source was already items-center text-center; tightened the mt-28 → mt-20 gap between CTAs and proof strip and reduced over-padded hero (pt-40 pb-44 lg:pt-52 lg:pb-56 → pt-32 pb-32 md:pt-40 md:pb-36 lg:pt-44 lg:pb-40) so the viewport feels balanced on iPad landscape.",
+      "flaggedByGatetest": false
+    },
+    {
+      "bug": "Tech row cramped — 5-7 items squeezed into one row",
+      "fixed": true,
+      "howFixed": "Replaced flex-wrap + column-gap:3rem with CSS grid template-columns: repeat(auto-fit, minmax(11rem, 1fr)). Balanced row at every viewport; 2-3 rows on iPad landscape without flex-wrap jostle.",
+      "flaggedByGatetest": false
+    },
+    {
+      "bug": "Section rhythm jumpy — mix of py-32 and py-44",
+      "fixed": true,
+      "howFixed": "Unified every section to py-28 lg:py-36. Hero uses a per-breakpoint ramp that matches the same rhythm.",
+      "flaggedByGatetest": false
+    }
+  ],
+  "honestAssessment": {
+    "didGatetestCatchCraigsBugs": false,
+    "explanation": "GateTest's --crawl mode only wires up liveCrawler (missing-title, http-error). The static visual / accessibility modules pattern-match source for generic issues (font fallbacks, img dimensions, reduced-motion) and did not flag ANY of Craig's four reported bugs. GateTest has no rule for column-height-equality, mid-hyphen-wrap inside a value, flex-wrap cramping at specific viewport widths, or vertical-rhythm consistency. This is product feedback for ccantynz-alt/gatetest — see FINDINGS.md for the proposed gap list."
+  }
+}

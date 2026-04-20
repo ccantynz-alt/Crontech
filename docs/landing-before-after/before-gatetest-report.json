@@ -1,0 +1,40 @@
+{
+  "tool": "gatetest",
+  "version": "1.0.0",
+  "run": "BEFORE",
+  "runAt": "2026-04-20T08:44:15Z",
+  "targets": {
+    "localDevServer": "http://localhost:3000",
+    "productionUrl": "https://crontech.ai",
+    "staticSourceRoot": "/home/user/crontech-landing-v2"
+  },
+  "modulesRequested": ["visual", "accessibility", "links"],
+  "modulesActuallyRun": ["liveCrawler"],
+  "note": "When --crawl is passed, GateTest CLI silently ignores --module flags and runs only the liveCrawler module. To hit the static-analysis visual/accessibility/links modules, run gatetest WITHOUT --crawl. See sibling before-gatetest-static.txt for the static-source baseline.",
+  "result": "BLOCKED",
+  "errors": [
+    { "rule": "crawl:error:missing-title", "url": "http://localhost:3000", "message": "Page has no <title> or title is empty" },
+    { "rule": "crawl:error:missing-title", "url": "http://localhost:3000/", "message": "Page has no <title> or title is empty" },
+    { "rule": "crawl:error:missing-title", "url": "http://localhost:3000/pricing", "message": "Page has no <title> or title is empty" },
+    { "rule": "crawl:error:missing-title", "url": "http://localhost:3000/login", "message": "Page has no <title> or title is empty" },
+    { "rule": "crawl:error:missing-title", "url": "http://localhost:3000/register", "message": "Page has no <title> or title is empty" }
+  ],
+  "productionCrawl": {
+    "url": "https://crontech.ai",
+    "result": "BLOCKED",
+    "error": { "rule": "crawl:error:http-error", "message": "HTTP 403 Forbidden (sandbox proxy blocks outbound to crontech.ai)" }
+  },
+  "craigReportedBugsCaughtByGatetest": false,
+  "craigReportedBugs": [
+    "Stats row: third column (End-to-End / TYPE SAFETY) wraps mid-hyphen on iPad landscape, making column 3 taller than the rest and breaking baseline alignment",
+    "Hero is left-heavy on iPad landscape — right half of viewport is empty",
+    "Tech row (SolidJS, Bun, Hono, tRPC, Edge Compute, Turso, WebGPU) is cramped — 7 items squeezed into one row",
+    "Section rhythm is jumpy — inconsistent vertical spacing between sections (mix of py-32 and py-44)"
+  ],
+  "missedByGatetest": [
+    "Column-to-column height equality (CSS grid auto-rows-fr)",
+    "Mid-hyphen line break inside a single stat value (white-space / word-break)",
+    "Flex-wrap cramping at specific viewport widths",
+    "Vertical-rhythm consistency across multiple sections"
+  ]
+}

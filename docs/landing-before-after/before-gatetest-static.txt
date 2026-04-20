@@ -1,0 +1,291 @@
+# GateTest baseline static-source report (BEFORE fix)
+# Ran against /home/user/crontech-landing-v2
+# Date: 2026-04-20T08:45:06Z
+# Note: --module X appears to only apply the LAST --module flag.
+#       Ran each module separately.
+
+## ===== module: visual =====
+
+========================================
+  GATETEST - Quality Assurance Gate
+========================================
+  Modules: visual
+
+  [RUN] visual [FAIL] (12 errors, 97ms)
+    x visual:font-fallback:apps/web/src/app.css
+      file: apps/web/src/app.css:
+      fix: Add a generic font family as fallback (e.g., sans-serif)
+    x visual:font-fallback:apps/web/src/app.css
+      file: apps/web/src/app.css:
+      fix: Add a generic font family as fallback (e.g., sans-serif)
+    x visual:font-fallback:apps/web/src/app.css
+      file: apps/web/src/app.css:
+      fix: Add a generic font family as fallback (e.g., sans-serif)
+    x visual:font-fallback:apps/web/src/app.css
+      file: apps/web/src/app.css:
+      fix: Add a generic font family as fallback (e.g., sans-serif)
+    x visual:font-fallback:apps/web/src/app.css
+      file: apps/web/src/app.css:
+      fix: Add a generic font family as fallback (e.g., sans-serif)
+    x visual:font-fallback:apps/web/src/app.css
+      file: apps/web/src/app.css:
+      fix: Add a generic font family as fallback (e.g., sans-serif)
+    x visual:font-fallback:apps/web/src/app.css
+      file: apps/web/src/app.css:
+      fix: Add a generic font family as fallback (e.g., sans-serif)
+    x visual:body-overflow-hidden:apps/web/src/app.css
+      file: apps/web/src/app.css:
+      fix: Fix the root cause of horizontal overflow instead of hiding it
+    x visual:img-dimensions:apps/web/src/routes/repos.tsx
+      file: apps/web/src/routes/repos.tsx:
+      fix: Add width and height attributes to <img> tags
+    x visual:img-dimensions:apps/web/src/routes/repos.tsx
+      file: apps/web/src/routes/repos.tsx:
+      fix: Add width and height attributes to <img> tags
+    x visual:img-dimensions:apps/web/src/routes/repos.tsx
+      file: apps/web/src/routes/repos.tsx:
+      fix: Add width and height attributes to <img> tags
+    x visual:img-dimensions:packages/ui/src/components/Avatar.tsx
+      file: packages/ui/src/components/Avatar.tsx:
+      fix: Add width and height attributes to <img> tags
+
+----------------------------------------
+  GATE: BLOCKED  
+
+  Modules:  0/1 passed
+  Checks:   1/13 passed
+  Errors:   12
+  Warnings: 0
+  Time:     101ms
+
+  Failed modules:
+    - visual: 12 error(s): visual:font-fallback:apps/web/src/app.css, visual:font-fallback:apps/web/src/app.css, visual:font-fallback:apps/web/src/app.css, visual:font-fallback:apps/web/src/app.css, visual:font-fallback:apps/web/src/app.css, visual:font-fallback:apps/web/src/app.css, visual:font-fallback:apps/web/src/app.css, visual:body-overflow-hidden:apps/web/src/app.css, visual:img-dimensions:apps/web/src/routes/repos.tsx, visual:img-dimensions:apps/web/src/routes/repos.tsx, visual:img-dimensions:apps/web/src/routes/repos.tsx, visual:img-dimensions:packages/ui/src/components/Avatar.tsx
+
+  Report generated at 2026-04-20T08:45:07.024Z
+========================================
+
+
+## ===== module: accessibility =====
+      fix: Add aria-label, aria-labelledby, or an associated <label> element
+    x a11y:input-label:apps/web/src/components/CommandPalette.tsx
+      file: apps/web/src/components/CommandPalette.tsx:
+      fix: Add aria-label, aria-labelledby, or an associated <label> element
+    x a11y:reduced-motion-js:apps/web/src/components/CookieConsent.tsx
+      file: apps/web/src/components/CookieConsent.tsx:
+      fix: Check window.matchMedia("(prefers-reduced-motion: reduce)") before animating
+    x a11y:reduced-motion-js:apps/web/src/components/DeploymentLogs.tsx
+      file: apps/web/src/components/DeploymentLogs.tsx:
+      fix: Check window.matchMedia("(prefers-reduced-motion: reduce)") before animating
+    x a11y:input-label:apps/web/src/components/GenerativeUI.tsx
+      file: apps/web/src/components/GenerativeUI.tsx:
+      fix: Add aria-label, aria-labelledby, or an associated <label> element
+    x a11y:input-label:apps/web/src/components/JsonRenderUI.tsx
+      file: apps/web/src/components/JsonRenderUI.tsx:
+      fix: Add aria-label, aria-labelledby, or an associated <label> element
+    x a11y:input-label:apps/web/src/components/JsonRenderUI.tsx
+      file: apps/web/src/components/JsonRenderUI.tsx:
+      fix: Add aria-label, aria-labelledby, or an associated <label> element
+    x a11y:reduced-motion-js:apps/web/src/components/MetricsChart.tsx
+      file: apps/web/src/components/MetricsChart.tsx:
+      fix: Check window.matchMedia("(prefers-reduced-motion: reduce)") before animating
+    x a11y:input-label:apps/web/src/components/PageLayoutRenderer.tsx
+      file: apps/web/src/components/PageLayoutRenderer.tsx:
+      fix: Add aria-label, aria-labelledby, or an associated <label> element
+    x a11y:input-label:apps/web/src/components/SupportBot.tsx
+      file: apps/web/src/components/SupportBot.tsx:
+      fix: Add aria-label, aria-labelledby, or an associated <label> element
+    x a11y:invalid-role:apps/web/src/components/SupportBot.tsx
+      file: apps/web/src/components/SupportBot.tsx:
+      fix: Use a valid WAI-ARIA role
+    x a11y:reduced-motion-js:apps/web/src/components/Terminal.tsx
+      file: apps/web/src/components/Terminal.tsx:
+      fix: Check window.matchMedia("(prefers-reduced-motion: reduce)") before animating
+    x a11y:input-label:apps/web/src/components/VideoPlayer.tsx
+      file: apps/web/src/components/VideoPlayer.tsx:
+      fix: Add aria-label, aria-labelledby, or an associated <label> element
+    x a11y:input-label:apps/web/src/components/VideoPlayer.tsx
+      file: apps/web/src/components/VideoPlayer.tsx:
+      fix: Add aria-label, aria-labelledby, or an associated <label> element
+    x a11y:reduced-motion-js:apps/web/src/components/motion/ParallaxSection.tsx
+      file: apps/web/src/components/motion/ParallaxSection.tsx:
+      fix: Check window.matchMedia("(prefers-reduced-motion: reduce)") before animating
+    x a11y:landmark-main:apps/web/src/entry-server.tsx
+      file: apps/web/src/entry-server.tsx:
+      fix: Add <main> element or role="main" to primary content area
+    x a11y:input-label:apps/web/src/routes/admin/claude/settings.tsx
+      file: apps/web/src/routes/admin/claude/settings.tsx:
+      fix: Add aria-label, aria-labelledby, or an associated <label> element
+    x a11y:input-label:apps/web/src/routes/admin/dns/[zoneId].tsx
+      file: apps/web/src/routes/admin/dns/[zoneId].tsx:
+      fix: Add aria-label, aria-labelledby, or an associated <label> element
+    x a11y:input-label:apps/web/src/routes/admin/dns/[zoneId].tsx
+      file: apps/web/src/routes/admin/dns/[zoneId].tsx:
+      fix: Add aria-label, aria-labelledby, or an associated <label> element
+    x a11y:input-label:apps/web/src/routes/admin/dns/[zoneId].tsx
+      file: apps/web/src/routes/admin/dns/[zoneId].tsx:
+      fix: Add aria-label, aria-labelledby, or an associated <label> element
+    x a11y:input-label:apps/web/src/routes/admin/dns/[zoneId].tsx
+      file: apps/web/src/routes/admin/dns/[zoneId].tsx:
+      fix: Add aria-label, aria-labelledby, or an associated <label> element
+    x a11y:input-label:apps/web/src/routes/admin/dns/[zoneId].tsx
+      file: apps/web/src/routes/admin/dns/[zoneId].tsx:
+      fix: Add aria-label, aria-labelledby, or an associated <label> element
+    x a11y:input-label:apps/web/src/routes/admin/dns/[zoneId].tsx
+      file: apps/web/src/routes/admin/dns/[zoneId].tsx:
+      fix: Add aria-label, aria-labelledby, or an associated <label> element
+    x a11y:input-label:apps/web/src/routes/admin/dns/[zoneId].tsx
+      file: apps/web/src/routes/admin/dns/[zoneId].tsx:
+      fix: Add aria-label, aria-labelledby, or an associated <label> element
+    x a11y:input-label:apps/web/src/routes/admin/dns.tsx
+      file: apps/web/src/routes/admin/dns.tsx:
+      fix: Add aria-label, aria-labelledby, or an associated <label> element
+    x a11y:input-label:apps/web/src/routes/admin/dns.tsx
+      file: apps/web/src/routes/admin/dns.tsx:
+      fix: Add aria-label, aria-labelledby, or an associated <label> element
+    x a11y:input-label:apps/web/src/routes/admin/dns.tsx
+      file: apps/web/src/routes/admin/dns.tsx:
+      fix: Add aria-label, aria-labelledby, or an associated <label> element
+    x a11y:input-label:apps/web/src/routes/admin/dns.tsx
+      file: apps/web/src/routes/admin/dns.tsx:
+      fix: Add aria-label, aria-labelledby, or an associated <label> element
+    x a11y:input-label:apps/web/src/routes/admin/progress.tsx
+      file: apps/web/src/routes/admin/progress.tsx:
+      fix: Add aria-label, aria-labelledby, or an associated <label> element
+    x a11y:input-label:apps/web/src/routes/admin.tsx
+      file: apps/web/src/routes/admin.tsx:
+      fix: Add aria-label, aria-labelledby, or an associated <label> element
+    x a11y:invalid-role:apps/web/src/routes/admin.tsx
+      file: apps/web/src/routes/admin.tsx:
+      fix: Use a valid WAI-ARIA role
+    x a11y:input-label:apps/web/src/routes/ai-playground.tsx
+      file: apps/web/src/routes/ai-playground.tsx:
+      fix: Add aria-label, aria-labelledby, or an associated <label> element
+    x a11y:input-label:apps/web/src/routes/ai-playground.tsx
+      file: apps/web/src/routes/ai-playground.tsx:
+      fix: Add aria-label, aria-labelledby, or an associated <label> element
+    x a11y:input-label:apps/web/src/routes/builder.tsx
+      file: apps/web/src/routes/builder.tsx:
+      fix: Add aria-label, aria-labelledby, or an associated <label> element
+    x a11y:input-label:apps/web/src/routes/collab.tsx
+      file: apps/web/src/routes/collab.tsx:
+      fix: Add aria-label, aria-labelledby, or an associated <label> element
+    x a11y:heading-hierarchy:apps/web/src/routes/dns.tsx
+      file: apps/web/src/routes/dns.tsx:
+      fix: Use sequential heading levels (h1 > h2 > h3) without skipping
+    x a11y:heading-hierarchy:apps/web/src/routes/docs.tsx
+      file: apps/web/src/routes/docs.tsx:
+      fix: Use sequential heading levels (h1 > h2 > h3) without skipping
+    x a11y:input-label:apps/web/src/routes/domains.tsx
+      file: apps/web/src/routes/domains.tsx:
+      fix: Add aria-label, aria-labelledby, or an associated <label> element
+    x a11y:input-label:apps/web/src/routes/domains.tsx
+      file: apps/web/src/routes/domains.tsx:
+      fix: Add aria-label, aria-labelledby, or an associated <label> element
+    x a11y:input-label:apps/web/src/routes/flywheel.tsx
+      file: apps/web/src/routes/flywheel.tsx:
+      fix: Add aria-label, aria-labelledby, or an associated <label> element
+    x a11y:input-label:apps/web/src/routes/login.tsx
+      file: apps/web/src/routes/login.tsx:
+      fix: Add aria-label, aria-labelledby, or an associated <label> element
+    x a11y:input-label:apps/web/src/routes/login.tsx
+      file: apps/web/src/routes/login.tsx:
+      fix: Add aria-label, aria-labelledby, or an associated <label> element
+    x a11y:input-label:apps/web/src/routes/login.tsx
+      file: apps/web/src/routes/login.tsx:
+      fix: Add aria-label, aria-labelledby, or an associated <label> element
+    x a11y:input-label:apps/web/src/routes/login.tsx
+      file: apps/web/src/routes/login.tsx:
+      fix: Add aria-label, aria-labelledby, or an associated <label> element
+    x a11y:input-label:apps/web/src/routes/projects/import.tsx
+      file: apps/web/src/routes/projects/import.tsx:
+      fix: Add aria-label, aria-labelledby, or an associated <label> element
+    x a11y:input-label:apps/web/src/routes/projects/new.tsx
+      file: apps/web/src/routes/projects/new.tsx:
+      fix: Add aria-label, aria-labelledby, or an associated <label> element
+    x a11y:input-label:apps/web/src/routes/projects/new.tsx
+      file: apps/web/src/routes/projects/new.tsx:
+      fix: Add aria-label, aria-labelledby, or an associated <label> element
+    x a11y:input-label:apps/web/src/routes/projects/new.tsx
+      file: apps/web/src/routes/projects/new.tsx:
+      fix: Add aria-label, aria-labelledby, or an associated <label> element
+    x a11y:input-label:apps/web/src/routes/projects/new.tsx
+      file: apps/web/src/routes/projects/new.tsx:
+      fix: Add aria-label, aria-labelledby, or an associated <label> element
+    x a11y:input-label:apps/web/src/routes/projects/new.tsx
+      file: apps/web/src/routes/projects/new.tsx:
+      fix: Add aria-label, aria-labelledby, or an associated <label> element
+    x a11y:input-label:apps/web/src/routes/register.tsx
+      file: apps/web/src/routes/register.tsx:
+      fix: Add aria-label, aria-labelledby, or an associated <label> element
+    x a11y:input-label:apps/web/src/routes/register.tsx
+      file: apps/web/src/routes/register.tsx:
+      fix: Add aria-label, aria-labelledby, or an associated <label> element
+    x a11y:input-label:apps/web/src/routes/register.tsx
+      file: apps/web/src/routes/register.tsx:
+      fix: Add aria-label, aria-labelledby, or an associated <label> element
+    x a11y:input-label:apps/web/src/routes/register.tsx
+      file: apps/web/src/routes/register.tsx:
+      fix: Add aria-label, aria-labelledby, or an associated <label> element
+    x a11y:input-label:apps/web/src/routes/register.tsx
+      file: apps/web/src/routes/register.tsx:
+      fix: Add aria-label, aria-labelledby, or an associated <label> element
+    x a11y:input-label:apps/web/src/routes/register.tsx
+      file: apps/web/src/routes/register.tsx:
+      fix: Add aria-label, aria-labelledby, or an associated <label> element
+    x a11y:input-label:apps/web/src/routes/repos.tsx
+      file: apps/web/src/routes/repos.tsx:
+      fix: Add aria-label, aria-labelledby, or an associated <label> element
+    x a11y:input-label:apps/web/src/routes/settings.tsx
+      file: apps/web/src/routes/settings.tsx:
+      fix: Add aria-label, aria-labelledby, or an associated <label> element
+    x a11y:heading-hierarchy:apps/web/src/routes/sms.tsx
+      file: apps/web/src/routes/sms.tsx:
+      fix: Use sequential heading levels (h1 > h2 > h3) without skipping
+    x a11y:heading-hierarchy:apps/web/src/routes/support.tsx
+      file: apps/web/src/routes/support.tsx:
+      fix: Use sequential heading levels (h1 > h2 > h3) without skipping
+    x a11y:input-label:apps/web/src/routes/video.tsx
+      file: apps/web/src/routes/video.tsx:
+      fix: Add aria-label, aria-labelledby, or an associated <label> element
+    x a11y:input-label:packages/ui/src/components/Input.tsx
+      file: packages/ui/src/components/Input.tsx:
+      fix: Add aria-label, aria-labelledby, or an associated <label> element
+
+----------------------------------------
+  GATE: BLOCKED  
+
+  Modules:  0/1 passed
+  Checks:   2/64 passed
+  Errors:   62
+  Warnings: 0
+  Time:     136ms
+
+  Failed modules:
+    - accessibility: 62 error(s): a11y:input-label:apps/web/src/components/AIChat.tsx, a11y:input-label:apps/web/src/components/CommandPalette.tsx, a11y:reduced-motion-js:apps/web/src/components/CookieConsent.tsx, a11y:reduced-motion-js:apps/web/src/components/DeploymentLogs.tsx, a11y:input-label:apps/web/src/components/GenerativeUI.tsx, a11y:input-label:apps/web/src/components/JsonRenderUI.tsx, a11y:input-label:apps/web/src/components/JsonRenderUI.tsx, a11y:reduced-motion-js:apps/web/src/components/MetricsChart.tsx, a11y:input-label:apps/web/src/components/PageLayoutRenderer.tsx, a11y:input-label:apps/web/src/components/SupportBot.tsx, a11y:invalid-role:apps/web/src/components/SupportBot.tsx, a11y:reduced-motion-js:apps/web/src/components/Terminal.tsx, a11y:input-label:apps/web/src/components/VideoPlayer.tsx, a11y:input-label:apps/web/src/components/VideoPlayer.tsx, a11y:reduced-motion-js:apps/web/src/components/motion/ParallaxSection.tsx, a11y:landmark-main:apps/web/src/entry-server.tsx, a11y:input-label:apps/web/src/routes/admin/claude/settings.tsx, a11y:input-label:apps/web/src/routes/admin/dns/[zoneId].tsx, a11y:input-label:apps/web/src/routes/admin/dns/[zoneId].tsx, a11y:input-label:apps/web/src/routes/admin/dns/[zoneId].tsx, a11y:input-label:apps/web/src/routes/admin/dns/[zoneId].tsx, a11y:input-label:apps/web/src/routes/admin/dns/[zoneId].tsx, a11y:input-label:apps/web/src/routes/admin/dns/[zoneId].tsx, a11y:input-label:apps/web/src/routes/admin/dns/[zoneId].tsx, a11y:input-label:apps/web/src/routes/admin/dns.tsx, a11y:input-label:apps/web/src/routes/admin/dns.tsx, a11y:input-label:apps/web/src/routes/admin/dns.tsx, a11y:input-label:apps/web/src/routes/admin/dns.tsx, a11y:input-label:apps/web/src/routes/admin/progress.tsx, a11y:input-label:apps/web/src/routes/admin.tsx, a11y:invalid-role:apps/web/src/routes/admin.tsx, a11y:input-label:apps/web/src/routes/ai-playground.tsx, a11y:input-label:apps/web/src/routes/ai-playground.tsx, a11y:input-label:apps/web/src/routes/builder.tsx, a11y:input-label:apps/web/src/routes/collab.tsx, a11y:heading-hierarchy:apps/web/src/routes/dns.tsx, a11y:heading-hierarchy:apps/web/src/routes/docs.tsx, a11y:input-label:apps/web/src/routes/domains.tsx, a11y:input-label:apps/web/src/routes/domains.tsx, a11y:input-label:apps/web/src/routes/flywheel.tsx, a11y:input-label:apps/web/src/routes/login.tsx, a11y:input-label:apps/web/src/routes/login.tsx, a11y:input-label:apps/web/src/routes/login.tsx, a11y:input-label:apps/web/src/routes/login.tsx, a11y:input-label:apps/web/src/routes/projects/import.tsx, a11y:input-label:apps/web/src/routes/projects/new.tsx, a11y:input-label:apps/web/src/routes/projects/new.tsx, a11y:input-label:apps/web/src/routes/projects/new.tsx, a11y:input-label:apps/web/src/routes/projects/new.tsx, a11y:input-label:apps/web/src/routes/projects/new.tsx, a11y:input-label:apps/web/src/routes/register.tsx, a11y:input-label:apps/web/src/routes/register.tsx, a11y:input-label:apps/web/src/routes/register.tsx, a11y:input-label:apps/web/src/routes/register.tsx, a11y:input-label:apps/web/src/routes/register.tsx, a11y:input-label:apps/web/src/routes/register.tsx, a11y:input-label:apps/web/src/routes/repos.tsx, a11y:input-label:apps/web/src/routes/settings.tsx, a11y:heading-hierarchy:apps/web/src/routes/sms.tsx, a11y:heading-hierarchy:apps/web/src/routes/support.tsx, a11y:input-label:apps/web/src/routes/video.tsx, a11y:input-label:packages/ui/src/components/Input.tsx
+
+  Report generated at 2026-04-20T08:45:07.402Z
+========================================
+
+
+## ===== module: links =====
+
+========================================
+  GATETEST - Quality Assurance Gate
+========================================
+  Modules: links
+
+  [RUN] links [PASS] (3 checks, 151ms)
+
+----------------------------------------
+  GATE: PASSED  
+
+  Modules:  1/1 passed
+  Checks:   3/3 passed
+  Errors:   0
+  Warnings: 0
+  Time:     154ms
+
+  Report generated at 2026-04-20T08:45:07.819Z
+========================================
+
+
