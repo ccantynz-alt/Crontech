@@ -68,7 +68,14 @@ const hostSpawningSandboxRun: SandboxRunFn = async (spec, onLogLine) => {
     stdout: "pipe",
     stderr: "pipe",
   };
-  if (spec.env) spawnOpts.env = { ...process.env, ...spec.env };
+  if (spec.env) {
+    const merged: Record<string, string> = {};
+    for (const [k, v] of Object.entries(process.env)) {
+      if (v !== undefined) merged[k] = v;
+    }
+    for (const [k, v] of Object.entries(spec.env)) merged[k] = v;
+    spawnOpts.env = merged;
+  }
   const proc = Bun.spawn(spec.command, spawnOpts);
 
   const stdoutChunks: string[] = [];
