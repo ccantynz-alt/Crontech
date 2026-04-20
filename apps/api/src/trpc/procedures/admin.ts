@@ -1,19 +1,40 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { desc, sql, eq } from "drizzle-orm";
+import { desc, sql, eq, gte } from "drizzle-orm";
 import { router, adminProcedure } from "../init";
 import {
   users,
   subscriptions,
   payments,
   analyticsEvents,
+  deployments,
+  sessions,
+  chatMessages,
+  conversations,
 } from "@back-to-the-future/db";
+import { estimateCost } from "@back-to-the-future/ai-core";
 import {
   getAllFlags,
   updateFlagPersisted,
   isFeatureEnabled,
 } from "../../feature-flags";
 import { auditMiddleware } from "../../middleware/audit";
+
+// ── Zod Output Schemas ───────────────────────────────────────────────
+//
+// BLK-013: `admin.stats` is the single aggregator that backs the five
+// dashboard tiles on /admin. The output schema is exported and used
+// verbatim by `.output()` below so the shape is enforced at both
+// compile-time and run-time. The admin.tsx static-source test pins
+// the exact field list so future refactors cannot silently drift.
+
+export const adminStatsOutputSchema = z.object({
+  totalUsers: z.number(),
+  activeSessions: z.number(),
+  totalDeployments: z.number(),
+  deploymentsThisMonth: z.number(),
+  claudeSpendMonthUsd: z.number(),
+});
 
 // ── Admin Router ─────────────────────────────────────────────────────
 
@@ -49,6 +70,92 @@ export const adminRouter = router({
       aiGenerations,
     };
   }),
+
+  /**
+   * BLK-013 — The unified 5-tile aggregator for /admin.
+   *
+   * Returns:
+   *   - totalUsers             : COUNT(*) FROM users
+   *   - activeSessions         : sessions created in the trailing 24h
+   *   - totalDeployments       : COUNT(*) FROM deployments
+   *   - deploymentsThisMonth   : deployments where created_at >= month-start (UTC)
+   *   - claudeSpendMonthUsd    : sum of chat_messages cost for the current
+   *                              month, rounded to two decimal places.
+   *
+   * Zod-validated via `adminStatsOutputSchema` so the shape cannot drift
+   * between server and client without a test failure.
+   */
+  stats: adminProcedure
+    .output(adminStatsOutputSchema)
+    .query(async ({ ctx }) => {
+      const now = new Date();
+      const monthStart = new Date(
+        Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0, 0),
+      );
+      const last24h = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+
+      // Total users
+      const totalUsersRow = await ctx.db
+        .select({ count: sql<number>`count(*)` })
+        .from(users);
+      const totalUsers = Number(totalUsersRow[0]?.count ?? 0);
+
+      // Active sessions (created in the last 24h)
+      const activeSessionsRow = await ctx.db
+        .select({ count: sql<number>`count(*)` })
+        .from(sessions)
+        .where(gte(sessions.createdAt, last24h));
+      const activeSessions = Number(activeSessionsRow[0]?.count ?? 0);
+
+      // Total deployments (all time)
+      const totalDeploymentsRow = await ctx.db
+        .select({ count: sql<number>`count(*)` })
+        .from(deployments);
+      const totalDeployments = Number(totalDeploymentsRow[0]?.count ?? 0);
+
+      // Deployments created this calendar month (UTC)
+      const deploymentsThisMonthRow = await ctx.db
+        .select({ count: sql<number>`count(*)` })
+        .from(deployments)
+        .where(gte(deployments.createdAt, monthStart));
+      const deploymentsThisMonth = Number(
+        deploymentsThisMonthRow[0]?.count ?? 0,
+      );
+
+      // Claude spend for the current month: sum estimated cost across
+      // chat_messages created >= monthStart. estimateCost returns
+      // microdollars, so divide by 1e6 and round to 2dp.
+      const monthlyMessages = await ctx.db
+        .select({
+          model: chatMessages.model,
+          inputTokens: chatMessages.inputTokens,
+          outputTokens: chatMessages.outputTokens,
+        })
+        .from(chatMessages)
+        .innerJoin(
+          conversations,
+          eq(chatMessages.conversationId, conversations.id),
+        )
+        .where(gte(chatMessages.createdAt, monthStart));
+
+      let monthCostMicro = 0;
+      for (const row of monthlyMessages) {
+        if (!row.model) continue;
+        const input = row.inputTokens ?? 0;
+        const output = row.outputTokens ?? 0;
+        monthCostMicro += estimateCost(row.model, input, output);
+      }
+      const claudeSpendMonthUsd =
+        Math.round((monthCostMicro / 1_000_000) * 100) / 100;
+
+      return {
+        totalUsers,
+        activeSessions,
+        totalDeployments,
+        deploymentsThisMonth,
+        claudeSpendMonthUsd,
+      };
+    }),
 
   getRecentUsers: adminProcedure.query(async ({ ctx }) => {
     const items = await ctx.db
