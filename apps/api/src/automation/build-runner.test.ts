@@ -13,10 +13,12 @@ import {
   projects,
   users,
 } from "@back-to-the-future/db";
+import type { SandboxResult, SandboxSpec } from "@back-to-the-future/orchestrator/sandbox";
 import {
   type BuildFs,
   type DeployFn,
   type RunBuildOptions,
+  type SandboxRunFn,
   type SpawnedProcess,
   type SpawnFn,
   _getInFlightForTests,
@@ -97,6 +99,51 @@ function recordingSpawn(
     const opts = scripts[i] ?? {};
     i += 1;
     return makeFakeProcess(opts);
+  };
+}
+
+// ── Sandbox test doubles ─────────────────────────────────────────────
+
+interface SandboxCall {
+  cmd: string[];
+  workspaceDir: string;
+  env?: Record<string, string> | undefined;
+}
+
+interface FakeSandboxRun {
+  exitCode?: number;
+  stdoutLines?: string[];
+  stderrLines?: string[];
+  timedOut?: boolean;
+}
+
+function recordingSandbox(
+  scripts: FakeSandboxRun[],
+  calls: SandboxCall[],
+): SandboxRunFn {
+  let i = 0;
+  return async (spec: SandboxSpec, onLogLine): Promise<SandboxResult> => {
+    const entry: SandboxCall = {
+      cmd: spec.command,
+      workspaceDir: spec.workspaceDir,
+      env: spec.env,
+    };
+    calls.push(entry);
+    const opts = scripts[i] ?? {};
+    i += 1;
+    for (const line of opts.stdoutLines ?? []) {
+      onLogLine?.("stdout", line);
+    }
+    for (const line of opts.stderrLines ?? []) {
+      onLogLine?.("stderr", line);
+    }
+    return {
+      exitCode: opts.exitCode ?? 0,
+      stdout: (opts.stdoutLines ?? []).join("\n"),
+      stderr: (opts.stderrLines ?? []).join("\n"),
+      timedOut: opts.timedOut ?? false,
+      wallClockMs: 1,
+    };
   };
 }
 
@@ -199,21 +246,26 @@ describe("runBuild", () => {
     const deploymentId = `d-${crypto.randomUUID()}`;
     const seeded = await seedProjectAndDeployment({ deploymentId });
 
-    const calls: SpawnCall[] = [];
+    const spawnCalls: SpawnCall[] = [];
+    // Only clone is spawned on host — install + build run in the sandbox.
     const spawn = recordingSpawn(
+      [{ stdoutLines: ["Cloning into 'demo'..."] }],
+      spawnCalls,
+    );
+    const sandboxCalls: SandboxCall[] = [];
+    const sandboxRun = recordingSandbox(
       [
-        { stdoutLines: ["Cloning into 'demo'..."] },
         { stdoutLines: ["bun install ok", "3 packages installed"] },
         { stdoutLines: ["building…", "done"] },
       ],
-      calls,
+      sandboxCalls,
     );
     const fs = fakeFs();
     const deploy = okDeploy();
 
     const result = await runBuild(
       deploymentId,
-      baseOptions({ spawn, deploy, fs }),
+      baseOptions({ spawn, sandboxRun, deploy, fs }),
     );
 
     expect(result.status).toBe("live");
@@ -221,15 +273,21 @@ describe("runBuild", () => {
     expect(result.errorMessage).toBeNull();
     expect(result.buildDurationMs).toBeGreaterThanOrEqual(0);
 
-    // Spawned commands in the right order.
-    expect(calls.length).toBe(3);
-    expect(calls[0]?.cmd[0]).toBe("git");
-    expect(calls[0]?.cmd).toContain("--depth");
-    expect(calls[0]?.cmd).toContain("--branch");
-    expect(calls[0]?.cmd[calls[0]!.cmd.length - 1]).toMatch(/\/tmp\/crontech-build-test\//);
-    expect(calls[1]?.cmd).toEqual(["bun", "install", "--frozen-lockfile"]);
-    expect(calls[1]?.cwd).toMatch(/\/tmp\/crontech-build-test\//);
-    expect(calls[2]?.cmd).toEqual(["bun", "run", "build"]);
+    // Host-side spawn: only the clone runs on the host.
+    expect(spawnCalls.length).toBe(1);
+    expect(spawnCalls[0]?.cmd[0]).toBe("git");
+    expect(spawnCalls[0]?.cmd).toContain("--depth");
+    expect(spawnCalls[0]?.cmd).toContain("--branch");
+    expect(spawnCalls[0]?.cmd[spawnCalls[0]!.cmd.length - 1]).toMatch(
+      /\/tmp\/crontech-build-test\//,
+    );
+
+    // Sandboxed steps: install + build, both bound to the same workspace.
+    expect(sandboxCalls.length).toBe(2);
+    expect(sandboxCalls[0]?.cmd).toEqual(["bun", "install", "--frozen-lockfile"]);
+    expect(sandboxCalls[0]?.workspaceDir).toMatch(/\/tmp\/crontech-build-test\//);
+    expect(sandboxCalls[1]?.cmd).toEqual(["bun", "run", "build"]);
+    expect(sandboxCalls[1]?.env).toEqual({ NODE_ENV: "production" });
 
     // DB row was flipped to live and got the deploy URL.
     const [row] = await db.select().from(deployments).where(eq(deployments.id, deploymentId)).limit(1);
@@ -268,16 +326,19 @@ describe("runBuild", () => {
       [{ exitCode: 128, stderrLines: ["fatal: could not reach repo"] }],
       calls,
     );
+    const sandboxCalls: SandboxCall[] = [];
+    const sandboxRun = recordingSandbox([], sandboxCalls);
     const fs = fakeFs();
 
     const result = await runBuild(
       deploymentId,
-      baseOptions({ spawn, fs, deploy: okDeploy() }),
+      baseOptions({ spawn, sandboxRun, fs, deploy: okDeploy() }),
     );
 
     expect(result.status).toBe("failed");
     expect(result.errorMessage).toMatch(/clone failed/);
     expect(calls.length).toBe(1); // stopped at clone
+    expect(sandboxCalls.length).toBe(0); // never entered sandbox
 
     const [row] = await db.select().from(deployments).where(eq(deployments.id, deploymentId)).limit(1);
     expect(row?.status).toBe("failed");
@@ -303,13 +364,12 @@ describe("runBuild", () => {
     const deploymentId = `d-${crypto.randomUUID()}`;
     const seeded = await seedProjectAndDeployment({ deploymentId });
 
-    const calls: SpawnCall[] = [];
-    const spawn = recordingSpawn(
-      [
-        { stdoutLines: ["cloned"] },
-        { exitCode: 1, stderrLines: ["lockfile drift"] },
-      ],
-      calls,
+    const spawnCalls: SpawnCall[] = [];
+    const spawn = recordingSpawn([{ stdoutLines: ["cloned"] }], spawnCalls);
+    const sandboxCalls: SandboxCall[] = [];
+    const sandboxRun = recordingSandbox(
+      [{ exitCode: 1, stderrLines: ["lockfile drift"] }],
+      sandboxCalls,
     );
 
     let deployCalled = false;
@@ -327,13 +387,22 @@ describe("runBuild", () => {
 
     const result = await runBuild(
       deploymentId,
-      baseOptions({ spawn, deploy, fs: fakeFs() }),
+      baseOptions({ spawn, sandboxRun, deploy, fs: fakeFs() }),
     );
 
     expect(result.status).toBe("failed");
     expect(result.errorMessage).toMatch(/install failed/);
     expect(deployCalled).toBe(false);
-    expect(calls.length).toBe(2);
+    expect(spawnCalls.length).toBe(1); // clone only
+    expect(sandboxCalls.length).toBe(1); // stopped at install
+
+    // Sandbox stderr was captured into deployment_logs.
+    const logs = await db
+      .select()
+      .from(deploymentLogs)
+      .where(eq(deploymentLogs.deploymentId, deploymentId));
+    const stderrLines = logs.filter((l) => l.stream === "stderr").map((l) => l.line);
+    expect(stderrLines).toContain("lockfile drift");
 
     await cleanup(deploymentId, seeded.projectId, seeded.userId);
   });
@@ -342,8 +411,9 @@ describe("runBuild", () => {
     const deploymentId = `d-${crypto.randomUUID()}`;
     const seeded = await seedProjectAndDeployment({ deploymentId });
 
-    const spawn = recordingSpawn(
-      [{ exitCode: 0 }, { exitCode: 0 }, { exitCode: 0 }],
+    const spawn = recordingSpawn([{ exitCode: 0 }], []);
+    const sandboxRun = recordingSandbox(
+      [{ exitCode: 0 }, { exitCode: 0 }],
       [],
     );
     const deploy: DeployFn = async () => {
@@ -352,7 +422,7 @@ describe("runBuild", () => {
 
     const result = await runBuild(
       deploymentId,
-      baseOptions({ spawn, deploy, fs: fakeFs() }),
+      baseOptions({ spawn, sandboxRun, deploy, fs: fakeFs() }),
     );
 
     expect(result.status).toBe("failed");
@@ -464,18 +534,75 @@ describe("runBuild", () => {
       buildCommand: "pnpm run compile",
     });
 
-    const calls: SpawnCall[] = [];
-    const spawn = recordingSpawn(
-      [{ exitCode: 0 }, { exitCode: 0 }, { exitCode: 0 }],
-      calls,
+    const spawnCalls: SpawnCall[] = [];
+    const spawn = recordingSpawn([{ exitCode: 0 }], spawnCalls);
+    const sandboxCalls: SandboxCall[] = [];
+    const sandboxRun = recordingSandbox(
+      [{ exitCode: 0 }, { exitCode: 0 }],
+      sandboxCalls,
     );
 
     const result = await runBuild(
       deploymentId,
-      baseOptions({ spawn, deploy: okDeploy(), fs: fakeFs() }),
+      baseOptions({ spawn, sandboxRun, deploy: okDeploy(), fs: fakeFs() }),
     );
     expect(result.status).toBe("live");
-    expect(calls[2]?.cmd).toEqual(["pnpm", "run", "compile"]);
+    expect(sandboxCalls[1]?.cmd).toEqual(["pnpm", "run", "compile"]);
+
+    await cleanup(deploymentId, seeded.projectId, seeded.userId);
+  });
+
+  test("install+build run inside the sandbox, not on the host", async () => {
+    const deploymentId = `d-${crypto.randomUUID()}`;
+    const seeded = await seedProjectAndDeployment({ deploymentId });
+
+    const spawnCalls: SpawnCall[] = [];
+    const spawn = recordingSpawn([{ exitCode: 0 }], spawnCalls);
+    const sandboxCalls: SandboxCall[] = [];
+    const sandboxRun = recordingSandbox(
+      [{ exitCode: 0 }, { exitCode: 0 }],
+      sandboxCalls,
+    );
+
+    const result = await runBuild(
+      deploymentId,
+      baseOptions({ spawn, sandboxRun, deploy: okDeploy(), fs: fakeFs() }),
+    );
+
+    expect(result.status).toBe("live");
+    // SECURITY INVARIANT: customer code must never execute on the host.
+    // Only git clone runs via host spawn. `bun install` and `bun run build`
+    // MUST be routed through the sandbox runner.
+    expect(spawnCalls.length).toBe(1);
+    expect(spawnCalls[0]?.cmd[0]).toBe("git");
+    expect(sandboxCalls.length).toBe(2);
+    expect(sandboxCalls[0]?.cmd[0]).toBe("bun");
+    expect(sandboxCalls[0]?.cmd).toContain("install");
+    expect(sandboxCalls[1]?.cmd).toContain("build");
+    // Workspace is shared across both sandboxed steps so install artifacts
+    // (node_modules) are visible to the build step.
+    expect(sandboxCalls[0]?.workspaceDir).toBe(sandboxCalls[1]?.workspaceDir);
+
+    await cleanup(deploymentId, seeded.projectId, seeded.userId);
+  });
+
+  test("sandbox timeout on install surfaces as a failed deployment", async () => {
+    const deploymentId = `d-${crypto.randomUUID()}`;
+    const seeded = await seedProjectAndDeployment({ deploymentId });
+
+    const spawn = recordingSpawn([{ exitCode: 0 }], []);
+    const sandboxRun = recordingSandbox(
+      [{ exitCode: 137, timedOut: true }],
+      [],
+    );
+
+    const result = await runBuild(
+      deploymentId,
+      baseOptions({ spawn, sandboxRun, deploy: okDeploy(), fs: fakeFs() }),
+    );
+
+    expect(result.status).toBe("failed");
+    expect(result.errorMessage).toMatch(/exceeded sandbox timeout/);
 
     await cleanup(deploymentId, seeded.projectId, seeded.userId);
   });
