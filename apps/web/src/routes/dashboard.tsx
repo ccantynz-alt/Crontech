@@ -4,6 +4,7 @@ import { For, Show, Suspense, createMemo, lazy } from "solid-js";
 import type { JSX } from "solid-js";
 import { Badge } from "@back-to-the-future/ui";
 import { ProtectedRoute } from "../components/ProtectedRoute";
+import { PlatformCrossSellCard } from "../components/PlatformCrossSellCard";
 import { ProgressTracker } from "../components/ProgressTracker";
 import { useAuth } from "../stores";
 import { trpc } from "../lib/trpc";
@@ -810,7 +811,15 @@ export default function DashboardPage(): ReturnType<typeof ProtectedRoute> {
                 </div>
               }
             >
-              <Show when={hasProjects()} fallback={<EmptyProjectsCTA />}>
+              <Show
+                when={hasProjects()}
+                fallback={
+                  <div class="flex flex-col gap-4">
+                    <EmptyProjectsCTA />
+                    <PlatformCrossSellCard />
+                  </div>
+                }
+              >
                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   <For each={projects().slice(0, 6)}>
                     {(project) => <ProjectCard project={project} />}
