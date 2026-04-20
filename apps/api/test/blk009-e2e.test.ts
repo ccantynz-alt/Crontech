@@ -39,9 +39,81 @@ import {
 import {
   _resetQueueForTests,
   type DeployFn,
+  type SandboxRunFn,
   runBuild,
 } from "../src/automation/build-runner";
 import { createGithubWebhookApp } from "../src/github/webhook";
+
+/**
+ * Host-executing stand-in for `runInSandbox`. Runs the command via
+ * `Bun.spawn` with `cwd=workspaceDir` instead of spinning up Docker.
+ *
+ * Why this exists: after BLK-009 sandbox-wrap, `runBuild` routes install
+ * + build through the orchestrator's `runInSandbox` (Docker-backed). CI
+ * environments don't always have a working Docker daemon, so the E2E
+ * test injects this adapter to preserve the "honest pipeline" semantics
+ * (real bun install, real bun run build) without the Docker dependency.
+ *
+ * Production code never touches this — only tests.
+ */
+const hostSpawningSandboxRun: SandboxRunFn = async (spec, onLogLine) => {
+  const started = Date.now();
+  const spawnOpts: {
+    cwd: string;
+    env?: Record<string, string>;
+    stdout: "pipe";
+    stderr: "pipe";
+  } = {
+    cwd: spec.workspaceDir,
+    stdout: "pipe",
+    stderr: "pipe",
+  };
+  if (spec.env) spawnOpts.env = { ...process.env, ...spec.env };
+  const proc = Bun.spawn(spec.command, spawnOpts);
+
+  const stdoutChunks: string[] = [];
+  const stderrChunks: string[] = [];
+  const pump = async (
+    stream: ReadableStream<Uint8Array> | null,
+    kind: "stdout" | "stderr",
+    sink: string[],
+  ): Promise<void> => {
+    if (!stream) return;
+    const reader = stream.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop() ?? "";
+      for (const line of lines) {
+        if (line.length === 0) continue;
+        sink.push(line);
+        onLogLine?.(kind, line);
+      }
+    }
+    if (buffer.length > 0) {
+      sink.push(buffer);
+      onLogLine?.(kind, buffer);
+    }
+  };
+
+  const [, , exitCode] = await Promise.all([
+    pump(proc.stdout as ReadableStream<Uint8Array>, "stdout", stdoutChunks),
+    pump(proc.stderr as ReadableStream<Uint8Array>, "stderr", stderrChunks),
+    proc.exited,
+  ]);
+
+  return {
+    exitCode: typeof exitCode === "number" ? exitCode : 0,
+    stdout: stdoutChunks.join("\n"),
+    stderr: stderrChunks.join("\n"),
+    timedOut: false,
+    wallClockMs: Date.now() - started,
+  };
+};
 
 // ── Fixtures & constants ────────────────────────────────────────────
 
@@ -357,11 +429,13 @@ describe("BLK-009 E2E: webhook → build-runner → deploy", () => {
       .set({ repoUrl: gitRepoUrl })
       .where(eq(projects.id, seeded.projectId));
 
-    // 3. Run the real pipeline: real spawn for clone+install+build, mocked deploy.
+    // 3. Run the real pipeline: real host spawn for clone, host-spawning
+    //    sandbox adapter for install+build (skips Docker in CI), mocked deploy.
     const { deploy, calls } = makeSuccessDeployer();
     const result = await runBuild(json.deploymentId, {
       db,
       deploy,
+      sandboxRun: hostSpawningSandboxRun,
       workspaceRoot,
       // Short enough to fail loudly if the pipeline stalls, long enough
       // for a cold `bun install` on slow CI runners.
@@ -441,6 +515,7 @@ describe("BLK-009 E2E: webhook → build-runner → deploy", () => {
     const result = await runBuild(json.deploymentId, {
       db,
       deploy,
+      sandboxRun: hostSpawningSandboxRun,
       workspaceRoot,
       totalTimeoutMs: 120_000,
     });
