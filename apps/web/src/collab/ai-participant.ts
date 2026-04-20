@@ -5,8 +5,11 @@
 
 import type { CollabRoom, CollabUser } from "./yjs-provider";
 import {
+  createCollabRoom,
+  getRandomColor,
   getSharedText,
   getSharedMap,
+  projectRoomId,
   updateCursorPosition,
 } from "./yjs-provider";
 
@@ -113,4 +116,81 @@ export function createAIParticipant(config: AIParticipantConfig): AIParticipant 
       awareness.setLocalState(null);
     },
   };
+}
+
+// ── Convenience: join an AI agent to a project collab room ──────────
+
+export interface JoinedAIParticipant {
+  /** The AI participant handle. */
+  participant: AIParticipant;
+  /** The underlying collab room. Must be destroyed on cleanup. */
+  room: CollabRoom;
+  /** Tear down the AI connection (awareness + room + doc). */
+  disconnect(): void;
+}
+
+export interface JoinAsParticipantOptions {
+  /** Override the generated display name for the agent. */
+  displayName?: string;
+  /** Override the auto-picked avatar color. */
+  color?: string;
+  /** Override the default collab server URL (used only in tests). */
+  serverUrl?: string;
+}
+
+/**
+ * Registers an AI agent as a first-class collaboration peer on a
+ * project's collab room. This creates a *separate* Yjs connection for
+ * the AI so its awareness entry appears alongside the human user's.
+ *
+ * The returned handle must be `disconnect()`-ed during cleanup to avoid
+ * ghost participants and ws leaks.
+ *
+ * @param docId  The project id (NOT the room id). The room id is derived
+ *               deterministically via `projectRoomId(docId)` so the web
+ *               client and server stay in sync.
+ * @param agentId Stable identifier for the AI agent (e.g. "builder-agent").
+ */
+export function joinAsParticipant(
+  docId: string,
+  agentId: string,
+  options: JoinAsParticipantOptions = {},
+): JoinedAIParticipant {
+  const roomId = projectRoomId(docId);
+  const color = options.color ?? getRandomColor();
+  const displayName = options.displayName ?? humanizeAgentId(agentId);
+
+  const agent: CollabUser = {
+    id: agentId,
+    name: displayName,
+    color,
+    isAI: true,
+  };
+
+  const roomConfig: Parameters<typeof createCollabRoom>[0] = {
+    roomId,
+    user: agent,
+    ...(options.serverUrl !== undefined ? { serverUrl: options.serverUrl } : {}),
+  };
+  const room = createCollabRoom(roomConfig);
+
+  const participant = createAIParticipant({ agent, room });
+
+  return {
+    participant,
+    room,
+    disconnect() {
+      participant.disconnect();
+      room.destroy();
+    },
+  };
+}
+
+function humanizeAgentId(agentId: string): string {
+  // "builder-agent" → "Builder Agent"
+  return agentId
+    .split(/[-_]/g)
+    .filter((w) => w.length > 0)
+    .map((w) => w[0]!.toUpperCase() + w.slice(1))
+    .join(" ");
 }
