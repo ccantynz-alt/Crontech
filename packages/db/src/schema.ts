@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer, blob } from "drizzle-orm/sqlite-core";
+import { sqliteTable, text, integer, real, blob } from "drizzle-orm/sqlite-core";
 
 export const users = sqliteTable("users", {
   id: text("id").primaryKey(),
@@ -1110,3 +1110,63 @@ export const smsWebhookSubscriptions = sqliteTable(
       .$defaultFn(() => new Date()),
   },
 );
+
+// ============================================================================
+// BLK-010: Stripe metered billing — plumbing only, no pricing values.
+// ============================================================================
+
+/**
+ * billing_accounts — one row per user that has ever had a Stripe Customer.
+ * stripe_customer_id is nullable so we can pre-create rows during signup and
+ * back-fill the Stripe id after `customer.created` webhook lands.
+ */
+export const billingAccounts = sqliteTable("billing_accounts", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  stripeCustomerId: text("stripe_customer_id").unique(),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+});
+
+/**
+ * billing_events — immutable log of every Stripe webhook we receive.
+ * stripe_event_id has a UNIQUE constraint so replayed webhooks are rejected
+ * at the database layer. processed_at is null until handling succeeds.
+ */
+export const billingEvents = sqliteTable("billing_events", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").references(() => users.id, { onDelete: "set null" }),
+  stripeEventId: text("stripe_event_id").notNull().unique(),
+  eventType: text("event_type").notNull(),
+  payloadJson: text("payload_json").notNull(),
+  receivedAt: integer("received_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+  processedAt: integer("processed_at", { mode: "timestamp" }),
+});
+
+/**
+ * build_minutes_usage — one row per completed build/deploy.
+ * minutes_used is a real (float) so we can record fractional minutes.
+ * reported_to_stripe_at is null until the usage is pushed to a Stripe meter.
+ */
+export const buildMinutesUsage = sqliteTable("build_minutes_usage", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  deploymentId: text("deployment_id")
+    .notNull()
+    .references(() => deployments.id, { onDelete: "cascade" }),
+  minutesUsed: real("minutes_used").notNull(),
+  recordedAt: integer("recorded_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+  reportedToStripeAt: integer("reported_to_stripe_at", { mode: "timestamp" }),
+});
