@@ -7,6 +7,16 @@ import { PlatformSiblingsWidget } from "../components/PlatformSiblingsWidget";
 import { trpc } from "../lib/trpc";
 import { showToast } from "../components/Toast";
 
+// BLK-013: single-source-of-truth stats shape. Kept inline rather than
+// imported from the API package so the web bundle stays lean.
+interface AdminStats {
+  totalUsers: number;
+  activeSessions: number;
+  totalDeployments: number;
+  deploymentsThisMonth: number;
+  claudeSpendMonthUsd: number;
+}
+
 // ── Stat Card ────────────────────────────────────────────────────────
 
 interface StatCardProps {
@@ -168,8 +178,11 @@ function AdminPageContent(): JSX.Element {
   const [filterRole, setFilterRole] = createSignal<string>("all");
   const [pendingUserId, setPendingUserId] = createSignal<string | null>(null);
 
-  const [stats, { refetch: refetchStats }] = createResource(async () =>
-    trpc.admin.getStats.query(),
+  // BLK-013: one tRPC query backs all five tiles. Returns AdminStats
+  // or throws — the createResource error() channel surfaces a polite
+  // fallback so a red Claude/DB blip never crashes the dashboard.
+  const [stats, { refetch: refetchStats }] = createResource<AdminStats>(
+    async () => trpc.admin.stats.query(),
   );
   const [users, { refetch: refetchUsers }] = createResource(async () =>
     (await trpc.admin.getRecentUsers.query()) as AdminUser[],
@@ -177,15 +190,11 @@ function AdminPageContent(): JSX.Element {
   const [health, { refetch: refetchHealth }] = createResource(async () =>
     trpc.admin.getSystemHealth.query(),
   );
-  const [claudeUsage, { refetch: refetchClaudeUsage }] = createResource(async () =>
-    trpc.chat.getUsageStats.query(),
-  );
 
   const refreshAll = (): void => {
     refetchStats();
     refetchUsers();
     refetchHealth();
-    refetchClaudeUsage();
   };
 
   const handleChangeRole = async (userId: string, role: UserRole): Promise<void> => {
@@ -238,8 +247,13 @@ function AdminPageContent(): JSX.Element {
     });
   };
 
-  const fmtCurrency = (cents: number): string => {
-    return `$${(cents / 100).toLocaleString(undefined, {
+  // BLK-013: format a USD amount already in dollars (not cents).
+  // admin.stats.claudeSpendMonthUsd arrives pre-rounded to 2dp, but
+  // we defensively clamp here for NaN / negative / undefined inputs.
+  const fmtUsd = (dollars: number | null | undefined): string => {
+    if (dollars === null || dollars === undefined) return "$0.00";
+    if (!Number.isFinite(dollars) || dollars < 0) return "$0.00";
+    return `$${dollars.toLocaleString(undefined, {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     })}`;
@@ -289,51 +303,56 @@ function AdminPageContent(): JSX.Element {
           </div>
         </div>
 
-        {/* Stats Row */}
+        {/* Stats Row — BLK-013 real tRPC data via trpc.admin.stats */}
         <div class="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
           <Show
-            when={stats()}
-            fallback={<StatSkeleton count={5} />}
+            when={!stats.error}
+            fallback={<StatErrorFallback count={5} />}
           >
-            {(s) => (
-              <>
-                <StatCard
-                  label="Total Users"
-                  value={s().totalUsers.toLocaleString()}
-                  sublabel="Registered accounts"
-                  icon="&#128101;"
-                  accentColor="var(--color-primary)"
-                />
-                <StatCard
-                  label="Active Subscriptions"
-                  value={s().activeSubscriptions.toLocaleString()}
-                  sublabel="Currently paying"
-                  icon="&#128179;"
-                  accentColor="var(--color-primary)"
-                />
-                <StatCard
-                  label="Revenue (lifetime)"
-                  value={fmtCurrency(s().totalRevenue)}
-                  sublabel="Succeeded payments"
-                  icon="&#128176;"
-                  accentColor="var(--color-success)"
-                />
-                <StatCard
-                  label="AI Generations"
-                  value={s().aiGenerations.toLocaleString()}
-                  sublabel="Total events logged"
-                  icon="&#9889;"
-                  accentColor="var(--color-warning)"
-                />
-                <StatCard
-                  label="Claude spend (this month)"
-                  value={`$${(claudeUsage()?.monthCostDollars ?? 0).toFixed(2)}`}
-                  sublabel="Metered Anthropic API usage"
-                  icon="&#129504;"
-                  accentColor="var(--color-primary)"
-                />
-              </>
-            )}
+            <Show
+              when={stats()}
+              fallback={<StatSkeleton count={5} />}
+            >
+              {(s) => (
+                <>
+                  <StatCard
+                    label="Users"
+                    value={s().totalUsers.toLocaleString()}
+                    sublabel="Registered accounts"
+                    icon="&#128101;"
+                    accentColor="var(--color-primary)"
+                  />
+                  <StatCard
+                    label="Active Sessions"
+                    value={s().activeSessions.toLocaleString()}
+                    sublabel="Signed in (last 24h)"
+                    icon="&#128274;"
+                    accentColor="var(--color-primary)"
+                  />
+                  <StatCard
+                    label="Deployments (all-time)"
+                    value={s().totalDeployments.toLocaleString()}
+                    sublabel="Lifetime deploy runs"
+                    icon="&#128640;"
+                    accentColor="var(--color-success)"
+                  />
+                  <StatCard
+                    label="Deployments (this month)"
+                    value={s().deploymentsThisMonth.toLocaleString()}
+                    sublabel="Created this calendar month"
+                    icon="&#128197;"
+                    accentColor="var(--color-warning)"
+                  />
+                  <StatCard
+                    label="Claude Spend (this month)"
+                    value={fmtUsd(s().claudeSpendMonthUsd)}
+                    sublabel="Metered Anthropic API usage"
+                    icon="&#129504;"
+                    accentColor="var(--color-primary)"
+                  />
+                </>
+              )}
+            </Show>
           </Show>
         </div>
 
@@ -552,6 +571,48 @@ function AdminPageContent(): JSX.Element {
         </div>
       </div>
     </div>
+  );
+}
+
+// ── Stat Error Fallback ───────────────────────────────────────────────
+// BLK-013: if admin.stats throws (DB blip, auth glitch, etc), we show
+// an em-dash tile with a polite caption instead of crashing the whole
+// dashboard. The Refresh button at the top is the remediation.
+
+function StatErrorFallback(props: { count: number }): JSX.Element {
+  return (
+    <For each={Array.from({ length: props.count })}>
+      {() => (
+        <div
+          class="relative overflow-hidden rounded-2xl p-6"
+          style={{
+            background: "var(--color-bg-elevated)",
+            border: "1px solid var(--color-border)",
+          }}
+        >
+          <div class="flex flex-col gap-1">
+            <span
+              class="text-xs font-medium uppercase tracking-widest"
+              style={{ color: "var(--color-text-faint)" }}
+            >
+              Stats unavailable
+            </span>
+            <span
+              class="text-3xl font-bold tracking-tight"
+              style={{ color: "var(--color-text-muted)" }}
+            >
+              &mdash;
+            </span>
+            <span
+              class="mt-1 text-xs font-medium"
+              style={{ color: "var(--color-text-muted)" }}
+            >
+              Couldn&apos;t reach the data layer. Try Refresh above.
+            </span>
+          </div>
+        </div>
+      )}
+    </For>
   );
 }
 
