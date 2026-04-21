@@ -1,10 +1,30 @@
-import { createSignal, createMemo, For, Show, Suspense, Switch, Match, lazy } from "solid-js";
+import {
+  createSignal,
+  createMemo,
+  createEffect,
+  For,
+  Show,
+  Switch,
+  Match,
+  onCleanup,
+} from "solid-js";
 import type { JSX } from "solid-js";
 import { A, useParams, useNavigate } from "@solidjs/router";
 import { Badge, Button, Card, Stack, Text, Spinner } from "@back-to-the-future/ui";
 import { ProtectedRoute } from "../../components/ProtectedRoute";
 import { SEOHead } from "../../components/SEOHead";
-import { DomainsPanel } from "../../components/DomainsPanel";
+import { CollabPresence } from "../../components/CollabPresence";
+import {
+  createCollabRoom,
+  getRandomColor,
+  projectRoomId,
+  type CollabRoom,
+} from "../../collab/yjs-provider";
+import {
+  joinAsParticipant,
+  type JoinedAIParticipant,
+} from "../../collab/ai-participant";
+import { useAuth } from "../../stores";
 import { trpc } from "../../lib/trpc";
 import { useQuery, invalidateQueries } from "../../lib/use-trpc";
 import { useOptimisticMutation } from "../../lib/optimistic";
@@ -18,6 +38,15 @@ const EnvVarsPanel = lazy(() =>
     default: m.EnvVarsPanel,
   })),
 );
+
+// ── Project Collab Default AI ───────────────────────────────────────
+//
+// Stable identifier for the AI agent that auto-joins the project's
+// collab room. When a tRPC "default agent" lookup lands we'll wire it
+// in here; for now this constant is the agreed fallback so the editor
+// always has at least one AI peer registered.
+const DEFAULT_PROJECT_AI_AGENT_ID = "builder-agent";
+const DEFAULT_PROJECT_AI_AGENT_NAME = "Builder Agent";
 
 // ── Types ──────────────────────────────────────────────────────────────
 
@@ -443,7 +472,9 @@ interface ProjectData {
 
 export default function ProjectDetailPage(): JSX.Element {
   const params = useParams<{ id: string }>();
+  const auth = useAuth();
   const [activeTab, setActiveTab] = createSignal<Tab>("overview");
+  const [collabRoom, setCollabRoom] = createSignal<CollabRoom | null>(null);
 
   const projectQuery = useQuery(
     () =>
@@ -452,6 +483,61 @@ export default function ProjectDetailPage(): JSX.Element {
   );
 
   const projectData = createMemo((): ProjectData | undefined => projectQuery.data());
+
+  const currentUserId = createMemo<string>(() => auth.currentUser()?.id ?? "anonymous");
+
+  // ── Yjs collab lifecycle ──────────────────────────────────────────
+  // Opens a shared room keyed by project id on mount, registers the
+  // default AI agent as a first-class participant, and tears both down
+  // on unmount — so /projects/:id → /projects/other cleanly disconnects
+  // without leaking the ws or the awareness state of the prior doc.
+  createEffect(() => {
+    const id = params.id;
+    if (!id) return;
+    // SolidStart renders this component on the server too; y-websocket
+    // explodes outside a browser context, so gate the connect there.
+    if (typeof window === "undefined") return;
+
+    const user = auth.currentUser();
+    // Wait until we have an authenticated user before connecting — the
+    // room should be keyed to a real identity.
+    if (!user) return;
+
+    const room = createCollabRoom({
+      roomId: projectRoomId(id),
+      user: {
+        id: user.id,
+        name: user.displayName,
+        color: getRandomColor(),
+      },
+    });
+    setCollabRoom(room);
+
+    // Auto-join the default AI agent as a collab peer.
+    let aiParticipant: JoinedAIParticipant | null = null;
+    try {
+      aiParticipant = joinAsParticipant(id, DEFAULT_PROJECT_AI_AGENT_ID, {
+        displayName: DEFAULT_PROJECT_AI_AGENT_NAME,
+      });
+    } catch (err) {
+      // Never let AI-agent registration crash the editor page.
+      console.error("[collab] failed to register AI participant", err);
+    }
+
+    onCleanup(() => {
+      try {
+        aiParticipant?.disconnect();
+      } catch {
+        // ignore — already disconnected
+      }
+      try {
+        room.destroy();
+      } catch {
+        // ignore — already destroyed
+      }
+      setCollabRoom(null);
+    });
+  });
 
   const tabs: Array<{ id: Tab; label: string }> = [
     { id: "overview", label: "Overview" },
@@ -519,6 +605,12 @@ export default function ProjectDetailPage(): JSX.Element {
                   </Button>
                 </Stack>
               </div>
+
+              {/* Live collaborator presence (humans + AI peers) */}
+              <CollabPresence
+                room={collabRoom()}
+                currentUserId={currentUserId()}
+              />
 
               {/* Tab Navigation */}
               <div class="flex gap-1 border-b border-[var(--color-border)] pb-px">
