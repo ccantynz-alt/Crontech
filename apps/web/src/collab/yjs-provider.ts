@@ -49,6 +49,37 @@ export function getRandomColor(): string {
   return CURSOR_COLORS[Math.floor(Math.random() * CURSOR_COLORS.length)]!;
 }
 
+// ── Server URL Resolver ──────────────────────────────────────────────
+
+/**
+ * Resolves the default WebSocket URL for Yjs collaboration.
+ *
+ * The API server (apps/api/src/realtime/yjs-server.ts) mounts the Yjs
+ * upgrade handler at `/api/yjs/:roomId`. `y-websocket`'s `WebsocketProvider`
+ * appends the room name to the given base URL as `<base>/<roomId>`, so the
+ * base URL we return here must be `<host>/api/yjs`. The full URL the
+ * browser opens will be `<host>/api/yjs/<roomId>`.
+ */
+export function getDefaultCollabServerUrl(): string {
+  if (typeof window === "undefined") return "ws://localhost:3001/api/yjs";
+  const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
+  // Dev convention: API on :3001. In prod the reverse proxy handles the
+  // upgrade on the same origin.
+  const port =
+    window.location.port === "3000" || window.location.port === ""
+      ? ":3001"
+      : `:${window.location.port}`;
+  return `${proto}//${window.location.hostname}${port}/api/yjs`;
+}
+
+/**
+ * Computes the deterministic room id for a project editor.
+ * Used by both the web client (provider URL) and the server auth check.
+ */
+export function projectRoomId(projectId: string): string {
+  return `projects:${projectId}`;
+}
+
 // ── Room Factory ─────────────────────────────────────────────────────
 
 /**
@@ -56,11 +87,7 @@ export function getRandomColor(): string {
  * The Yjs document syncs automatically with all connected peers.
  */
 export function createCollabRoom(config: CollabConfig): CollabRoom {
-  const serverUrl =
-    config.serverUrl ??
-    (typeof window !== "undefined"
-      ? `ws://${window.location.hostname}:3001/api/ws`
-      : "ws://localhost:3001/api/ws");
+  const serverUrl = config.serverUrl ?? getDefaultCollabServerUrl();
 
   const doc = new Y.Doc();
 
