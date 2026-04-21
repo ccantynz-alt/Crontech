@@ -20,7 +20,14 @@
 import { describe, test, expect, beforeEach, afterEach, mock } from "bun:test";
 import type Stripe from "stripe";
 import { eq } from "drizzle-orm";
-import { db, users, subscriptions, payments } from "@back-to-the-future/db";
+import {
+  db,
+  users,
+  subscriptions,
+  payments,
+  billingAccounts,
+  billingEvents,
+} from "@back-to-the-future/db";
 
 // ── Stripe SDK Boundary Mock ──────────────────────────────────────
 //
@@ -50,6 +57,17 @@ await mock.module("./client", () => ({
       }),
     },
   }),
+  // Preserve the BLK-010 exports so downstream imports (e.g. billing router
+  // loading in a later test file) don't see the module missing its API.
+  isStripeEnabled: () =>
+    process.env["STRIPE_ENABLED"] === "true" ||
+    process.env["STRIPE_ENABLED"] === "1",
+  createPortalSession: async (
+    _stripeCustomerId: string,
+    _returnUrl: string,
+  ): Promise<string> => {
+    throw new Error("createPortalSession mock should not be hit in this test");
+  },
 }));
 
 // Dynamic import AFTER mock.module so the handler picks up the mocked
@@ -72,6 +90,10 @@ async function createTestUser(): Promise<string> {
 async function cleanupUser(userId: string): Promise<void> {
   await db.delete(payments).where(eq(payments.userId, userId));
   await db.delete(subscriptions).where(eq(subscriptions.userId, userId));
+  await db.delete(billingAccounts).where(eq(billingAccounts.userId, userId));
+  // billing_events rows FK with ON DELETE SET NULL, so they outlive users
+  // in general. We wipe by user here for hygienic per-test isolation.
+  await db.delete(billingEvents).where(eq(billingEvents.userId, userId));
   await db.delete(users).where(eq(users.id, userId));
 }
 
@@ -344,5 +366,118 @@ describe("Stripe webhook: invoice.payment_failed", () => {
     });
     expect(sub).toBeDefined();
     expect(sub!.status).toBe("past_due");
+  });
+});
+
+// ── BLK-010: billing_events idempotency + new handlers ──────────────
+
+describe("BLK-010: billing_events idempotency gate", () => {
+  let userId: string;
+
+  beforeEach(async () => {
+    userId = await createTestUser();
+  });
+
+  afterEach(async () => {
+    await cleanupUser(userId);
+  });
+
+  test("first delivery writes a billing_events row with payload + stripe_event_id", async () => {
+    const event = buildEvent<Partial<Stripe.Customer>>(
+      "customer.created",
+      { id: "cus_blk010_new", metadata: { userId } },
+      "evt_blk010_customer_created_once",
+    );
+    await handleWebhookEvent(event);
+
+    const row = await db.query.billingEvents.findFirst({
+      where: eq(billingEvents.stripeEventId, "evt_blk010_customer_created_once"),
+    });
+    expect(row).toBeDefined();
+    expect(row!.eventType).toBe("customer.created");
+    expect(row!.userId).toBe(userId);
+    expect(row!.payloadJson).toContain("cus_blk010_new");
+    expect(row!.processedAt).not.toBeNull();
+  });
+
+  test("second delivery of same event.id is rejected — still exactly one billing_events row", async () => {
+    const event = buildEvent<Partial<Stripe.Customer>>(
+      "customer.created",
+      { id: "cus_blk010_replay", metadata: { userId } },
+      "evt_blk010_replay_same_id",
+    );
+    await handleWebhookEvent(event);
+    await handleWebhookEvent(event);
+
+    const rows = await db.query.billingEvents.findMany({
+      where: eq(billingEvents.stripeEventId, "evt_blk010_replay_same_id"),
+    });
+    expect(rows.length).toBe(1);
+  });
+
+  test("customer.created persists a billing_accounts row mapping userId → stripeCustomerId", async () => {
+    const event = buildEvent<Partial<Stripe.Customer>>(
+      "customer.created",
+      { id: "cus_blk010_acct", metadata: { userId } },
+      "evt_blk010_acct_create",
+    );
+    await handleWebhookEvent(event);
+
+    const account = await db.query.billingAccounts.findFirst({
+      where: eq(billingAccounts.userId, userId),
+    });
+    expect(account).toBeDefined();
+    expect(account!.stripeCustomerId).toBe("cus_blk010_acct");
+  });
+});
+
+describe("BLK-010: invoice.* and payment_intent.* are logged as events", () => {
+  let userId: string;
+
+  beforeEach(async () => {
+    userId = await createTestUser();
+  });
+
+  afterEach(async () => {
+    await cleanupUser(userId);
+  });
+
+  test("invoice.created is accepted and logged in billing_events even with no side-effect", async () => {
+    const event = buildEvent<Partial<Stripe.Invoice>>(
+      "invoice.created",
+      {
+        id: "in_blk010_created",
+        metadata: { userId },
+        subscription: null,
+      } as Partial<Stripe.Invoice>,
+      "evt_blk010_invoice_created",
+    );
+    await handleWebhookEvent(event);
+
+    const row = await db.query.billingEvents.findFirst({
+      where: eq(billingEvents.stripeEventId, "evt_blk010_invoice_created"),
+    });
+    expect(row).toBeDefined();
+    expect(row!.eventType).toBe("invoice.created");
+    expect(row!.processedAt).not.toBeNull();
+  });
+
+  test("payment_intent.succeeded is accepted and logged", async () => {
+    const event = buildEvent<Partial<Stripe.PaymentIntent>>(
+      "payment_intent.succeeded",
+      {
+        id: "pi_blk010_pi_ok",
+        status: "succeeded",
+        metadata: { userId },
+      } as Partial<Stripe.PaymentIntent>,
+      "evt_blk010_pi_ok",
+    );
+    await handleWebhookEvent(event);
+
+    const row = await db.query.billingEvents.findFirst({
+      where: eq(billingEvents.stripeEventId, "evt_blk010_pi_ok"),
+    });
+    expect(row).toBeDefined();
+    expect(row!.eventType).toBe("payment_intent.succeeded");
   });
 });
