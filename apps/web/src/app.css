@@ -2422,12 +2422,17 @@ html.dark .hero-gradient {
 }
 
 .landing-tech-strip {
-  display: flex;
-  flex-wrap: wrap;
+  /* CSS grid with auto-fit + minmax gives a balanced row at every
+     viewport — 7 items on a wide desktop collapse cleanly to 2-3 rows
+     on iPad landscape without the flex-wrap jostle. */
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
   align-items: center;
-  justify-content: center;
-  column-gap: 3rem;
+  justify-items: center;
+  column-gap: 2rem;
   row-gap: 1.25rem;
+  width: 100%;
+  max-width: 980px;
 }
 
 .landing-tech-strip-item {
@@ -2446,42 +2451,89 @@ html.dark .hero-gradient {
 
 /* ── Stats strip refinements ─────────────────────────────────────── */
 
+/* Grid container guarantees equal-height cells across all breakpoints.
+   Prior version let label-length differences ("Tamper-evident audit
+   log" vs "Your VPC or ours") push one column taller than the others,
+   so baselines drifted on iPad / narrow desktops. `auto-rows-fr` +
+   internal `height: 100%` pins the cell heights to the tallest row
+   and keeps the value + label rows on shared baselines. */
+.landing-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-rows: 1fr;
+  align-items: stretch;
+}
+
+@media (min-width: 640px) {
+  .landing-stats-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.landing-stat-cell {
+  display: flex;
+  height: 100%;
+}
+
+.landing-stat-cell:not(:last-child) {
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+@media (max-width: 639.98px) {
+  .landing-stat-cell:nth-child(2n) {
+    border-right: none;
+  }
+  .landing-stat-cell:nth-child(-n+2) {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  }
+}
+
 .landing-stat-block {
   display: flex;
+  flex: 1 1 auto;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 0.875rem;
   padding: 2.5rem 1.5rem;
+  width: 100%;
 }
 
 @media (min-width: 640px) {
   .landing-stat-block {
-    padding: 3rem 1.5rem;
+    padding: 3rem 1.25rem;
   }
 }
 
 .landing-stat-value {
-  font-size: 2.25rem;
+  font-size: 1.75rem;
   font-weight: 800;
-  letter-spacing: -0.03em;
-  line-height: 1;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
   color: #fff;
   background: linear-gradient(180deg, #ffffff 0%, #cbd5ff 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
+  text-align: center;
+  /* Never split hyphenated tokens ("End-to-End", "SOC 2 Type II") across
+     two lines — Craig's iPad report. The stat value stays on one line;
+     labels handle the descriptive wrap instead. */
+  white-space: nowrap;
+  overflow-wrap: normal;
+  word-break: keep-all;
+  hyphens: manual;
 }
 
 @media (min-width: 640px) {
   .landing-stat-value {
-    font-size: 2.75rem;
+    font-size: 2rem;
   }
 }
 
 @media (min-width: 1024px) {
   .landing-stat-value {
-    font-size: 3rem;
+    font-size: 2.375rem;
   }
 }
 
@@ -2492,6 +2544,10 @@ html.dark .hero-gradient {
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.55);
   text-align: center;
+  line-height: 1.5;
+  /* Labels may wrap across two lines — the flex cell is `justify-content:
+     center` so value + label stay centered regardless of line count. */
+  max-width: 18ch;
 }
 
 /* ── Six-card IA polish (operates on existing .landing-card) ─────── */

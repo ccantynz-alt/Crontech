@@ -249,6 +249,7 @@ export default function Home(): JSX.Element {
       <div>
         {/* ── Hero (dark, aggressive) ────────────────────────────── */}
         <section class="landing-hero">
+          <div class="relative z-10 mx-auto max-w-[1120px] px-6 pt-32 pb-32 md:pt-40 md:pb-36 lg:px-8 lg:pt-44 lg:pb-40">
           <div class="relative z-10 mx-auto max-w-[1120px] px-6 pt-32 pb-36 lg:px-8 lg:pt-44 lg:pb-48">
             <div class="flex flex-col items-center text-center">
               {/* Announcement badge */}
@@ -303,12 +304,21 @@ export default function Home(): JSX.Element {
                 </A>
               </div>
 
+              {/* Proof strip — CSS grid auto-fit handles 5 items on
+                  desktop, 2-3 rows on iPad landscape, 1 per row on
+                  phone without the flex-wrap jostle. */}
+              <div class="landing-tech-strip-wrap mt-20">
               {/* Tech strip */}
               <div class="landing-tech-strip-wrap mt-24">
                 <div class="landing-tech-strip-divider" aria-hidden="true" />
                 <div class="landing-tech-strip">
                   <For
                     each={[
+                      "Built for SOC 2 Type II",
+                      "Hash-chained audit log",
+                      "SBOM on every build",
+                      "Self-hostable in your VPC",
+                      "Open-core audit engine",
                       "Cloudflare Workers",
                       "SolidJS",
                       "Bun + Hono",
@@ -328,6 +338,12 @@ export default function Home(): JSX.Element {
 
         {/* ── Speed signals strip (dark) ─────────────────────────── */}
         <section class="landing-stats-section">
+          <div class="mx-auto max-w-[1120px] px-6 lg:px-8">
+            <div class="landing-stats-grid">
+              <For each={signals}>
+                {(signal) => (
+                  <div class="landing-stat-cell">
+                    <SignalBlock value={signal.value} label={signal.label} />
           <div class="relative z-10 mx-auto max-w-[1120px] px-6 lg:px-8">
             <div class="grid grid-cols-2 sm:grid-cols-4">
               <For each={speedSignals}>
@@ -351,6 +367,8 @@ export default function Home(): JSX.Element {
           </div>
         </section>
 
+        {/* ── The Problem ───────────────────────────────────────── */}
+        <section class="landing-dark-section py-28 lg:py-36">
         {/* ── Three pillars (light) ─────────────────────────────── */}
         <section class="landing-dark-section py-28 lg:py-40">
           <div class="mx-auto max-w-[1120px] px-6 lg:px-8">
@@ -366,6 +384,48 @@ export default function Home(): JSX.Element {
                 class="max-w-3xl text-[2rem] font-bold tracking-tight sm:text-[2.5rem] lg:text-[2.75rem]"
                 style={{ color: "#0f172a" }}
               >
+                Compliance is a second pipeline you build by hand
+              </h2>
+              <p
+                class="mt-5 max-w-xl text-[1.0625rem] leading-[1.7]"
+                style={{ color: "#64748b" }}
+              >
+                Seed-to-Series-A SaaS teams hit SOC 2 and discover the tooling
+                market has two bad options: roll your own, or paper it over
+                with a dashboard that doesn&apos;t touch the pipeline.
+              </p>
+            </div>
+
+            <div class="landing-feature-grid grid grid-cols-1 gap-7 sm:grid-cols-2 lg:grid-cols-3">
+              <For each={problems}>
+                {(problem) => (
+                  <ProblemCard
+                    icon={problem.icon}
+                    title={problem.title}
+                    description={problem.description}
+                  />
+                )}
+              </For>
+            </div>
+          </div>
+        </section>
+
+        {/* ── The Solution ──────────────────────────────────────── */}
+        <section class="landing-dark-section-alt py-28 lg:py-36">
+          <div class="mx-auto max-w-[1120px] px-6 lg:px-8">
+            <div class="mb-20 flex flex-col items-center text-center">
+              <div class="landing-section-label">
+                <div
+                  class="h-1.5 w-1.5 rounded-full"
+                  style={{ background: "#818cf8" }}
+                />
+                The solution
+              </div>
+              <h2
+                class="max-w-2xl text-[1.875rem] font-bold tracking-tight sm:text-[2.25rem]"
+                style={{ color: "#f0f0f5" }}
+              >
+                A CI/CD that treats evidence as a first-class output
                 Three promises. No trade-offs.
               </h2>
               <p
@@ -394,6 +454,8 @@ export default function Home(): JSX.Element {
           </div>
         </section>
 
+        {/* ── How it works ──────────────────────────────────────── */}
+        <section class="landing-dark-section py-28 lg:py-36">
         {/* ── Capabilities grid (light) ─────────────────────────── */}
         <section class="landing-dark-section-alt py-28 lg:py-40">
           <div class="mx-auto max-w-[1120px] px-6 lg:px-8">
@@ -435,6 +497,8 @@ export default function Home(): JSX.Element {
           </div>
         </section>
 
+        {/* ── Social proof / signals ─────────────────────────────── */}
+        <section class="landing-dark-section-alt py-28 lg:py-36">
         {/* ── Proof strip (light) ────────────────────────────────── */}
         <section class="landing-dark-section py-28 lg:py-36">
           <div class="mx-auto max-w-[1120px] px-6 lg:px-8">
@@ -523,6 +587,7 @@ export default function Home(): JSX.Element {
 
         {/* ── Bottom CTA (dark) ─────────────────────────────────── */}
         <section class="landing-cta-section">
+          <div class="relative z-10 mx-auto max-w-[800px] px-6 py-28 text-center lg:px-8 lg:py-36">
           <div class="relative z-10 mx-auto max-w-[880px] px-6 py-32 text-center lg:px-8 lg:py-44">
             <h2
               class="text-[2rem] font-bold tracking-tight sm:text-[2.5rem] lg:text-[3rem]"
