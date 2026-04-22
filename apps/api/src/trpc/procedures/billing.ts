@@ -1,10 +1,17 @@
 import { z } from "zod";
-import { eq } from "drizzle-orm";
+import { and, eq, gte, sql } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { db } from "@back-to-the-future/db";
-import { plans, subscriptions } from "@back-to-the-future/db/schema";
+import {
+  plans,
+  subscriptions,
+  buildMinutesUsage,
+  billingAccounts,
+  deployments,
+} from "@back-to-the-future/db/schema";
 import { router, publicProcedure, protectedProcedure, adminProcedure } from "../init";
 import { createCheckoutSession, createPortalSession } from "../../stripe/checkout";
+import { createPortalSession as createPortalSessionUrl } from "../../stripe/client";
 import { auditMiddleware } from "../../middleware/audit";
 import { sendEmail } from "../../email/client";
 import {
@@ -212,5 +219,76 @@ export const billingRouter = router({
       }
       const summary = await reportAllPendingUsage(month);
       return { mode: "all" as const, month, summary };
+    }),
+
+  // ── BLK-010: Current month usage summary (protected) ──────────────
+  // Returns the build minutes burned this calendar month plus the count
+  // of deployments the user has ever shipped. Plumbing only: no dollar
+  // amounts, no rate calculations — Craig wires pricing separately.
+  getCurrentUsage: protectedProcedure.query(async ({ ctx }) => {
+    const monthStart = new Date();
+    monthStart.setUTCDate(1);
+    monthStart.setUTCHours(0, 0, 0, 0);
+
+    const minutesRows = await db
+      .select({
+        totalMinutes: sql<number>`COALESCE(SUM(${buildMinutesUsage.minutesUsed}), 0)`,
+      })
+      .from(buildMinutesUsage)
+      .where(
+        and(
+          eq(buildMinutesUsage.userId, ctx.userId),
+          gte(buildMinutesUsage.recordedAt, monthStart),
+        ),
+      );
+
+    const deploymentRows = await db
+      .select({
+        count: sql<number>`COUNT(*)`,
+      })
+      .from(deployments)
+      .where(eq(deployments.userId, ctx.userId));
+
+    const buildMinutesThisMonth = Number(
+      minutesRows[0]?.totalMinutes ?? 0,
+    );
+    const deploymentCount = Number(deploymentRows[0]?.count ?? 0);
+
+    return {
+      buildMinutesThisMonth,
+      deploymentCount,
+      // TODO(craig): attach metered-rate conversion once pricing is set.
+    };
+  }),
+
+  // ── BLK-010: Stripe Billing Portal URL (admin-only) ───────────────
+  // Admin-only by design — we don't want a self-serve portal launch to
+  // fire before Craig has validated the Stripe configuration. Flip to
+  // `protectedProcedure` once pricing is live and user-level portals
+  // are wanted.
+  getPortalUrl: adminProcedure
+    .input(z.object({ returnUrl: z.string().url() }))
+    .use(auditMiddleware("billing.getPortalUrl"))
+    .mutation(async ({ ctx, input }) => {
+      assertBillingEnabled();
+
+      const account = await db.query.billingAccounts.findFirst({
+        where: eq(billingAccounts.userId, ctx.userId),
+      });
+
+      const stripeCustomerId = account?.stripeCustomerId ?? null;
+      if (!stripeCustomerId) {
+        throw new TRPCError({
+          code: "PRECONDITION_FAILED",
+          message:
+            "No Stripe Customer on file for this account. Complete checkout first.",
+        });
+      }
+
+      const url = await createPortalSessionUrl(
+        stripeCustomerId,
+        input.returnUrl,
+      );
+      return { url };
     }),
 });

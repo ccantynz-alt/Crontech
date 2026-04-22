@@ -20,21 +20,35 @@
  *   all overrideable via `RunBuildOptions` so the test suite never hits
  *   real git / network / `/tmp`.
  *
- * ⚠️ Security note (flag for Craig): this runs customer-supplied code
- * (`bun install` postinstall hooks, custom build commands) on the host.
- * A real multi-tenant deployment must jail this inside Firecracker,
- * gVisor, or at minimum a Docker container with seccomp + no network
- * access to internal services. For v1 (single-tenant, Craig-only) we
- * accept the risk. See §5A in CLAUDE.md — tighten before opening signup.
+ * Security posture (BLK-009 signup-readiness):
+ * - **Clone runs on host.** `git clone` fetches trusted data over TLS and
+ *   does not execute customer code. Matches the orchestrator's own
+ *   `deployer.ts` pattern (see its header comment).
+ * - **`bun install` and `bun run build` run inside a locked-down Docker
+ *   sandbox** via `runInSandbox` from `@back-to-the-future/orchestrator/sandbox`.
+ *   Customer code (postinstall hooks, build scripts, vite plugins) cannot
+ *   escape the container: cap-drop=ALL, no-new-privileges, read-only root,
+ *   non-root uid 1000, mem 2G, cpus 1, pids 512, network=bridge only,
+ *   workspace bind-mount, wall-clock timeout, log scrubbing for
+ *   *_KEY/*_SECRET/*_TOKEN/*_PASSWORD/Bearer/PEM.
+ * - The default sandbox runner shells out to `docker` — **the host must
+ *   have docker installed** for production builds. `sandboxRun` is
+ *   injectable so tests never hit the real daemon.
  */
 
 import { and, eq } from "drizzle-orm";
 import {
+  buildMinutesUsage,
   db as defaultDb,
   deploymentLogs,
   deployments,
   projects,
 } from "@back-to-the-future/db";
+import {
+  runInSandbox,
+  type SandboxResult,
+  type SandboxSpec,
+} from "@back-to-the-future/orchestrator/sandbox";
 import {
   orchestratorDeploy,
   type OrchestratorDeployInput,
@@ -96,13 +110,27 @@ export type DeployFn = (
   input: OrchestratorDeployInput,
 ) => Promise<OrchestratorDeployResult>;
 
+/**
+ * Sandbox runner signature — matches `runInSandbox` from the orchestrator.
+ * Tests inject a fake so install/build steps don't spawn real Docker.
+ */
+export type SandboxRunFn = (
+  spec: SandboxSpec,
+  onLogLine?: (stream: "stdout" | "stderr", line: string) => void,
+) => Promise<SandboxResult>;
+
 export interface RunBuildOptions {
   /** Override DB client (primarily for tests). */
   db?: DbClient;
   /** Override "now" so tests can pin timestamps. */
   now?: () => Date;
-  /** Override child-process spawn so tests never hit real git/bun. */
+  /** Override child-process spawn (host-side clone only) so tests never hit real git. */
   spawn?: SpawnFn;
+  /**
+   * Override the sandbox runner used for install + build. Defaults to the
+   * real `runInSandbox` which shells out to Docker. Tests inject a fake.
+   */
+  sandboxRun?: SandboxRunFn;
   /** Override the orchestrator deploy handoff. */
   deploy?: DeployFn;
   /** Override fs ops so tests don't touch `/tmp`. */
@@ -178,6 +206,9 @@ const defaultFs: BuildFs = {
 };
 
 const defaultDeploy: DeployFn = (input) => orchestratorDeploy(input);
+
+const defaultSandboxRun: SandboxRunFn = (spec, onLogLine) =>
+  runInSandbox(spec, onLogLine);
 
 // ── Internal helpers ─────────────────────────────────────────────────
 
@@ -337,6 +368,76 @@ async function runStep(
   }
 }
 
+/**
+ * Run a command INSIDE the Docker sandbox, streaming stdout/stderr to
+ * `deployment_logs` in order. Throws on non-zero exit so the caller can
+ * transition the deployment to failed.
+ *
+ * Log ordering: the sandbox's `onLogLine` fires synchronously per line.
+ * We chain each `writeLog` onto a serial promise so rows land in the DB
+ * in the same order the lines were emitted, while still allowing the
+ * sandbox to keep draining its pipes.
+ */
+async function runSandboxStep(
+  db: DbClient,
+  deploymentId: string,
+  label: string,
+  cmd: string[],
+  workspaceDir: string,
+  env: Record<string, string> | undefined,
+  timeoutMs: number,
+  sandboxRun: SandboxRunFn,
+  now: () => Date,
+): Promise<void> {
+  await writeLog(
+    db,
+    deploymentId,
+    { stream: "event", line: `[build-runner] ▶ ${label}: ${cmd.join(" ")}` },
+    now(),
+  );
+
+  let logChain: Promise<unknown> = Promise.resolve();
+  const onLogLine = (stream: "stdout" | "stderr", line: string): void => {
+    logChain = logChain.then(() =>
+      writeLog(db, deploymentId, { stream, line }, now()),
+    );
+  };
+
+  const spec: SandboxSpec = {
+    deploymentId,
+    workspaceDir,
+    command: cmd,
+    timeoutMs,
+  };
+  if (env) spec.env = env;
+
+  const result = await sandboxRun(spec, onLogLine);
+  // Ensure every streamed line has landed before the caller proceeds.
+  await logChain;
+
+  if (result.timedOut) {
+    throw new Error(`${label} exceeded sandbox timeout of ${timeoutMs}ms`);
+  }
+  if (result.exitCode !== 0) {
+    throw new Error(`${label} failed with exit code ${result.exitCode}`);
+  }
+}
+
+/**
+ * Compute the remaining wall-clock budget for a sandboxed step based on
+ * the overall build's `totalTimeoutMs`. Clamped to at least 1ms so the
+ * sandbox always runs at least one iteration (a zero timeout would be
+ * interpreted as "expire immediately").
+ */
+function remainingTimeoutMs(
+  startTime: Date,
+  totalTimeoutMs: number,
+  now: () => Date,
+): number {
+  const elapsed = now().getTime() - startTime.getTime();
+  return Math.max(1, totalTimeoutMs - elapsed);
+}
+
 async function finaliseCancelled(
   db: DbClient,
   deploymentId: string,
@@ -383,6 +484,7 @@ export async function runBuild(
   const db = options.db ?? defaultDb;
   const now = options.now ?? ((): Date => new Date());
   const spawn = options.spawn ?? defaultSpawn;
+  const sandboxRun = options.sandboxRun ?? defaultSandboxRun;
   const deploy = options.deploy ?? defaultDeploy;
   const fs = options.fs ?? defaultFs;
   const workspaceRoot = options.workspaceRoot ?? DEFAULT_WORKSPACE_ROOT;
@@ -523,14 +625,18 @@ export async function runBuild(
       return await finaliseCancelled(db, deploymentId, startTime, now);
     }
 
-    // ── 5. Install deps ────────────────────────────────────────────
-    await runStep(
+    // ── 5. Install deps (SANDBOXED) ────────────────────────────────
+    // Customer code first executes here (postinstall hooks). MUST run
+    // inside the Docker sandbox — never on the host.
+    await runSandboxStep(
       db,
       deploymentId,
       "install",
       ["bun", "install", "--frozen-lockfile"],
-      { cwd: workspaceDir },
-      trackedSpawn,
+      workspaceDir,
+      undefined,
+      remainingTimeoutMs(startTime, totalTimeoutMs, now),
+      sandboxRun,
       now,
     );
 
@@ -538,17 +644,19 @@ export async function runBuild(
       return await finaliseCancelled(db, deploymentId, startTime, now);
     }
 
-    // ── 6. Build ───────────────────────────────────────────────────
+    // ── 6. Build (SANDBOXED) ───────────────────────────────────────
     const buildCmd = project.buildCommand
       ? project.buildCommand.split(" ").filter((s) => s.length > 0)
       : ["bun", "run", "build"];
-    await runStep(
+    await runSandboxStep(
       db,
       deploymentId,
       "build",
       buildCmd,
-      { cwd: workspaceDir },
-      trackedSpawn,
+      workspaceDir,
+      { NODE_ENV: "production" },
+      remainingTimeoutMs(startTime, totalTimeoutMs, now),
+      sandboxRun,
       now,
     );
 
@@ -648,6 +756,27 @@ export async function runBuild(
       finishedAt: completedAt,
       isCurrent: true,
     });
+
+    // ── BLK-010: record build-minute usage for metered billing ──
+    // Non-fatal: a failure here must never mark the deploy as failed.
+    // Usage reporting to Stripe happens later via the usage-reporter.
+    try {
+      const minutesUsed =
+        Math.max(0, buildDurationMs ?? totalDurationMs) / 60000;
+      await db.insert(buildMinutesUsage).values({
+        id: crypto.randomUUID(),
+        userId: project.userId,
+        deploymentId,
+        minutesUsed,
+        recordedAt: completedAt,
+        reportedToStripeAt: null,
+      });
+    } catch (usageErr) {
+      console.warn(
+        `[build-runner] failed to record build_minutes_usage for ${deploymentId}:`,
+        usageErr instanceof Error ? usageErr.message : String(usageErr),
+      );
+    }
 
     await writeLog(
       db,
