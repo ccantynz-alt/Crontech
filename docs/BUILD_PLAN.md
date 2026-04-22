@@ -2,7 +2,7 @@
 
 **Purpose:** kill scope creep. Anything not on this plan does not get built. Additions require a new phase, not a mid-phase insertion.
 
-**Locked:** 2026-04-22. Any further edits require a dated amendment at the bottom, not in-place rewrites.
+**Locked:** 2026-04-22. Amended: 2026-04-22 late evening (Phase 3 parallel-safe work opened).
 
 ---
 
@@ -10,36 +10,34 @@
 
 **Outcome:** Craig can show an attorney, show an accountant, and take a real payment from a real customer.
 
-### Code (Claude-assisted, already mostly done this session)
+### Code (Claude-assisted, done this session)
 - [x] Signup + email verification (efc49f4)
 - [x] Stripe price IDs + missing-price gate (e4cbf4c, e61d3a2)
 - [x] Pricing per-plan CTAs + /checkout route (5e46035, 17962142)
 - [x] Deploy pipeline — "Live" means live (3b23346, a586292)
 - [x] Non-dev paste-a-URL tile (d96054b)
-- [x] AlecRae client + webhook receiver (ecb87be, 3fcb60e, 8cd16493)
-- [x] Landing page every-business positioning (31335df)
+- [x] AlecRae client + webhook receiver + mount (ecb87be, 3fcb60e, 46498ac, 897745c, 8cd1649)
+- [x] Landing page every-business positioning + stealth tone (31335df, 977338d)
 - [x] /solutions verticals page (167b182)
 - [x] /wordpress marketing page (07eef5b)
 - [x] 5 real Getting Started docs articles (6591f82)
+- [x] Legal stubs populated v1.0 — Privacy, ToS, Cookie scrubbed of crawl-visible "temporary" flags (34f055f, 08ccc99, and the Cookie Policy clean-up)
 
-### Code (remaining, small)
-- [ ] **Landing page tone-down to stealth** — remove aggressive "replaces X" framing, keep it professional and low-signal. 30 min via MCP.
-- [ ] **Legal docs stubs** — `docs/legal/PRIVACY_POLICY.md`, `TERMS_OF_SERVICE.md`, `COOKIE_POLICY.md`, `DPA.md`. Placeholder-grade — attorney fills in. 30 min via MCP.
-- [ ] **Footer legal links** — nav footer with Privacy / ToS / Cookie / Contact + copyright + trademark placeholder. 15 min via MCP.
+### Code (remaining, small — tonight if time)
+- [ ] Web routes to render `/privacy`, `/terms`, `/cookies` from the MD files so they are actually reachable from the site footer
+- [ ] Footer legal-links component on the landing (Privacy / Terms / Cookies / Contact + copyright)
 
 ### Gated on Craig (no code can unblock these)
 - [ ] **Provision AlecRae** — tenant, 10 templates, `mail.crontech.ai` DNS. 40-60 min.
 - [ ] **Provision Stripe** — create live Pro + Enterprise prices, create webhook endpoint, flip `STRIPE_ENABLED=true` in Vercel. 20-30 min.
-- [ ] **Incorporate the company** — LLC or Ltd depending on jurisdiction. Hand files to accountant.
-- [ ] **Trademark filings** — Crontech, Gluecron, Gatetest, AlecRae. Start with attorney.
-- [ ] **Orchestrator decision**: stand up on a $10/mo Hetzner/Fly.io box, OR launch with deploy-queue communicated upfront, OR punt deploys entirely for week one. See LAUNCH_CHECKLIST.md §orchestrator.
-- [ ] **First-invoice test** — one paying customer (a friend, family member, throwaway card) through the full funnel. Proves Stripe + AlecRae actually work end-to-end before any real marketing.
+- [ ] **First-invoice test** — one paying customer (friend/family/throwaway card) through the full funnel.
+- [ ] **Orchestrator decision**: stand up on a $10/mo VM, OR launch with deploy-queue communicated upfront, OR punt deploys entirely for week one.
 
 **Exit criteria for Phase 1:**
 1. A real payment has cleared.
-2. Attorney has reviewed (not finalised — reviewed) the legal stubs.
+2. Legal docs v1.0 published and linked from the footer.
 3. AlecRae + Stripe + orchestrator-or-decision are all green.
-4. Crontech.ai + Gluecron.com + Gatetest.io + Alecrae.com are all publicly reachable (even if quietly).
+4. Crontech.ai is publicly reachable with clean docs.
 
 ---
 
@@ -47,65 +45,60 @@
 
 **Outcome:** legal and compliance moat exists. You can defend the company if a competitor notices.
 
-### Legal + compliance
+### Legal + compliance (funded by Phase 1 revenue)
+- [ ] Engage attorney with the v1.0 legal docs as a review brief (targets $1-2k for limited-scope review rather than $3-5k for full drafting)
+- [ ] Incorporation (if not already done)
+- [ ] Bank account + clean books to accountant monthly
 - [ ] Trademark filings progressed to "published for opposition" stage
-- [ ] Attorney-finalised Privacy Policy, ToS, Cookie Policy, DPA (not stubs)
-- [ ] SOC 2 Type II audit engaged — Drata or Vanta. Stealth onboarding, no public announcement.
-- [ ] GDPR compliance documentation trail
-- [ ] CCPA compliance documentation trail
-- [ ] Cookie consent banner live on crontech.ai + all sibling products
-- [ ] IP assignment agreements for anyone who has touched Crontech / Gluecron / Gatetest / AlecRae code (including Craig himself → the company)
-- [ ] Company bank account, clean books handed to accountant monthly
+- [ ] SOC 2 Type II audit engaged — Drata or Vanta, stealth onboarding
+- [ ] GDPR + CCPA + NZ Privacy Act 2020 compliance documentation trail
+- [ ] Cookie consent banner live on the site (implement once legal routes ship)
+- [ ] IP assignment agreements (contractors, agents, Craig → the company post-incorporation)
 
 ### Customer acquisition (stealth)
-- [ ] First 10-25 paying customers by invitation
-- [ ] No Product Hunt, no Hacker News, no paid ads, no Twitter launch
-- [ ] Every paying customer signs a beta agreement with attorney-reviewed terms
-
-### Product
-- [ ] Self-healing deploys (Gatetest auto-fix extended to deploy failures)
-- [ ] AlecRae-on-Crontech shadow deploy (self-dogfood proof point)
-- [ ] Email events table + suppression list updates from AlecRae webhook
-- [ ] Deploy pipeline has real async status streaming (not just synchronous call)
+- [ ] First 10-25 paying customers by invitation only
+- [ ] Every paying customer signs the clean v1.0 Agreement (which will be attorney-finalised during Phase 2)
 
 **Exit criteria for Phase 2:**
-1. 10+ paying customers, all billed successfully through Stripe for 2+ months.
-2. SOC 2 Type II readiness gap assessment complete (even if audit isn't done).
-3. Attorney-approved legal docs live on the site.
+1. 10+ paying customers, billed successfully through Stripe for 2+ months.
+2. Attorney-finalised legal v2 live (replaces v1.0).
+3. SOC 2 Type II readiness gap assessment complete.
 4. Bank account + accountant + books in order.
-5. At least one of AlecRae, Gluecron, Gatetest running on Crontech's own infrastructure.
 
 ---
 
-## Phase 3 — Go Loud (weeks 5+, once fortress is real)
+## Phase 3 — Split into two streams (Craig's amendment, 2026-04-22 evening)
 
-**Outcome:** Crontech can safely be noticed by Vercel, Cloudflare, Google, Microsoft without existential risk.
+Craig's revised position: we cannot afford to wait for Phase 2 to complete before starting Phase 3. Revenue urgency requires parallel execution. The split is now:
 
-### Public launch
-- [ ] Landing page rewrites: lead with "Claude-native platform that replaces Cloudflare + Render + Vercel + Mailgun + Twilio"
-- [ ] Comparison pages — `/vs-vercel`, `/vs-cloudflare`, `/vs-supabase`, `/vs-github` (for Gluecron)
-- [ ] Product Hunt launch
+### Phase 3-A — Parallel-safe product work (can start NOW, alongside Phase 1 and 2)
+
+These are product features that build the moat without alerting competitors. Shipping them quietly is how you become unavoidable before anyone notices.
+
+- [ ] **AI Builder inline demo on the landing page** — visitor types "build a pizzeria website" and watches Claude start generating right there. v0.dev-shaped. Competitors see a quiet "AI Builder" card, not a "we're beating v0.dev" headline.
+- [ ] **Self-healing deploys** — Claude reads the deploy failure, proposes a fix, ships a PR back to the user's repo. Gatetest already does this for code; extending to deploys is a product feature, not a competitive jab.
+- [ ] **Prod observability in English** — "Why is checkout slow on Safari iPad?" → Claude reads traces + logs + recent commits → answers in plain English with a PR. Ship as a product feature; don't call it "replaces Datadog + Sentry" until Phase 3-B.
+- [ ] **Weekly business insights email** — Monday-morning email per project: "Conversion dropped 8% this week. Claude suspects the checkout button colour on Android. Here's a PR." Ship quietly as a feature.
+- [ ] **Partner program for agencies** — private B2B conversations, no public marketing. White-label Crontech for WordPress/SMB agencies. All conversations one-to-one, no announcements.
+- [ ] **SEO groundwork** — blog posts optimised for "how to launch a SaaS", "AI-native hosting", "SMB site performance". Nothing positioned AGAINST a named competitor yet — neutral-voice educational content only.
+
+### Phase 3-B — Loud work (still waits for fortress)
+
+Runs AFTER Phase 2 exit criteria are met. These moves wake competitors up.
+
+- [ ] Public Product Hunt launch
 - [ ] Hacker News "Show HN" post
-- [ ] Twitter / X launch thread
-- [ ] YouTube demo video (Claude builds a pizzeria website in 3 minutes)
-- [ ] Press outreach: TechCrunch, The Information, Bloomberg, Stratechery
+- [ ] Twitter / X launch thread with the "replaces Cloudflare + Vercel + Mailgun + Twilio" framing
+- [ ] Press outreach — TechCrunch, The Information, Bloomberg, Stratechery
+- [ ] `/vs-vercel`, `/vs-cloudflare`, `/vs-supabase`, `/vs-github` comparison pages
+- [ ] Paid acquisition scaling (currently only quiet SMB-keyword spend in Phase 3-A)
+- [ ] WordPress.org plugin directory listing (public, loud, competitive)
+- [ ] Marketplace of third-party AI agents
 
-### Product
-- [ ] AI Builder preview on the landing page itself (v0.dev-style inline demo)
-- [ ] Full PaaS lane visible: "bring your own GitHub repo" as an equal citizen
-- [ ] Prod observability in English feature
-- [ ] Weekly business insights email feature
-
-### Growth
-- [ ] Paid acquisition (Google, LinkedIn, X) for the SMB audience
-- [ ] Partner program for agencies (white-label)
-- [ ] WordPress plugin live in WordPress.org directory
-- [ ] Marketplace of third-party AI agents running on Crontech
-
-**Exit criteria for Phase 3:**
+**Exit criteria for Phase 3-B:**
 1. 1,000+ paying customers.
 2. First major press mention without getting squashed.
-3. ARR reaches a level where the hyperscaler acquisition offer is declined from a position of strength.
+3. ARR reaches a level where an acquisition offer from a hyperscaler can be declined from strength.
 
 ---
 
@@ -116,13 +109,12 @@
 ### Phase 1.5 parking lot (not in scope, don't build)
 - Revenue-share pricing tier (3% until first $1,000)
 - AlecRae as fourth card in PlatformSiblingsWidget
-- Live AI demo on landing page
 - Cross-cloud arbitrage
 - Voice deploy ("hey Crontech, ship my latest commit")
-- /vs-vercel page (scheduled for Phase 3)
 
 ---
 
 ## Amendment log
 
-- 2026-04-22 initial lock by Craig. Scope frozen at Phase 1 list above. All Phase 1.5 parking lot items require Phase 2 entry or later.
+- **2026-04-22 initial lock** by Craig. Scope frozen at Phase 1 list above.
+- **2026-04-22 late evening** — Craig's amendment: Phase 3 split into 3-A (parallel-safe product work starts now) and 3-B (loud/public work still waits for Phase 2 fortress). Stealth doctrine applies to everything crawl-visible. Internal "pre-attorney" status lives here and in PROGRESS_LOG.md only, never on the public site.
