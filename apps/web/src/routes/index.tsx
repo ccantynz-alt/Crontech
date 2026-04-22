@@ -7,224 +7,244 @@ import { Icon, type IconName } from "../components/Icon";
 
 // ── Data ────────────────────────────────────────────────────────────
 
-interface Pillar {
+interface Problem {
   icon: IconName;
-  eyebrow: string;
   title: string;
   description: string;
-  points: string[];
 }
 
-const pillars: Pillar[] = [
+const problems: Problem[] = [
   {
-    icon: "layers",
-    eyebrow: "One platform",
-    title: "One platform, every layer",
+    icon: "settings",
+    title: "The DIY compliance stack",
     description:
-      "Hosting, database, authentication, AI, real-time collaboration, payments, email, storage — in one product with one dashboard and one bill. Stop stitching a dozen vendors together to run a modern app.",
-    points: [
-      "Edge hosting, SQL, and object storage — unified",
-      "Auth, billing, email, and SMS — wired in",
-      "One API, one schema, one ops surface",
-    ],
+      "GitHub Actions for CI. A separate SAST scanner. Evidence scraped out of logs. A Notion page that someone swears is the real control matrix. Nothing agrees with anything else at audit time.",
   },
   {
-    icon: "zap",
-    eyebrow: "Bleeding edge",
-    title: "Built on the bleeding edge",
+    icon: "file-text",
+    title: "Manual audit evidence",
     description:
-      "Cloudflare Workers for sub-5ms cold starts at the edge. SolidJS for the fastest reactivity on the web. Bun + Hono for the fastest JavaScript runtime. Type-safe end to end from database to UI.",
-    points: [
-      "Sub-5ms cold starts in 330+ cities",
-      "SolidJS signals — no virtual DOM overhead",
-      "Bun runtime, Hono router, Drizzle ORM",
-    ],
+      "Screenshots, CSVs, Slack threads pasted into a shared drive. Every SOC 2 Type II window is a scramble to reconstruct what actually happened in CI six months ago.",
   },
   {
-    icon: "sparkles",
-    eyebrow: "AI-native",
-    title: "AI-native at every layer",
+    icon: "eye-off",
+    title: "Vanta and Drata abstract the wrong layer",
     description:
-      "Not bolted on. AI agents, generative UI, three-tier compute routing (client → edge → cloud), RAG pipelines, and real-time collaboration — all native to the platform. Your app is AI-native the day you start.",
-    points: [
-      "Client GPU + edge + cloud compute — one mesh",
-      "Generative UI from a typed component catalog",
-      "RAG, vector search, and streaming agents built in",
-    ],
+      "They paper over the pipeline instead of owning it. The controls get reported green while the CI that enforces them is held together with bash and hope. Auditors are starting to notice.",
   },
 ];
 
-interface Capability {
+interface Solution {
   icon: IconName;
   title: string;
   description: string;
+  badge?: string;
 }
 
-const capabilities: Capability[] = [
+const solutions: Solution[] = [
   {
-    icon: "server",
-    title: "Hosting",
+    icon: "zap",
+    title: "Every run produces audit artifacts",
     description:
-      "Global edge deploys on Cloudflare Workers. Push to git and ship to 330+ cities in seconds. Preview branches, instant rollbacks, zero-config.",
-  },
-  {
-    icon: "database",
-    title: "Database",
-    description:
-      "Edge SQL via embedded Turso replicas for zero-latency reads. Serverless Postgres on demand. Vector search and full-text built in.",
+      "Build, scan, SBOM, test results, deploy signatures — emitted as structured evidence on every CI run. No separate evidence pipeline, no scraping, no end-of-quarter panic. The artifact IS the control.",
+    badge: "Automatic",
   },
   {
     icon: "lock",
-    title: "Authentication",
+    title: "Hash-chained audit log",
     description:
-      "Passkeys first — the 98% login-success future of auth. OAuth, email, and SSO wired in. Sessions, RBAC, and audit logs you don't have to build.",
+      "Every event is SHA-256 hashed and chained to the previous entry. Retroactive tampering is mathematically detectable. SOC 2-grade tamper evidence — the same pattern auditors use on financial systems.",
+    badge: "SOC 2-grade",
   },
   {
-    icon: "sparkles",
-    title: "AI",
+    icon: "server",
+    title: "Self-hostable from day one",
     description:
-      "Streaming LLM calls, multi-agent workflows, RAG pipelines, and client-GPU inference for free tokens. One SDK for every tier of compute.",
-  },
-  {
-    icon: "users",
-    title: "Real-time collab",
-    description:
-      "CRDT-backed multi-user editing, presence, cursors — with AI agents as first-class participants. Sub-50ms globally.",
-  },
-  {
-    icon: "credit-card",
-    title: "Billing",
-    description:
-      "Stripe-powered subscriptions, metered usage, proration, and invoices — fully integrated. One line to charge. Zero integration tax.",
-  },
-  {
-    icon: "mail",
-    title: "Email & SMS",
-    description:
-      "Transactional and marketing email, SMS, push — same pipeline, same logs, same observability. One outbox for every channel.",
-  },
-  {
-    icon: "video",
-    title: "Video",
-    description:
-      "WebGPU-accelerated video processing, streaming, and real-time AI transforms. The fastest video pipeline a browser has ever seen.",
+      "Run Crontech in your own VPC when the customer demands it. One docker-compose for the control plane, one for the runners. Same binary we run in production. No feature split between cloud and self-hosted.",
+    badge: "Open core",
   },
 ];
 
-interface SpeedSignal {
+interface Step {
+  number: string;
+  title: string;
+  description: string;
+  icon: string;
+}
+
+const steps: Step[] = [
+  {
+    number: "01",
+    title: "Push",
+    description:
+      "Connect a repo. Crontech picks up every push and PR. No YAML archaeology — opinionated defaults that map to real SOC 2 controls out of the box.",
+    icon: "\u{2B06}",
+  },
+  {
+    number: "02",
+    title: "Scan + Build + Audit",
+    description:
+      "Pipeline runs SAST, SCA, SBOM generation, build, and tests in parallel. Each step writes a signed, hash-chained audit entry. Evidence is produced as a side-effect of shipping.",
+    icon: "\u{1F50D}",
+  },
+  {
+    number: "03",
+    title: "Deploy with an evidence trail",
+    description:
+      "The deploy artifact is bundled with its complete audit chain. Pull any release, get a cryptographically-verifiable record of what was scanned, who approved it, and when it shipped.",
+    icon: "\u{1F680}",
+  },
+];
+
+interface Signal {
   value: string;
   label: string;
 }
 
-const speedSignals: SpeedSignal[] = [
-  { value: "< 5ms", label: "Edge cold start" },
-  { value: "330+", label: "Cities at the edge" },
-  { value: "Type-safe", label: "End to end" },
-  { value: "AI-native", label: "Every layer" },
+const signals: Signal[] = [
+  { value: "SOC 2 Type II", label: "Control set from day one" },
+  { value: "Hash-chained", label: "Tamper-evident audit log" },
+  { value: "Self-hostable", label: "Your VPC or ours" },
+  { value: "Open core", label: "@crontech/audit-log is MIT" },
 ];
 
-// ── Pillar Card ─────────────────────────────────────────────────────
+// ── Problem Card ────────────────────────────────────────────────────
 
-function PillarCard(props: Pillar): JSX.Element {
+function ProblemCard(props: Problem): JSX.Element {
   return (
-    <div class="landing-card h-full p-8">
-      <div class="flex h-full flex-col gap-6">
-        <div class="flex items-center gap-3">
+    <div class="landing-card h-full p-7">
+      <div class="flex h-full flex-col gap-5">
+        <div
+          class="flex h-11 w-11 items-center justify-center rounded-xl"
+          style={{
+            background: "linear-gradient(135deg, rgba(239,68,68,0.12), rgba(249,115,22,0.12))",
+            color: "#fca5a5",
+            border: "1px solid rgba(239,68,68,0.2)",
+          }}
+        >
+          <Icon name={props.icon} size={20} />
+        </div>
+
+        <div class="flex flex-col gap-2.5">
+          <h3
+            class="text-[1.0625rem] font-semibold tracking-tight"
+            style={{ color: "#f0f0f5" }}
+          >
+            {props.title}
+          </h3>
+          <p
+            class="text-[0.875rem] leading-[1.75]"
+            style={{ color: "rgba(255,255,255,0.55)" }}
+          >
+            {props.description}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Solution Card ───────────────────────────────────────────────────
+
+function SolutionCard(props: Solution): JSX.Element {
+  return (
+    <div class="landing-card h-full p-7">
+      <div class="flex h-full flex-col gap-5">
+        <div class="flex items-start justify-between gap-3">
           <div
-            class="flex h-12 w-12 items-center justify-center rounded-xl"
+            class="flex h-11 w-11 items-center justify-center rounded-xl"
             style={{
-              background: "linear-gradient(135deg, rgba(99,102,241,0.12), rgba(139,92,246,0.12))",
-              color: "#6366f1",
+              background: "linear-gradient(135deg, rgba(99,102,241,0.15), rgba(139,92,246,0.15))",
+              color: "#a5b4fc",
               border: "1px solid rgba(99,102,241,0.2)",
             }}
           >
-            <Icon name={props.icon} size={22} />
+            <Icon name={props.icon} size={20} />
           </div>
-          <span
-            class="text-[11px] font-semibold uppercase tracking-[0.18em]"
-            style={{ color: "#6366f1" }}
-          >
-            {props.eyebrow}
-          </span>
+          <Show when={props.badge}>
+            <span
+              class="shrink-0 rounded-md px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider"
+              style={{
+                background: "rgba(99,102,241,0.12)",
+                color: "#a5b4fc",
+                border: "1px solid rgba(99,102,241,0.2)",
+              }}
+            >
+              {props.badge}
+            </span>
+          </Show>
         </div>
 
-        <div class="flex flex-col gap-3">
+        <div class="flex flex-col gap-2.5">
           <h3
-            class="text-[1.25rem] font-bold tracking-tight"
-            style={{ color: "#0f172a" }}
+            class="text-[1.0625rem] font-semibold tracking-tight"
+            style={{ color: "#f0f0f5" }}
           >
             {props.title}
           </h3>
           <p
-            class="text-[0.9375rem] leading-[1.7]"
-            style={{ color: "#475569" }}
+            class="text-[0.875rem] leading-[1.75]"
+            style={{ color: "rgba(255,255,255,0.55)" }}
           >
             {props.description}
           </p>
         </div>
-
-        <ul class="mt-auto flex flex-col gap-2.5 pt-2">
-          <For each={props.points}>
-            {(point) => (
-              <li
-                class="flex items-start gap-2.5 text-[0.875rem] leading-[1.6]"
-                style={{ color: "#334155" }}
-              >
-                <span
-                  class="mt-[7px] inline-block h-1.5 w-1.5 shrink-0 rounded-full"
-                  style={{
-                    background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
-                  }}
-                  aria-hidden="true"
-                />
-                <span>{point}</span>
-              </li>
-            )}
-          </For>
-        </ul>
       </div>
     </div>
   );
 }
 
-// ── Capability Card ─────────────────────────────────────────────────
+// ── Step Card ───────────────────────────────────────────────────────
 
-function CapabilityCard(props: Capability): JSX.Element {
+function StepCard(props: Step & { isLast: boolean }): JSX.Element {
   return (
-    <div class="landing-card h-full p-6">
-      <div class="flex h-full flex-col gap-4">
+    <div class="relative flex flex-col items-center gap-6 text-center">
+      <div class="relative">
         <div
-          class="flex h-10 w-10 items-center justify-center rounded-lg"
+          class="flex h-16 w-16 items-center justify-center rounded-2xl text-2xl"
           style={{
-            background: "linear-gradient(135deg, rgba(99,102,241,0.1), rgba(139,92,246,0.1))",
-            color: "#6366f1",
-            border: "1px solid rgba(99,102,241,0.18)",
+            background: "rgba(255,255,255,0.04)",
+            border: "1px solid rgba(255,255,255,0.08)",
+            "box-shadow": "0 2px 8px rgba(0,0,0,0.2)",
           }}
         >
-          <Icon name={props.icon} size={18} />
+          {props.icon}
         </div>
-        <div class="flex flex-col gap-2">
-          <h3
-            class="text-[1rem] font-semibold tracking-tight"
-            style={{ color: "#0f172a" }}
-          >
-            {props.title}
-          </h3>
-          <p
-            class="text-[0.875rem] leading-[1.65]"
-            style={{ color: "#64748b" }}
-          >
-            {props.description}
-          </p>
+        <div
+          class="absolute -top-2 -right-2 flex h-6 w-6 items-center justify-center rounded-md text-[10px] font-bold"
+          style={{
+            background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
+            color: "#fff",
+            "box-shadow": "0 2px 6px rgba(99,102,241,0.4)",
+          }}
+        >
+          {props.number}
         </div>
       </div>
+
+      <h3
+        class="text-lg font-semibold tracking-tight"
+        style={{ color: "#0f172a" }}
+      >
+        {props.title}
+      </h3>
+      <p
+        class="max-w-[280px] text-[0.875rem] leading-[1.75]"
+        style={{ color: "#64748b" }}
+      >
+        {props.description}
+      </p>
+
+      <Show when={!props.isLast}>
+        <div class="landing-step-connector" />
+      </Show>
     </div>
   );
 }
 
-// ── Speed Signal Block ──────────────────────────────────────────────
+// ── Signal Block ────────────────────────────────────────────────────
 
-function SpeedSignalBlock(props: SpeedSignal): JSX.Element {
+function SignalBlock(props: Signal): JSX.Element {
   return (
     <div class="landing-stat-block">
       <span class="landing-stat-value">{props.value}</span>
@@ -241,93 +261,73 @@ export default function Home(): JSX.Element {
   return (
     <>
       <SEOHead
-        title={"Crontech — The developer platform for the next decade"}
-        description="One unified product. Every layer your application needs — hosting, database, auth, AI, real-time, billing, video — built on the bleeding edge and ready to ship."
+        title={"Crontech — Compliance-native CI/CD for AI SaaS"}
+        description="CI/CD that produces audit evidence automatically. Hash-chained logs, SOC 2-ready from day one, self-hostable."
         path="/"
       />
 
       <div>
-        {/* ── Hero (dark, aggressive) ────────────────────────────── */}
+        {/* ── Hero (dark) ──────────────────────────────────────── */}
         <section class="landing-hero">
           <div class="relative z-10 mx-auto max-w-[1120px] px-6 pt-32 pb-32 md:pt-40 md:pb-36 lg:px-8 lg:pt-44 lg:pb-40">
-          <div class="relative z-10 mx-auto max-w-[1120px] px-6 pt-32 pb-36 lg:px-8 lg:pt-44 lg:pb-48">
             <div class="flex flex-col items-center text-center">
               {/* Announcement badge */}
               <div class="landing-hero-badge mb-10">
                 <span class="landing-hero-badge-dot" aria-hidden="true" />
-                <span class="landing-hero-badge-text">
-                  The unified developer platform &mdash; now in early access
-                </span>
+                <span class="landing-hero-badge-text">Now in early access &mdash; SOC 2 Type II in progress</span>
               </div>
 
-              {/* Headline — locked in POSITIONING.md */}
+              {/* Headline */}
               <h1
-                class="max-w-5xl text-[2.75rem] font-extrabold leading-[1.05] tracking-[-0.035em] sm:text-[3.75rem] lg:text-[4.75rem]"
-                style={{ color: "#f8fafc" }}
+                class="max-w-4xl text-[2.75rem] font-extrabold leading-[1.08] tracking-[-0.03em] sm:text-[3.5rem] lg:text-[4.25rem]"
+                style={{ color: "#0f172a" }}
               >
-                The developer platform for the{" "}
-                <span class="landing-gradient-text">next decade.</span>
+                The CI/CD{" "}
+                <span class="landing-gradient-text">
+                  that audits itself.
+                </span>
               </h1>
 
-              {/* Subheadline — locked in POSITIONING.md */}
+              {/* Subheading */}
               <p
-                class="mt-8 max-w-3xl text-[1.125rem] leading-[1.7] sm:text-[1.1875rem] lg:text-xl"
-                style={{ color: "rgba(248,250,252,0.78)" }}
+                class="mt-7 max-w-2xl text-[1.0625rem] leading-[1.8] sm:text-lg"
+                style={{ color: "#475569" }}
               >
-                One unified product. Every layer your application needs &mdash;{" "}
-                hosting, database, auth, AI, real-time, billing, video &mdash;{" "}
-                built on the bleeding edge and ready to ship.
+                Compliance-native CI/CD for AI SaaS companies. Every build emits
+                signed, hash-chained audit evidence &mdash; the same artifacts
+                your SOC 2 auditor will ask for, produced automatically, on
+                every run.
               </p>
 
-              {/* Body paragraph */}
-              <p
-                class="mt-6 max-w-2xl text-[0.9375rem] leading-[1.75] sm:text-base"
-                style={{ color: "rgba(203,213,225,0.72)" }}
-              >
-                Crontech runs on the fastest stack on the web. Sub-5ms cold
-                starts at the edge. Type-safe end to end. AI-native at every
-                layer. Built for builders who refuse to settle for
-                yesterday&apos;s tools.
-              </p>
-
-              {/* CTAs — locked in POSITIONING.md */}
-              <div class="mt-12 flex flex-col items-center gap-4 sm:flex-row">
+              {/* CTAs */}
+              <div class="mt-14 flex flex-col items-center gap-5 sm:flex-row">
                 <A href="/register">
-                  <button class="landing-hero-btn-primary-dark" type="button">
-                    Start building &#8594;
+                  <button class="landing-hero-btn-primary" type="button">
+                    Start a free project &#8594;
                   </button>
                 </A>
-                <A href="/docs">
-                  <button class="landing-hero-btn-outline-dark" type="button">
-                    See the docs
+                <A href="/dashboard">
+                  <button class="landing-hero-btn-outline" type="button">
+                    See the audit log demo
                   </button>
                 </A>
               </div>
 
-              {/* Proof strip — CSS grid auto-fit handles 5 items on
-                  desktop, 2-3 rows on iPad landscape, 1 per row on
-                  phone without the flex-wrap jostle. */}
+              {/* Proof strip */}
               <div class="landing-tech-strip-wrap mt-20">
-              {/* Tech strip */}
-              <div class="landing-tech-strip-wrap mt-24">
                 <div class="landing-tech-strip-divider" aria-hidden="true" />
                 <div class="landing-tech-strip">
                   <For
                     each={[
-                      "Built for SOC 2 Type II",
+                      "SOC 2 Type II in progress",
                       "Hash-chained audit log",
                       "SBOM on every build",
                       "Self-hostable in your VPC",
                       "Open-core audit engine",
-                      "Cloudflare Workers",
-                      "SolidJS",
-                      "Bun + Hono",
-                      "Drizzle + Turso",
-                      "Type-safe end to end",
                     ]}
                   >
-                    {(item) => (
-                      <span class="landing-tech-strip-item">{item}</span>
+                    {(signal) => (
+                      <span class="landing-tech-strip-item">{signal}</span>
                     )}
                   </For>
                 </div>
@@ -336,7 +336,7 @@ export default function Home(): JSX.Element {
           </div>
         </section>
 
-        {/* ── Speed signals strip (dark) ─────────────────────────── */}
+        {/* ── Signals strip (dark-to-light transition) ────────────── */}
         <section class="landing-stats-section">
           <div class="mx-auto max-w-[1120px] px-6 lg:px-8">
             <div class="landing-stats-grid">
@@ -344,22 +344,6 @@ export default function Home(): JSX.Element {
                 {(signal) => (
                   <div class="landing-stat-cell">
                     <SignalBlock value={signal.value} label={signal.label} />
-          <div class="relative z-10 mx-auto max-w-[1120px] px-6 lg:px-8">
-            <div class="grid grid-cols-2 sm:grid-cols-4">
-              <For each={speedSignals}>
-                {(signal, i) => (
-                  <div
-                    style={{
-                      "border-right":
-                        i() < speedSignals.length - 1
-                          ? "1px solid rgba(99,102,241,0.18)"
-                          : "none",
-                    }}
-                  >
-                    <SpeedSignalBlock
-                      value={signal.value}
-                      label={signal.label}
-                    />
                   </div>
                 )}
               </For>
@@ -369,19 +353,17 @@ export default function Home(): JSX.Element {
 
         {/* ── The Problem ───────────────────────────────────────── */}
         <section class="landing-dark-section py-28 lg:py-36">
-        {/* ── Three pillars (light) ─────────────────────────────── */}
-        <section class="landing-dark-section py-28 lg:py-40">
           <div class="mx-auto max-w-[1120px] px-6 lg:px-8">
-            <div class="mb-16 flex flex-col items-center text-center">
+            <div class="mb-20 flex flex-col items-center text-center">
               <div class="landing-section-label">
                 <div
                   class="h-1.5 w-1.5 rounded-full"
-                  style={{ background: "#6366f1" }}
+                  style={{ background: "#fca5a5" }}
                 />
-                What you get
+                The problem
               </div>
               <h2
-                class="max-w-3xl text-[2rem] font-bold tracking-tight sm:text-[2.5rem] lg:text-[2.75rem]"
+                class="max-w-2xl text-[1.875rem] font-bold tracking-tight sm:text-[2.25rem]"
                 style={{ color: "#0f172a" }}
               >
                 Compliance is a second pipeline you build by hand
@@ -426,27 +408,25 @@ export default function Home(): JSX.Element {
                 style={{ color: "#f0f0f5" }}
               >
                 A CI/CD that treats evidence as a first-class output
-                Three promises. No trade-offs.
               </h2>
               <p
-                class="mt-5 max-w-2xl text-[1.0625rem] leading-[1.7]"
-                style={{ color: "#475569" }}
+                class="mt-5 max-w-xl text-[1.0625rem] leading-[1.7]"
+                style={{ color: "rgba(255,255,255,0.5)" }}
               >
-                One product instead of many. The fastest stack on the web. AI
-                woven through every layer. Pick any two, you still get the
-                third.
+                Stop stitching CI, SAST, SBOM, and evidence collection
+                together. One pipeline emits all of it, cryptographically
+                bound, ready for the auditor who hasn&apos;t knocked yet.
               </p>
             </div>
 
-            <div class="landing-feature-grid grid grid-cols-1 gap-6 lg:grid-cols-3">
-              <For each={pillars}>
-                {(pillar) => (
-                  <PillarCard
-                    icon={pillar.icon}
-                    eyebrow={pillar.eyebrow}
-                    title={pillar.title}
-                    description={pillar.description}
-                    points={pillar.points}
+            <div class="landing-feature-grid grid grid-cols-1 gap-7 sm:grid-cols-2 lg:grid-cols-3">
+              <For each={solutions}>
+                {(solution) => (
+                  <SolutionCard
+                    icon={solution.icon}
+                    title={solution.title}
+                    description={solution.description}
+                    badge={solution.badge}
                   />
                 )}
               </For>
@@ -456,40 +436,39 @@ export default function Home(): JSX.Element {
 
         {/* ── How it works ──────────────────────────────────────── */}
         <section class="landing-dark-section py-28 lg:py-36">
-        {/* ── Capabilities grid (light) ─────────────────────────── */}
-        <section class="landing-dark-section-alt py-28 lg:py-40">
           <div class="mx-auto max-w-[1120px] px-6 lg:px-8">
-            <div class="mb-16 flex flex-col items-center text-center">
+            <div class="mb-20 flex flex-col items-center text-center">
               <div class="landing-section-label">
                 <div
                   class="h-1.5 w-1.5 rounded-full"
-                  style={{ background: "#8b5cf6" }}
+                  style={{ background: "#818cf8" }}
                 />
-                Every layer
+                How it works
               </div>
               <h2
-                class="max-w-3xl text-[2rem] font-bold tracking-tight sm:text-[2.5rem] lg:text-[2.75rem]"
+                class="max-w-2xl text-[1.875rem] font-bold tracking-tight sm:text-[2.25rem]"
                 style={{ color: "#0f172a" }}
               >
-                One product replaces many.
+                Push, scan, ship &mdash; with a signed trail behind every release
               </h2>
               <p
-                class="mt-5 max-w-2xl text-[1.0625rem] leading-[1.7]"
-                style={{ color: "#475569" }}
+                class="mt-5 max-w-xl text-[1.0625rem] leading-[1.7]"
+                style={{ color: "#64748b" }}
               >
-                Every capability a modern application needs, unified into one
-                platform, one dashboard, one bill. No vendor stitching. No
-                duct-tape integrations.
+                Three steps. No second pipeline. No evidence-gathering sprint
+                at audit time.
               </p>
             </div>
 
-            <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-              <For each={capabilities}>
-                {(cap) => (
-                  <CapabilityCard
-                    icon={cap.icon}
-                    title={cap.title}
-                    description={cap.description}
+            <div class="grid grid-cols-1 gap-14 sm:grid-cols-3 sm:gap-8">
+              <For each={steps}>
+                {(step, i) => (
+                  <StepCard
+                    number={step.number}
+                    title={step.title}
+                    description={step.description}
+                    icon={step.icon}
+                    isLast={i() === steps.length - 1}
                   />
                 )}
               </For>
@@ -499,38 +478,35 @@ export default function Home(): JSX.Element {
 
         {/* ── Social proof / signals ─────────────────────────────── */}
         <section class="landing-dark-section-alt py-28 lg:py-36">
-        {/* ── Proof strip (light) ────────────────────────────────── */}
-        <section class="landing-dark-section py-28 lg:py-36">
           <div class="mx-auto max-w-[1120px] px-6 lg:px-8">
-            <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <div class="grid grid-cols-1 gap-5 lg:grid-cols-2">
               <div class="landing-card relative overflow-hidden p-8">
                 <div
                   class="absolute top-0 left-0 right-0 h-[2px]"
                   style={{
-                    background:
-                      "linear-gradient(90deg, #6366f1, #8b5cf6, #a78bfa)",
+                    background: "linear-gradient(90deg, #6366f1, #8b5cf6, #a78bfa)",
                   }}
                 />
                 <span
                   class="mb-5 inline-block text-[11px] font-semibold uppercase tracking-[0.16em]"
-                  style={{ color: "#6366f1" }}
+                  style={{ color: "#818cf8" }}
                 >
-                  Eat our own cooking
+                  We run on our own stack
                 </span>
                 <h3
-                  class="mb-3 text-[1.375rem] font-bold tracking-tight"
-                  style={{ color: "#0f172a" }}
+                  class="mb-3 text-xl font-bold tracking-tight"
+                  style={{ color: "#f0f0f5" }}
                 >
-                  Crontech runs on Crontech.
+                  Crontech ships Crontech
                 </h3>
                 <p
-                  class="text-[0.9375rem] leading-[1.7]"
-                  style={{ color: "#475569" }}
+                  class="text-[0.875rem] leading-[1.75]"
+                  style={{ color: "rgba(255,255,255,0.55)" }}
                 >
-                  Every layer of this platform &mdash; the dashboard you&apos;re
-                  about to log into, the billing system, the edge router, the
-                  AI playground &mdash; is built and deployed on the same stack
-                  we sell you. The product ships itself.
+                  Every release of the platform is built, scanned, and deployed
+                  by the pipeline we&apos;re selling you &mdash; self-hosted,
+                  on our own infrastructure. The audit log for our own product
+                  is the same audit log you&apos;ll get.
                 </p>
               </div>
 
@@ -538,48 +514,47 @@ export default function Home(): JSX.Element {
                 <div
                   class="absolute top-0 left-0 right-0 h-[2px]"
                   style={{
-                    background:
-                      "linear-gradient(90deg, #10b981, #06b6d4, #6366f1)",
+                    background: "linear-gradient(90deg, #10b981, #06b6d4, #6366f1)",
                   }}
                 />
                 <span
                   class="mb-5 inline-block text-[11px] font-semibold uppercase tracking-[0.16em]"
-                  style={{ color: "#059669" }}
+                  style={{ color: "#34d399" }}
                 >
-                  Open where it counts
+                  Open-core audit engine
                 </span>
                 <h3
-                  class="mb-3 text-[1.375rem] font-bold tracking-tight"
-                  style={{ color: "#0f172a" }}
+                  class="mb-3 text-xl font-bold tracking-tight"
+                  style={{ color: "#f0f0f5" }}
                 >
-                  Self-hostable from day one.
+                  @crontech/audit-log is MIT-licensed
                 </h3>
                 <p
-                  class="text-[0.9375rem] leading-[1.7]"
-                  style={{ color: "#475569" }}
+                  class="text-[0.875rem] leading-[1.75]"
+                  style={{ color: "rgba(255,255,255,0.55)" }}
                 >
-                  Run Crontech on our cloud or in your own VPC &mdash; same
-                  binary, same features, no cripple-ware. Core engines are
-                  open-source. You never get locked in to a vendor you
-                  can&apos;t walk away from.
+                  The hash-chaining engine that backs every audit claim we make
+                  is open source. Read the code, run it standalone, verify our
+                  chains against the public algorithm. No black box between
+                  your pipeline and your auditor.
                 </p>
               </div>
             </div>
 
-            {/* Builder teaser */}
-            <div class="mt-14 flex flex-col items-center text-center">
+            {/* Pricing teaser */}
+            <div class="mt-16 flex flex-col items-center text-center">
               <p
-                class="text-[0.9375rem]"
-                style={{ color: "#475569" }}
+                class="text-[0.95rem]"
+                style={{ color: "rgba(255,255,255,0.55)" }}
               >
-                Prefer to describe what you want and watch it build itself?
+                Free for your first project. Usage-based after that.
               </p>
               <A
-                href="/builder"
-                class="mt-2 text-sm font-semibold"
-                style={{ color: "#6366f1" }}
+                href="/pricing"
+                class="mt-3 text-sm font-medium"
+                style={{ color: "#818cf8" }}
               >
-                Try the AI builder &#8594;
+                See pricing &#8594;
               </A>
             </div>
           </div>
@@ -588,39 +563,41 @@ export default function Home(): JSX.Element {
         {/* ── Bottom CTA (dark) ─────────────────────────────────── */}
         <section class="landing-cta-section">
           <div class="relative z-10 mx-auto max-w-[800px] px-6 py-28 text-center lg:px-8 lg:py-36">
-          <div class="relative z-10 mx-auto max-w-[880px] px-6 py-32 text-center lg:px-8 lg:py-44">
             <h2
-              class="text-[2rem] font-bold tracking-tight sm:text-[2.5rem] lg:text-[3rem]"
-              style={{ color: "#f8fafc" }}
+              class="text-[1.875rem] font-bold tracking-tight sm:text-[2.25rem] lg:text-[2.75rem]"
+              style={{ color: "#0f172a" }}
             >
-              The platform for what you&apos;ll ship{" "}
-              <span class="landing-gradient-text">next.</span>
+              Ship with the audit trail{" "}
+              <span class="landing-gradient-text">
+                already in the box.
+              </span>
             </h2>
             <p
               class="mt-6 text-[1.0625rem] leading-[1.7] sm:text-lg"
-              style={{ color: "rgba(226,232,240,0.78)" }}
+              style={{ color: "#64748b" }}
             >
-              Pick up the whole stack in one place. Stop paying for ten vendors.
-              Start shipping on the platform built for the next decade.
+              Connect a repo, push a commit, and watch evidence get produced on
+              the same pipeline that ships your code. SOC 2 stops being a
+              second project.
             </p>
             <div class="mt-12 flex flex-col items-center justify-center gap-4 sm:flex-row">
               <A href="/register">
-                <button class="landing-hero-btn-primary-dark" type="button">
-                  Start building &#8594;
+                <button class="landing-hero-btn-primary" type="button">
+                  Start in 5 minutes &#8594;
                 </button>
               </A>
               <Show
                 when={auth.isAuthenticated()}
                 fallback={
-                  <A href="/docs">
-                    <button class="landing-hero-btn-outline-dark" type="button">
-                      See the docs
+                  <A href="/support">
+                    <button class="landing-hero-btn-outline" type="button">
+                      Book a demo
                     </button>
                   </A>
                 }
               >
                 <A href="/dashboard">
-                  <button class="landing-hero-btn-outline-dark" type="button">
+                  <button class="landing-hero-btn-outline" type="button">
                     Open dashboard
                   </button>
                 </A>
