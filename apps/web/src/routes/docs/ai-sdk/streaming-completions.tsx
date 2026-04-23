@@ -2,7 +2,7 @@
 //
 // Documents the POST /chat/stream Hono route from
 // apps/api/src/ai/chat-stream.ts, end-to-end: auth, user-key-vs-env-key
-// resolution, schema validation, streamText() from the Vercel AI SDK,
+// resolution, schema validation, streamText() from the `ai` package,
 // and GET /chat/status for UI gating. Every mentioned field matches
 // the ChatStreamInput schema in the source.
 
@@ -19,7 +19,7 @@ export default function StreamingCompletionsArticle(): JSX.Element {
     <>
       <SEOHead
         title="Streaming completions"
-        description="How Crontech streams AI responses over SSE. The /chat/stream Hono route, user-key-vs-env-key resolution, streamText() from the Vercel AI SDK, and how the dashboard consumes the token stream."
+        description="How Crontech streams AI responses over SSE. The /chat/stream Hono route, user-key-vs-env-key resolution, streamText() from the ai package, and how the dashboard consumes the token stream."
         path="/docs/ai-sdk/streaming-completions"
       />
 
@@ -43,18 +43,18 @@ export default function StreamingCompletionsArticle(): JSX.Element {
           <code>apps/api/src/ai/chat-stream.ts</code> and mounted on
           the API app under <code>/chat</code>. It takes a message
           array, resolves an Anthropic API key, hands the call to{" "}
-          <code>streamText()</code> from the Vercel AI SDK, and returns
-          a plain text stream over HTTP.
+          <code>streamText()</code> from the <code>ai</code> package,
+          and returns a plain text stream over HTTP.
         </p>
 
         <Callout tone="info" title="Why one route, not a tRPC subscription">
-          SSE streams are long-lived HTTP responses, and the Vercel AI
-          SDK's <code>streamText()</code> already produces a{" "}
-          <code>ReadableStream</code> that parks nicely on top of
-          Hono's response handler. Wrapping it in a tRPC subscription
-          adds a framing layer the consumer doesn't need. The route
-          stays as a raw Hono handler so the wire format is
-          interoperable with any SSE reader.
+          SSE streams are long-lived HTTP responses, and{" "}
+          <code>streamText()</code> from the <code>ai</code> package
+          already produces a <code>ReadableStream</code> that parks
+          nicely on top of Hono's response handler. Wrapping it in a
+          tRPC subscription adds a framing layer the consumer doesn't
+          need. The route stays as a raw Hono handler so the wire
+          format is interoperable with any SSE reader.
         </Callout>
 
         <h2>Route lifecycle</h2>
@@ -175,7 +175,7 @@ while (true) {
   if (done) break;
   const chunk = decoder.decode(value, { stream: true });
   full += chunk;
-  // render the chunk as it arrives
+  // paint the chunk into the UI as it arrives
 }`}</code>
         </pre>
 
@@ -253,8 +253,8 @@ Authorization: Bearer <session>
           <code>ANTHROPIC_MODELS</code> in{" "}
           <code>packages/ai-core/src/providers.ts</code>, which also
           carries per-million-token input/output costs — the dashboard
-          uses the same entries to render the model picker and the
-          cost estimator.
+          reads the same entries to draw the model picker and the cost
+          estimator.
         </p>
 
         <h2>How the router hands work to this route</h2>

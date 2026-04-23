@@ -296,7 +296,8 @@ export function isComputeTier(value: unknown): value is ComputeTier {
           <code>POST /chat/stream</code> (<code>apps/api/src/ai/chat-stream.ts</code>)
           is the most visible consumer. It resolves an Anthropic
           language model via <code>getAnthropicModel()</code>, then
-          hands it to the Vercel AI SDK's <code>streamText()</code>.
+          hands it to <code>streamText()</code> from the{" "}
+          <code>ai</code> package.
           The site builder's{" "}
           <a href="/docs/api-reference/ai-and-chat">
             <code>ai.siteBuilder.generate</code>

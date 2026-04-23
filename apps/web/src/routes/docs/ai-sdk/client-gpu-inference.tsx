@@ -87,8 +87,8 @@ export default function ClientGpuInferenceArticle(): JSX.Element {
           Before any model loads,{" "}
           <code>getClientCapabilities()</code> runs a synchronous
           probe. It never touches the GPU and never awaits — it's safe
-          to call in a tight render loop. The result tells the router
-          what the device can handle:
+          to call in a hot path. The result tells the router what the
+          device can handle:
         </p>
 
         <pre

@@ -75,8 +75,9 @@ export default function AiSdkIndexArticle(): JSX.Element {
         <Callout tone="info" title="How the pieces fit">
           The router is a pure function — it doesn't call anyone. The
           provider factory turns the router's decision into a concrete{" "}
-          <code>LanguageModel</code> for the Vercel AI SDK. The client
-          inference path runs the decision in the browser when the tier
+          <code>LanguageModel</code> for the <code>ai</code> package.
+          The client inference path runs the decision in the browser
+          when the tier
           is <code>"client"</code>. The streaming endpoint at{" "}
           <code>POST /chat/stream</code> wires all three together for
           server-driven conversations.
@@ -94,7 +95,7 @@ export default function AiSdkIndexArticle(): JSX.Element {
             {
               term: "Streaming completions",
               description:
-                "How SSE streaming works end-to-end. The POST /chat/stream Hono route, the user-key-vs-env-key resolution, streamText() from the Vercel AI SDK, and how the dashboard consumes the token stream.",
+                "How SSE streaming works end-to-end. The POST /chat/stream Hono route, the user-key-vs-env-key resolution, streamText() from the ai package, and how the dashboard consumes the token stream.",
             },
             {
               term: "Client-GPU inference",
