@@ -3,6 +3,15 @@ import type { JSX } from "solid-js";
 import { A } from "@solidjs/router";
 import { Badge } from "@back-to-the-future/ui";
 import { SEOHead } from "../components/SEOHead";
+import { trpc } from "../lib/trpc";
+
+type SupportCategory =
+  | "technical"
+  | "billing"
+  | "bug"
+  | "feature"
+  | "sales"
+  | "other";
 
 // ── Types ───────────────────────────────────────────────────────────
 
@@ -161,29 +170,46 @@ function FAQAccordion(props: { item: FAQItem; index: number }): JSX.Element {
 export default function SupportPage(): JSX.Element {
   const [name, setName] = createSignal("");
   const [email, setEmail] = createSignal("");
-  const [subject, setSubject] = createSignal("technical");
+  const [subject, setSubject] = createSignal<SupportCategory>("technical");
   const [message, setMessage] = createSignal("");
   const [submitting, setSubmitting] = createSignal(false);
   const [submitted, setSubmitted] = createSignal(false);
+  const [errorText, setErrorText] = createSignal<string | null>(null);
 
-  const handleSubmit = (e: SubmitEvent): void => {
+  const handleSubmit = async (e: SubmitEvent): Promise<void> => {
     e.preventDefault();
+    setErrorText(null);
     if (
       name().trim().length < 2 ||
       !email().includes("@") ||
       message().trim().length < 10
     ) {
+      setErrorText(
+        "Please fill in your name, a valid email, and a message of at least 10 characters.",
+      );
       return;
     }
     setSubmitting(true);
-    // Simulate submission
-    setTimeout(() => {
-      setSubmitting(false);
+    try {
+      await trpc.support.submitPublic.mutate({
+        name: name().trim(),
+        email: email().trim(),
+        category: subject(),
+        message: message().trim(),
+      });
       setSubmitted(true);
       setName("");
       setEmail("");
       setMessage("");
-    }, 1200);
+    } catch (err) {
+      const msg =
+        err instanceof Error && err.message
+          ? err.message
+          : "We couldn't send that right now — please try again in a moment, or email support@crontech.ai directly.";
+      setErrorText(msg);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -373,7 +399,12 @@ export default function SupportPage(): JSX.Element {
                 </div>
               }
             >
-              <form onSubmit={handleSubmit} class="space-y-5">
+              <form
+                onSubmit={(e) => {
+                  void handleSubmit(e);
+                }}
+                class="space-y-5"
+              >
                 <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
                   {/* Name */}
                   <div>
@@ -435,7 +466,7 @@ export default function SupportPage(): JSX.Element {
                     id="support-subject"
                     value={subject()}
                     onChange={(e) =>
-                      setSubject(e.currentTarget.value)
+                      setSubject(e.currentTarget.value as SupportCategory)
                     }
                     class="w-full rounded-xl border border-[var(--color-border)] px-4 py-3 text-sm outline-none transition-colors appearance-none"
                     style={{
@@ -491,6 +522,20 @@ export default function SupportPage(): JSX.Element {
                     ? "Sending..."
                     : "Send Message"}
                 </button>
+
+                <Show when={errorText()}>
+                  <p
+                    role="alert"
+                    class="rounded-lg border px-3 py-2 text-xs"
+                    style={{
+                      "border-color": "color-mix(in oklab, var(--color-error) 40%, transparent)",
+                      background: "color-mix(in oklab, var(--color-error) 10%, transparent)",
+                      color: "var(--color-error)",
+                    }}
+                  >
+                    {errorText()}
+                  </p>
+                </Show>
               </form>
             </Show>
           </div>

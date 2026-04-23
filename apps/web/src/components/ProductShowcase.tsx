@@ -24,11 +24,18 @@ export interface Product {
 
 // ── Data ────────────────────────────────────────────────────────────
 //
-// All eight routes now resolve to real pages — /dns and /sms landed
-// in the parallel agent's commit. SMS + eSIM still carry a polite
-// "coming soon" badge because the API surfaces are not production-
-// ready yet, but the deep link resolves so the link-checker stays
-// green and curious visitors can read the product pitch.
+// All eight routes now resolve to real pages. SMS and eSIM carry a
+// polite "coming soon" badge because their customer-facing surfaces
+// are not production-ready yet, but the deep link resolves to an
+// honest early-preview page so the link-checker stays green and
+// curious visitors can read the product pitch without being shown
+// fabricated data. Edge Database is live as of BLK-012 — the
+// in-browser inspector ships admin-gated against real tables.
+
+// Lock in: BLK-012 landed the real /database inspector (admin-gated,
+// read-only, wired to trpc.dbInspector.*), so the Edge Database
+// card flips from "coming-soon" back to "live". The honest fallback
+// for non-admins remains a polite "Admin only — contact support".
 
 export const PRODUCTS: Product[] = [
   {

@@ -234,7 +234,12 @@ export default function BuilderPage(): JSX.Element {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const roomId = (): string | undefined => searchParams.room as string | undefined;
-  const isCollaborative = (): boolean => !!roomId();
+  // Live CRDT collaboration is BLK-011 🔵 PLANNED — the full Yjs +
+  // Durable Object transport isn't wired up yet. Until it ships, we
+  // hide the collab UI entirely rather than surface a permanently
+  // "Disconnected" ConnectionStatus badge that would mislead anyone
+  // landing here with a `?room=X` param.
+  const isCollaborative = (): boolean => false;
 
   // Generate a user id/name for the session
   const userId = `user-${Math.random().toString(36).slice(2, 9)}`;

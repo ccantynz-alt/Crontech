@@ -1,468 +1,457 @@
-import { createSignal, createEffect, createMemo, onCleanup, For } from "solid-js";
+// ── Project Metrics — Real OTel → Mimir drill-down ────────────────────
+//
+// Replaces the honest-preview placeholder that was standing in after we
+// ripped out the 468-line `Math.random()` theatre. This page now queries
+// the `trpc.metrics.projectTimeseries` procedure, which in turn hits the
+// Mimir HTTP API (live from BLK-014).
+//
+// Honest contract:
+//   • `trpc.metrics.projectTimeseries` returns `null` when MIMIR_URL is
+//     unset or Mimir is unreachable. We render "No metrics yet" per chart.
+//   • It returns `{ points: [] }` when Mimir is reachable but has no
+//     samples tagged with this project_id. Also "No metrics yet".
+//   • Only when `points.length > 0` do we render a chart.
+//
+// Under NO circumstances does this page synthesise values. If we don't
+// have real data, we say so. That's the whole point.
+//
+// URL state:
+//   • `/projects/[id]/metrics?range=24h` — range is persisted in the
+//     query string so refresh preserves the selected window.
+
+import { createResource, createMemo, For, Show } from "solid-js";
 import type { JSX } from "solid-js";
-import { useParams } from "@solidjs/router";
+import { useParams, useSearchParams, A } from "@solidjs/router";
 import { ProtectedRoute } from "../../../components/ProtectedRoute";
 import { SEOHead } from "../../../components/SEOHead";
 import { MetricsChart } from "../../../components/MetricsChart";
-import type { DataPoint } from "../../../components/MetricsChart";
 import { MetricCard } from "../../../components/MetricCard";
-import type { MetricCardProps } from "../../../components/MetricCard";
+import { trpc } from "../../../lib/trpc";
 
-// ── Time Range ──────────────────────────────────────────────────────
+// ── Types ────────────────────────────────────────────────────────────
 
-type TimeRange = "1h" | "6h" | "24h" | "7d" | "30d";
+type MetricName = "cpu" | "memory" | "bandwidth" | "requests";
+type RangeKey = "1h" | "6h" | "24h" | "7d" | "30d";
 
-interface TimeRangeOption {
-  value: TimeRange;
+interface TimeseriesPoint {
+  t: number;
+  v: number;
+}
+
+interface TimeseriesPayload {
+  metric: MetricName;
   label: string;
-  points: number;
-  intervalMs: number;
-}
-
-const TIME_RANGES: TimeRangeOption[] = [
-  { value: "1h", label: "1H", points: 60, intervalMs: 60_000 },
-  { value: "6h", label: "6H", points: 72, intervalMs: 5 * 60_000 },
-  { value: "24h", label: "24H", points: 96, intervalMs: 15 * 60_000 },
-  { value: "7d", label: "7D", points: 84, intervalMs: 2 * 3600_000 },
-  { value: "30d", label: "30D", points: 90, intervalMs: 8 * 3600_000 },
-];
-
-// ── Mock Data Generators ────────────────────────────────────────────
-
-function generateCpuData(count: number, intervalMs: number): DataPoint[] {
-  const now = Date.now();
-  const points: DataPoint[] = [];
-  for (let i = 0; i < count; i++) {
-    const t = now - (count - 1 - i) * intervalMs;
-    // Oscillating 20-60% with noise — simulate real container workload
-    const hour = new Date(t).getHours();
-    const dailyCurve = Math.sin(((hour - 6) / 24) * Math.PI * 2) * 12;
-    const base = 38 + dailyCurve;
-    const noise = (Math.random() - 0.5) * 14;
-    const spike = Math.random() > 0.93 ? Math.random() * 18 : 0;
-    points.push({ timestamp: t, value: Math.max(5, Math.min(95, base + noise + spike)) });
-  }
-  return points;
-}
-
-function generateMemoryData(count: number, intervalMs: number): DataPoint[] {
-  const now = Date.now();
-  const points: DataPoint[] = [];
-  let current = 42 + Math.random() * 6;
-  for (let i = 0; i < count; i++) {
-    const t = now - (count - 1 - i) * intervalMs;
-    // Memory: steady around 45% with slow drift and occasional GC drops
-    const drift = (Math.random() - 0.48) * 1.5;
-    current += drift;
-    if (Math.random() > 0.95) current -= 3 + Math.random() * 4; // GC
-    current = Math.max(30, Math.min(75, current));
-    points.push({ timestamp: t, value: current });
-  }
-  return points;
-}
-
-function generateBandwidthData(count: number, intervalMs: number): DataPoint[] {
-  const now = Date.now();
-  const points: DataPoint[] = [];
-  for (let i = 0; i < count; i++) {
-    const t = now - (count - 1 - i) * intervalMs;
-    // Bandwidth: spiky — bursts of traffic
-    const hour = new Date(t).getHours();
-    const isActive = hour >= 8 && hour <= 22;
-    const base = isActive ? 120 + Math.random() * 60 : 20 + Math.random() * 30;
-    const spike = Math.random() > 0.88 ? Math.random() * 200 : 0;
-    points.push({ timestamp: t, value: Math.max(5, base + spike) });
-  }
-  return points;
-}
-
-function generateRequestsData(count: number, intervalMs: number): DataPoint[] {
-  const now = Date.now();
-  const points: DataPoint[] = [];
-  for (let i = 0; i < count; i++) {
-    const t = now - (count - 1 - i) * intervalMs;
-    // Requests: daily pattern — peak during business hours
-    const hour = new Date(t).getHours();
-    const dailyMultiplier = Math.exp(-0.5 * ((hour - 14) / 4) ** 2); // Gaussian peak at 2pm
-    const base = 800 + dailyMultiplier * 3200;
-    const noise = (Math.random() - 0.5) * 400;
-    points.push({ timestamp: t, value: Math.max(50, base + noise) });
-  }
-  return points;
-}
-
-// ── Metric Configs ──────────────────────────────────────────────────
-
-interface MetricConfig {
-  key: string;
-  name: string;
-  icon: string;
-  color: string;
   unit: string;
-  generator: (count: number, interval: number) => DataPoint[];
-  formatCard: (data: DataPoint[]) => string;
-  getStatus: (data: DataPoint[]) => MetricCardProps["status"];
+  range: RangeKey;
+  points: TimeseriesPoint[];
 }
 
-const METRIC_CONFIGS: MetricConfig[] = [
+interface MetricDescriptor {
+  key: MetricName;
+  label: string;
+  unit: string;
+  color: string;
+  icon: string;
+  /** Formatter for the numeric value shown on the MetricCard. */
+  formatValue: (v: number) => string;
+}
+
+const METRICS: MetricDescriptor[] = [
   {
     key: "cpu",
-    name: "CPU Usage",
-    icon: "\u{1F4BB}",
-    color: "#3b82f6",
+    label: "CPU",
     unit: "%",
-    generator: generateCpuData,
-    formatCard: (data) => {
-      const last = data[data.length - 1];
-      return last ? `${last.value.toFixed(1)}` : "0";
-    },
-    getStatus: (data) => {
-      const last = data[data.length - 1];
-      if (!last) return "healthy";
-      if (last.value > 80) return "critical";
-      if (last.value > 60) return "warning";
-      return "healthy";
-    },
+    color: "#60a5fa",
+    icon: "\u{1F4BB}",
+    formatValue: (v) => v.toFixed(1),
   },
   {
     key: "memory",
-    name: "Memory Usage",
-    icon: "\u{1F9E0}",
-    color: "#10b981",
+    label: "Memory",
     unit: "%",
-    generator: generateMemoryData,
-    formatCard: (data) => {
-      const last = data[data.length - 1];
-      return last ? `${last.value.toFixed(1)}` : "0";
-    },
-    getStatus: (data) => {
-      const last = data[data.length - 1];
-      if (!last) return "healthy";
-      if (last.value > 85) return "critical";
-      if (last.value > 70) return "warning";
-      return "healthy";
-    },
+    color: "#a78bfa",
+    icon: "\u{1F9E0}",
+    formatValue: (v) => v.toFixed(1),
   },
   {
     key: "bandwidth",
-    name: "Bandwidth",
-    icon: "\u{1F4E1}",
-    color: "#a855f7",
+    label: "Bandwidth",
     unit: "MB/s",
-    generator: generateBandwidthData,
-    formatCard: (data) => {
-      const last = data[data.length - 1];
-      return last ? `${last.value.toFixed(0)}` : "0";
-    },
-    getStatus: (data) => {
-      const last = data[data.length - 1];
-      if (!last) return "healthy";
-      if (last.value > 350) return "warning";
-      return "healthy";
-    },
+    color: "#34d399",
+    icon: "\u{1F4E1}",
+    formatValue: (v) => v.toFixed(2),
   },
   {
     key: "requests",
-    name: "Requests",
-    icon: "\u26A1",
-    color: "#f59e0b",
+    label: "Requests / min",
     unit: "req/min",
-    generator: generateRequestsData,
-    formatCard: (data) => {
-      const last = data[data.length - 1];
-      if (!last) return "0";
-      if (last.value >= 1000) return `${(last.value / 1000).toFixed(1)}K`;
-      return `${last.value.toFixed(0)}`;
-    },
-    getStatus: (data) => {
-      const last = data[data.length - 1];
-      if (!last) return "healthy";
-      if (last.value > 4000) return "warning";
-      return "healthy";
-    },
+    color: "#fbbf24",
+    icon: "\u{1F4CA}",
+    formatValue: (v) => (v >= 1000 ? `${(v / 1000).toFixed(1)}k` : v.toFixed(0)),
   },
 ];
 
-// ── Helper: compute % change ────────────────────────────────────────
+const RANGES: Array<{ key: RangeKey; label: string }> = [
+  { key: "1h", label: "1h" },
+  { key: "6h", label: "6h" },
+  { key: "24h", label: "24h" },
+  { key: "7d", label: "7d" },
+  { key: "30d", label: "30d" },
+];
 
-function computeChange(data: DataPoint[]): number {
-  if (data.length < 2) return 0;
-  const mid = Math.floor(data.length / 2);
-  const firstHalf = data.slice(0, mid);
-  const secondHalf = data.slice(mid);
-  const avgFirst = firstHalf.reduce((s, d) => s + d.value, 0) / firstHalf.length;
-  const avgSecond = secondHalf.reduce((s, d) => s + d.value, 0) / secondHalf.length;
-  if (avgFirst === 0) return 0;
-  return ((avgSecond - avgFirst) / avgFirst) * 100;
+const DEFAULT_RANGE: RangeKey = "24h";
+
+function isRangeKey(v: unknown): v is RangeKey {
+  return (
+    v === "1h" || v === "6h" || v === "24h" || v === "7d" || v === "30d"
+  );
 }
 
-// ── Page Component ──────────────────────────────────────────────────
+// ── Page ─────────────────────────────────────────────────────────────
 
-export default function ProjectMetricsPage(): ReturnType<typeof ProtectedRoute> {
+export default function ProjectMetricsPage(): JSX.Element {
   const params = useParams<{ id: string }>();
-  const [timeRange, setTimeRange] = createSignal<TimeRange>("24h");
-  const [autoRefresh, setAutoRefresh] = createSignal(false);
-  const [lastRefresh, setLastRefresh] = createSignal(Date.now());
+  const [search, setSearch] = useSearchParams();
 
-  // Project name (would come from tRPC in production)
-  const projectName = createMemo((): string => {
-    const id = params.id;
-    // Mock: derive a displayable name from the ID
-    const names: Record<string, string> = {
-      "proj-1": "crontech-web",
-      "proj-2": "crontech-api",
-      "proj-3": "edge-workers",
-    };
-    return names[id] ?? `project-${id}`;
-  });
+  const range = (): RangeKey => {
+    const raw = search.range;
+    return isRangeKey(raw) ? raw : DEFAULT_RANGE;
+  };
 
-  // Current time range config
-  const rangeConfig = createMemo((): TimeRangeOption => {
-    const range = timeRange();
-    return TIME_RANGES.find((r) => r.value === range) ?? TIME_RANGES[2]!;
-  });
+  const setRange = (next: RangeKey): void => {
+    setSearch({ range: next }, { replace: true });
+  };
 
-  // Generate data for all metrics (reactive to timeRange + lastRefresh)
-  const metricsData = createMemo((): Record<string, DataPoint[]> => {
-    // Touch lastRefresh to make this reactive to refresh triggers
-    const _refresh = lastRefresh();
-    const config = rangeConfig();
-    const result: Record<string, DataPoint[]> = {};
-    for (const metric of METRIC_CONFIGS) {
-      result[metric.key] = metric.generator(config.points, config.intervalMs);
-    }
-    return result;
-  });
+  // Project metadata (name for the breadcrumb + H1).
+  const [project] = createResource(
+    () => params.id,
+    async (id): Promise<{ id: string; name: string } | null> => {
+      try {
+        const row = (await trpc.projects.getById.query({ projectId: id })) as
+          | { id: string; name: string }
+          | null;
+        return row ? { id: row.id, name: row.name } : null;
+      } catch {
+        return null;
+      }
+    },
+  );
 
-  // Auto-refresh interval
-  createEffect((): void => {
-    if (!autoRefresh()) return;
-    const interval = setInterval(() => {
-      setLastRefresh(Date.now());
-    }, 30_000);
-    onCleanup(() => clearInterval(interval));
-  });
-
-  // Format time for the chart based on range
-  const formatTimeForRange = createMemo((): ((ts: number) => string) => {
-    const range = timeRange();
-    if (range === "1h" || range === "6h") {
-      return (ts: number): string => {
-        const d = new Date(ts);
-        return `${d.getHours().toString().padStart(2, "0")}:${d.getMinutes().toString().padStart(2, "0")}`;
-      };
-    }
-    if (range === "24h") {
-      return (ts: number): string => {
-        const d = new Date(ts);
-        return `${d.getHours().toString().padStart(2, "0")}:00`;
-      };
-    }
-    // 7d / 30d
-    return (ts: number): string => {
-      const d = new Date(ts);
-      const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-      return `${months[d.getMonth()]} ${d.getDate()}`;
-    };
-  });
+  const displayName = (): string =>
+    project()?.name ?? (params.id ? `project ${params.id}` : "this project");
 
   return (
     <ProtectedRoute>
       <SEOHead
-        title={`Metrics - ${projectName()}`}
-        description={`Real-time container metrics for ${projectName()} — CPU, memory, bandwidth, and request monitoring.`}
+        title="Metrics"
+        description="Per-project metrics on Crontech — CPU, memory, bandwidth, and request graphs backed by the Crontech OpenTelemetry → Mimir observability pipeline."
         path={`/projects/${params.id}/metrics`}
       />
 
-      <div class="min-h-screen bg-[var(--color-bg)]">
-        <div class="mx-auto max-w-[1440px] px-6 py-8 lg:px-8">
-          {/* ── Header ────────────────────────────────────────────── */}
-          <div class="mb-8 flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
-            <div class="flex flex-col gap-1">
-              <div class="flex items-center gap-3">
-                <div
-                  class="flex h-8 w-8 items-center justify-center rounded-lg text-sm"
-                  style={{
-                    background: "linear-gradient(135deg, rgba(139,92,246,0.2), rgba(6,182,212,0.2))",
-                    color: "var(--color-accent)",
-                  }}
-                >
-                  {"\u{1F4CA}"}
-                </div>
-                <h1 class="text-2xl font-bold tracking-tight" style={{ color: "var(--color-text)" }}>
-                  {projectName()}
-                </h1>
-                <span
-                  class="rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider"
-                  style={{
-                    background: "rgba(16,185,129,0.15)",
-                    color: "var(--color-success)",
-                  }}
-                >
-                  Live
-                </span>
-              </div>
-              <p class="text-sm" style={{ color: "var(--color-text-faint)" }}>
-                Container metrics &middot; Real-time monitoring
+      <div
+        class="min-h-screen"
+        style={{ background: "var(--color-bg)", color: "var(--color-text)" }}
+      >
+        <div class="mx-auto max-w-7xl px-6 py-12">
+          {/* Breadcrumb */}
+          <nav
+            aria-label="Breadcrumb"
+            class="mb-6 flex items-center gap-2 text-xs"
+            style={{ color: "var(--color-text-muted)" }}
+          >
+            <A
+              href="/projects"
+              class="hover:underline"
+              style={{ color: "var(--color-text-muted)" }}
+            >
+              Projects
+            </A>
+            <span aria-hidden="true">/</span>
+            <A
+              href={`/projects/${params.id}`}
+              class="hover:underline"
+              style={{ color: "var(--color-text-muted)" }}
+            >
+              {displayName()}
+            </A>
+            <span aria-hidden="true">/</span>
+            <span style={{ color: "var(--color-text)" }}>Metrics</span>
+          </nav>
+
+          {/* Header */}
+          <div class="flex flex-wrap items-end justify-between gap-4">
+            <div class="flex flex-col gap-2">
+              <h1 class="text-4xl font-bold tracking-tight">
+                Metrics for {displayName()}
+              </h1>
+              <p
+                class="max-w-2xl text-sm leading-relaxed"
+                style={{ color: "var(--color-text-muted)" }}
+              >
+                Real-time telemetry from the Crontech observability
+                pipeline (OpenTelemetry &rarr; Mimir). Charts below pull
+                directly from Mimir &mdash; when a series is missing or
+                the pipeline is unreachable we say so rather than invent
+                numbers.
               </p>
             </div>
 
-            <div class="flex items-center gap-3">
-              {/* Auto-refresh toggle */}
-              <button
-                type="button"
-                class="flex items-center gap-2 rounded-lg border px-3 py-1.5 text-xs font-medium transition-all duration-200"
-                style={{
-                  "border-color": autoRefresh() ? "rgba(16,185,129,0.3)" : "var(--color-border)",
-                  background: autoRefresh() ? "rgba(16,185,129,0.08)" : "var(--color-bg-subtle)",
-                  color: autoRefresh() ? "var(--color-success)" : "var(--color-text-muted)",
-                }}
-                onClick={() => setAutoRefresh((v) => !v)}
-              >
-                <div
-                  class="h-1.5 w-1.5 rounded-full"
-                  style={{
-                    background: autoRefresh() ? "var(--color-success)" : "var(--color-text-faint)",
-                  }}
-                  classList={{ "animate-pulse": autoRefresh() }}
-                />
-                Auto-refresh {autoRefresh() ? "ON" : "OFF"}
-              </button>
-
-              {/* Time range selector */}
-              <div
-                class="flex items-center gap-0.5 rounded-lg border border-[var(--color-border)] p-0.5"
-                style={{ background: "var(--color-bg-subtle)" }}
-              >
-                <For each={TIME_RANGES}>
-                  {(range) => (
+            {/* Range selector */}
+            <div
+              role="radiogroup"
+              aria-label="Time range"
+              class="inline-flex items-center gap-1 rounded-xl p-1"
+              style={{
+                background: "var(--color-bg-elevated)",
+                border: "1px solid var(--color-border)",
+              }}
+            >
+              <For each={RANGES}>
+                {(r) => {
+                  const active = (): boolean => range() === r.key;
+                  return (
                     <button
                       type="button"
-                      class="rounded-md px-3 py-1.5 text-xs font-medium transition-all duration-200"
+                      role="radio"
+                      aria-checked={active()}
+                      onClick={() => setRange(r.key)}
+                      class="inline-flex items-center justify-center rounded-lg px-3 py-1.5 text-xs font-semibold transition"
                       style={{
-                        background: timeRange() === range.value ? "rgba(139,92,246,0.15)" : "transparent",
-                        color: timeRange() === range.value ? "var(--color-accent)" : "var(--color-text-faint)",
-                      }}
-                      onClick={() => {
-                        setTimeRange(range.value);
-                        setLastRefresh(Date.now());
+                        background: active()
+                          ? "var(--color-primary)"
+                          : "transparent",
+                        color: active()
+                          ? "#ffffff"
+                          : "var(--color-text-muted)",
                       }}
                     >
-                      {range.label}
+                      {r.label}
                     </button>
-                  )}
-                </For>
-              </div>
-
-              {/* Manual refresh */}
-              <button
-                type="button"
-                class="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-subtle)] px-3 py-1.5 text-xs font-medium transition-all duration-200 hover:border-[var(--color-border-hover)] hover:bg-[var(--color-bg-muted)] hover:text-[var(--color-text)]"
-                style={{ color: "var(--color-text-muted)" }}
-                onClick={() => setLastRefresh(Date.now())}
-              >
-                Refresh
-              </button>
+                  );
+                }}
+              </For>
             </div>
           </div>
 
-          {/* ── Metric Summary Cards ──────────────────────────────── */}
-          <div class="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <For each={METRIC_CONFIGS}>
-              {(config) => {
-                const data = createMemo((): DataPoint[] => metricsData()[config.key] ?? []);
-                const sparkline = createMemo((): number[] => {
-                  const pts = data();
-                  // Take last 20 points for sparkline
-                  const subset = pts.slice(-20);
-                  return subset.map((d) => d.value);
-                });
-                return (
-                  <MetricCard
-                    name={config.name}
-                    value={config.formatCard(data())}
-                    unit={config.unit}
-                    change={computeChange(data())}
-                    status={config.getStatus(data())}
-                    sparkline={sparkline()}
-                    color={config.color}
-                    icon={config.icon}
-                  />
-                );
-              }}
+          {/* Chart grid */}
+          <div class="mt-10 grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <For each={METRICS}>
+              {(desc) => (
+                <MetricPanel
+                  projectId={params.id}
+                  descriptor={desc}
+                  range={range()}
+                />
+              )}
             </For>
           </div>
 
-          {/* ── Full Charts Grid ──────────────────────────────────── */}
-          <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            <For each={METRIC_CONFIGS}>
-              {(config) => {
-                const data = createMemo((): DataPoint[] => metricsData()[config.key] ?? []);
-                return (
-                  <div class="overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg)]">
-                    {/* Chart header */}
-                    <div class="flex items-center justify-between border-b border-[var(--color-border)] px-6 py-4">
-                      <div class="flex items-center gap-3">
-                        <div
-                          class="h-2 w-2 rounded-full"
-                          style={{ background: config.color }}
-                        />
-                        <span class="text-sm font-semibold" style={{ color: "var(--color-text)" }}>
-                          {config.name}
-                        </span>
-                      </div>
-                      <span class="text-xs" style={{ color: "var(--color-text-faint)" }}>
-                        {rangeConfig().points} data points
-                      </span>
-                    </div>
-                    {/* Chart body */}
-                    <div class="px-2 py-4">
-                      <MetricsChart
-                        data={data()}
-                        color={config.color}
-                        label={config.name}
-                        unit={config.unit}
-                        height={280}
-                        formatValue={(v: number): string => {
-                          if (config.key === "requests") {
-                            if (v >= 1000) return `${(v / 1000).toFixed(1)}K`;
-                            return v.toFixed(0);
-                          }
-                          return v.toFixed(1);
-                        }}
-                        formatTime={formatTimeForRange()}
-                      />
-                    </div>
-                  </div>
-                );
-              }}
-            </For>
-          </div>
-
-          {/* ── Footer info bar ───────────────────────────────────── */}
-          <div class="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-subtle)] px-5 py-3">
-            <div class="flex items-center gap-4 text-xs" style={{ color: "var(--color-text-faint)" }}>
-              <span>
-                Region:{" "}
-                <span class="font-medium" style={{ color: "var(--color-text-muted)" }}>us-east-1</span>
-              </span>
-              <span class="h-3 w-px bg-[var(--color-border)]" />
-              <span>
-                Runtime:{" "}
-                <span class="font-medium" style={{ color: "var(--color-text-muted)" }}>Bun 1.3.9</span>
-              </span>
-              <span class="h-3 w-px bg-[var(--color-border)]" />
-              <span>
-                Edge:{" "}
-                <span class="font-medium" style={{ color: "var(--color-text-muted)" }}>330+ cities</span>
-              </span>
-            </div>
-            <span class="text-[10px]" style={{ color: "var(--color-text-faint)" }}>
-              Last updated: {new Date(lastRefresh()).toLocaleTimeString()}
-            </span>
-          </div>
+          {/* Pipeline footer */}
+          <p
+            class="mt-10 text-xs"
+            style={{ color: "var(--color-text-faint)" }}
+          >
+            Source: OpenTelemetry collector &rarr; Mimir (BLK-014). When
+            per-project labels are not present on a series, the chart
+            shows its empty state &mdash; not synthesised data.
+          </p>
         </div>
       </div>
     </ProtectedRoute>
+  );
+}
+
+// ── Per-chart panel ──────────────────────────────────────────────────
+
+interface MetricPanelProps {
+  projectId: string;
+  descriptor: MetricDescriptor;
+  range: RangeKey;
+}
+
+function MetricPanel(props: MetricPanelProps): JSX.Element {
+  const [series] = createResource(
+    () => ({ projectId: props.projectId, metric: props.descriptor.key, range: props.range }),
+    async ({ projectId, metric, range }): Promise<TimeseriesPayload | null> => {
+      try {
+        const res = (await trpc.metrics.projectTimeseries.query({
+          projectId,
+          metric,
+          range,
+        })) as TimeseriesPayload | null;
+        return res;
+      } catch {
+        // Network / tRPC failure — surface as error state.
+        throw new Error("fetch-failed");
+      }
+    },
+  );
+
+  const hasPoints = createMemo((): boolean => {
+    const data = series();
+    return data !== null && data !== undefined && data.points.length > 0;
+  });
+
+  const latestValue = createMemo((): number | null => {
+    const data = series();
+    if (!data || data.points.length === 0) return null;
+    const last = data.points[data.points.length - 1];
+    return last ? last.v : null;
+  });
+
+  const cardValue = createMemo((): string => {
+    const v = latestValue();
+    return v === null ? "—" : props.descriptor.formatValue(v);
+  });
+
+  const sparkline = createMemo((): number[] => {
+    const data = series();
+    if (!data) return [];
+    return data.points.map((p) => p.v);
+  });
+
+  const trendChange = createMemo((): number => {
+    const data = series();
+    if (!data || data.points.length < 2) return 0;
+    const first = data.points[0]?.v ?? 0;
+    const last = data.points[data.points.length - 1]?.v ?? 0;
+    if (first === 0) return 0;
+    return ((last - first) / first) * 100;
+  });
+
+  const chartPoints = createMemo((): Array<{ timestamp: number; value: number }> => {
+    const data = series();
+    if (!data) return [];
+    return data.points.map((p) => ({ timestamp: p.t, value: p.v }));
+  });
+
+  return (
+    <section
+      class="flex flex-col gap-4 rounded-2xl p-5"
+      style={{
+        background: "var(--color-bg-elevated)",
+        border: "1px solid var(--color-border)",
+      }}
+      aria-label={`${props.descriptor.label} metrics`}
+    >
+      {/* Summary card */}
+      <MetricCard
+        name={props.descriptor.label}
+        value={cardValue()}
+        unit={props.descriptor.unit}
+        change={trendChange()}
+        status="healthy"
+        color={props.descriptor.color}
+        icon={props.descriptor.icon}
+        sparkline={sparkline()}
+      />
+
+      {/* Chart body — 4 states: loading / error / empty / data */}
+      <div class="min-h-[240px]">
+        <Show
+          when={!series.loading}
+          fallback={<ChartSkeleton color={props.descriptor.color} />}
+        >
+          <Show
+            when={series.error === undefined}
+            fallback={<ChartError />}
+          >
+            <Show
+              when={hasPoints()}
+              fallback={<ChartEmpty metric={props.descriptor.label} />}
+            >
+              <MetricsChart
+                data={chartPoints()}
+                color={props.descriptor.color}
+                label={props.descriptor.label}
+                unit={props.descriptor.unit}
+                height={240}
+                animate={false}
+              />
+            </Show>
+          </Show>
+        </Show>
+      </div>
+    </section>
+  );
+}
+
+// ── Non-data states ──────────────────────────────────────────────────
+
+function ChartSkeleton(props: { color: string }): JSX.Element {
+  return (
+    <div
+      class="flex h-[240px] w-full animate-pulse items-center justify-center rounded-xl"
+      style={{
+        background: `color-mix(in oklab, ${props.color} 6%, transparent)`,
+        border: `1px dashed color-mix(in oklab, ${props.color} 20%, transparent)`,
+      }}
+      aria-busy="true"
+      aria-label="Loading metrics"
+    >
+      <span
+        class="text-xs"
+        style={{ color: "var(--color-text-faint)" }}
+      >
+        Loading…
+      </span>
+    </div>
+  );
+}
+
+function ChartError(): JSX.Element {
+  return (
+    <div
+      class="flex h-[240px] w-full items-center justify-center rounded-xl p-6 text-center"
+      style={{
+        background: "color-mix(in oklab, var(--color-danger) 8%, transparent)",
+        border: "1px solid color-mix(in oklab, var(--color-danger) 30%, transparent)",
+      }}
+      role="alert"
+    >
+      <div class="flex flex-col items-center gap-1">
+        <span
+          class="text-sm font-semibold"
+          style={{ color: "var(--color-danger)" }}
+        >
+          Couldn&apos;t reach the metrics pipeline
+        </span>
+        <span
+          class="text-xs"
+          style={{ color: "var(--color-text-muted)" }}
+        >
+          The metrics API returned an error. No data shown rather than fake data.
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function ChartEmpty(props: { metric: string }): JSX.Element {
+  return (
+    <div
+      class="flex h-[240px] w-full items-center justify-center rounded-xl p-6 text-center"
+      style={{
+        background: "color-mix(in oklab, var(--color-border) 30%, transparent)",
+        border: "1px dashed var(--color-border)",
+      }}
+    >
+      <div class="flex flex-col items-center gap-1">
+        <span
+          class="text-sm font-semibold"
+          style={{ color: "var(--color-text)" }}
+        >
+          No {props.metric.toLowerCase()} metrics yet
+        </span>
+        <span
+          class="max-w-xs text-xs"
+          style={{ color: "var(--color-text-muted)" }}
+        >
+          Mimir is reachable but has no samples for this project in the
+          selected range. Deploy or generate traffic and the chart will
+          fill in — we do not synthesise data.
+        </span>
+      </div>
+    </div>
   );
 }
