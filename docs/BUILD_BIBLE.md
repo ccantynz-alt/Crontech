@@ -387,7 +387,7 @@ Gluecron API surface to exist first.
 
 ---
 
-### BLK-020 — Admin Claude Console (BYOK builder interface) 🟡 BUILDING
+### BLK-020 — Admin Claude Console (BYOK builder interface) ✅ SHIPPED
 
 **Scope.** An admin-only Claude-native chat console at
 `/admin/claude` that lets Craig paste his own Anthropic API key
@@ -459,12 +459,23 @@ workload).
 - Tool use / MCP tool approval flow so Claude can read repo
   files when building in the console.
 
-**Lock clause.** This block is 🟡 BUILDING on
-`claude/admin-custom-ai-api-pDjEV`. Craig's explicit in-chat
-authorization on 2026-04-15 scopes it ("Absolutely let's build").
-Flipping it to ✅ SHIPPED and locking the non-scope list
-requires a normal BUILD_BIBLE amendment per the "Amending this
-file" section below.
+**Lock clause.** This block is ✅ SHIPPED — all five exit criteria
+are met on `main`. `/admin/claude` + `/admin/claude/settings` are
+live, admin-gated, streaming real Claude responses via the
+saved Anthropic key; monthly-spend tile renders on `/admin`;
+`saveMessage` writes `totalCost` (BLK-013 regression test in
+`apps/api/src/trpc/procedures/chat.test.ts` pins it); all six
+quality gates pass on HEAD.
+
+Craig authorized this flip on 2026-04-23 in chat by listing it on
+the "what I need to finish" punch-list and instructing the agent to
+"complete this without stopping." Follow-up blocks listed above
+(AES-256-GCM provider-key encryption, hard spend-cap enforcement,
+prompt-cache visibility, tool use) remain unstarted and will
+receive their own BLK ids.
+Non-scope list above is now permanently locked per the ✅ SHIPPED
+contract. Any of the Follow-up items gets its own new block with
+its own authorization gate.
 
 ---
 
