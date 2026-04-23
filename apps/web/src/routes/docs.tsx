@@ -67,7 +67,8 @@ const DOC_CATEGORIES: DocCategory[] = [
       "tRPC procedures, REST endpoints, and WebSocket channels. Type-safe schemas end to end.",
     tags: ["tRPC", "REST", "WebSocket"],
     gradient: "var(--color-primary)",
-    ready: false,
+    ready: true,
+    firstArticleHref: "/docs/api-reference",
   },
   {
     id: "ai-sdk",
@@ -97,7 +98,8 @@ const DOC_CATEGORIES: DocCategory[] = [
       "Deploy to Cloudflare Workers, Pages, and Fly.io. CI/CD pipelines, env vars, and canary rollouts.",
     tags: ["deploy", "edge", "CI/CD"],
     gradient: "var(--color-warning)",
-    ready: false,
+    ready: true,
+    firstArticleHref: "/docs/deployment",
   },
   {
     id: "guides",
@@ -161,6 +163,72 @@ const REAL_ARTICLES: RealArticle[] = [
     category: "Getting Started",
     readTime: "3 min",
     href: "/docs/getting-started/billing",
+  },
+  {
+    title: "Deployment overview",
+    category: "Deployment",
+    readTime: "4 min",
+    href: "/docs/deployment",
+  },
+  {
+    title: "How a deploy actually runs",
+    category: "Deployment",
+    readTime: "5 min",
+    href: "/docs/deployment/how-a-deploy-runs",
+  },
+  {
+    title: "Environment variables",
+    category: "Deployment",
+    readTime: "4 min",
+    href: "/docs/deployment/environment-variables",
+  },
+  {
+    title: "Custom domains",
+    category: "Deployment",
+    readTime: "4 min",
+    href: "/docs/deployment/custom-domains",
+  },
+  {
+    title: "API Reference overview",
+    category: "API Reference",
+    readTime: "4 min",
+    href: "/docs/api-reference",
+  },
+  {
+    title: "Auth procedures",
+    category: "API Reference",
+    readTime: "5 min",
+    href: "/docs/api-reference/auth",
+  },
+  {
+    title: "Projects procedures",
+    category: "API Reference",
+    readTime: "5 min",
+    href: "/docs/api-reference/projects",
+  },
+  {
+    title: "Billing procedures",
+    category: "API Reference",
+    readTime: "5 min",
+    href: "/docs/api-reference/billing",
+  },
+  {
+    title: "DNS & Domains procedures",
+    category: "API Reference",
+    readTime: "5 min",
+    href: "/docs/api-reference/dns-and-domains",
+  },
+  {
+    title: "AI & Chat procedures",
+    category: "API Reference",
+    readTime: "5 min",
+    href: "/docs/api-reference/ai-and-chat",
+  },
+  {
+    title: "Support procedures",
+    category: "API Reference",
+    readTime: "4 min",
+    href: "/docs/api-reference/support",
   },
 ];
 

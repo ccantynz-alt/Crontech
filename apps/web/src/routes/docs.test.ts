@@ -32,6 +32,27 @@ const GETTING_STARTED_ARTICLES = [
   "docs/getting-started/billing.tsx",
 ] as const;
 
+// The Deployment series — four real articles. Same invariant: every
+// href on /docs must resolve to a file on disk.
+const DEPLOYMENT_ARTICLES = [
+  "docs/deployment/index.tsx",
+  "docs/deployment/how-a-deploy-runs.tsx",
+  "docs/deployment/environment-variables.tsx",
+  "docs/deployment/custom-domains.tsx",
+] as const;
+
+// The API Reference series — one index + six per-router articles.
+// Same invariant as the others: /docs must not ship a dead link.
+const API_REFERENCE_ARTICLES = [
+  "docs/api-reference/index.tsx",
+  "docs/api-reference/auth.tsx",
+  "docs/api-reference/projects.tsx",
+  "docs/api-reference/billing.tsx",
+  "docs/api-reference/dns-and-domains.tsx",
+  "docs/api-reference/ai-and-chat.tsx",
+  "docs/api-reference/support.tsx",
+] as const;
+
 describe("docs route — smoke", () => {
   test("route file exists", () => {
     expect(existsSync(ROUTE_PATH)).toBe(true);
@@ -44,6 +65,57 @@ describe("docs route — smoke", () => {
       const abs = resolve(import.meta.dir, rel);
       expect(existsSync(abs)).toBe(true);
     }
+  });
+
+  test("all four deployment articles exist on disk", () => {
+    // /docs links to each of the four real deployment articles.
+    for (const rel of DEPLOYMENT_ARTICLES) {
+      const abs = resolve(import.meta.dir, rel);
+      expect(existsSync(abs)).toBe(true);
+    }
+  });
+
+  test("deployment category is marked ready with a firstArticleHref", () => {
+    const src = readFileSync(ROUTE_PATH, "utf-8");
+    // The deployment card must now link to /docs/deployment — the
+    // category-index article — rather than rendering a "Coming soon"
+    // pill.
+    expect(src).toContain('id: "deployment"');
+    expect(src).toContain('firstArticleHref: "/docs/deployment"');
+  });
+
+  test("deployment article hrefs all appear in the landing", () => {
+    const src = readFileSync(ROUTE_PATH, "utf-8");
+    expect(src).toContain("/docs/deployment");
+    expect(src).toContain("/docs/deployment/how-a-deploy-runs");
+    expect(src).toContain("/docs/deployment/environment-variables");
+    expect(src).toContain("/docs/deployment/custom-domains");
+  });
+
+  test("all seven api-reference articles exist on disk", () => {
+    // /docs links to each of the api-reference index + six per-router
+    // articles. A missing file means the landing ships a dead link.
+    for (const rel of API_REFERENCE_ARTICLES) {
+      const abs = resolve(import.meta.dir, rel);
+      expect(existsSync(abs)).toBe(true);
+    }
+  });
+
+  test("api-reference category is marked ready with a firstArticleHref", () => {
+    const src = readFileSync(ROUTE_PATH, "utf-8");
+    expect(src).toContain('id: "api-reference"');
+    expect(src).toContain('firstArticleHref: "/docs/api-reference"');
+  });
+
+  test("api-reference article hrefs all appear in the landing", () => {
+    const src = readFileSync(ROUTE_PATH, "utf-8");
+    expect(src).toContain("/docs/api-reference");
+    expect(src).toContain("/docs/api-reference/auth");
+    expect(src).toContain("/docs/api-reference/projects");
+    expect(src).toContain("/docs/api-reference/billing");
+    expect(src).toContain("/docs/api-reference/dns-and-domains");
+    expect(src).toContain("/docs/api-reference/ai-and-chat");
+    expect(src).toContain("/docs/api-reference/support");
   });
 
   test("exports a default component", () => {
