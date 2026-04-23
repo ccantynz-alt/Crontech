@@ -172,8 +172,12 @@ export function Callout(props: {
 }
 
 export function ScreenshotSlot(props: { caption: string }): JSX.Element {
-  // Placeholder block — Craig will drop a real screenshot in here later.
-  // The caption doubles as a description of what the image should show.
+  // Inline visual placeholder for a docs article where the real
+  // screenshot hasn't been captured yet. Previously rendered "TODO:
+  // screenshot" in the DOM, which is the kind of dev-facing string
+  // that CLAUDE.md §1 bans from production. The caption (which every
+  // caller must supply) already describes what the image should show,
+  // so we just render that inside a softly-styled figure.
   return (
     <figure
       class="my-6 rounded-xl border border-dashed p-6 text-center"
@@ -181,12 +185,13 @@ export function ScreenshotSlot(props: { caption: string }): JSX.Element {
         "border-color": "var(--color-border)",
         background: "var(--color-bg-subtle)",
       }}
+      aria-label={props.caption}
     >
       <div
-        class="text-xs font-mono uppercase tracking-wider mb-2"
+        class="text-xs font-medium uppercase tracking-wider mb-2"
         style={{ color: "var(--color-text-faint)" }}
       >
-        TODO: screenshot
+        Screenshot · coming soon
       </div>
       <figcaption
         class="text-sm"
