@@ -75,8 +75,11 @@ describe("ProductShowcase — smoke", () => {
     const src = readFileSync(COMPONENT_PATH, "utf-8");
     const liveCount = (src.match(/status: "live"/g) ?? []).length;
     const soonCount = (src.match(/status: "coming-soon"/g) ?? []).length;
-    expect(liveCount).toBe(6);
-    expect(soonCount).toBe(2);
+    // Edge Database joins SMS + eSIM on the coming-soon list until the
+    // in-browser inspector ships (BLK-012); shipping it as "live"
+    // against a page that fabricated rows was a doctrine breach.
+    expect(liveCount).toBe(5);
+    expect(soonCount).toBe(3);
   });
 
   test("copy is polite and names no competitors", () => {
