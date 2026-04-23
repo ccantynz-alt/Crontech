@@ -110,12 +110,11 @@ export default function DatabasePage(): JSX.Element {
       return;
     }
     setError(null);
-    // No waitlist tRPC procedure exists yet. When one lands, call it here.
-    // For now we show a polite confirmation.
+    // No waitlist tRPC procedure exists yet. When one lands, call it
+    // here. The inline <Show when={submitted()}> confirmation below
+    // is the polite response — avoid window.alert (cheap-looking on
+    // desktop, hostile on iOS Safari).
     setSubmitted(true);
-    if (typeof window !== "undefined") {
-      window.alert("We'll email you when the inspector is live.");
-    }
   }
 
   return (
