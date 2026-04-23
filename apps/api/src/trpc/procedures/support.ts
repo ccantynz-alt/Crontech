@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { eq, desc, sql, inArray, and } from "drizzle-orm";
-import { router, protectedProcedure, middleware } from "../init";
+import { router, protectedProcedure, publicProcedure, middleware } from "../init";
 import {
   users,
   supportTickets,
@@ -347,5 +347,36 @@ export const supportRouter = router({
         body: input.body,
       });
       return result;
+    }),
+
+  // ── Public: submit a support request from the unauth /support page.
+  // The previous implementation setTimeout-faked a submission; messages
+  // from prospects never reached anyone. This routes them into the
+  // same ticketing pipeline as authenticated submissions, but derives
+  // `from` from the user-provided email instead of the session.
+  submitPublic: publicProcedure
+    .input(
+      z.object({
+        name: z.string().trim().min(2).max(120),
+        email: z.string().trim().email().max(254),
+        category: CategoryEnum,
+        message: z.string().trim().min(10).max(10_000),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      const subject =
+        `[${input.category}] ${input.message.slice(0, 60).replace(/\s+/g, " ").trim()}` +
+        (input.message.length > 60 ? "..." : "");
+      const body = `From: ${input.name} <${input.email}>\n\n${input.message}`;
+      const result = await processInboundEmail({
+        from: input.email,
+        to: getSupportFromAddress(),
+        subject,
+        body,
+      });
+      return {
+        ticketId: result.ticketId,
+        action: result.action,
+      };
     }),
 });
