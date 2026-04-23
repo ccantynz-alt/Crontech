@@ -1,8 +1,127 @@
 # HANDOFF — Next Session Starts Here
 
-**First action (morning of 2026-04-21):** Merge **PR #163** — it now carries **BLK-009 sandbox-wrap + BLK-014 Grafana LGTM + BLK-015 Sentinel live daemon**, all on `claude/build-status-update-VqeIy`, 5 clean commits, 6/6 local gates green. After merge, say "yes" in chat to flip BLK-009, BLK-014, BLK-015 → ✅ SHIPPED in `docs/BUILD_BIBLE.md`. (BLK-020 Admin Claude Console also still pending its 🟡 → ✅ flip from the previous session.)
+**First action (morning of 2026-04-24):** Review the launch state of `https://www.crontech.ai` and `https://crontech.ai` in a fresh incognito window. Apex worked at end-of-session 2026-04-23; www should now also work after tonight's Caddy restart + cert reissue, but it was the last thing fixed and never verified browser-side.
 
-**Pending your strategic call:** BLK-010 Stripe metered billing (§0.7 HARD GATE — pricing/billing/revenue). Say "go" and the next session spawns a scoped agent that ships schema + webhooks + customer portal plumbing only (no pricing values set — you pick those).
+If www still shows `ERR_SSL_PROTOCOL_ERROR`, the fallback is the Cloudflare Redirect Rule (Rules → Redirect Rules → create: Hostname equals `www.crontech.ai` → Static redirect to `https://crontech.ai${http.request.uri.path}` status 301). That works entirely at CF's edge and bypasses the origin TLS problem.
+
+**Pending your strategic calls:**
+- **BLK-010 Stripe going-live** (§0.7 HARD GATE). Plumbing is all in. You need: `STRIPE_ENABLED=true` + real Price IDs in Vercel prod env + the launch checklist walked through. Without this, nobody can pay. See `docs/LAUNCH_CHECKLIST.md` §2.
+- **AlecRae email verification** (§0.7 HARD GATE, indirectly). Transactional email provider for signup-verify / password-reset / billing receipts. Without this the signup funnel's third step fails silently. See `docs/LAUNCH_CHECKLIST.md` §1.
+- **BLK-008 visual design ship-gate** — you committed to reviewing desktop + tablet + mobile screenshots before calling design done. Pending your eyes.
+
+---
+
+## SESSION LOG — 2026-04-23 (launch night)
+
+**Branch:** `claude/complete-website-product-6thM3` → merged to `Main` as PR #178 (commit `26476d2`).
+**Additional work this evening after merge:** continued on the same branch through tonight's outage response + the 10-item launch punch-list. Head of branch: `fa70cd8` (will advance as the telemetry agent commits).
+
+**Blocks advanced this session:**
+
+| Block | State before | State after |
+|---|---|---|
+| BLK-012 Database Inspector UI | 🔵 PLANNED | ✅ SHIPPED — admin-gated Turso + Neon browser at `/database` + `/database/[table]` with schema pane, bounded SELECT, 25-row pagination. |
+| BLK-014 Observability (per-project) | ✅ SHIPPED (platform-wide) | Extended — `/projects/[id]/metrics` wired to real OTel → Mimir `projectTimeseries` procedure. Project_id now flows through the HTTP middleware path via AsyncLocalStorage. |
+| BLK-020 Admin Claude Console | 🟡 BUILDING | ✅ SHIPPED — all five exit criteria have been met for weeks; status flip authorized in-chat tonight. |
+| (doc category) Getting Started | 1 article | 5 articles (install, new-project, connect-github, custom-domain, billing) |
+| (doc category) API Reference | 0 articles | 7 articles (index + auth / projects / billing / dns-and-domains / ai-and-chat / support) |
+| (doc category) AI SDK | 0 articles | 4 articles (index + three-tier-compute + streaming-completions + client-gpu-inference) |
+| (doc category) Components | 0 articles | 4 articles (index + catalog + ai-composable + customization) |
+| (doc category) Deployment | 0 articles | 4 articles (index + how-a-deploy-runs + environment-variables + custom-domains) |
+| (doc category) Guides | 0 articles | 3 articles (index + build-a-saas + integrate-stripe) |
+| (doc category) Collaboration | 0 articles | 3 articles (index + yjs-crdts + presence-and-cursors) |
+| (doc category) Security & Auth | 0 articles | 3 articles (index + authentication + audit-and-compliance) |
+| /docs hero badge | "1 of 8 categories ready" | "30 articles · 8 of 8 categories ready" |
+
+**Fake-data / theatre removed from public-facing routes:**
+
+- `/database` — fake "Connected" pill + fabricated user rows → real inspector
+- `/video` — fake collaborators (Craig / Sarah / Marcus / AI Agent) + canned AI replies → honest early-preview
+- `/ai-playground` — setTimeout-faked AI → honest 2-card redirect to `/chat` + `/builder`
+- `/support` — fake setTimeout submit (messages evaporated) → real `trpc.support.submitPublic`
+- `/projects/[id]/metrics` — 468 lines of `Math.random()` graphs → honest OTel → Mimir wiring
+- `/templates` — Use-Template routed to dead `/builder?template=` → real `/projects/new?template=`
+- `/builder` — permanent "Disconnected" collab pill → gated off until BLK-011 CRDT collab ships
+
+**Launch-night outage (www.crontech.ai):**
+
+Cloudflare-proxied `www.crontech.ai` hit `ERR_SSL_PROTOCOL_ERROR` even though apex was fine. Root cause chain:
+1. `/etc/caddy/terminal.Caddyfile` line 32 had an unrecognized directive (likely an unsubstituted `{CADDY_TERMINAL_PASSWORD_HASH}` placeholder from a half-finished `scripts/install-web-terminal-full.sh` run on a prior day).
+2. Main `/etc/caddy/Caddyfile` line 172 imported that file (`import /etc/caddy/terminal.Caddyfile`).
+3. Any subsequent `systemctl reload caddy` failed with "adapting config using caddyfile" errors, so Caddy had been running on a stale in-memory config that predated the www subdomain being added.
+4. When Cloudflare was flipped to proxy www (orange cloud) with SSL mode "Full", CF tried to HTTPS-connect to the origin for www, Caddy couldn't serve a cert → CF error 525.
+
+Recovery: `mv /etc/caddy/terminal.Caddyfile /etc/caddy/terminal.Caddyfile.broken` + `sed '172s/^import/# import/' /etc/caddy/Caddyfile` + `systemctl restart caddy`. Caddy came back up clean and started issuing the Let's Encrypt cert for `*.crontech.ai`. www should resolve within ~30 seconds after the cert lands.
+
+**Incident prevention (shipped this session):**
+
+- `scripts/health-check-hostnames.sh` + `infra/systemd/crontech-healthcheck.{service,timer}` — 15-minute cron that curls every public hostname, posts to Slack on non-2xx / empty body. Would have caught tonight's silent outage within 15 min of Caddy's failed reload.
+- Install instructions inline at the top of the script.
+
+**Commit chronology this session (head of branch = `fa70cd8`):**
+
+- `fa70cd8 feat(ops): nightly hostname health-check + flip BLK-020 to SHIPPED`
+- `9bcbce4 fix(a11y): add missing aria-labels + decorative aria-hidden across customer routes`
+- `a402a79 hotfix(caddy): add www.crontech.ai to root Caddyfile + fix bare-metal upstreams`
+- `bd68e6b test(web): smoke tests for /collab + /projects/[id] + nested routes`
+- `bd8b848 fix(docs): flip AI SDK / Components / Guides / Collaboration / Security to ready on /docs`
+- `44da691 feat(docs): ship Guides + Collaboration + Security categories, flip all 8 on landing`
+- `ad1ba65 feat(docs): ship AI SDK category`
+- `e07e0d3 feat(docs): ship AI SDK + Components categories`
+- `a6408df test(web): smoke test for /builder`
+- `3588544 test(web): smoke test for /founding`
+- `6f2350b test(projects): smoke tests for four project-surface routes`
+- `2f9979d test(legal): smoke tests for all 8 legal pages`
+- `f223e6c test(web): smoke tests for /about, /ops, /flywheel`
+- `a86121e test(web): smoke tests for /deployments, /repos, /settings`
+- `75b5723 test(web): smoke test for /dashboard`
+- `1e7ff0c test(web): smoke test for /chat — pins current Claude model IDs`
+- `0a66b4d test(web): smoke tests for /status, /support, /templates`
+- `d3170e5 test(web): golden-path smoke tests for /, /pricing, /register + /login, /billing`
+- `c460e47 feat(docs): ship Getting Started articles 2–5`
+- `6fb60ff feat(blk-012): ship real database inspector UI at /database`
+- `291d1dc feat(metrics): wire per-project /projects/[id]/metrics to real OTel → Mimir`
+- `b845c97 feat(telemetry): plumb project_id into OTel hot path`
+- `18a2657 chore(ai): rotate Claude model IDs to current 4.7 / 4.6 / 4.5 lineup`
+- + earlier wave commits for /support, window.alert removal, /docs honesty, /templates fix, etc.
+
+**Gates on HEAD (`fa70cd8`):**
+
+| Gate | Result |
+|---|---|
+| `bun run check` | ✅ 19/19 packages, 0 TS errors |
+| `bun run test` | ✅ 21/21 packages (764+ tests) |
+| `bun run build` | ✅ 6/6 packages |
+| `bun run check-links` | ✅ 0 dead (137 routes, 262 files) |
+| `bun run check-buttons` | ✅ 0 dead (154 files) |
+| `bunx biome check apps packages services` | ✅ exit 0 |
+
+**What's not done (for next session):**
+
+1. Verify `www.crontech.ai` serves HTTP 200 in a fresh browser after tonight's Caddy restart.
+2. `/etc/caddy/terminal.Caddyfile` still renamed to `.broken` on production. The web terminal at `terminal.crontech.ai` is disabled until the operator re-runs `scripts/install-web-terminal-full.sh` on the Vultr host (generates a fresh password + bcrypt hash + re-installs the file).
+3. **Telemetry extension** (in-flight as a parallel agent this session): emit a `project_requests_inflight` ObservableGauge with a per-project Map<projectId, count> so `/projects/[id]/metrics` has ONE process-scoped metric that honestly carries `project_id`. The agent's commit will land on this branch before session close. CPU/memory per-project attribution is a separate follow-up block.
+4. BLK-011 CRDT collab production (Yjs + Durable Objects persistence) is unstarted.
+5. BLK-010 Stripe going-live waits on Craig's pricing calls + environment setup.
+
+**Craig's authorization quotes (verbatim):**
+
+> "Okay as many agents as you can please we need to get the website finished within the next hour"
+
+> "Whatever happens the site needs to be ready tonight"
+
+> "Don't count the stuff that I need to do I need to know what you have to do to finish this website from end to end"
+
+> "Can you complete this without stopping"
+
+The last quote authorized the 10-item punch-list including the BLK-020 status flip.
+
+**Next agent should start by:**
+
+1. Read `CLAUDE.md`, `docs/POSITIONING.md`, `docs/BUILD_BIBLE.md` + post the doctrine-confirmed line.
+2. Curl `https://www.crontech.ai/` to verify tonight's fix held. If not, create the Cloudflare Redirect Rule as the fallback and report to Craig.
+3. If Craig's ready on Stripe + AlecRae, walk the `docs/LAUNCH_CHECKLIST.md` with him.
+4. Otherwise, pick up any remaining tactical sweeps (BLK-011 scoping, BLK-007 branch-protection admin settings documentation).
 
 ---
 
