@@ -38,6 +38,7 @@ import { domainsRouter } from "./procedures/domains";
 import { esimRouter } from "./procedures/esim";
 import { smsRouter } from "./procedures/sms";
 import { dbInspectorRouter } from "./procedures/db-inspector";
+import { metricsRouter } from "./procedures/metrics";
 
 export const appRouter = router({
   health: publicProcedure.query(() => {
@@ -88,6 +89,7 @@ export const appRouter = router({
   esim: esimRouter,
   sms: smsRouter,
   dbInspector: dbInspectorRouter,
+  metrics: metricsRouter,
 });
 
 export type AppRouter = typeof appRouter;

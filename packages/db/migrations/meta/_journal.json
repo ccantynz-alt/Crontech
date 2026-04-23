@@ -30,5 +30,6 @@
     { "idx": 25, "version": "6", "when": 1714800000000, "tag": "0025_email_verification", "breakpoints": true },
     { "idx": 25, "version": "6", "when": 1714800000000, "tag": "0025_billing_plumbing", "breakpoints": true },
     { "idx": 26, "version": "6", "when": 1714900000000, "tag": "0026_project_url_acceleration", "breakpoints": true }
+    { "idx": 26, "version": "6", "when": 1714900000000, "tag": "0026_billing_plumbing", "breakpoints": true }
   ]
 }

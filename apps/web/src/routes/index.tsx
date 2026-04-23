@@ -333,6 +333,7 @@ export default function Home(): JSX.Element {
         {/* ── Hero ─────────────────────────────────────────────── */}
         <section class="landing-hero">
           <div class="relative z-10 mx-auto max-w-[1120px] px-6 pt-32 pb-32 md:pt-40 md:pb-36 lg:px-8 lg:pt-44 lg:pb-40">
+          <div class="relative z-10 mx-auto max-w-[1120px] px-6 pt-32 pb-36 lg:px-8 lg:pt-44 lg:pb-48">
             <div class="flex flex-col items-center text-center">
               {/* Claude-powered badge */}
               <div class="landing-hero-badge mb-10">
@@ -380,6 +381,8 @@ export default function Home(): JSX.Element {
 
               {/* Proof strip — softened, honest, Claude-prominent */}
               <div class="landing-tech-strip-wrap mt-20">
+              {/* Tech strip */}
+              <div class="landing-tech-strip-wrap mt-24">
                 <div class="landing-tech-strip-divider" aria-hidden="true" />
                 <div class="landing-tech-strip">
                   <For
@@ -390,6 +393,11 @@ export default function Home(): JSX.Element {
                       "Four products, one platform",
                       "Edge-native hosting",
                       "Self-hostable in your VPC",
+                      "Cloudflare Workers",
+                      "SolidJS",
+                      "Bun + Hono",
+                      "Drizzle + Turso",
+                      "Type-safe end to end",
                     ]}
                   >
                     {(signal) => (
@@ -410,6 +418,22 @@ export default function Home(): JSX.Element {
                 {(signal) => (
                   <div class="landing-stat-cell">
                     <SignalBlock value={signal.value} label={signal.label} />
+          <div class="relative z-10 mx-auto max-w-[1120px] px-6 lg:px-8">
+            <div class="grid grid-cols-2 sm:grid-cols-4">
+              <For each={speedSignals}>
+                {(signal, i) => (
+                  <div
+                    style={{
+                      "border-right":
+                        i() < speedSignals.length - 1
+                          ? "1px solid rgba(99,102,241,0.18)"
+                          : "none",
+                    }}
+                  >
+                    <SpeedSignalBlock
+                      value={signal.value}
+                      label={signal.label}
+                    />
                   </div>
                 )}
               </For>
@@ -419,6 +443,8 @@ export default function Home(): JSX.Element {
 
         {/* ── Every business preview ────────────────────────────── */}
         <section class="landing-dark-section py-28 lg:py-36">
+        {/* ── Three pillars (light) ─────────────────────────────── */}
+        <section class="landing-dark-section py-28 lg:py-40">
           <div class="mx-auto max-w-[1120px] px-6 lg:px-8">
             <div class="mb-14 flex flex-col items-center text-center">
               <div class="landing-section-label">
@@ -472,6 +498,7 @@ export default function Home(): JSX.Element {
                 style={{ color: "#f0f0f5" }}
               >
                 Three things we&apos;ve built differently.
+                Three promises. No trade-offs.
               </h2>
               <p
                 class="mt-5 max-w-xl text-[1.0625rem] leading-[1.7]"
@@ -501,6 +528,8 @@ export default function Home(): JSX.Element {
 
         {/* ── Capabilities grid ─────────────────────────────────── */}
         <section class="landing-dark-section py-28 lg:py-36">
+        {/* ── Capabilities grid (light) ─────────────────────────── */}
+        <section class="landing-dark-section-alt py-28 lg:py-40">
           <div class="mx-auto max-w-[1120px] px-6 lg:px-8">
             <div class="mb-16 flex flex-col items-center text-center">
               <div class="landing-section-label">
@@ -538,6 +567,8 @@ export default function Home(): JSX.Element {
 
         {/* ── The family (dogfood proof) ────────────────────────── */}
         <section class="landing-dark-section-alt py-28 lg:py-36">
+        {/* ── Proof strip (light) ────────────────────────────────── */}
+        <section class="landing-dark-section py-28 lg:py-36">
           <div class="mx-auto max-w-[1120px] px-6 lg:px-8">
             <div class="mb-14 flex flex-col items-center text-center">
               <div class="landing-section-label">
@@ -602,6 +633,7 @@ export default function Home(): JSX.Element {
         {/* ── Bottom CTA ────────────────────────────────────────── */}
         <section class="landing-cta-section">
           <div class="relative z-10 mx-auto max-w-[800px] px-6 py-28 text-center lg:px-8 lg:py-36">
+          <div class="relative z-10 mx-auto max-w-[880px] px-6 py-32 text-center lg:px-8 lg:py-44">
             <h2
               class="text-[1.875rem] font-bold tracking-tight sm:text-[2.25rem] lg:text-[2.75rem]"
               style={{ color: "#0f172a" }}
