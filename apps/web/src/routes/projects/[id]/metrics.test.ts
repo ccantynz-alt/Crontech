@@ -1,14 +1,14 @@
-// ── /projects/[id]/metrics — Honest Preview Regression Test ───────
+// ── /projects/[id]/metrics — Real Metrics Regression Test ─────────
 //
-// The previous implementation was 468 lines of `Math.random()` theatre
-// — fabricated CPU / memory / bandwidth / request graphs with gaussian
-// spikes and simulated GC drops, plus a hardcoded Record<string,string>
-// for project names. Every number a logged-in user saw was invented
-// in the browser.
+// This route used to be 468 lines of `Math.random()` theatre — gaussian
+// spikes, simulated GC drops, a hardcoded Record<string, string> that
+// mapped "proj-1" → "crontech-web". Every number was invented in the
+// browser.
 //
-// This guard pins the current honest-preview state so a future session
-// can't silently re-add the Math.random generators without the test
-// turning red.
+// After the honest-preview interlude it now renders REAL per-project
+// time-series by calling `trpc.metrics.projectTimeseries` (which hits
+// Mimir via the API). This guard pins the real-metrics shape so a
+// future session can't silently regress back to synthesised numbers.
 
 import { describe, expect, test } from "bun:test";
 import { existsSync, readFileSync } from "node:fs";
@@ -16,7 +16,7 @@ import { resolve } from "node:path";
 
 const ROUTE_PATH = resolve(import.meta.dir, "metrics.tsx");
 
-describe("projects/[id]/metrics route — smoke", () => {
+describe("projects/[id]/metrics route — real metrics regression", () => {
   test("route file exists", () => {
     expect(existsSync(ROUTE_PATH)).toBe(true);
   });
@@ -53,11 +53,56 @@ describe("projects/[id]/metrics route — smoke", () => {
     expect(src).not.toContain('"proj-3"');
   });
 
+  test("pulls real metrics from tRPC → Mimir via projectTimeseries", () => {
+    const src = readFileSync(ROUTE_PATH, "utf-8");
+    // The new implementation must route through the real procedure.
+    expect(src).toContain("trpc.metrics.projectTimeseries");
+  });
+
+  test("renders all four required metric panels", () => {
+    const src = readFileSync(ROUTE_PATH, "utf-8");
+    // The METRICS constant drives a <For> over these four descriptors.
+    expect(src).toMatch(/key:\s*"cpu"/);
+    expect(src).toMatch(/key:\s*"memory"/);
+    expect(src).toMatch(/key:\s*"bandwidth"/);
+    expect(src).toMatch(/key:\s*"requests"/);
+  });
+
+  test("exposes the five required time ranges", () => {
+    const src = readFileSync(ROUTE_PATH, "utf-8");
+    expect(src).toMatch(/key:\s*"1h"/);
+    expect(src).toMatch(/key:\s*"6h"/);
+    expect(src).toMatch(/key:\s*"24h"/);
+    expect(src).toMatch(/key:\s*"7d"/);
+    expect(src).toMatch(/key:\s*"30d"/);
+  });
+
+  test("persists range in the URL query param", () => {
+    const src = readFileSync(ROUTE_PATH, "utf-8");
+    expect(src).toContain("useSearchParams");
+    expect(src).toContain("setSearch");
+  });
+
+  test("handles the empty / error / loading states honestly", () => {
+    const src = readFileSync(ROUTE_PATH, "utf-8");
+    // Empty state — "No … metrics yet" — uses the honest language the
+    // backend contract guarantees (null or points: []).
+    expect(src).toMatch(/No .+ metrics yet/);
+    // Explicit skeleton + error components, no optimistic fabrications.
+    expect(src).toContain("ChartSkeleton");
+    expect(src).toContain("ChartError");
+    expect(src).toContain("ChartEmpty");
+  });
+
+  test("reuses the shared MetricsChart + MetricCard components", () => {
+    const src = readFileSync(ROUTE_PATH, "utf-8");
+    expect(src).toContain('from "../../../components/MetricsChart"');
+    expect(src).toContain('from "../../../components/MetricCard"');
+  });
+
   test("states the metrics pipeline honestly (OTel → Mimir)", () => {
     const src = readFileSync(ROUTE_PATH, "utf-8");
-    // The page should describe the real observability stack, not
-    // pretend rows of data exist.
-    expect(src).toContain("OTel");
+    expect(src).toContain("OpenTelemetry");
     expect(src).toContain("Mimir");
   });
 
