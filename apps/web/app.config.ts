@@ -1,10 +1,6 @@
 import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "@solidjs/start/config";
 
-const preset = process.env.SERVER_PRESET ?? "bun";
-const isCloudflare = preset === "cloudflare-pages";
-const rollupExternals = isCloudflare ? ["node:async_hooks"] : [];
-
 // ── Vendor chunking (CLAUDE.md §6.6 — initial JS < 50KB) ─────────────
 // Co-locate heavy third-party deps into stable chunks so they cache
 // independently of our app code. Anything listed here is only loaded
@@ -22,13 +18,7 @@ function splitVendor(id: string): string | undefined {
 
 export default defineConfig({
   server: {
-    preset,
-    ...(isCloudflare
-      ? { output: { dir: "{{ rootDir }}/dist" } }
-      : {}),
-    rollupConfig: {
-      external: rollupExternals,
-    },
+    preset: "bun",
     compatibilityDate: "2024-12-01",
   },
   vite: {
