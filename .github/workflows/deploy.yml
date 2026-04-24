@@ -1,7 +1,7 @@
 name: Deploy
 
 # ── Crontech Production Deploy (Vultr) ─────────────────────────────
-# Pushes to main: build + test locally, then SSH into the Vultr box
+# Pushes to Main: build + test locally, then SSH into the Vultr box
 # and pull/rebuild/restart. No Docker — runs Bun directly via systemd
 # (Vultr has limited disk). Caddy handles TLS + reverse proxy.
 #
@@ -18,11 +18,11 @@ name: Deploy
 
 on:
   push:
-    branches: [main]
+    branches: [Main]
   workflow_dispatch:
 
 concurrency:
-  group: deploy-main
+  group: deploy-Main
   cancel-in-progress: false
 
 jobs:
@@ -93,8 +93,8 @@ jobs:
 
             # 1. Pull latest code
             echo "[1/7] Pulling latest code..."
-            git fetch origin main
-            git reset --hard origin/main
+            git fetch origin Main
+            git reset --hard origin/Main
 
             # 2. Install dependencies
             echo "[2/7] Installing dependencies..."

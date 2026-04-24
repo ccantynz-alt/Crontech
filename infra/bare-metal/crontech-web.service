@@ -17,7 +17,7 @@ User=deploy
 Group=deploy
 WorkingDirectory=/opt/crontech
 
-ExecStart=/usr/local/bin/bun run --cwd apps/web start
+ExecStart=/usr/local/bin/bun /opt/crontech/apps/web/.output/server/index.mjs
 Restart=always
 RestartSec=5
 
