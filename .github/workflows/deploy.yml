@@ -117,6 +117,10 @@ jobs:
             echo "[5/8] Building..."
             bun run build
 
+            # 5b. Run database migrations
+            echo "[5b/8] Running database migrations..."
+            bun run --cwd apps/api -e 'import("@back-to-the-future/db/migrate").then(m => m.runMigrations()).then(() => process.exit(0)).catch(e => { console.error(e); process.exit(1) })' || echo "Migration skipped (DB not configured)"
+
             # 6. Sync service files from repo to systemd
             echo "[6/8] Syncing service files..."
             cp infra/bare-metal/crontech-web.service /etc/systemd/system/crontech-web.service
