@@ -49,10 +49,12 @@ export function timingSafeEqual(a: string, b: string): boolean {
     // alone already reveals the mismatch, but the real secret's length
     // is fixed so this only protects the constant-length compare below).
     let dummy = 0;
+    const bLen = b.length || 1;
     for (let i = 0; i < a.length; i++) {
-      dummy |= a.charCodeAt(i) ^ a.charCodeAt(i);
+      dummy |= a.charCodeAt(i) ^ b.charCodeAt(i % bLen);
     }
-    return dummy === 1;
+    void dummy;
+    return false;
   }
   let diff = 0;
   for (let i = 0; i < a.length; i++) {
