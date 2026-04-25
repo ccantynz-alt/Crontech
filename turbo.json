@@ -7,7 +7,7 @@
     },
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**", ".output/**", ".vinxi/**"],
+      "outputs": ["dist/**", ".output/**", ".vinxi/**", ".vercel/output/**"],
       "env": [
         "DATABASE_URL",
         "DATABASE_AUTH_TOKEN",
