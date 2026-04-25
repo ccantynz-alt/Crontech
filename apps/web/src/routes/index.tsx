@@ -178,23 +178,33 @@ const family: FamilyProduct[] = [
 
 function VerticalTile(props: VerticalPreview): JSX.Element {
   return (
-    <A href="/solutions" class="landing-card block p-5 transition-transform hover:scale-[1.02]">
+    <A
+      href="/solutions"
+      class="landing-card block p-5"
+      style={{ "text-decoration": "none" }}
+    >
       <div class="flex items-center gap-3">
         <div
-          class="flex h-9 w-9 items-center justify-center rounded-lg"
+          class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg"
           style={{
-            background: "linear-gradient(135deg, rgba(99,102,241,0.12), rgba(139,92,246,0.12))",
-            color: "#a5b4fc",
-            border: "1px solid rgba(99,102,241,0.2)",
+            background: "rgba(99,102,241,0.08)",
+            color: "#6366f1",
+            border: "1px solid rgba(99,102,241,0.14)",
           }}
         >
           <Icon name={props.icon} size={16} />
         </div>
-        <div class="flex flex-col">
-          <span class="text-sm font-semibold" style={{ color: "#f0f0f5" }}>
+        <div class="flex min-w-0 flex-col">
+          <span
+            class="truncate text-sm font-semibold"
+            style={{ color: "#111827" }}
+          >
             {props.label}
           </span>
-          <span class="text-xs" style={{ color: "rgba(255,255,255,0.55)" }}>
+          <span
+            class="truncate text-xs"
+            style={{ color: "#6b7280" }}
+          >
             {props.blurb}
           </span>
         </div>
@@ -209,42 +219,48 @@ function PillarCard(props: Pillar): JSX.Element {
       <div class="flex h-full flex-col gap-6">
         <div class="flex items-center gap-3">
           <div
-            class="flex h-12 w-12 items-center justify-center rounded-xl"
+            class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl"
             style={{
-              background: "linear-gradient(135deg, rgba(99,102,241,0.15), rgba(139,92,246,0.15))",
-              color: "#a5b4fc",
-              border: "1px solid rgba(99,102,241,0.2)",
+              background: "rgba(99,102,241,0.08)",
+              color: "#6366f1",
+              border: "1px solid rgba(99,102,241,0.14)",
             }}
           >
-            <Icon name={props.icon} size={22} />
+            <Icon name={props.icon} size={20} />
           </div>
           <span
-            class="text-[11px] font-semibold uppercase tracking-[0.18em]"
-            style={{ color: "#818cf8" }}
+            class="text-[11px] font-semibold uppercase tracking-[0.15em]"
+            style={{ color: "#6366f1" }}
           >
             {props.eyebrow}
           </span>
         </div>
 
-        <div class="flex flex-col gap-3">
-          <h3 class="text-[1.25rem] font-bold tracking-tight" style={{ color: "#f0f0f5" }}>
+        <div class="flex flex-col gap-2.5">
+          <h3
+            class="text-[1.125rem] font-bold tracking-tight"
+            style={{ color: "#111827" }}
+          >
             {props.title}
           </h3>
-          <p class="text-[0.9375rem] leading-[1.7]" style={{ color: "rgba(255,255,255,0.55)" }}>
+          <p
+            class="text-[0.9rem] leading-[1.7]"
+            style={{ color: "#4b5563" }}
+          >
             {props.description}
           </p>
         </div>
 
-        <ul class="mt-auto flex flex-col gap-2.5 pt-2">
+        <ul class="mt-auto flex flex-col gap-2 pt-2">
           <For each={props.points}>
             {(point) => (
               <li
                 class="flex items-start gap-2.5 text-[0.875rem] leading-[1.6]"
-                style={{ color: "rgba(255,255,255,0.65)" }}
+                style={{ color: "#374151" }}
               >
                 <span
-                  class="mt-[7px] inline-block h-1.5 w-1.5 shrink-0 rounded-full"
-                  style={{ background: "linear-gradient(135deg, #6366f1, #8b5cf6)" }}
+                  class="mt-[6px] inline-block h-1.5 w-1.5 shrink-0 rounded-full"
+                  style={{ background: "#6366f1" }}
                   aria-hidden="true"
                 />
                 <span>{point}</span>
@@ -264,18 +280,24 @@ function CapabilityCard(props: Capability): JSX.Element {
         <div
           class="flex h-10 w-10 items-center justify-center rounded-lg"
           style={{
-            background: "linear-gradient(135deg, rgba(99,102,241,0.1), rgba(139,92,246,0.1))",
+            background: "rgba(99,102,241,0.08)",
             color: "#6366f1",
-            border: "1px solid rgba(99,102,241,0.18)",
+            border: "1px solid rgba(99,102,241,0.14)",
           }}
         >
           <Icon name={props.icon} size={18} />
         </div>
-        <div class="flex flex-col gap-2">
-          <h3 class="text-[1rem] font-semibold tracking-tight" style={{ color: "#0f172a" }}>
+        <div class="flex flex-col gap-1.5">
+          <h3
+            class="text-[1rem] font-semibold tracking-tight"
+            style={{ color: "#111827" }}
+          >
             {props.title}
           </h3>
-          <p class="text-[0.875rem] leading-[1.65]" style={{ color: "#64748b" }}>
+          <p
+            class="text-[0.875rem] leading-[1.65]"
+            style={{ color: "#6b7280" }}
+          >
             {props.description}
           </p>
         </div>
@@ -286,18 +308,24 @@ function CapabilityCard(props: Capability): JSX.Element {
 
 function FamilyCard(props: FamilyProduct): JSX.Element {
   return (
-    <div class="landing-card h-full p-6">
+    <div class="landing-moat-card h-full p-6">
       <div class="flex h-full flex-col gap-3">
         <span
-          class="text-[10px] font-semibold uppercase tracking-[0.18em]"
+          class="text-[10px] font-semibold uppercase tracking-[0.16em]"
           style={{ color: "#818cf8" }}
         >
           {props.role}
         </span>
-        <h3 class="text-[1.125rem] font-bold tracking-tight" style={{ color: "#f0f0f5" }}>
+        <h3
+          class="text-[1.125rem] font-bold tracking-tight"
+          style={{ color: "#f1f5f9" }}
+        >
           {props.name}
         </h3>
-        <p class="text-[0.875rem] leading-[1.65]" style={{ color: "rgba(255,255,255,0.55)" }}>
+        <p
+          class="text-[0.875rem] leading-[1.65]"
+          style={{ color: "rgba(241,245,249,0.6)" }}
+        >
           {props.description}
         </p>
       </div>
@@ -310,6 +338,52 @@ function SignalBlock(props: Signal): JSX.Element {
     <div class="landing-stat-block">
       <span class="landing-stat-value">{props.value}</span>
       <span class="landing-stat-label">{props.label}</span>
+    </div>
+  );
+}
+
+// ── Shared section heading ───────────────────────────────────────────
+
+interface SectionHeadProps {
+  eyebrow: string;
+  eyebrowColor?: string;
+  title: JSX.Element;
+  body?: string;
+  dark?: boolean;
+}
+
+function SectionHead(props: SectionHeadProps): JSX.Element {
+  const headColor = props.dark ? "#f1f5f9" : "#111827";
+  const bodyColor = props.dark ? "rgba(241,245,249,0.62)" : "#6b7280";
+  const dotColor = props.eyebrowColor ?? (props.dark ? "#818cf8" : "#6366f1");
+
+  return (
+    <div class="mb-16 flex flex-col items-center text-center">
+      <div
+        class="mb-4 inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.15em]"
+        style={{ color: dotColor }}
+      >
+        <span
+          class="inline-block h-1.5 w-1.5 rounded-full"
+          style={{ background: dotColor }}
+          aria-hidden="true"
+        />
+        {props.eyebrow}
+      </div>
+      <h2
+        class="max-w-2xl text-[1.875rem] font-bold tracking-tight sm:text-[2.25rem] lg:text-[2.625rem]"
+        style={{ color: headColor }}
+      >
+        {props.title}
+      </h2>
+      <Show when={props.body}>
+        <p
+          class="mt-5 max-w-2xl text-[1.0625rem] leading-[1.75]"
+          style={{ color: bodyColor }}
+        >
+          {props.body}
+        </p>
+      </Show>
     </div>
   );
 }
@@ -327,325 +401,299 @@ export default function Home(): JSX.Element {
         path="/"
       />
 
-      <div>
-        {/* ── Hero ─────────────────────────────────────────────── */}
-        <section class="landing-hero">
-          <div class="relative z-10 mx-auto max-w-[1120px] px-6 pt-32 pb-36 lg:px-8 lg:pt-44 lg:pb-48">
-            <div class="flex flex-col items-center text-center">
-              {/* Early access badge */}
-              <div class="landing-hero-badge mb-10">
-                <span class="landing-hero-badge-dot" aria-hidden="true" />
-                <span class="landing-hero-badge-text">
-                  Now in early access &mdash; Powered by Claude
-                </span>
-              </div>
+      {/* ── Hero ───────────────────────────────────────────────────── */}
+      <section class="landing-hero">
+        <div class="relative z-10 mx-auto w-full max-w-[1120px] px-6 pb-36 pt-32 lg:px-8 lg:pb-48 lg:pt-44">
+          <div class="flex flex-col items-center text-center">
 
-              {/* Headline — locked per docs/POSITIONING.md §3 */}
-              <h1
-                class="max-w-4xl text-[2.75rem] font-extrabold leading-[1.08] tracking-[-0.03em] sm:text-[3.5rem] lg:text-[4.25rem]"
-                style={{ color: "#0f172a" }}
-              >
-                The developer platform for the{" "}
-                <span class="landing-gradient-text">
-                  next decade
-                </span>
-              </h1>
-
-              {/* Subheading */}
-              <p
-                class="mt-7 max-w-2xl text-[1.0625rem] leading-[1.8] sm:text-lg"
-                style={{ color: "#475569" }}
-              >
-                The AI-native platform for online stores, restaurants, creators,
-                agencies, SaaS founders, and every business that deserves a
-                better internet. Hosting, database, auth, AI, billing, email
-                &mdash; one product, zero ops.
-              </p>
-
-              {/* CTAs — locked per docs/POSITIONING.md */}
-              <div class="mt-14 flex flex-col items-center gap-5 sm:flex-row">
-                <A href="/register">
-                  <button class="landing-hero-btn-primary" type="button">
-                    Start building
-                  </button>
-                </A>
-                <A href="/docs">
-                  <button class="landing-hero-btn-outline" type="button">
-                    See the docs
-                  </button>
-                </A>
-              </div>
-
-              {/* Tech strip */}
-              <div class="landing-tech-strip-wrap mt-24">
-                <div class="landing-tech-strip-divider" aria-hidden="true" />
-                <div class="landing-tech-strip">
-                  <For
-                    each={[
-                      "Claude-powered AI",
-                      "SOC 2 Type II in progress",
-                      "Runs on itself",
-                      "Four products, one platform",
-                      "Edge-native hosting",
-                      "Self-hostable in your VPC",
-                      "Cloudflare Workers",
-                      "SolidJS",
-                      "Bun + Hono",
-                      "Drizzle + Turso",
-                      "Type-safe end to end",
-                    ]}
-                  >
-                    {(signal) => (
-                      <span class="landing-tech-strip-item">{signal}</span>
-                    )}
-                  </For>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ── Stats strip ───────────────────────────────────────── */}
-        <section class="landing-stats-section">
-          <div class="mx-auto max-w-[1120px] px-6 lg:px-8">
-            <div class="landing-stats-grid">
-              <For each={signals}>
-                {(signal) => (
-                  <div class="landing-stat-cell">
-                    <SignalBlock value={signal.value} label={signal.label} />
-                  </div>
-                )}
-              </For>
-            </div>
-          </div>
-        </section>
-
-        {/* ── Every business preview ────────────────────────────── */}
-        <section class="landing-dark-section py-28 lg:py-36">
-          <div class="mx-auto max-w-[1120px] px-6 lg:px-8">
-            <div class="mb-14 flex flex-col items-center text-center">
-              <div class="landing-section-label">
-                <div class="h-1.5 w-1.5 rounded-full" style={{ background: "#818cf8" }} />
-                Who it&apos;s for
-              </div>
-              <h2
-                class="max-w-3xl text-[2rem] font-bold tracking-tight sm:text-[2.5rem] lg:text-[2.75rem]"
-                style={{ color: "#f0f0f5" }}
-              >
-                One platform.{" "}
-                <span class="landing-gradient-text">Every business.</span>
-              </h2>
-              <p
-                class="mt-5 max-w-2xl text-[1.0625rem] leading-[1.7]"
-                style={{ color: "rgba(255,255,255,0.55)" }}
-              >
-                From online stores to nonprofits, Crontech powers the internet
-                part so you can focus on your customers.
-              </p>
-            </div>
-
-            <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-              <For each={verticalPreviews}>
-                {(v) => <VerticalTile icon={v.icon} label={v.label} blurb={v.blurb} />}
-              </For>
-            </div>
-
-            <div class="mt-10 flex justify-center">
-              <A
-                href="/solutions"
-                class="text-sm font-semibold"
-                style={{ color: "#a5b4fc" }}
-              >
-                See all 10 verticals &#8594;
-              </A>
-            </div>
-          </div>
-        </section>
-
-        {/* ── Three pillars ─────────────────────────────────────── */}
-        <section class="landing-dark-section-alt py-28 lg:py-40">
-          <div class="mx-auto max-w-[1120px] px-6 lg:px-8">
-            <div class="mb-20 flex flex-col items-center text-center">
-              <div class="landing-section-label">
-                <div class="h-1.5 w-1.5 rounded-full" style={{ background: "#818cf8" }} />
-                Why Crontech
-              </div>
-              <h2
-                class="max-w-2xl text-[1.875rem] font-bold tracking-tight sm:text-[2.25rem]"
-                style={{ color: "#f0f0f5" }}
-              >
-                Three things we&apos;ve built differently.
-                Three promises. No trade-offs.
-              </h2>
-              <p
-                class="mt-5 max-w-xl text-[1.0625rem] leading-[1.7]"
-                style={{ color: "rgba(255,255,255,0.5)" }}
-              >
-                AI-native from the first commit. Open to every business, not
-                just developers. Running on the platform we&apos;re selling
-                you.
-              </p>
-            </div>
-
-            <div class="landing-feature-grid grid grid-cols-1 gap-6 lg:grid-cols-3">
-              <For each={pillars}>
-                {(pillar) => (
-                  <PillarCard
-                    icon={pillar.icon}
-                    eyebrow={pillar.eyebrow}
-                    title={pillar.title}
-                    description={pillar.description}
-                    points={pillar.points}
-                  />
-                )}
-              </For>
-            </div>
-          </div>
-        </section>
-
-        {/* ── Capabilities grid ─────────────────────────────────── */}
-        <section class="landing-dark-section-alt py-28 lg:py-40">
-          <div class="mx-auto max-w-[1120px] px-6 lg:px-8">
-            <div class="mb-16 flex flex-col items-center text-center">
-              <div class="landing-section-label">
-                <div class="h-1.5 w-1.5 rounded-full" style={{ background: "#6366f1" }} />
-                Every layer
-              </div>
-              <h2
-                class="max-w-3xl text-[2rem] font-bold tracking-tight sm:text-[2.5rem] lg:text-[2.75rem]"
-                style={{ color: "#f0f0f5" }}
-              >
-                One product replaces many.
-              </h2>
-              <p
-                class="mt-5 max-w-2xl text-[1.0625rem] leading-[1.7]"
-                style={{ color: "rgba(255,255,255,0.55)" }}
-              >
-                Every capability a modern application needs, unified into one
-                platform, one dashboard, one bill. No vendor stitching.
-              </p>
-            </div>
-
-            <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-              <For each={capabilities}>
-                {(cap) => (
-                  <CapabilityCard
-                    icon={cap.icon}
-                    title={cap.title}
-                    description={cap.description}
-                  />
-                )}
-              </For>
-            </div>
-          </div>
-        </section>
-
-        {/* ── The family (dogfood proof) ────────────────────────── */}
-        <section class="landing-dark-section py-28 lg:py-36">
-          <div class="mx-auto max-w-[1120px] px-6 lg:px-8">
-            <div class="mb-14 flex flex-col items-center text-center">
-              <div class="landing-section-label">
-                <div class="h-1.5 w-1.5 rounded-full" style={{ background: "#34d399" }} />
-                The moat
-              </div>
-              <h2
-                class="max-w-3xl text-[1.875rem] font-bold tracking-tight sm:text-[2.25rem]"
-                style={{ color: "#f0f0f5" }}
-              >
-                Crontech runs on Crontech.
-              </h2>
-              <p
-                class="mt-5 max-w-2xl text-[1.0625rem] leading-[1.7]"
-                style={{ color: "rgba(255,255,255,0.5)" }}
-              >
-                Four products, one platform, all using each other. Most
-                platforms can&apos;t say that. We can.
-              </p>
-            </div>
-
-            <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-              <For each={family}>
-                {(p) => (
-                  <FamilyCard
-                    name={p.name}
-                    role={p.role}
-                    description={p.description}
-                    url={p.url}
-                  />
-                )}
-              </For>
-            </div>
-          </div>
-        </section>
-
-        {/* ── Mission strip ─────────────────────────────────────── */}
-        <section class="landing-dark-section py-24 lg:py-28">
-          <div class="mx-auto max-w-[720px] px-6 lg:px-8">
-            <div class="flex flex-col gap-4">
-              <span
-                class="text-[11px] font-semibold uppercase tracking-[0.18em]"
-                style={{ color: "#818cf8" }}
-              >
-                The mission
+            {/* Badge */}
+            <div class="landing-hero-badge mb-10">
+              <span class="landing-hero-badge-dot" aria-hidden="true" />
+              <span class="landing-hero-badge-text">
+                Now in early access &mdash; Powered by Claude
               </span>
-              <p
-                class="text-[1.0625rem] leading-[1.8]"
-                style={{ color: "rgba(255,255,255,0.6)" }}
-              >
-                We&apos;re building Crontech to make it cheap and fast for
-                anyone to start a business, employ people, and serve customers.
-                The internet should be open to everyone &mdash; not just the
-                people with engineering teams and enterprise contracts. If
-                you&apos;re here to build something, we&apos;re here to power
-                it.
-              </p>
             </div>
-          </div>
-        </section>
 
-        {/* ── Bottom CTA ────────────────────────────────────────── */}
-        <section class="landing-cta-section">
-          <div class="relative z-10 mx-auto max-w-[880px] px-6 py-32 text-center lg:px-8 lg:py-44">
-            <h2
-              class="text-[1.875rem] font-bold tracking-tight sm:text-[2.25rem] lg:text-[2.75rem]"
-              style={{ color: "#0f172a" }}
+            {/* Headline — locked per docs/POSITIONING.md §3 */}
+            <h1
+              class="max-w-4xl text-[2.75rem] font-extrabold leading-[1.08] tracking-[-0.03em] sm:text-[3.5rem] lg:text-[4.5rem]"
+              style={{ color: "#f1f5f9" }}
             >
-              Start with a sentence.{" "}
-              <span class="landing-gradient-text">Ship a business.</span>
-            </h2>
+              The developer platform{" "}
+              <br class="hidden sm:block" />
+              for the{" "}
+              <span class="landing-gradient-text">next decade</span>
+            </h1>
+
+            {/* Subheading */}
             <p
-              class="mt-6 text-[1.0625rem] leading-[1.7] sm:text-lg"
-              style={{ color: "#64748b" }}
+              class="mt-7 max-w-2xl text-[1.0625rem] leading-[1.8] sm:text-[1.125rem]"
+              style={{ color: "rgba(241,245,249,0.65)" }}
             >
-              Describe what you&apos;re building in plain English. Claude drafts
-              the app, the database, the auth, the billing. You iterate.
+              The AI-native platform for online stores, restaurants, creators,
+              agencies, SaaS founders, and every business that deserves a
+              better internet. Hosting, database, auth, AI, billing, email
+              &mdash; one product, zero ops.
             </p>
-            <div class="mt-12 flex flex-col items-center justify-center gap-4 sm:flex-row">
-              <A href="/builder">
-                <button class="landing-hero-btn-primary" type="button">
-                  Try the AI builder &#8594;
+
+            {/* CTAs */}
+            <div class="mt-12 flex flex-col items-center gap-4 sm:flex-row">
+              <A href="/register">
+                <button class="landing-hero-btn-primary-dark" type="button">
+                  Start building
                 </button>
               </A>
-              <Show
-                when={auth.isAuthenticated()}
-                fallback={
-                  <A href="/register">
-                    <button class="landing-hero-btn-outline" type="button">
-                      Create an account
-                    </button>
-                  </A>
-                }
-              >
-                <A href="/dashboard">
-                  <button class="landing-hero-btn-outline" type="button">
-                    Open dashboard
-                  </button>
-                </A>
-              </Show>
+              <A href="/docs">
+                <button class="landing-hero-btn-outline-dark" type="button">
+                  See the docs
+                </button>
+              </A>
+            </div>
+
+            {/* Tech strip */}
+            <div class="landing-tech-strip-wrap mt-24">
+              <div class="landing-tech-strip-divider" aria-hidden="true" />
+              <div class="landing-tech-strip">
+                <For
+                  each={[
+                    "Claude-powered AI",
+                    "SOC 2 Type II in progress",
+                    "Runs on itself",
+                    "Four products, one platform",
+                    "Edge-native hosting",
+                    "Self-hostable in your VPC",
+                    "Cloudflare Workers",
+                    "SolidJS",
+                    "Bun + Hono",
+                    "Drizzle + Turso",
+                    "Type-safe end to end",
+                  ]}
+                >
+                  {(signal) => (
+                    <span class="landing-tech-strip-item">{signal}</span>
+                  )}
+                </For>
+              </div>
             </div>
           </div>
-        </section>
-      </div>
+        </div>
+      </section>
+
+      {/* ── Stats strip ─────────────────────────────────────────────── */}
+      <section class="landing-stats-section">
+        <div class="mx-auto w-full max-w-[1120px] px-6 lg:px-8">
+          <div class="landing-stats-grid">
+            <For each={signals}>
+              {(signal) => (
+                <div class="landing-stat-cell">
+                  <SignalBlock value={signal.value} label={signal.label} />
+                </div>
+              )}
+            </For>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Every business preview ───────────────────────────────────── */}
+      <section
+        class="py-28 lg:py-36"
+        style={{
+          background: "#ffffff",
+          "border-top": "1px solid #e5e7eb",
+        }}
+      >
+        <div class="mx-auto w-full max-w-[1120px] px-6 lg:px-8">
+          <SectionHead
+            eyebrow="Who it's for"
+            title={
+              <>
+                One platform.{" "}
+                <span class="landing-gradient-text-dark">Every business.</span>
+              </>
+            }
+            body="From online stores to nonprofits, Crontech powers the internet part so you can focus on your customers."
+          />
+
+          <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+            <For each={verticalPreviews}>
+              {(v) => (
+                <VerticalTile icon={v.icon} label={v.label} blurb={v.blurb} />
+              )}
+            </For>
+          </div>
+
+          <div class="mt-10 flex justify-center">
+            <A
+              href="/solutions"
+              class="text-sm font-semibold transition-colors"
+              style={{ color: "#6366f1" }}
+            >
+              See all 10 verticals &#8594;
+            </A>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Three pillars ───────────────────────────────────────────── */}
+      <section
+        class="py-28 lg:py-40"
+        style={{
+          background: "#f9fafb",
+          "border-top": "1px solid #e5e7eb",
+          "border-bottom": "1px solid #e5e7eb",
+        }}
+      >
+        <div class="mx-auto w-full max-w-[1120px] px-6 lg:px-8">
+          <SectionHead
+            eyebrow="Why Crontech"
+            title="Three things we've built differently."
+            body="AI-native from the first commit. Open to every business, not just developers. Running on the platform we're selling you."
+          />
+
+          <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+            <For each={pillars}>
+              {(pillar) => (
+                <PillarCard
+                  icon={pillar.icon}
+                  eyebrow={pillar.eyebrow}
+                  title={pillar.title}
+                  description={pillar.description}
+                  points={pillar.points}
+                />
+              )}
+            </For>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Capabilities grid ───────────────────────────────────────── */}
+      <section
+        class="py-28 lg:py-40"
+        style={{
+          background: "#ffffff",
+          "border-bottom": "1px solid #e5e7eb",
+        }}
+      >
+        <div class="mx-auto w-full max-w-[1120px] px-6 lg:px-8">
+          <SectionHead
+            eyebrow="Every layer"
+            title="One product replaces many."
+            body="Every capability a modern application needs, unified into one platform, one dashboard, one bill. No vendor stitching."
+          />
+
+          <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            <For each={capabilities}>
+              {(cap) => (
+                <CapabilityCard
+                  icon={cap.icon}
+                  title={cap.title}
+                  description={cap.description}
+                />
+              )}
+            </For>
+          </div>
+        </div>
+      </section>
+
+      {/* ── The family / moat ───────────────────────────────────────── */}
+      <section class="landing-moat-section py-28 lg:py-36">
+        <div class="mx-auto w-full max-w-[1120px] px-6 lg:px-8">
+          <SectionHead
+            dark
+            eyebrow="The moat"
+            eyebrowColor="#34d399"
+            title="Crontech runs on Crontech."
+            body="Four products, one platform, all using each other. Most platforms can't say that. We can."
+          />
+
+          <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            <For each={family}>
+              {(p) => (
+                <FamilyCard
+                  name={p.name}
+                  role={p.role}
+                  description={p.description}
+                  url={p.url}
+                />
+              )}
+            </For>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Mission strip ───────────────────────────────────────────── */}
+      <section
+        class="py-24 lg:py-28"
+        style={{
+          background: "#ffffff",
+          "border-top": "1px solid #e5e7eb",
+          "border-bottom": "1px solid #e5e7eb",
+        }}
+      >
+        <div class="mx-auto w-full max-w-[720px] px-6 lg:px-8">
+          <div class="flex flex-col gap-4">
+            <span
+              class="text-[11px] font-semibold uppercase tracking-[0.18em]"
+              style={{ color: "#6366f1" }}
+            >
+              The mission
+            </span>
+            <p
+              class="text-[1.0625rem] leading-[1.85]"
+              style={{ color: "#374151" }}
+            >
+              We&apos;re building Crontech to make it cheap and fast for anyone
+              to start a business, employ people, and serve customers. The
+              internet should be open to everyone &mdash; not just the people
+              with engineering teams and enterprise contracts. If you&apos;re
+              here to build something, we&apos;re here to power it.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Bottom CTA ──────────────────────────────────────────────── */}
+      <section class="landing-cta-section">
+        <div class="relative z-10 mx-auto w-full max-w-[880px] px-6 py-32 text-center lg:px-8 lg:py-44">
+          <h2
+            class="text-[1.875rem] font-bold tracking-tight sm:text-[2.25rem] lg:text-[2.75rem]"
+            style={{ color: "#f1f5f9" }}
+          >
+            Start with a sentence.{" "}
+            <span class="landing-gradient-text">Ship a business.</span>
+          </h2>
+          <p
+            class="mt-6 text-[1.0625rem] leading-[1.7] sm:text-lg"
+            style={{ color: "rgba(241,245,249,0.65)" }}
+          >
+            Describe what you&apos;re building in plain English. Claude drafts
+            the app, the database, the auth, the billing. You iterate.
+          </p>
+          <div class="mt-12 flex flex-col items-center justify-center gap-4 sm:flex-row">
+            <A href="/builder">
+              <button class="landing-hero-btn-primary-dark" type="button">
+                Try the AI builder &#8594;
+              </button>
+            </A>
+            <Show
+              when={auth.isAuthenticated()}
+              fallback={
+                <A href="/register">
+                  <button class="landing-hero-btn-outline-dark" type="button">
+                    Create an account
+                  </button>
+                </A>
+              }
+            >
+              <A href="/dashboard">
+                <button class="landing-hero-btn-outline-dark" type="button">
+                  Open dashboard
+                </button>
+              </A>
+            </Show>
+          </div>
+        </div>
+      </section>
     </>
   );
 }
