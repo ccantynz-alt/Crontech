@@ -403,7 +403,7 @@ export default function Home(): JSX.Element {
 
       {/* ── Hero ───────────────────────────────────────────────────── */}
       <section class="landing-hero">
-        <div class="relative z-10 mx-auto w-full max-w-[1120px] px-6 pb-36 pt-32 lg:px-8 lg:pb-48 lg:pt-44">
+        <div class="relative z-10 mx-auto w-full max-w-[1120px] px-6 pb-16 pt-32 lg:px-8 lg:pb-20 lg:pt-44">
           <div class="flex flex-col items-center text-center">
 
             {/* Badge */}

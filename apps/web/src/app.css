@@ -1952,7 +1952,7 @@ textarea:focus-visible {
 .landing-stats-section {
   background: #05060b;
   color: #f8fafc;
-  padding: 6rem 0;
+  padding: 3rem 0;
   border-top: 1px solid rgba(99,102,241,0.15);
   border-bottom: 1px solid rgba(99,102,241,0.15);
   position: relative;
@@ -1973,13 +1973,13 @@ textarea:focus-visible {
 
 @media (min-width: 768px) {
   .landing-stats-section {
-    padding: 8rem 0;
+    padding: 4rem 0;
   }
 }
 
 @media (min-width: 1024px) {
   .landing-stats-section {
-    padding: 10rem 0;
+    padding: 5rem 0;
   }
 }
 
