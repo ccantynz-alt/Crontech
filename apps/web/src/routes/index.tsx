@@ -419,9 +419,7 @@ export default function Home(): JSX.Element {
               class="max-w-4xl text-[2.75rem] font-extrabold leading-[1.08] tracking-[-0.03em] sm:text-[3.5rem] lg:text-[4.5rem]"
               style={{ color: "#f1f5f9" }}
             >
-              The developer platform{" "}
-              <br class="hidden sm:block" />
-              for the{" "}
+              The developer platform for the{" "}
               <span class="landing-gradient-text">next decade</span>
             </h1>
 
