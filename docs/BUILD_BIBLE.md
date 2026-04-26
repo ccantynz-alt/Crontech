@@ -405,6 +405,343 @@ Gluecron API surface to exist first.
 
 ---
 
+## Mega-platform parity blocks (BLK-017..BLK-033)
+
+Authorized by Craig 2026-04-26 with the directive *"absolutely all
+systems go please don't stop until finished"* on the build plan
+posted in chat. Every block below is a vendor-retirement move
+mapped to `docs/COMPETITIVE_REALITY.md` and
+`docs/CLOUDFLARE_PARITY_AUDIT.md`. Each is 🔵 PLANNED until a
+session promotes it to 🟡 BUILDING with Craig's chat-level
+greenlight per the Amending-this-file protocol.
+
+The grouping below mirrors the parity audit so the link from
+"competitor product" → "Crontech block" stays one click long.
+
+### Cloudflare-class blocks (compute + edge + storage + security)
+
+---
+
+### BLK-017 — Crontech Edge Runtime (V8-isolate, Workers-class) 🔵 PLANNED
+
+**Scope.** Self-hosted V8-isolate edge runtime running on our
+own multi-region nodes (initial: a single Hetzner / Vultr
+region; v1: 3+ regions with Anycast routing). Boot characteristics
+target sub-5ms cold start, sub-1ms warm dispatch. Deploys are
+artifact uploads (already-built JS + Wasm) routed via DNS
+(`services/dns-server`) to the nearest healthy node. Wrangler-
+compatible API surface so customer code that targeted Cloudflare
+Workers ports with zero changes.
+
+**Non-scope.** Workers KV-equivalent (separate block; lands when
+needed). Durable Objects-equivalent (extends BLK-011). Workers AI
+hosted models (covered by BLK-021).
+
+**Exit criteria.** A customer's pre-built JS bundle uploaded via
+`bunx wrangler-shim deploy` runs on a Crontech edge node, returns
+a response within 5ms cold / 1ms warm at p50, and survives a node
+failover within 10s.
+
+---
+
+### BLK-018 — Self-Hosted Object Storage (R2-class) 🔵 PLANNED
+
+**Scope.** S3-compatible object storage running on Crontech
+infrastructure. Initial: MinIO cluster on a single region; v1:
+multi-region replication with read-from-nearest. Native
+integration with the Crontech edge runtime (BLK-017) so static
+asset serves are zero-egress between origin and edge cache.
+
+**Non-scope.** Vendor-managed S3 (AWS, Cloudflare R2, Backblaze
+B2) — self-sufficiency rule: we replace, we do not consume.
+Block storage / EBS-equivalent (separate concern).
+
+**Exit criteria.** A customer can upload a 1GB file via the S3
+API, have it replicated, served from the edge with >100MB/s
+egress, and retrieved by URL in <100ms p50 globally.
+
+---
+
+### BLK-019 — Reverse-Tunnel Daemon (Cloudflare Tunnel-class) 🔵 PLANNED
+
+**Scope.** Daemon that opens an outbound persistent connection
+from the origin Vultr/Hetzner node to the Crontech edge runtime
+(BLK-017) so the origin IP never appears on the public internet.
+Edge nodes route inbound traffic through the tunnel. Removes the
+direct DDoS surface on the origin and unlocks running the API on
+private addressing only.
+
+**Non-scope.** Magic Transit-class BGP routing. Per-user identity-
+aware proxying (that lives in BLK-022 / Zero Trust Access).
+
+**Exit criteria.** `nslookup crontech.ai` resolves only to edge
+node IPs. The origin host has no public-facing port 80/443
+listener. End-to-end latency through the tunnel adds <5ms p50
+versus direct origin hit.
+
+---
+
+### BLK-021 — AI Gateway (Crontech LLM Proxy) 🔵 PLANNED
+
+**Scope.** Self-hosted LLM proxy that fans out across providers
+(Anthropic, OpenAI, Google, Mistral, plus client-side WebGPU
+tiers per CLAUDE.md §4.1) with: response-cache (semantic +
+exact), prompt-cache passthrough, provider failover, per-tenant
+spend caps, per-tenant rate limits, and request/response
+audit logging. Replaces direct vendor API coupling everywhere
+in `packages/ai-core` and `apps/api/src/ai/*`.
+
+**Non-scope.** Hosting our own foundation models (separate
+moonshot block when GPU economics flip). Multi-modal routing
+(text+vision+audio) — text-only in v1.
+
+**Exit criteria.** Every Anthropic API call from Crontech's
+codebase routes through the gateway. Cache hit rate ≥30% on
+admin Claude Console traffic within first month live. Failover
+from Anthropic to OpenAI on 5xx round-trip <500ms.
+
+---
+
+### BLK-022 — WAF + Rate-Limit Dashboard 🔵 PLANNED
+
+**Scope.** Per-route WAF rules engine surfacing primitives we
+already have (Caddy headers, tRPC rate-limit middleware, password
+login throttle in `apps/api/src/auth/password.ts`). Centralised
+admin UI under `/admin/security` for rule authoring, traffic
+inspection, and per-tenant rule scoping. Bot-management heuristics
+(JA3 fingerprint, behavioural rate-shaping) on the Crontech edge
+runtime (BLK-017).
+
+**Non-scope.** ML-driven bot scoring (separate block once we
+have RUM telemetry from BLK-027). DDoS scrubbing at L3/L4 (that
+lives in the tunnel + Anycast architecture of BLK-019).
+
+**Exit criteria.** Admin can author and apply a per-route WAF
+rule in under 60 seconds without an SSH session. Rule applies
+within 5s of save. Hit/block counts visible in the dashboard
+within 60s of being applied.
+
+---
+
+### BLK-023 — WebGPU Video Pipeline (Stream-class) 🔵 PLANNED
+
+**Scope.** Client-side WebGPU video encoding, decoding, effects
+processing, and timeline editing. Server-side transcode + storage
+for finished assets (lands on BLK-018 object storage). Adaptive
+bitrate streaming served from the Crontech edge runtime (BLK-017).
+First customer-facing surface: the AI Video Builder ambition in
+CLAUDE.md §1.
+
+**Non-scope.** Live-streaming ingest (RTMP / WebRTC SFU) — that's
+its own future block. DRM. Per-frame ML model inference from the
+client GPU at upload time (separate research block).
+
+**Exit criteria.** A 5-minute 1080p MP4 uploaded by a customer
+encodes client-side via WebGPU in under 30 seconds, replicates to
+edge cache, and plays back at p50 <500ms first-frame globally.
+
+---
+
+### BLK-024 — Privacy-First First-Party Analytics 🔵 PLANNED
+
+**Scope.** Cookieless, first-party page analytics served from
+the Crontech edge runtime. Minimum viable schema: pageview,
+session, referrer, country (from edge geo), device class. Stored
+on BLK-018 / Turso. No third-party scripts shipped to the
+customer site. Surface as a tile under `/admin/analytics` and a
+public-customer-facing `/dashboard/projects/:id/analytics` page.
+
+**Non-scope.** Funnel/conversion analytics (BLK-027 / RUM
+territory). Heatmaps, session replay (long-term moonshot).
+
+**Exit criteria.** A customer site embeds a single `<script>`
+tag served from the Crontech edge, page views accrue with
+sub-50ms client-side overhead, and the customer sees an
+unsampled live counter in their dashboard within 5s of a hit.
+
+---
+
+### Vercel-class blocks (deploy UX + image opt + RUM)
+
+---
+
+### BLK-025 — Preview Deploys per PR 🔵 PLANNED
+
+**Scope.** Every git push to a non-Main branch in a customer
+repo (BLK-009 git-push pipeline) produces an isolated preview
+deploy at `pr-${number}-${slug}.${tenant}.crontech.app`. Live
+log stream, automatic teardown on PR close, comment back to the
+PR with the preview URL.
+
+**Non-scope.** Production traffic shadowing in v1. Per-PR DB
+branches (lands once Neon-equivalent self-hosted Postgres
+branching is built; separate future block).
+
+**Exit criteria.** Opening a PR on a customer repo connected to
+Crontech surfaces a working preview URL within 60s of push,
+visible on the PR via comment + status check.
+
+---
+
+### BLK-026 — Image Optimisation Pipeline 🔵 PLANNED
+
+**Scope.** On-demand image transform served from the Crontech
+edge runtime (BLK-017). WebGPU-side resizing, format conversion
+(AVIF / WebP), quality / DPR-aware variants. Cached on BLK-018
+object storage. URL grammar: `/img/${path}?w=800&q=80&fmt=avif`.
+
+**Non-scope.** AI-driven content-aware crop / inpaint / generative
+fill (separate AI block). Video transforms (BLK-023 territory).
+
+**Exit criteria.** A customer requests `/img/hero.jpg?w=800` and
+receives a sub-200ms p50 globally cached AVIF, served from the
+nearest edge, with cache-hit rates ≥90% after warmup.
+
+---
+
+### BLK-027 — Real User Monitoring (Speed Insights-class) 🔵 PLANNED
+
+**Scope.** Web Vitals (LCP, INP, CLS, TTFB) collected via the
+Beacon API to the Crontech edge runtime, stored on Turso /
+BLK-018, surfaced under `/admin/rum` and the customer dashboard.
+Cross-references BLK-024 first-party analytics for context.
+
+**Non-scope.** APM-grade error tracking with stack traces (that
+is BLK-014 self-hosted Grafana / OpenTelemetry territory). User
+journey replay.
+
+**Exit criteria.** A customer site instrumented with Crontech
+RUM reports p75 LCP, INP, CLS for every route within 5 minutes
+of first hit. No third-party RUM script in the customer bundle.
+
+---
+
+### Render-class blocks (long-lived workloads + private networking)
+
+---
+
+### BLK-028 — Multi-Region Auto-Scaling Orchestrator 🔵 PLANNED
+
+**Scope.** Service unit that watches CPU / memory / request-rate
+across the Crontech node fleet and provisions / drains nodes to
+maintain SLO. Initial scaling target: per-tenant build worker
+pool (BLK-009). v1: stateless service tier (web, api). Triggers
+new node provisioning via Hetzner / Vultr API.
+
+**Non-scope.** Stateful workload migration (Postgres failover,
+Durable Objects migration) in v1 — those are their own blocks.
+
+**Exit criteria.** Sustained 80% CPU on a node triggers a new
+node coming online within 90s, traffic shifting within 30s
+post-warmup. Sustained idle drains a node within 5min while
+preserving in-flight requests.
+
+---
+
+### BLK-029 — WireGuard Mesh Between Nodes 🔵 PLANNED
+
+**Scope.** Encrypted WireGuard mesh connecting every Crontech
+node (origin, edge, build workers, future GPU workers). Replaces
+public-internet hops between our own services with private
+encrypted hops. Enables BLK-019 tunnel and BLK-028 auto-scaler
+without exposing internal control planes.
+
+**Non-scope.** Customer VPC isolation in v1 (lands on top of
+this block). Layer-7 service mesh (Istio / Linkerd) — overkill
+for our scale until it isn't.
+
+**Exit criteria.** A new Crontech node provisioned by BLK-028
+joins the mesh within 60s of boot. Internal service-to-service
+calls add <2ms p50 versus public-internet baseline. Traffic
+between nodes is unobservable from the public internet.
+
+---
+
+### Mailgun-class block (transactional email)
+
+---
+
+### BLK-030 — Transactional Email Pipeline 🔵 PLANNED
+
+**Scope.** Full Mailgun-equivalent: outbound SMTP via warmed
+Crontech IPs + REST API, inbound routing engine, MIME templates,
+open / click tracking pixels, bounce / complaint handling,
+suppression list, DKIM / SPF / DMARC automation tied into
+BLK-019 DNS, webhooks for delivery events. Runs on the queue
+service (already in repo, currently dormant).
+
+**Non-scope.** Marketing-grade email (segmentation, A/B,
+campaigns) — separate product surface in a future block. Mass
+mailing >1M / day (later, capacity decision).
+
+**Exit criteria.** Crontech itself sends every system email
+(welcome, password reset, deploy alert, billing receipt) through
+this pipeline, with delivery rates ≥98% across major mailbox
+providers and bounce / complaint events surfaced to admin within
+60s.
+
+---
+
+### Twilio-class blocks (SMS + Voice + Verify)
+
+---
+
+### BLK-031 — Programmable SMS Pipeline 🔵 PLANNED
+
+**Scope.** Outbound + inbound SMS via wholesale carrier
+integration (initial: Sinch / Telnyx; long-term: direct carrier
+interconnect). REST API + webhooks. Per-tenant number
+provisioning, queue-backed delivery, delivery receipts, opt-out
+handling (STOP / HELP keywords), TCPA / 10DLC compliance
+plumbing.
+
+**Non-scope.** MMS (separate block). Short codes (separate
+block — different procurement surface). International fanout in
+v1 (US / CA / UK / NZ / AU only).
+
+**Exit criteria.** Crontech itself sends every system SMS (2FA
+code, deploy alert opt-in) via this pipeline. Round-trip API →
+delivered <5s p50. Inbound webhook fires within 1s of receipt.
+
+---
+
+### BLK-032 — Voice Pipeline (SIP Trunking) 🔵 PLANNED
+
+**Scope.** Programmable voice via SIP trunking (initial: Telnyx
+/ Bandwidth wholesale). Inbound call routing, IVR primitives,
+recording, voicemail-to-email (uses BLK-030), per-tenant number
+provisioning. Hooks for AI agents to participate in calls
+(speech-to-text + LLM + text-to-speech via BLK-021).
+
+**Non-scope.** Native PSTN interconnect (years out). Contact-
+center scale (TaskRouter-class). Video calling (separate WebRTC
+block).
+
+**Exit criteria.** A customer can provision a number, route
+inbound calls to a SIP endpoint or an HTTP webhook, and connect
+an AI agent to a live call with sub-500ms STT-to-LLM-to-TTS
+round-trip.
+
+---
+
+### BLK-033 — Verify / OTP Pipeline 🔵 PLANNED
+
+**Scope.** Verify-class API that wraps BLK-031 (SMS), BLK-030
+(email OTP), TOTP (per CLAUDE.md §3 Auth roadmap), and WhatsApp
+(once integrated). Per-tenant rate limits, brute-force lockout,
+abuse signals fed into BLK-022. Replaces every direct OTP
+implementation across Crontech and downstream products.
+
+**Non-scope.** Voice OTP in v1 (BLK-032 dependency lands first).
+Knowledge-based authentication (KBA) — separate compliance
+block.
+
+**Exit criteria.** Crontech's own 2FA flow uses this pipeline
+end-to-end. SDK has a single `verify.send()` / `verify.check()`
+surface. Per-tenant cost dashboard surfaces in `/admin/ops`.
+
+---
+
 ### BLK-020 — Admin Claude Console (BYOK builder interface) ✅ SHIPPED
 
 **Scope.** An admin-only Claude-native chat console at
