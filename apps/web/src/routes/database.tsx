@@ -1,334 +1,446 @@
+// ── BLK-012 — /database — Database Inspector (public entry) ─────────
+//
+// Real, admin-gated, read-only browser for every Turso + Neon table on
+// the platform. v1 replaces the honest-preview waitlist page with the
+// genuine inspector that wires to `trpc.dbInspector.listTables`.
+//
+// v1 scope (BUILD_BIBLE BLK-012):
+//   • List tables across both tiers with real row counts.
+//   • Click-through to /database/[table] for a per-table row browser.
+//   • Bounded, read-only queries — all the server-side safety lives
+//     in the tRPC procedure (allow-list, secret masking, row caps).
+//
+// Non-scope (BLK-012):
+//   • Write access from the UI.
+//   • Schema migrations from the UI.
+//
+// Access model:
+//   • Authenticated admin → sees the inspector.
+//   • Authenticated non-admin → sees an "Admin only" message with a
+//     polite contact-support link.
+//   • Unauthenticated → AdminRoute redirects to /login.
+//
+// Polite tone per docs/POSITIONING.md — no competitor names. Zero
+// raw HTML in business logic — SolidJS JSX + shared UI primitives.
+
 import { Title } from "@solidjs/meta";
-import { createSignal, For, Show } from "solid-js";
-import type { JSX } from "solid-js";
+import {
+  createResource,
+  createSignal,
+  For,
+  Show,
+  type JSX,
+} from "solid-js";
+import { A, useNavigate } from "@solidjs/router";
+import {
+  Button,
+  Card,
+  Stack,
+  Text,
+  Badge,
+  Spinner,
+  Alert,
+} from "@back-to-the-future/ui";
+import { AdminRoute } from "../components/AdminRoute";
+import { SEOHead } from "../components/SEOHead";
+import { useAuth } from "../stores";
+import { trpc } from "../lib/trpc";
 
-// ── Mock Data ────────────────────────────────────────────────────────
+// ── Types ───────────────────────────────────────────────────────────
 
-const TABLES = [
-  { name: "users", rows: 12847, size: "48.2 MB", icon: "&#128101;" },
-  { name: "projects", rows: 3291, size: "124.8 MB", icon: "&#128193;" },
-  { name: "deployments", rows: 28430, size: "89.3 MB", icon: "&#128640;" },
-  { name: "ai_sessions", rows: 94021, size: "312.6 MB", icon: "&#129302;" },
-  { name: "templates", rows: 856, size: "15.4 MB", icon: "&#128196;" },
-  { name: "api_keys", rows: 4283, size: "2.1 MB", icon: "&#128273;" },
-  { name: "audit_logs", rows: 1482003, size: "2.4 GB", icon: "&#128203;" },
-  { name: "embeddings", rows: 523847, size: "8.7 GB", icon: "&#129520;" },
-];
+interface TableSummary {
+  name: string;
+  rowCount: number;
+}
 
-const MOCK_QUERY_RESULT = {
-  columns: ["id", "email", "display_name", "plan", "created_at", "last_login"],
-  rows: [
-    ["usr_01", "elena@acme.dev", "Elena Vasquez", "enterprise", "2025-11-03", "2026-04-08"],
-    ["usr_02", "marcus@streamline.io", "Marcus Chen", "pro", "2025-12-14", "2026-04-07"],
-    ["usr_03", "sarah.kim@buildfast.co", "Sarah Kim", "pro", "2026-01-08", "2026-04-08"],
-    ["usr_04", "raj@devstack.com", "Raj Patel", "free", "2026-02-19", "2026-04-05"],
-    ["usr_05", "anya.novak@cloudship.dev", "Anya Novak", "enterprise", "2026-01-22", "2026-04-08"],
-  ],
-};
+interface ListTablesResponse {
+  turso: TableSummary[];
+  neon: TableSummary[];
+  neonConfigured: boolean;
+}
 
-const SCHEMA_COLUMNS = [
-  { name: "id", type: "TEXT", nullable: false, primary: true },
-  { name: "email", type: "TEXT", nullable: false, primary: false },
-  { name: "display_name", type: "TEXT", nullable: true, primary: false },
-  { name: "plan", type: "TEXT", nullable: false, primary: false },
-  { name: "password_hash", type: "TEXT", nullable: true, primary: false },
-  { name: "role", type: "TEXT", nullable: false, primary: false },
-  { name: "created_at", type: "TIMESTAMP", nullable: false, primary: false },
-  { name: "updated_at", type: "TIMESTAMP", nullable: false, primary: false },
-  { name: "last_login", type: "TIMESTAMP", nullable: true, primary: false },
-];
+// ── Pure helpers (exported for tests) ───────────────────────────────
 
-const SAMPLE_QUERIES = [
-  "SELECT * FROM users WHERE plan = 'enterprise' ORDER BY created_at DESC LIMIT 10;",
-  "SELECT COUNT(*) as total, plan FROM users GROUP BY plan;",
-  "SELECT d.id, p.name, d.status, d.created_at FROM deployments d JOIN projects p ON d.project_id = p.id ORDER BY d.created_at DESC LIMIT 20;",
-  "SELECT model, AVG(tokens_used) as avg_tokens, COUNT(*) as sessions FROM ai_sessions GROUP BY model ORDER BY sessions DESC;",
-];
+/** Human-readable label for a row count (handles large numbers). */
+export function formatRowCount(n: number): string {
+  if (!Number.isFinite(n) || n < 0) return "0";
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
+  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}k`;
+  return String(Math.round(n));
+}
 
-// ── Database Explorer Page ───────────────────────────────────────────
+/** Badge variant for a row-count bucket (visual scanning aid). */
+export function rowCountVariant(
+  n: number,
+): "success" | "warning" | "error" | "default" {
+  if (!Number.isFinite(n) || n < 0) return "default";
+  if (n === 0) return "default";
+  if (n < 100) return "success";
+  if (n < 10_000) return "warning";
+  return "error";
+}
+
+/**
+ * Build a polite, bounded SELECT snippet that developers can paste
+ * into their own SQL console. Always LIMIT 25 — never leaks the full
+ * dataset, matches the inspector's read-only / bounded contract.
+ */
+export function buildSelectSnippet(
+  table: string,
+  db: "turso" | "neon",
+): string {
+  const engine = db === "turso" ? "Turso (edge)" : "Neon (serverless PG)";
+  return `-- ${engine}\nSELECT * FROM "${table}" LIMIT 25;`;
+}
+
+// ── Admin guard (inline — mirrors admin/db.tsx pattern) ─────────────
+
+function AdminGuard(props: { children: JSX.Element }): JSX.Element {
+  const auth = useAuth();
+  const navigate = useNavigate();
+  const isAdmin = (): boolean => auth.currentUser()?.role === "admin";
+
+  return (
+    <AdminRoute>
+      <Show
+        when={isAdmin()}
+        fallback={
+          <Stack direction="vertical" gap="md" class="page-padded">
+            <Text variant="h2" weight="bold">
+              Admin only
+            </Text>
+            <Text variant="body" class="text-muted">
+              The database inspector is reserved for administrators. If you
+              believe this is a mistake, please contact support and we'll
+              sort it out.
+            </Text>
+            <Stack direction="horizontal" gap="sm">
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => navigate("/dashboard")}
+              >
+                Back to Dashboard
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate("/support")}
+              >
+                Contact support
+              </Button>
+            </Stack>
+          </Stack>
+        }
+      >
+        {props.children}
+      </Show>
+    </AdminRoute>
+  );
+}
+
+// ── Section: one database's table list ──────────────────────────────
+
+interface DatabaseSectionProps {
+  title: string;
+  subtitle: string;
+  tables: TableSummary[];
+  dbKey: "turso" | "neon";
+  empty: string;
+}
+
+function DatabaseSection(props: DatabaseSectionProps): JSX.Element {
+  return (
+    <Card padding="md">
+      <Stack direction="vertical" gap="sm">
+        <Stack direction="vertical" gap="xs">
+          <Stack direction="horizontal" gap="sm" align="center">
+            <Text variant="h3" weight="semibold">
+              {props.title}
+            </Text>
+            <Badge variant="success" size="sm">
+              {props.tables.length} tables
+            </Badge>
+          </Stack>
+          <Text variant="caption" class="text-muted">
+            {props.subtitle}
+          </Text>
+        </Stack>
+
+        <Show
+          when={props.tables.length > 0}
+          fallback={
+            <Text variant="body" class="text-muted">
+              {props.empty}
+            </Text>
+          }
+        >
+          <Stack direction="vertical" gap="xs">
+            <For each={props.tables}>
+              {(t) => (
+                <A
+                  href={`/database/${encodeURIComponent(t.name)}?db=${props.dbKey}`}
+                  class="db-table-row"
+                  style={{
+                    display: "block",
+                    padding: "0.5rem 0.75rem",
+                    "border-radius": "0.5rem",
+                    "text-decoration": "none",
+                    color: "inherit",
+                    background: "var(--color-bg-muted, transparent)",
+                  }}
+                >
+                  <Stack direction="horizontal" gap="md" align="center">
+                    <Text variant="body" weight="semibold">
+                      {t.name}
+                    </Text>
+                    <Badge variant={rowCountVariant(t.rowCount)} size="sm">
+                      {formatRowCount(t.rowCount)} rows
+                    </Badge>
+                  </Stack>
+                </A>
+              )}
+            </For>
+          </Stack>
+        </Show>
+      </Stack>
+    </Card>
+  );
+}
+
+// ── Connection-status pill ──────────────────────────────────────────
+
+interface ConnectionPillProps {
+  label: string;
+  kind: "ok" | "empty" | "offline";
+}
+
+function ConnectionPill(props: ConnectionPillProps): JSX.Element {
+  const dotColor = (): string => {
+    if (props.kind === "ok") return "#10b981";
+    if (props.kind === "empty") return "#fbbf24";
+    return "#f87171";
+  };
+  return (
+    <Stack direction="horizontal" gap="xs" align="center">
+      <span
+        style={{
+          display: "inline-block",
+          width: "0.5rem",
+          height: "0.5rem",
+          "border-radius": "9999px",
+          background: dotColor(),
+        }}
+        aria-hidden="true"
+      />
+      <Text variant="caption" class="text-muted">
+        {props.label}
+      </Text>
+    </Stack>
+  );
+}
+
+// ── Page ─────────────────────────────────────────────────────────────
 
 export default function DatabasePage(): JSX.Element {
-  const [selectedTable, setSelectedTable] = createSignal("users");
-  const [query, setQuery] = createSignal("SELECT * FROM users ORDER BY created_at DESC LIMIT 10;");
-  const [showResults, setShowResults] = createSignal(true);
-  const [showSchema, setShowSchema] = createSignal(false);
-  const [isRunning, setIsRunning] = createSignal(false);
-  const [executionTime, setExecutionTime] = createSignal("12ms");
-  const [rowsAffected, setRowsAffected] = createSignal(5);
+  const [data, { refetch }] = createResource(
+    async (): Promise<ListTablesResponse> =>
+      (await trpc.dbInspector.listTables.query()) as ListTablesResponse,
+  );
 
-  const handleRunQuery = (): void => {
-    setIsRunning(true);
-    setShowResults(false);
-    setTimeout(() => {
-      setIsRunning(false);
-      setShowResults(true);
-      setExecutionTime(`${Math.floor(Math.random() * 30 + 5)}ms`);
-      setRowsAffected(MOCK_QUERY_RESULT.rows.length);
-    }, 400);
-  };
+  const [refreshing, setRefreshing] = createSignal(false);
+  const [copyState, setCopyState] = createSignal<string | null>(null);
 
-  const handleKeyDown = (e: KeyboardEvent): void => {
-    if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
-      e.preventDefault();
-      handleRunQuery();
+  const handleRefresh = async (): Promise<void> => {
+    setRefreshing(true);
+    try {
+      await refetch();
+    } finally {
+      setRefreshing(false);
     }
   };
 
+  const handleCopySample = async (): Promise<void> => {
+    const snippet = buildSelectSnippet("users", "turso");
+    try {
+      if (typeof navigator !== "undefined" && navigator.clipboard) {
+        await navigator.clipboard.writeText(snippet);
+        setCopyState("Copied sample SELECT to clipboard.");
+        setTimeout(() => setCopyState(null), 2400);
+      }
+    } catch {
+      setCopyState("Clipboard unavailable — open a table to view the SQL.");
+      setTimeout(() => setCopyState(null), 2400);
+    }
+  };
+
+  const tursoStatus = (): "ok" | "empty" | "offline" => {
+    if (data.error) return "offline";
+    const d = data();
+    if (!d) return "offline";
+    return d.turso.length > 0 ? "ok" : "empty";
+  };
+
+  const neonStatus = (): "ok" | "empty" | "offline" => {
+    if (data.error) return "offline";
+    const d = data();
+    if (!d) return "offline";
+    if (!d.neonConfigured) return "offline";
+    return d.neon.length > 0 ? "ok" : "empty";
+  };
+
   return (
-    <div class="flex h-screen" style={{ background: "var(--color-bg)" }}>
-      <Title>Database Explorer - Crontech</Title>
+    <>
+      <SEOHead
+        title="Database Inspector"
+        description="A read-only inspector for every Turso and Neon table on your Crontech project. Browse schema and rows without leaving the dashboard."
+        path="/database"
+      />
 
-      {/* Sidebar - Table List */}
-      <div
-        class="flex w-64 shrink-0 flex-col border-r border-[var(--color-border)]"
-        style={{ background: "var(--color-bg)" }}
-      >
-        {/* Sidebar Header */}
-        <div class="border-b border-[var(--color-border)] px-4 py-4">
-          <div class="flex items-center gap-2.5">
-            <div class="flex h-8 w-8 items-center justify-center rounded-lg" style={{ background: `linear-gradient(135deg, color-mix(in oklab, var(--color-success) 19%, transparent), color-mix(in oklab, var(--color-success) 38%, transparent))` }}>
-              <span class="text-sm" style={{ color: "var(--color-success)" }}>&#128450;</span>
-            </div>
-            <div>
-              <h2 class="text-sm font-semibold" style={{ color: "var(--color-text)" }}>Database Explorer</h2>
-              <p class="text-[10px]" style={{ color: "var(--color-text-muted)" }}>Turso Edge SQLite</p>
-            </div>
-          </div>
-        </div>
+      <AdminGuard>
+        <Title>Database Inspector — Crontech</Title>
+        <Stack direction="vertical" gap="lg" class="page-padded">
+          {/* ── Header ─────────────────────────────────────────── */}
+          <Stack direction="vertical" gap="xs">
+            <Stack direction="horizontal" gap="sm" align="center">
+              <Text variant="h1" weight="bold">
+                Database Inspector
+              </Text>
+              <Badge variant="success" size="sm">
+                Live
+              </Badge>
+            </Stack>
+            <Text variant="body" class="text-muted">
+              Read-only browser for every table on both data tiers. Click a
+              table to view its columns and paginated rows. Secret-looking
+              columns (passwords, tokens, keys) are masked on display. All
+              queries are bounded — no mutations, no schema changes.
+            </Text>
+          </Stack>
 
-        {/* Connection Status */}
-        <div class="border-b border-[var(--color-border)] px-4 py-3">
-          <div class="flex items-center gap-2">
-            <div class="h-2 w-2 rounded-full" style={{ background: "var(--color-success)", "box-shadow": `0 0 6px color-mix(in oklab, var(--color-success) 50%, transparent)` }} />
-            <span class="text-[11px] font-medium" style={{ color: "var(--color-success)" }}>Connected</span>
-            <span class="ml-auto text-[10px]" style={{ color: "var(--color-text-muted)" }}>us-east-1</span>
-          </div>
-        </div>
-
-        {/* Tables Section */}
-        <div class="px-3 pt-3 pb-2">
-          <span class="px-1 text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--color-text-muted)" }}>Tables</span>
-        </div>
-        <div class="flex-1 overflow-y-auto px-2">
-          <For each={TABLES}>
-            {(table) => (
-              <button
-                type="button"
-                onClick={() => {
-                  setSelectedTable(table.name);
-                  setQuery(`SELECT * FROM ${table.name} ORDER BY created_at DESC LIMIT 10;`);
-                }}
-                class={`mb-0.5 flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-left transition-all duration-150 ${
-                  selectedTable() === table.name
-                    ? "border border-[var(--color-border)] bg-[var(--color-bg-elevated)]"
-                    : "border border-transparent hover:bg-[var(--color-bg-subtle)]"
-                }`}
-                style={{ color: selectedTable() === table.name ? "var(--color-text)" : "var(--color-text-muted)" }}
-              >
-                <span class="text-sm" innerHTML={table.icon} />
-                <div class="flex min-w-0 flex-1 flex-col">
-                  <span class="text-xs font-medium">{table.name}</span>
-                  <span class="text-[10px]" style={{ color: "var(--color-text-muted)" }}>{table.rows.toLocaleString()} rows</span>
-                </div>
-                <span class="text-[10px]" style={{ color: "var(--color-text-secondary)" }}>{table.size}</span>
-              </button>
-            )}
-          </For>
-        </div>
-
-        {/* Sidebar Footer */}
-        <div class="border-t border-[var(--color-border)] px-4 py-3">
-          <div class="flex items-center justify-between text-[10px]" style={{ color: "var(--color-text-muted)" }}>
-            <span>{TABLES.length} tables</span>
-            <span>11.7 GB total</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div class="flex flex-1 flex-col overflow-hidden">
-        {/* Toolbar */}
-        <div class="flex items-center justify-between border-b border-[var(--color-border)] px-5 py-3" style={{ background: "var(--color-bg)" }}>
-          <div class="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={handleRunQuery}
-              disabled={isRunning()}
-              class="flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-semibold text-white transition-all duration-200 hover:brightness-110 disabled:opacity-50"
-              style={{ background: "var(--color-success)" }}
+          {/* ── Connection pills + actions ─────────────────────── */}
+          <Card padding="sm">
+            <Stack
+              direction="horizontal"
+              gap="md"
+              align="center"
+              justify="between"
             >
-              <Show when={!isRunning()} fallback={<span class="inline-block h-3 w-3 animate-spin rounded-full border-2" style={{ "border-color": "color-mix(in oklab, var(--color-text) 30%, transparent)", "border-top-color": "white" }} />}>
-                <span>&#9654;</span>
-              </Show>
-              Run Query
-            </button>
-            <span class="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-subtle)] px-2.5 py-1.5 text-[10px] font-mono" style={{ color: "var(--color-text-muted)" }}>
-              {navigator.platform?.includes("Mac") ? "Cmd" : "Ctrl"}+Enter
-            </span>
-          </div>
-          <div class="flex items-center gap-4">
-            <button
-              type="button"
-              onClick={() => setShowSchema(!showSchema())}
-              class={`rounded-lg border px-3 py-1.5 text-[11px] font-medium transition-all duration-200 ${
-                showSchema()
-                  ? "border-[var(--color-border)] text-[var(--color-text)]"
-                  : "border-[var(--color-border)] bg-[var(--color-bg-subtle)] hover:text-[var(--color-text)]"
-              }`}
-              style={showSchema() ? { background: "color-mix(in oklab, var(--color-primary) 10%, transparent)", color: "var(--color-primary)", "border-color": "color-mix(in oklab, var(--color-primary) 30%, transparent)" } : { color: "var(--color-text-muted)" }}
-            >
-              Schema
-            </button>
-            <Show when={showResults()}>
-              <div class="flex items-center gap-3 text-[11px]">
-                <span style={{ color: "var(--color-text-muted)" }}>{rowsAffected()} rows</span>
-                <span class="rounded-full px-2.5 py-0.5 text-[10px] font-semibold" style={{ background: "color-mix(in oklab, var(--color-success) 15%, transparent)", color: "var(--color-success)" }}>{executionTime()}</span>
-              </div>
-            </Show>
-          </div>
-        </div>
+              <Stack direction="horizontal" gap="md" align="center">
+                <ConnectionPill
+                  label={`Turso: ${
+                    tursoStatus() === "ok"
+                      ? "connected"
+                      : tursoStatus() === "empty"
+                        ? "no tables registered"
+                        : "unreachable"
+                  }`}
+                  kind={tursoStatus()}
+                />
+                <ConnectionPill
+                  label={`Neon: ${
+                    neonStatus() === "ok"
+                      ? "connected"
+                      : neonStatus() === "empty"
+                        ? "no tables registered"
+                        : "not configured"
+                  }`}
+                  kind={neonStatus()}
+                />
+              </Stack>
+              <Stack direction="horizontal" gap="sm" align="center">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleCopySample}
+                >
+                  Copy sample SQL
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleRefresh}
+                  disabled={refreshing()}
+                >
+                  {refreshing() ? "Refreshing…" : "Refresh"}
+                </Button>
+              </Stack>
+            </Stack>
+          </Card>
 
-        {/* Query Editor + Schema Panel */}
-        <div class="flex flex-1 overflow-hidden">
-          <div class={`flex flex-1 flex-col overflow-hidden ${showSchema() ? "" : ""}`}>
-            {/* Query Editor */}
-            <div class="border-b border-[var(--color-border)]" style={{ background: "var(--color-bg)" }}>
-              <div class="flex items-center justify-between border-b border-[var(--color-border)] px-4 py-2">
-                <span class="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--color-text-muted)" }}>Query Editor</span>
-                <div class="flex items-center gap-2">
-                  {/* Quick Query Buttons */}
-                  <For each={SAMPLE_QUERIES.slice(0, 3)}>
-                    {(sq, i) => (
-                      <button
-                        type="button"
-                        onClick={() => setQuery(sq)}
-                        class="rounded border border-[var(--color-border)] bg-[var(--color-bg-subtle)] px-2 py-0.5 text-[10px] transition-all hover:border-[var(--color-border)]"
-                        style={{ color: "var(--color-text-muted)" }}
-                      >
-                        Query {i() + 1}
-                      </button>
-                    )}
-                  </For>
-                </div>
-              </div>
-              <textarea
-                value={query()}
-                onInput={(e) => setQuery(e.currentTarget.value)}
-                onKeyDown={handleKeyDown}
-                spellcheck={false}
-                class="w-full resize-none bg-transparent px-5 py-4 font-mono text-sm outline-none placeholder-gray-700"
-                style={{ color: "var(--color-text)", "min-height": "140px", "line-height": "1.7" }}
-                placeholder="Write your SQL query here..."
-              />
-            </div>
-
-            {/* Results Table */}
-            <div class="flex-1 overflow-auto" style={{ background: "var(--color-bg)" }}>
-              <Show
-                when={showResults()}
-                fallback={
-                  <div class="flex h-full flex-col items-center justify-center gap-3">
-                    <Show
-                      when={!isRunning()}
-                      fallback={
-                        <div class="flex flex-col items-center gap-3">
-                          <span class="inline-block h-6 w-6 animate-spin rounded-full border-2" style={{ "border-color": "color-mix(in oklab, var(--color-primary) 30%, transparent)", "border-top-color": "var(--color-primary)" }} />
-                          <span class="text-xs" style={{ color: "var(--color-text-muted)" }}>Executing query...</span>
-                        </div>
-                      }
-                    >
-                      <span class="text-3xl" style={{ color: "var(--color-text-secondary)" }}>&#128450;</span>
-                      <span class="text-sm" style={{ color: "var(--color-text-muted)" }}>Run a query to see results</span>
-                    </Show>
-                  </div>
-                }
-              >
-                <div class="min-w-full">
-                  {/* Table Header */}
-                  <div class="sticky top-0 z-10 flex border-b border-[var(--color-border)]" style={{ background: "var(--color-bg)" }}>
-                    <div class="w-12 shrink-0 border-r border-[var(--color-border)] px-3 py-2.5 text-[10px] font-semibold" style={{ color: "var(--color-text-muted)" }}>#</div>
-                    <For each={MOCK_QUERY_RESULT.columns}>
-                      {(col) => (
-                        <div class="min-w-[140px] flex-1 border-r border-[var(--color-border)] px-4 py-2.5">
-                          <span class="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--color-text-muted)" }}>{col}</span>
-                        </div>
-                      )}
-                    </For>
-                  </div>
-                  {/* Table Body */}
-                  <For each={MOCK_QUERY_RESULT.rows}>
-                    {(row, rowIdx) => (
-                      <div class="flex border-b border-[var(--color-border)] transition-colors duration-100 hover:bg-[var(--color-bg-subtle)]">
-                        <div class="w-12 shrink-0 border-r border-[var(--color-border)] px-3 py-2.5 text-[11px] font-mono" style={{ color: "var(--color-text-secondary)" }}>{rowIdx() + 1}</div>
-                        <For each={row}>
-                          {(cell) => (
-                            <div class="min-w-[140px] flex-1 border-r border-[var(--color-border)] px-4 py-2.5">
-                              <span class="font-mono text-xs" style={{ color: "var(--color-text)" }}>{cell}</span>
-                            </div>
-                          )}
-                        </For>
-                      </div>
-                    )}
-                  </For>
-                </div>
-              </Show>
-            </div>
-          </div>
-
-          {/* Schema Panel */}
-          <Show when={showSchema()}>
-            <div class="w-72 shrink-0 overflow-y-auto border-l border-[var(--color-border)]" style={{ background: "var(--color-bg)" }}>
-              <div class="border-b border-[var(--color-border)] px-4 py-3">
-                <h3 class="text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--color-text-muted)" }}>
-                  Schema: {selectedTable()}
-                </h3>
-              </div>
-              <div class="p-3">
-                <For each={SCHEMA_COLUMNS}>
-                  {(col) => (
-                    <div class="flex items-center gap-2 rounded-lg px-3 py-2.5 transition-colors hover:bg-[var(--color-bg-subtle)]">
-                      <div class="flex items-center gap-2 flex-1 min-w-0">
-                        <Show when={col.primary}>
-                          <span class="text-[10px]" style={{ color: "var(--color-warning)" }} title="Primary Key">&#128273;</span>
-                        </Show>
-                        <span class="text-xs font-medium truncate" style={{ color: "var(--color-text)" }}>{col.name}</span>
-                      </div>
-                      <div class="flex items-center gap-1.5 shrink-0">
-                        <span class="rounded bg-[var(--color-bg-elevated)] px-1.5 py-0.5 text-[10px] font-mono" style={{ color: "var(--color-text-muted)" }}>{col.type}</span>
-                        <Show when={!col.nullable}>
-                          <span class="text-[9px]" style={{ color: "color-mix(in oklab, var(--color-warning) 70%, transparent)" }} title="NOT NULL">NN</span>
-                        </Show>
-                      </div>
-                    </div>
-                  )}
-                </For>
-
-                {/* Indexes Section */}
-                <div class="mt-4 border-t border-[var(--color-border)] pt-3">
-                  <span class="px-3 text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--color-text-muted)" }}>Indexes</span>
-                  <div class="mt-2 flex flex-col gap-1">
-                    <div class="flex items-center gap-2 rounded-lg px-3 py-2">
-                      <span class="text-[10px]" style={{ color: "var(--color-primary)" }}>&#9679;</span>
-                      <span class="text-[11px]" style={{ color: "var(--color-text-muted)" }}>idx_users_email</span>
-                      <span class="ml-auto rounded px-1.5 py-0.5 text-[9px]" style={{ background: "color-mix(in oklab, var(--color-primary) 10%, transparent)", color: "var(--color-primary)" }}>UNIQUE</span>
-                    </div>
-                    <div class="flex items-center gap-2 rounded-lg px-3 py-2">
-                      <span class="text-[10px]" style={{ color: "var(--color-success)" }}>&#9679;</span>
-                      <span class="text-[11px]" style={{ color: "var(--color-text-muted)" }}>idx_users_plan</span>
-                      <span class="ml-auto rounded px-1.5 py-0.5 text-[9px]" style={{ background: "color-mix(in oklab, var(--color-success) 10%, transparent)", color: "var(--color-success)" }}>BTREE</span>
-                    </div>
-                    <div class="flex items-center gap-2 rounded-lg px-3 py-2">
-                      <span class="text-[10px]" style={{ color: "var(--color-primary)" }}>&#9679;</span>
-                      <span class="text-[11px]" style={{ color: "var(--color-text-muted)" }}>idx_users_created</span>
-                      <span class="ml-auto rounded px-1.5 py-0.5 text-[9px]" style={{ background: "color-mix(in oklab, var(--color-primary) 10%, transparent)", color: "var(--color-primary)" }}>BTREE</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+          <Show when={copyState()}>
+            {(msg) => <Alert variant="success">{msg()}</Alert>}
           </Show>
-        </div>
-      </div>
-    </div>
+
+          <Show when={data.error}>
+            <Alert variant="error">
+              The inspector couldn't reach the database service. This usually
+              means the API server is still starting or you've lost your
+              session — try refreshing in a moment. Nothing has been changed.
+            </Alert>
+          </Show>
+
+          {/* ── Loading / Empty / Data ─────────────────────────── */}
+          <Show when={!data.loading} fallback={<Spinner />}>
+            <Show
+              when={data()}
+              fallback={
+                <Text variant="body" class="text-muted">
+                  No database connection is available on this instance.
+                </Text>
+              }
+            >
+              {(resolved) => (
+                <Stack direction="vertical" gap="lg">
+                  <DatabaseSection
+                    title="Turso (edge)"
+                    subtitle="Edge SQLite — primary data store, low-latency reads from every region."
+                    tables={resolved().turso}
+                    dbKey="turso"
+                    empty="No Turso tables are currently registered."
+                  />
+                  <DatabaseSection
+                    title="Neon (serverless PG)"
+                    subtitle={
+                      resolved().neonConfigured
+                        ? "Serverless PostgreSQL — complex queries, vector search, pgvector embeddings."
+                        : "Neon is not configured on this instance. Set NEON_DATABASE_URL to enable."
+                    }
+                    tables={resolved().neon}
+                    dbKey="neon"
+                    empty={
+                      resolved().neonConfigured
+                        ? "No Neon tables are currently registered."
+                        : "Neon is not configured on this instance."
+                    }
+                  />
+
+                  {/* Safety notes — keep the doctrine visible */}
+                  <Card padding="md">
+                    <Stack direction="vertical" gap="xs">
+                      <Text variant="h3" weight="semibold">
+                        Safety rules
+                      </Text>
+                      <Text variant="caption" class="text-muted">
+                        • Every query is read-only and capped at 100 rows per
+                        page / 500 rows per call.
+                      </Text>
+                      <Text variant="caption" class="text-muted">
+                        • Passwords, tokens, API keys and private keys are
+                        masked before they ever leave the server.
+                      </Text>
+                      <Text variant="caption" class="text-muted">
+                        • Only tables registered in the platform schema can be
+                        browsed — no arbitrary SQL surfaces from this UI.
+                      </Text>
+                    </Stack>
+                  </Card>
+                </Stack>
+              )}
+            </Show>
+          </Show>
+        </Stack>
+      </AdminGuard>
+    </>
   );
 }

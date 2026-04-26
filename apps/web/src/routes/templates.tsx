@@ -425,7 +425,17 @@ export default function TemplatesPage(): JSX.Element {
   });
 
   const handleUseTemplate = (id: string): void => {
-    navigate(`/builder?template=${id}`);
+    // Scaffold a new project from the template. Was sending users to
+    // /builder?template=${id} but /builder is the Component Composer —
+    // it doesn't read the template param and has no wizard to pre-fill.
+    // /projects/new does: `lib/project-templates` pre-fills framework,
+    // runtime, and name from the ?template= id. The optional
+    // "?ai=true" suffix the "Customize with AI" button appends is
+    // forwarded through as part of the path string so /projects/new
+    // sees it as a sibling query param.
+    const [templateId, extras] = id.split("?");
+    const suffix = extras ? `&${extras}` : "";
+    navigate(`/projects/new?template=${templateId}${suffix}`);
   };
 
   return (

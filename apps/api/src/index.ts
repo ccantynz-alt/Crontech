@@ -8,6 +8,10 @@ import { chatStreamRoutes } from "./ai/chat-stream";
 import { wsApp, websocket, sseApp, theatreSseApp, yjsWsApp, liveUpdatesApp } from "./realtime";
 import { terminalApp } from "./terminal/handler";
 import { initTelemetry, httpRequestCount, httpRequestDuration, recordRequest, getMetrics } from "./telemetry";
+import {
+  projectAttributionMiddleware,
+  withProjectAttrs,
+} from "./telemetry/project-attribution";
 import { getAllFlags, isFeatureEnabled } from "./feature-flags";
 import { checkNeonHealth } from "@back-to-the-future/db/neon";
 import {
@@ -36,9 +40,12 @@ import { startQueue } from "./automation/retry-queue";
 import { startHealingLoop } from "./automation/self-heal";
 import { runDispatcher } from "./webhooks/dispatcher";
 import { gluecronPushApp } from "./webhooks/gluecron-push";
+import { gluecronPlatformDeployApp } from "./webhooks/gluecron-platform-deploy";
 import { inboundSmsApp } from "./sms/inbound";
 import { githubWebhookApp } from "./github/webhook";
 import { deploymentLogsStreamApp } from "./deploy/logs-stream";
+import { adminDeployApp } from "./deploy/admin-deploy";
+import { platformAutoDeployApp } from "./deploy/platform-auto-deploy";
 import { createEmpireHealthApp } from "./healthz/empire";
 import { db as defaultDb } from "@back-to-the-future/db";
 import {
@@ -56,9 +63,16 @@ import { apiKeyAuthMiddleware } from "./middleware/api-key-auth";
 import { subdomainRouter } from "./middleware/subdomain";
 import { googleOAuthRoutes } from "./auth/google-oauth";
 import { unsubscribeRoutes } from "./email/unsubscribe";
+import { alecRaeWebhookApp } from "./email/alecrae-webhook";
 import { withAudit } from "./middleware/audit";
 
 const app = new Hono().basePath("/api");
+
+// ── Per-Project OTel Attribution (must run BEFORE the telemetry
+//    middleware below so `http_request_count` / `http_request_duration`
+//    samples pick up the `project_id` label from AsyncLocalStorage when
+//    the URL is project-scoped). Safe no-op on non-project routes.
+app.use("*", projectAttributionMiddleware());
 
 // ── Subdomain Routing (Multi-Tenant) ────────────────────────────────
 app.use("*", subdomainRouter);
@@ -172,16 +186,27 @@ app.use("/api/trpc/*", apiKeyAuthMiddleware);
 app.use("/api/ai/*", apiKeyAuthMiddleware);
 
 // ── Request Telemetry Middleware ──────────────────────────────────────
+// `withProjectAttrs` merges the current AsyncLocalStorage frame's
+// `project_id` into the attribute bag when the request belongs to a
+// project (populated above by `projectAttributionMiddleware`). On
+// non-project routes the helper is a no-op and we emit the same
+// attribute shape we always have.
 app.use("*", async (c, next) => {
   const start = performance.now();
-  httpRequestCount.add(1, { method: c.req.method, path: c.req.path });
+  httpRequestCount.add(
+    1,
+    withProjectAttrs({ method: c.req.method, path: c.req.path }),
+  );
   await next();
   const duration = performance.now() - start;
-  httpRequestDuration.record(duration, {
-    method: c.req.method,
-    path: c.req.path,
-    status: c.res.status,
-  });
+  httpRequestDuration.record(
+    duration,
+    withProjectAttrs({
+      method: c.req.method,
+      path: c.req.path,
+      status: c.res.status,
+    }),
+  );
   recordRequest(duration);
 });
 
@@ -407,17 +432,34 @@ app.route("/", inboundSmsApp);
 // POST /api/hooks/gluecron/push — see webhooks/gluecron-push.ts.
 app.route("/", gluecronPushApp);
 
+// Mount Gluecron platform self-deploy receiver — the BLK-016 cutover hook.
+// `git push gluecron Main` on the Crontech repo lands here, which triggers
+// the deploy-agent on localhost:9091 and refreshes crontech.ai with no
+// GitHub Actions in the loop. POST /api/hooks/gluecron/platform — see
+// webhooks/gluecron-platform-deploy.ts.
+app.route("/", gluecronPlatformDeployApp);
+
 // Mount GitHub push webhook receiver (BLK-009) — HMAC-SHA256 verification
 // is performed inside the handler against raw body, so it MUST stay
 // outside global middleware that would rewrite / consume the body.
 // POST /api/webhook/github — see github/webhook.ts.
 app.route("/", githubWebhookApp);
 
+// Platform auto-deploy: POST /api/hooks/github/platform
+// GitHub pushes to ccantynz-alt/Crontech Main trigger the deploy agent.
+app.route("/", platformAutoDeployApp);
+
 // Mount Google OAuth routes (raw Hono -- needs redirects outside tRPC)
 app.route("/auth", googleOAuthRoutes);
 
 // Mount GDPR unsubscribe routes (GET + POST /api/unsubscribe, /api/resubscribe)
 app.route("/", unsubscribeRoutes);
+
+// Mount AlecRae email webhook receiver — HMAC-SHA256 verification runs
+// inside the handler against raw body, so it MUST stay outside global
+// middleware that would rewrite / consume the body.
+// POST /api/alecrae/webhook — see email/alecrae-webhook.ts.
+app.route("/", alecRaeWebhookApp);
 
 // Mount AI routes (raw Hono -- streaming works better outside tRPC)
 app.route("/ai", aiRoutes);
@@ -456,6 +498,9 @@ app.route("/", terminalApp);
 // BLK-009: SSE live log stream for deployments at
 // /api/deployments/:id/logs/stream
 app.route("/", deploymentLogsStreamApp);
+
+// Admin deploy trigger — POST /api/admin/deploy (proxies to deploy-agent on localhost:9091)
+app.route("/api", adminDeployApp);
 
 // ── Auto-migrate on startup (safe default: only when AUTO_MIGRATE=true) ──
 async function maybeRunMigrations(): Promise<void> {

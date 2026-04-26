@@ -1,0 +1,19 @@
+[Unit]
+Description=Crontech public-hostname health check (every 15 minutes)
+Documentation=file:///opt/crontech/scripts/health-check-hostnames.sh
+
+[Timer]
+# First check 3 minutes after boot so the host has time to
+# network-resolve + Caddy to come up before we probe ourselves.
+OnBootSec=3min
+
+# Re-check every 15 minutes. Short enough that the worst-case
+# undetected outage is ~15 min; long enough not to spam Let's
+# Encrypt's rate limiter during a real incident.
+OnUnitActiveSec=15min
+
+# Catch up on missed runs after the host sleeps / reboots.
+Persistent=true
+
+[Install]
+WantedBy=timers.target

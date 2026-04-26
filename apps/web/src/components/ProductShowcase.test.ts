@@ -75,6 +75,9 @@ describe("ProductShowcase — smoke", () => {
     const src = readFileSync(COMPONENT_PATH, "utf-8");
     const liveCount = (src.match(/status: "live"/g) ?? []).length;
     const soonCount = (src.match(/status: "coming-soon"/g) ?? []).length;
+    // BLK-012 landed the real /database inspector (admin-gated,
+    // read-only, wired to trpc.dbInspector.*), so Edge Database is
+    // live again. Only SMS + eSIM remain on the coming-soon list.
     expect(liveCount).toBe(6);
     expect(soonCount).toBe(2);
   });

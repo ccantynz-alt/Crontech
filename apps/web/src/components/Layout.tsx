@@ -449,14 +449,14 @@ export function Layout(props: LayoutProps): JSX.Element {
       </header>
 
       {/* ── Body (sidebar + content) ──────────────────────────── */}
-      <div class="flex flex-1 overflow-hidden">
+      <div class="flex flex-1 min-w-0">
         <Show when={auth.isAuthenticated()}>
           <Sidebar
             collapsed={sidebarCollapsed()}
             onToggle={() => setSidebarCollapsed(!sidebarCollapsed())}
           />
         </Show>
-        <main class="flex-1 overflow-y-auto">
+        <main class="flex-1 min-w-0 w-full">
           {props.children}
         </main>
       </div>

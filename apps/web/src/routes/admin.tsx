@@ -1,5 +1,5 @@
 import { Title } from "@solidjs/meta";
-import { createSignal, createResource, For, Show } from "solid-js";
+import { createSignal, createResource, For, Show, onCleanup } from "solid-js";
 import type { JSX } from "solid-js";
 import { useNavigate } from "@solidjs/router";
 import { AdminRoute } from "../components/AdminRoute";
@@ -393,6 +393,7 @@ function AdminPageContent(): JSX.Element {
                     <input
                       type="text"
                       placeholder="Search users..."
+                      aria-label="Search users"
                       value={searchQuery()}
                       onInput={(e) => setSearchQuery(e.currentTarget.value)}
                       class="w-56 rounded-lg py-2 pl-8 pr-3 text-xs outline-none transition-colors duration-200"
@@ -507,6 +508,18 @@ function AdminPageContent(): JSX.Element {
               <div class="flex flex-col gap-2">
                 <button
                   type="button"
+                  onClick={() => navigate("/admin/onboard")}
+                  class="flex items-center gap-3 rounded-xl px-4 py-3 text-left transition-all duration-200"
+                  style={{ border: "1px solid var(--color-border)", background: "var(--color-bg-subtle)" }}
+                >
+                  <span class="flex h-8 w-8 items-center justify-center rounded-lg text-sm" style={{ background: "color-mix(in oklab, #6366f1 10%, transparent)", color: "#6366f1" }}>&#128640;</span>
+                  <div>
+                    <span class="text-sm font-medium" style={{ color: "var(--color-text-secondary)" }}>Platform Onboarding</span>
+                    <p class="text-[11px]" style={{ color: "var(--color-text-faint)" }}>AI-assisted migration wizard — zero env vars left behind</p>
+                  </div>
+                </button>
+                <button
+                  type="button"
                   onClick={() => navigate("/admin/claude")}
                   class="flex items-center gap-3 rounded-xl px-4 py-3 text-left transition-all duration-200"
                   style={{ border: "1px solid var(--color-border)", background: "var(--color-bg-subtle)" }}
@@ -515,6 +528,18 @@ function AdminPageContent(): JSX.Element {
                   <div>
                     <span class="text-sm font-medium" style={{ color: "var(--color-text-secondary)" }}>Claude Console</span>
                     <p class="text-[11px]" style={{ color: "var(--color-text-faint)" }}>Admin-only BYOK builder powered by Anthropic</p>
+                  </div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => navigate("/admin/ops")}
+                  class="flex items-center gap-3 rounded-xl px-4 py-3 text-left transition-all duration-200"
+                  style={{ border: "1px solid var(--color-border)", background: "var(--color-bg-subtle)" }}
+                >
+                  <span class="flex h-8 w-8 items-center justify-center rounded-lg text-sm" style={{ background: "color-mix(in oklab, var(--color-success) 10%, transparent)", color: "var(--color-success)" }}>&#128736;</span>
+                  <div>
+                    <span class="text-sm font-medium" style={{ color: "var(--color-text-secondary)" }}>Operations Console</span>
+                    <p class="text-[11px]" style={{ color: "var(--color-text-faint)" }}>Deploy drift, recent commits, services, diagnose battery</p>
                   </div>
                 </button>
                 <button
@@ -569,7 +594,499 @@ function AdminPageContent(): JSX.Element {
             </div>
           </div>
         </div>
+
+        {/* Deploy Control Panel */}
+        <div class="mt-8">
+          <DeployPanel />
+        </div>
+
+        {/* Server Env Vars */}
+        <div class="mt-8">
+          <ServerEnvPanel />
+        </div>
       </div>
+    </div>
+  );
+}
+
+// ── Deploy Panel ──────────────────────────────────────────────────────
+// Calls the Crontech API admin endpoints which proxy to the deploy-agent
+// on localhost:9091. Full git pull → build → restart without GitHub Actions.
+
+interface DeployStatus {
+  services: Record<string, string>;
+  sha: string;
+  deploying: boolean;
+  uptime: string;
+}
+
+interface DeployEvent {
+  step?: string;
+  status?: "running" | "ok" | "error";
+  done?: boolean;
+  ok?: boolean;
+  failedStep?: string;
+  detail?: string;
+}
+
+function DeployPanel(): JSX.Element {
+  const [log, setLog] = createSignal<DeployEvent[]>([]);
+  const [running, setRunning] = createSignal(false);
+  const [status, { refetch: refetchStatus }] = createResource<DeployStatus | null>(
+    async () => {
+      const res = await fetch("/api/admin/deploy/status", {
+        headers: { Authorization: `Bearer ${localStorage.getItem("ct_token") ?? ""}` },
+      });
+      if (!res.ok) return null;
+      return res.json() as Promise<DeployStatus>;
+    },
+  );
+
+  let abortController: AbortController | undefined;
+
+  onCleanup(() => {
+    abortController?.abort();
+  });
+
+  const startDeploy = async (endpoint: "deploy" | "restart"): Promise<void> => {
+    if (running()) return;
+    setRunning(true);
+    setLog([]);
+    abortController = new AbortController();
+
+    try {
+      const res = await fetch(`/api/admin/${endpoint}`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${localStorage.getItem("ct_token") ?? ""}` },
+        signal: abortController.signal,
+      });
+
+      if (!res.ok || !res.body) {
+        setLog([{ step: "error", status: "error", detail: `HTTP ${res.status}` }]);
+        return;
+      }
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buf = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, { stream: true });
+        const parts = buf.split("\n\n");
+        buf = parts.pop() ?? "";
+        for (const part of parts) {
+          const line = part.replace(/^data:\s*/, "").trim();
+          if (!line) continue;
+          try {
+            const event = JSON.parse(line) as DeployEvent;
+            setLog((prev) => [...prev, event]);
+          } catch {
+            // ignore malformed SSE lines
+          }
+        }
+      }
+    } catch (err) {
+      if (err instanceof Error && err.name !== "AbortError") {
+        setLog((prev) => [...prev, { step: "connection", status: "error", detail: err.message }]);
+      }
+    } finally {
+      setRunning(false);
+      refetchStatus();
+    }
+  };
+
+  const stepColor = (e: DeployEvent): string => {
+    if (e.status === "ok") return "var(--color-success)";
+    if (e.status === "error") return "var(--color-danger)";
+    if (e.status === "running") return "var(--color-warning)";
+    return "var(--color-text-muted)";
+  };
+
+  const serviceColor = (s: string): string =>
+    s === "active" ? "var(--color-success)" : "var(--color-danger)";
+
+  return (
+    <div
+      class="rounded-2xl p-6"
+      style={{ background: "var(--color-bg-elevated)", border: "1px solid var(--color-border)" }}
+    >
+      <div class="mb-5 flex items-center justify-between">
+        <div>
+          <h2 class="text-lg font-semibold" style={{ color: "var(--color-text)" }}>
+            Deploy Control
+          </h2>
+          <p class="mt-0.5 text-xs" style={{ color: "var(--color-text-faint)" }}>
+            git pull → build → restart · no GitHub Actions needed
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => refetchStatus()}
+          class="rounded-lg px-3 py-1.5 text-xs font-medium transition-all"
+          style={{ border: "1px solid var(--color-border)", background: "var(--color-bg-subtle)", color: "var(--color-text-secondary)" }}
+        >
+          &#8635; Refresh
+        </button>
+      </div>
+
+      {/* Service status */}
+      <Show when={status()}>
+        {(s) => (
+          <div class="mb-5 flex flex-wrap gap-2">
+            <For each={Object.entries(s().services)}>
+              {([svc, state]) => (
+                <div
+                  class="flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-semibold"
+                  style={{
+                    background: `color-mix(in oklab, ${serviceColor(state)} 10%, transparent)`,
+                    color: serviceColor(state),
+                    border: `1px solid color-mix(in oklab, ${serviceColor(state)} 25%, transparent)`,
+                  }}
+                >
+                  <span class="h-1.5 w-1.5 rounded-full" style={{ background: serviceColor(state) }} />
+                  {svc}
+                  <span class="opacity-70">·</span>
+                  {state}
+                </div>
+              )}
+            </For>
+            <div
+              class="flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-medium"
+              style={{
+                background: "var(--color-bg-subtle)",
+                color: "var(--color-text-muted)",
+                border: "1px solid var(--color-border)",
+              }}
+            >
+              SHA: {s().sha}
+            </div>
+          </div>
+        )}
+      </Show>
+
+      {/* Action buttons */}
+      <div class="mb-5 flex gap-3">
+        <button
+          type="button"
+          disabled={running()}
+          onClick={() => startDeploy("deploy")}
+          class="flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition-all disabled:opacity-50"
+          style={{
+            background: "var(--color-primary)",
+            color: "#ffffff",
+            border: "none",
+          }}
+        >
+          <span>{running() ? "⏳" : "🚀"}</span>
+          {running() ? "Deploying…" : "Full Deploy"}
+        </button>
+        <button
+          type="button"
+          disabled={running()}
+          onClick={() => startDeploy("restart")}
+          class="flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition-all disabled:opacity-50"
+          style={{
+            background: "var(--color-bg-subtle)",
+            color: "var(--color-text-secondary)",
+            border: "1px solid var(--color-border)",
+          }}
+        >
+          <span>🔄</span>
+          Restart only
+        </button>
+      </div>
+
+      {/* Live log */}
+      <Show when={log().length > 0}>
+        <div
+          class="rounded-xl p-4 font-mono text-[12px] leading-relaxed"
+          style={{ background: "var(--color-bg-inset)", border: "1px solid var(--color-border)" }}
+        >
+          <For each={log()}>
+            {(e) => (
+              <div class="flex items-start gap-2.5">
+                <span style={{ color: stepColor(e), "min-width": "0.75rem" }}>
+                  {e.status === "ok" ? "✓" : e.status === "error" ? "✗" : e.done ? (e.ok ? "✓" : "✗") : "·"}
+                </span>
+                <Show
+                  when={e.done}
+                  fallback={
+                    <span style={{ color: "var(--color-text-secondary)" }}>
+                      {e.step}
+                      <Show when={e.status === "running"}>
+                        <span style={{ color: "var(--color-warning)" }}> running…</span>
+                      </Show>
+                      <Show when={e.status === "error" && e.detail}>
+                        {" "}
+                        <span style={{ color: "var(--color-danger)" }}>{e.detail}</span>
+                      </Show>
+                    </span>
+                  }
+                >
+                  <span style={{ color: e.ok ? "var(--color-success)" : "var(--color-danger)", "font-weight": "600" }}>
+                    {e.ok ? "Deploy complete" : `Failed at: ${e.failedStep ?? "unknown"}`}
+                  </span>
+                </Show>
+              </div>
+            )}
+          </For>
+        </div>
+      </Show>
+    </div>
+  );
+}
+
+// ── Server Env Vars Panel ─────────────────────────────────────────────
+// Reads and writes the platform .env file via the deploy agent.
+// Values are never returned — only a masked hint is shown.
+
+interface EnvVarHint {
+  key: string;
+  hint: string;
+  set: boolean;
+}
+
+function ServerEnvPanel(): JSX.Element {
+  const token = (): string => localStorage.getItem("ct_token") ?? "";
+  const authHeaders = (): HeadersInit => ({ Authorization: `Bearer ${token()}` });
+
+  const [vars, setVars] = createSignal<EnvVarHint[]>([]);
+  const [loading, setLoading] = createSignal(true);
+  const [error, setError] = createSignal("");
+  const [showAdd, setShowAdd] = createSignal(false);
+  const [newKey, setNewKey] = createSignal("");
+  const [newValue, setNewValue] = createSignal("");
+  const [saving, setSaving] = createSignal(false);
+
+  const load = async (): Promise<void> => {
+    setLoading(true);
+    setError("");
+    try {
+      const res = await fetch("/api/admin/env-vars", { headers: authHeaders() });
+      if (!res.ok) {
+        setError(`Failed to load (${res.status})`);
+        return;
+      }
+      const body = await res.json() as { ok: boolean; vars?: EnvVarHint[] };
+      setVars(body.vars ?? []);
+    } catch {
+      setError("Deploy agent unreachable");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  void load();
+
+  const save = async (): Promise<void> => {
+    const k = newKey().trim().toUpperCase();
+    const v = newValue();
+    if (!k || !v) return;
+    setSaving(true);
+    try {
+      const res = await fetch("/api/admin/env-vars", {
+        method: "PUT",
+        headers: { ...authHeaders(), "Content-Type": "application/json" },
+        body: JSON.stringify({ key: k, value: v }),
+      });
+      if (res.ok) {
+        showToast(`Saved ${k}`, "success");
+        setNewKey("");
+        setNewValue("");
+        setShowAdd(false);
+        void load();
+      } else {
+        const body = await res.json() as { error?: string };
+        showToast(body.error ?? "Save failed", "error");
+      }
+    } catch {
+      showToast("Deploy agent unreachable", "error");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const remove = async (key: string): Promise<void> => {
+    try {
+      const res = await fetch(`/api/admin/env-vars/${encodeURIComponent(key)}`, {
+        method: "DELETE",
+        headers: authHeaders(),
+      });
+      if (res.ok) {
+        showToast(`Removed ${key}`, "success");
+        void load();
+      } else {
+        showToast("Delete failed", "error");
+      }
+    } catch {
+      showToast("Deploy agent unreachable", "error");
+    }
+  };
+
+  const KEY_RE = /^[A-Z_][A-Z0-9_]*$/;
+
+  return (
+    <div
+      class="rounded-2xl p-6"
+      style={{
+        background: "var(--color-bg-elevated)",
+        border: "1px solid var(--color-border)",
+      }}
+    >
+      <div class="mb-5 flex items-center justify-between">
+        <div>
+          <h3 class="text-base font-semibold" style={{ color: "var(--color-text)" }}>
+            Server Environment Variables
+          </h3>
+          <p class="mt-0.5 text-xs" style={{ color: "var(--color-text-faint)" }}>
+            Manages <code class="font-mono">/opt/crontech/.env</code> on the Vultr box via the deploy agent. Values are write-only — hints shown only.
+          </p>
+        </div>
+        <div class="flex gap-2">
+          <button
+            type="button"
+            onClick={() => void load()}
+            class="rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors"
+            style={{
+              "border-color": "var(--color-border)",
+              color: "var(--color-text-muted)",
+              background: "var(--color-bg-subtle)",
+            }}
+          >
+            Refresh
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowAdd((v) => !v)}
+            class="rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors"
+            style={{
+              "border-color": "var(--color-primary)",
+              color: "var(--color-primary)",
+              background: "color-mix(in srgb, var(--color-primary) 8%, transparent)",
+            }}
+          >
+            + Add / Update
+          </button>
+        </div>
+      </div>
+
+      <Show when={showAdd()}>
+        <div
+          class="mb-5 rounded-xl border p-4"
+          style={{
+            "border-color": "var(--color-border)",
+            background: "var(--color-bg-subtle)",
+          }}
+        >
+          <div class="flex flex-col gap-3 sm:flex-row sm:items-end">
+            <div class="flex-1">
+              <label class="mb-1 block text-[11px] font-semibold uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>
+                Key
+              </label>
+              <input
+                type="text"
+                value={newKey()}
+                onInput={(e) => setNewKey(e.currentTarget.value.toUpperCase())}
+                placeholder="DATABASE_URL"
+                class="w-full rounded-lg border bg-transparent px-3 py-2 font-mono text-sm focus:outline-none"
+                style={{
+                  "border-color": newKey().length > 0 && !KEY_RE.test(newKey())
+                    ? "var(--color-danger)"
+                    : "var(--color-border)",
+                  color: "var(--color-text)",
+                }}
+              />
+            </div>
+            <div class="flex-1">
+              <label class="mb-1 block text-[11px] font-semibold uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>
+                Value
+              </label>
+              <input
+                type="password"
+                value={newValue()}
+                onInput={(e) => setNewValue(e.currentTarget.value)}
+                placeholder="secret value…"
+                class="w-full rounded-lg border bg-transparent px-3 py-2 font-mono text-sm focus:outline-none"
+                style={{
+                  "border-color": "var(--color-border)",
+                  color: "var(--color-text)",
+                }}
+              />
+            </div>
+            <div class="flex gap-2">
+              <button
+                type="button"
+                onClick={() => { setShowAdd(false); setNewKey(""); setNewValue(""); }}
+                class="rounded-lg border px-3 py-2 text-xs font-medium transition-colors"
+                style={{ "border-color": "var(--color-border)", color: "var(--color-text-muted)" }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={saving() || !KEY_RE.test(newKey()) || !newValue()}
+                onClick={() => void save()}
+                class="rounded-lg px-4 py-2 text-xs font-semibold transition-colors disabled:opacity-50"
+                style={{
+                  background: "var(--color-primary)",
+                  color: "#fff",
+                }}
+              >
+                {saving() ? "Saving…" : "Save"}
+              </button>
+            </div>
+          </div>
+        </div>
+      </Show>
+
+      <Show when={loading()}>
+        <div class="flex items-center gap-2 py-4 text-sm" style={{ color: "var(--color-text-faint)" }}>
+          <div class="h-4 w-4 animate-spin rounded-full border-2" style={{ "border-color": "var(--color-border)", "border-top-color": "var(--color-primary)" }} />
+          Loading env vars from server…
+        </div>
+      </Show>
+
+      <Show when={!loading() && error()}>
+        <p class="py-2 text-sm" style={{ color: "var(--color-danger)" }}>{error()}</p>
+      </Show>
+
+      <Show when={!loading() && !error()}>
+        <Show
+          when={vars().length > 0}
+          fallback={
+            <p class="py-2 text-sm" style={{ color: "var(--color-text-faint)" }}>
+              No env vars found — deploy agent may be offline or .env is empty.
+            </p>
+          }
+        >
+          <div class="space-y-1">
+            <For each={vars().slice().sort((a, b) => a.key.localeCompare(b.key))}>
+              {(v) => (
+                <div
+                  class="flex items-center justify-between rounded-lg px-3 py-2"
+                  style={{ background: "var(--color-bg-subtle)", border: "1px solid var(--color-border)" }}
+                >
+                  <span class="font-mono text-sm" style={{ color: "var(--color-text)" }}>{v.key}</span>
+                  <div class="flex items-center gap-3">
+                    <span class="font-mono text-xs" style={{ color: "var(--color-text-faint)" }}>{v.hint}</span>
+                    <button
+                      type="button"
+                      onClick={() => void remove(v.key)}
+                      aria-label={`Remove ${v.key}`}
+                      class="rounded px-1.5 py-0.5 text-[11px] font-medium transition-colors"
+                      style={{ color: "var(--color-danger)", background: "transparent" }}
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              )}
+            </For>
+          </div>
+        </Show>
+      </Show>
     </div>
   );
 }

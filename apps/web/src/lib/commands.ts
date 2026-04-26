@@ -386,10 +386,10 @@ registerCommand({
 });
 registerCommand({
   id: "admin.db-inspector",
-  label: "View DB inspector",
+  label: "View DB inspector preview",
   group: "admin",
-  keywords: ["database", "sql", "tables", "rows"],
-  description: "Inspect tables, indexes, and recent queries.",
+  keywords: ["database", "sql", "tables", "rows", "turso", "neon", "qdrant"],
+  description: "Open the early-preview page for the upcoming database inspector.",
   destination: "/database",
   when: ADMIN_ONLY,
   perform: nav("/database"),

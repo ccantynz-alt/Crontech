@@ -1,0 +1,32 @@
+[Unit]
+Description=Crontech public-hostname health check
+Documentation=file:///opt/crontech/scripts/health-check-hostnames.sh
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+
+# Required for Slack alerting. Set in /etc/crontech-healthcheck.env
+# by the installer (systemd reads this via EnvironmentFile). Without
+# a webhook the script runs in dry-run mode — alerts go to the
+# journal but nobody pages.
+EnvironmentFile=-/etc/crontech-healthcheck.env
+
+ExecStart=/opt/crontech/scripts/health-check-hostnames.sh
+
+# Do not block the timer if a single run fails — the Slack post is
+# the alert. systemctl status will show the latest exit code too.
+SuccessExitStatus=0 1
+
+User=root
+StandardOutput=journal
+StandardError=journal
+
+# Light sandbox. The script only runs `curl` + `awk` — no need for
+# full system access.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadOnlyPaths=/opt/crontech

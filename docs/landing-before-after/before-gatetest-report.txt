@@ -1,0 +1,51 @@
+
+[GateTest] Crawling http://localhost:3000 (max 8 pages)...
+
+
+[1m[36m========================================[0m
+[1m[36m  GATETEST - Quality Assurance Gate[0m
+[1m[36m========================================[0m
+[2m  Modules: liveCrawler[0m
+
+  [34m[RUN][0m liveCrawler [31m[FAIL][0m [2m(1 errors, 319ms)[0m
+    [31mx[0m [31mcrawl:error:missing-title[0m
+      [33mfix: Add a <title> tag to every page for SEO and usability[0m
+
+[1m[36m----------------------------------------[0m
+[1m[41m[37m  GATE: BLOCKED  [0m
+
+  Modules:  0/1 passed
+  Checks:   2/3 passed
+  Errors:   [31m1[0m
+  Warnings: [33m0[0m
+  Time:     321ms
+
+[31m  Failed modules:[0m
+    [31m- liveCrawler: 1 error(s): crawl:error:missing-title[0m
+
+[2m  Report generated at 2026-04-20T08:44:29.748Z[0m
+[1m[36m========================================[0m
+
+
+# GateTest Live Crawl Report
+# URL: http://localhost:3000
+# Pages scanned: 8
+# Generated: 2026-04-20T08:44:29.745Z
+
+## RESULT: ISSUES FOUND — FIX REQUIRED
+
+### Page Errors (5)
+- **missing-title** at http://localhost:3000
+  Page has no <title> or title is empty
+- **missing-title** at http://localhost:3000/
+  Page has no <title> or title is empty
+- **missing-title** at http://localhost:3000/pricing
+  Page has no <title> or title is empty
+- **missing-title** at http://localhost:3000/login
+  Page has no <title> or title is empty
+- **missing-title** at http://localhost:3000/register
+  Page has no <title> or title is empty
+
+## ACTION REQUIRED
+Fix all issues listed above and run `gatetest --module liveCrawler` again.
+Do not deploy until this report shows ALL CLEAR.
