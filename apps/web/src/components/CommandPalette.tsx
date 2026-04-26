@@ -230,7 +230,6 @@ export function CommandPalette(): JSX.Element {
           <input
             ref={inputRef}
             autofocus
-            aria-label="Search commands"
             type="text"
             placeholder="Type a command or search..."
             value={query()}
