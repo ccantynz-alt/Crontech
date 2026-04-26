@@ -286,22 +286,33 @@ This is the promise to Craig from 14 April 2026.
 **Scope.** The Vercel/Render parity feature. A customer connects
 their GitHub repo → we receive push webhooks → we build in a
 sandboxed worker → we stream logs to a browser panel → we deploy
-to Cloudflare Workers/Pages → we update their project's
-`*.crontech.app` subdomain.
+**onto the Crontech edge runtime (BLK-017) running on our own
+multi-region nodes** → we update their project's `*.crontech.app`
+subdomain.
 
 Components:
 - GitHub App (install flow under `/dashboard/projects/new`).
 - Webhook receiver at `apps/api` with signature verification.
-- Build worker (initial: Cloudflare Container; later: Fly.io microVM).
+- Build worker (initial: Cloudflare Container as interim while
+  BLK-017 lands; final: our own per-tenant Fly.io / Hetzner
+  microVM. **Net direction: off Cloudflare, onto our infra.**).
 - Log streamer via SSE to the project's live logs page.
-- Wrangler-based deployer.
-- Per-project subdomain routing.
+- **Crontech edge deployer** (final). Wrangler-based deployer
+  acceptable as interim ONLY if BLK-017 is not yet live.
+- Per-project subdomain routing via our own DNS (BLK-019 +
+  `services/dns-server`).
 
 **Non-scope.** Non-GitHub providers (GitLab, Bitbucket) in v1.
-Paid build minutes billing (that's BLK-010).
+Paid build minutes billing (that's BLK-010). **Long-term hard
+dependency on Cloudflare Workers as the only deploy target —
+BLK-009 must ship a path that runs on Crontech's own runtime by
+the time it flips to ✅ SHIPPED.**
 
 **Exit criteria.** Craig can point a test repo at crontech.ai,
-click deploy, see live logs, and load the resulting site.
+click deploy, see live logs, and load the resulting site **served
+from the Crontech edge runtime** (or, in the interim window
+before BLK-017 GA, from a Cloudflare Container clearly flagged
+as transitional in the deploy log).
 
 ---
 
@@ -354,14 +365,21 @@ sessions, audit logs, billing status, system health.
 
 ---
 
-### BLK-014 — Observability (Grafana LGTM dashboard) 🔵 PLANNED
+### BLK-014 — Observability (Grafana LGTM dashboard, self-hosted) 🔵 PLANNED
 
-**Scope.** Deploy Grafana + Loki + Tempo + Mimir. Point the
+**Scope.** Deploy Grafana + Loki + Tempo + Mimir **on Crontech's
+own infrastructure** (Vultr / Hetzner / our edge nodes — never
+Grafana Cloud or any vendor-hosted observability tier). Point the
 existing OTel instrumentation at them. Build a single dashboard
 covering edge / cloud / client metrics + AI inference cost and
 latency.
 
 **Non-scope.** Proprietary APM (Datadog, New Relic) in v1.
+**Grafana Cloud or any other vendor-hosted observability service
+— self-sufficiency rule: we do not consume what we are positioned
+to replace.** Anything pushing telemetry off our boxes to a
+third-party SaaS observability vendor is out of scope and will
+be reverted on sight.
 
 ---
 
