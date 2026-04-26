@@ -48,13 +48,13 @@ function getEncryptionKey(): string {
 }
 
 async function aesDecrypt(encryptedData: string, masterKey: string): Promise<string> {
-  let data: { iv: string; salt: string; encrypted: string };
+  let parsed: { iv: string; salt: string; encrypted: string };
   try {
-    data = JSON.parse(Buffer.from(encryptedData, "base64").toString());
-  } catch (err) {
-    throw new Error(`Failed to parse encrypted data: ${err instanceof Error ? err.message : String(err)}`);
+    parsed = JSON.parse(Buffer.from(encryptedData, "base64").toString());
+  } catch {
+    throw new Error("Failed to parse encrypted data");
   }
-  const { iv, salt, encrypted } = data;
+  const { iv, salt, encrypted } = parsed;
 
   const key = await scryptAsync(masterKey, Buffer.from(salt, "hex"), 32) as Buffer;
   const decipher = await import("crypto").then(c => c.createDecipheriv("aes-256-gcm", key, Buffer.from(iv, "hex")));
@@ -82,12 +82,10 @@ class SecureString {
 
   destroy(): void {
     this.buffer.fill(0);
-    // Overwrite again with random-like pattern to reduce residual data
-    this.buffer.fill(0xff);
-    this.buffer.fill(0);
-    this.destroyed = true;
-    // Shrink the buffer reference to release backing memory sooner
+    // Overwrite buffer reference to reduce window of exposure;
+    // V8 GC timing is non-deterministic but the sensitive bytes are zeroed.
     this.buffer = Buffer.alloc(0);
+    this.destroyed = true;
   }
 
   get isDestroyed(): boolean {
@@ -147,15 +145,9 @@ chatStreamRoutes.post("/stream", async (c) => {
 
   // Resolve API key: user's stored key > server env var
   let secureApiKey = await getUserAnthropicKey(userId);
-  const apiKeyBuffer: Buffer = secureApiKey
-    ? Buffer.from(secureApiKey.toString(), "utf8")
-    : Buffer.from(process.env["ANTHROPIC_API_KEY"] ?? "", "utf8");
+  const useEnvFallback = !secureApiKey;
 
-  if (apiKeyBuffer.length === 0) {
-    apiKeyBuffer.fill(0);
-    if (secureApiKey) {
-      secureApiKey.destroy();
-    }
+  if (!secureApiKey && !process.env["ANTHROPIC_API_KEY"]) {
     return c.json(
       {
         error: "No Anthropic API key configured",
@@ -166,7 +158,13 @@ chatStreamRoutes.post("/stream", async (c) => {
   }
 
   try {
-    const anthropicModel = getAnthropicModel(apiKeyBuffer.toString("utf8"), model);
+    // Retrieve the key value only within the try block and use it immediately.
+    // The plaintext string is never stored in a long-lived variable; the
+    // SecureString buffer is zeroed in the finally block.
+    const anthropicModel = getAnthropicModel(
+      useEnvFallback ? (process.env["ANTHROPIC_API_KEY"] as string) : (secureApiKey as SecureString).toString(),
+      model,
+    );
 
     // Build messages array with optional system prompt
     const allMessages: ModelMessage[] = [];
@@ -201,9 +199,7 @@ chatStreamRoutes.post("/stream", async (c) => {
       500,
     );
   } finally {
-    // Zero out the key buffer to reduce cleartext residence time
-    apiKeyBuffer.fill(0);
-    // Clean up secure string
+    // Zero out the secure string buffer immediately after use
     if (secureApiKey) {
       secureApiKey.destroy();
       secureApiKey = null;
