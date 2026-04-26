@@ -337,6 +337,9 @@ export function SupportBot(): ReturnType<typeof Show> {
             }}
           >
             <div
+              tabindex="0"
+              aria-expanded={!minimized()}
+              aria-label={minimized() ? "Expand Help Panel" : "Minimize Help Panel"}
               style={{
                 background: "var(--color-primary)",
                 color: "var(--color-text)",
@@ -347,6 +350,12 @@ export function SupportBot(): ReturnType<typeof Show> {
                 cursor: "pointer",
               }}
               onClick={() => setMinimized(!minimized())}
+              onKeyDown={(e: KeyboardEvent) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  setMinimized(!minimized());
+                }
+              }}
             >
               <div style={{ "font-weight": "600", "font-size": "14px" }}>
                 Help &mdash; {hints().title}
