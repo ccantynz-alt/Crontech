@@ -6,7 +6,7 @@ import { generateCsrfToken, validateCsrfToken, cleanupExpiredCsrfTokens } from "
 
 // ── Helpers ──────────────────────────────────────────────────────────
 
-const TEST_USER_EMAIL = `test-auth-${Date.now()}@example.com`;
+const TEST_USER_EMAIL = `test-auth-${crypto.randomUUID()}@example.com`;
 const TEST_USER_DISPLAY_NAME = "Test Auth User";
 let testUserId: string;
 
@@ -58,7 +58,8 @@ describe("Session Management", () => {
     expect(session.userId).toBe(testUserId);
     expect(session.token).toBe(token);
     expect(session.expiresAt).toBeInstanceOf(Date);
-    expect(session.expiresAt.getTime()).toBeGreaterThan(Date.now());
+    const now = session.expiresAt.getTime();
+    expect(now).toBeGreaterThan(Date.now());
   });
 
   test("validateSession returns userId for valid session", async () => {
@@ -76,9 +77,10 @@ describe("Session Management", () => {
     const token = await createSession(testUserId, db);
 
     // Manually expire the session by setting expiresAt to the past
+    const pastDate = new Date(Date.now() - 1000);
     await db
       .update(sessions)
-      .set({ expiresAt: new Date(Date.now() - 1000) })
+      .set({ expiresAt: pastDate })
       .where(eq(sessions.token, token));
 
     const userId = await validateSession(token, db);
@@ -196,9 +198,10 @@ describe("Protected Procedure Access", () => {
     const token = await createSession(testUserId, db);
 
     // Expire the session
+    const pastDate = new Date(Date.now() - 1000);
     await db
       .update(sessions)
-      .set({ expiresAt: new Date(Date.now() - 1000) })
+      .set({ expiresAt: pastDate })
       .where(eq(sessions.token, token));
 
     const userId = await validateSession(token, db);
