@@ -88,7 +88,7 @@ positioning is to be reverted on sight.
   WebGPU + WebLLM, Transformers.js v4.
 - **Data.** Turso (primary), Neon (serverless Postgres), Qdrant (vectors).
 - **Infra.** Cloudflare Workers + D1/R2/KV/DO, Modal.com GPUs,
-  Fly.io long-lived processes, Hetzner (current production host).
+  Fly.io long-lived processes, Vultr (current production host).
 - **Auth.** Passkeys/WebAuthn, Google OAuth, username/password, TOTP planned.
 - **Real-time.** WebSockets + SSE, Yjs CRDTs, Liveblocks.
 - **Observability.** OpenTelemetry + Grafana LGTM stack.
