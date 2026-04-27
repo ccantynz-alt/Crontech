@@ -10,11 +10,17 @@
 #   cp infra/bare-metal/crontech-edge-runtime.service /etc/systemd/system/
 #   systemctl daemon-reload
 #   systemctl enable --now crontech-edge-runtime
+#
+# Hardening (Wave B2, 2026-04-27): added explicit PATH, OnFailure notifier,
+# tightened restart limits, and Bun-friendly stop semantics. To enable
+# systemd watchdog later, emit sd_notify WATCHDOG pings and uncomment
+# WatchdogSec=60.
 
 [Unit]
 Description=Crontech Edge Runtime (V8-isolate, BLK-017 v0)
 Documentation=https://docs.crontech.ai/blocks/blk-017
 After=network.target
+OnFailure=crontech-failure-notify@%i.service
 
 [Service]
 Type=simple
@@ -25,7 +31,14 @@ WorkingDirectory=/opt/crontech
 ExecStart=/root/.bun/bin/bun run services/edge-runtime/src/index.ts
 Restart=always
 RestartSec=5
+StartLimitIntervalSec=300
+StartLimitBurst=10
+KillSignal=SIGTERM
+TimeoutStopSec=30s
+KillMode=mixed
+# WatchdogSec=60s  # enable once the Bun runtime emits sd_notify WATCHDOG pings
 
+Environment=PATH=/usr/local/bin:/usr/bin:/bin:/root/.bun/bin
 Environment=APP_DIR=/opt/crontech
 Environment=EDGE_RUNTIME_PORT=9096
 EnvironmentFile=-/opt/crontech/.env
