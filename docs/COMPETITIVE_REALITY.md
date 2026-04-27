@@ -107,22 +107,27 @@ The remaining ~22 are unbuilt.
 The full breakdown is in `docs/CLOUDFLARE_PARITY_AUDIT.md` so this row
 stays terse.
 
-### Mailgun — estimated **~5% parity**
+### Mailgun — estimated **~10% parity**
 
 | Mailgun product | Crontech equivalent | Status |
 |---|---|---|
-| Transactional send (SMTP + REST) | `apps/api/src/email/client.ts` | 🟡 (file exists, no live sending pipeline) |
+| Transactional send (SMTP + REST) | `services/email/` (BLK-030 v0) — Bun.serve + direct-MX SMTP + jsonl-persisted queue | 🟡 Code in repo, **not running**. Direct-MX delivery via Bun TCP socket — zero vendor relay. |
 | Inbound email routing | `apps/api/src/email/alecrae-webhook.ts` (one webhook) | 🟡 (one customer hardcoded, no general routing) |
 | Email validation | None | ❌ |
-| Templates | None | ❌ |
-| Open / click analytics | None | ❌ |
-| SPF / DKIM / DMARC tooling | DNS UI surfaces alerts (per Cloudflare) | 🟡 (read-only, no automation) |
-| Webhooks for events | None | ❌ |
-| Suppression / bounce handling | None | ❌ |
-| Email logs | None | ❌ |
+| Templates | None | ❌ (deferred to v1) |
+| Open / click analytics | None | ❌ (deferred to v1 — needs tracking pixel + click-thru proxy) |
+| SPF / DKIM / DMARC tooling | DNS UI surfaces alerts (per Cloudflare) | 🟡 (read-only, no automation; DKIM signing is BLK-030 v1) |
+| Webhooks for events | None | ❌ (deferred to v1) |
+| Suppression / bounce handling | None | ❌ (deferred to v1) |
+| Email logs | `services/email` jsonl + per-message status endpoint | 🟡 v0 in repo (`/v1/status/:id`, `/v1/queue`) |
+| Idempotency keys | `services/email` `idempotencyKey` field | 🟡 v0 in repo |
+| Retry with backoff | `services/email` exponential ladder (1m/5m/15m/1h/4h/24h cap) | 🟡 v0 in repo |
 
-We are not in this category yet. Anyone who needs email today routes to
-a third party.
+BLK-030 v0 lands the foundational pipe: every Crontech-owned product can
+send transactional email through `127.0.0.1:9098` once the service is
+enabled on the Vultr box (port 25 outbound + reverse-DNS PTR required).
+Marketing-grade features (templates, click analytics, suppression list,
+DKIM signing, bounce-list maintenance) are deferred to BLK-030 v1.
 
 ### Twilio — estimated **~3% parity**
 

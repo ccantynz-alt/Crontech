@@ -701,7 +701,7 @@ between nodes is unobservable from the public internet.
 
 ---
 
-### BLK-030 — Transactional Email Pipeline 🔵 PLANNED
+### BLK-030 — Transactional Email Pipeline 🟡 BUILDING (v0 in repo)
 
 **Scope.** Full Mailgun-equivalent: outbound SMTP via warmed
 Crontech IPs + REST API, inbound routing engine, MIME templates,
@@ -719,6 +719,23 @@ mailing >1M / day (later, capacity decision).
 this pipeline, with delivery rates ≥98% across major mailbox
 providers and bounce / complaint events surfaced to admin within
 60s.
+
+**v0 state (as of 2026-04-27).** `services/email/` shipped on
+`claude/blk-030-email-v0`. Bun.serve on `127.0.0.1:9098`,
+bearer-token auth, three endpoints (`POST /v1/send`,
+`GET /v1/status/:id`, `GET /v1/queue`). Direct-MX SMTP delivery
+via `node:net` TCP socket — zero vendor relay. In-memory queue
+with JSONL persistence so restarts don't drop mail.
+Idempotency-key dedup. Exponential backoff (1m/5m/15m/1h/4h/24h
+cap). Crash recovery: entries marked `sending` are re-armed to
+`queued` on hydrate. 39 tests / 112 expects passing locally.
+
+**v0 non-scope** (deferred to v1): DKIM key generation/signing,
+SPF/DMARC automation, MIME template engine, open/click tracking
+pixels + click-thru proxy, suppression / bounce-list maintenance,
+delivery-event webhooks. Production deliverability requires the
+Vultr box to have port 25 outbound unblocked + matching forward
+& reverse DNS for `EMAIL_EHLO_HOSTNAME`.
 
 ---
 

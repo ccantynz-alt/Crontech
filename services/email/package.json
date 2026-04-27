@@ -1,0 +1,23 @@
+{
+  "name": "@back-to-the-future/email",
+  "type": "module",
+  "version": "0.0.1",
+  "private": true,
+  "description": "BLK-030 v0 — self-hosted transactional email pipeline (Mailgun replacement). Bun.serve on 127.0.0.1:9098, direct-MX SMTP delivery, jsonl-persisted queue.",
+  "scripts": {
+    "start": "bun run src/index.ts",
+    "dev": "bun run --hot src/index.ts",
+    "build": "bun build src/index.ts --outdir dist --target bun",
+    "test": "bun test",
+    "check": "tsc --noEmit",
+    "lint": "biome check .",
+    "format": "biome format . --write"
+  },
+  "dependencies": {
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.2",
+    "@types/bun": "^1.2.0"
+  }
+}

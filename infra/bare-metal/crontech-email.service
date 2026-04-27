@@ -1,0 +1,60 @@
+# Crontech Transactional Email (BLK-030 v0)
+#
+# Self-hosted transactional email service. Bun.serve on
+# 127.0.0.1:9098 — internal only, never exposed via Caddy.
+# Direct-MX SMTP delivery to recipient mail servers — no third-party
+# vendor relay (per CLAUDE.md self-sufficiency rule).
+#
+# Per CLAUDE.md §0.10 Zero-Idle Rule: service unit lives in repo so
+# deploy.yml auto-installs on every push to Main.
+#
+# Install (manual, if needed):
+#   cp infra/bare-metal/crontech-email.service /etc/systemd/system/
+#   systemctl daemon-reload
+#   systemctl enable --now crontech-email
+#
+# Required env vars (in /opt/crontech/.env):
+#   EMAIL_SERVICE_SECRET   — bearer token internal callers present
+#   EMAIL_EHLO_HOSTNAME    — public hostname used in EHLO greeting
+#                            (defaults to system hostname; for prod
+#                            set to the FQDN that has reverse-DNS
+#                            and PTR records — recipient MX servers
+#                            will reject mail from hosts that don't
+#                            forward+reverse match)
+
+[Unit]
+Description=Crontech Transactional Email (BLK-030 v0)
+Documentation=https://docs.crontech.ai/blocks/blk-030
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+Group=root
+WorkingDirectory=/opt/crontech
+
+ExecStart=/root/.bun/bin/bun run services/email/src/index.ts
+Restart=always
+RestartSec=10
+
+Environment=APP_DIR=/opt/crontech
+Environment=EMAIL_SERVICE_PORT=9098
+EnvironmentFile=-/opt/crontech/.env
+
+# Outbound port 25 (SMTP) MUST be reachable from the box. Hetzner
+# blocks port 25 by default for new accounts; Vultr does too. File
+# a support ticket to lift the restriction before flipping this
+# service to active in prod.
+#
+# Inbound listener is loopback-only — internal consumers (apps/api,
+# admin tools, future native agents) call over 127.0.0.1.
+IPAddressAllow=127.0.0.1/8 ::1/128 0.0.0.0/0
+IPAddressDeny=
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=crontech-email
+
+[Install]
+WantedBy=multi-user.target

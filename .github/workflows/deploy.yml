@@ -191,6 +191,7 @@ jobs:
             cp infra/bare-metal/crontech-ai-gateway.service /etc/systemd/system/crontech-ai-gateway.service
             cp infra/bare-metal/crontech-object-storage.service /etc/systemd/system/crontech-object-storage.service
             cp infra/bare-metal/crontech-tunnel-origin.service /etc/systemd/system/crontech-tunnel-origin.service
+            cp infra/bare-metal/crontech-email.service /etc/systemd/system/crontech-email.service
             mkdir -p /opt/crontech/scripts
             cp infra/bare-metal/crontech-watchdog.sh /opt/crontech/scripts/watchdog.sh
             chmod +x /opt/crontech/scripts/watchdog.sh
@@ -205,6 +206,7 @@ jobs:
             systemctl enable --now crontech-ai-gateway 2>/dev/null || true
             systemctl enable --now crontech-object-storage 2>/dev/null || true
             systemctl enable --now crontech-tunnel-origin 2>/dev/null || true
+            systemctl enable --now crontech-email 2>/dev/null || true
 
             systemctl restart crontech-api
             sleep 2
