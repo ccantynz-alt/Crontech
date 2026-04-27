@@ -58,7 +58,17 @@ Each row is the honest state today. "Status" is one of:
   it on.
 - ❌ **Not built** — neither code nor service exists.
 
-### Vercel — estimated **~25% parity**
+### Vercel — estimated **~27% parity**
+
+**Vercel coupling status (verified 2026-04-27):** Crontech has
+**zero Vercel coupling at the code or deploy level.** `vercel.json`
+was removed in an earlier sprint, no workflow files reference
+Vercel, and `apps/web` deploys to Vultr via `deploy.yml`, not to
+Vercel. The only remaining Vercel surface is the **GitHub App**
+(`Vercel Preview Comments` + `Vercel Agent Review`) which posts
+status checks to PRs from outside the repo. Removing it is a
+single click in GitHub repo settings → Integrations → uninstall
+the Vercel App. No code changes required.
 
 | Vercel product | Crontech equivalent | Status |
 |---|---|---|
@@ -107,22 +117,37 @@ The remaining ~22 are unbuilt.
 The full breakdown is in `docs/CLOUDFLARE_PARITY_AUDIT.md` so this row
 stays terse.
 
-### Mailgun — estimated **~5% parity**
+### Mailgun — n/a (sibling-product, not a vendor we replace)
 
-| Mailgun product | Crontech equivalent | Status |
+Crontech does not build a Mailgun-equivalent. Transactional email
+runs through **AlecRae** — Craig's separate Mailgun-class product
+under `ccantynz-alt/alecrae`. Crontech consumes AlecRae via its
+public REST API (legal isolation: AlecRae and Crontech are
+distinct entities; communication is API-only, no shared internal
+code).
+
+| AlecRae product | Crontech wiring | Status |
 |---|---|---|
-| Transactional send (SMTP + REST) | `apps/api/src/email/client.ts` | 🟡 (file exists, no live sending pipeline) |
-| Inbound email routing | `apps/api/src/email/alecrae-webhook.ts` (one webhook) | 🟡 (one customer hardcoded, no general routing) |
-| Email validation | None | ❌ |
-| Templates | None | ❌ |
-| Open / click analytics | None | ❌ |
-| SPF / DKIM / DMARC tooling | DNS UI surfaces alerts (per Cloudflare) | 🟡 (read-only, no automation) |
-| Webhooks for events | None | ❌ |
-| Suppression / bounce handling | None | ❌ |
-| Email logs | None | ❌ |
+| Transactional send (REST) | `apps/api/src/email/client.ts` (AlecRae primary, Resend fallback, console log dev) | ✅ Wired and live |
+| Inbound delivery-event webhook | `apps/api/src/email/alecrae-webhook.ts` — HMAC-SHA256 signed payload from AlecRae | ✅ Wired and live |
+| Templates | `apps/api/src/email/templates.ts` | ✅ Wired and live |
+| Unsubscribe / suppression | `apps/api/src/email/unsubscribe.ts` | ✅ Wired and live |
+| Provider failover chain | AlecRae → Resend → console | ✅ Live |
 
-We are not in this category yet. Anyone who needs email today routes to
-a third party.
+**Self-sufficiency story:** AlecRae is fully under Craig's control
+(same family of products as Crontech, GateTest, Gluecron, Crontech).
+This is more self-sufficient than Mailgun-the-vendor, not less —
+the email pipe answers to Craig, not a third party. The
+sibling-product pattern is intentional: small focused products that
+consume each other via public APIs, no shared internal code.
+
+**Doctrine note (2026-04-27):** A previous session opened PR #213
+(`feat(blk-030): transactional email v0`) under the impression
+Mailgun parity needed `services/email/` direct-MX SMTP from the
+Crontech box. That PR was closed as duplicate work — AlecRae is
+the architectural answer. Lesson captured in HANDOFF for the next
+session: **always audit existing `apps/api/src/<domain>/` before
+adding `services/<domain>/`.**
 
 ### Twilio — estimated **~3% parity**
 
