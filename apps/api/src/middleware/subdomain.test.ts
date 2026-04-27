@@ -124,4 +124,37 @@ describe("Subdomain routing", () => {
     expect(body.tenantSlug).toBe("acme");
     expect(body.tenantId).toBe(acmeTenantId);
   });
+
+  // ── Reserved-subdomain regression — 2026-04-26 outage ────────────
+  // Reproduces the exact failure mode that took down api.crontech.ai
+  // for ~24 hours: subdomain "api" was being looked up as a tenant
+  // slug. With the fix (RESERVED_SYSTEM_SUBDOMAINS bypass) the
+  // request must pass through with no tenant context, no 404, no 500.
+  describe("reserved system subdomains bypass tenant lookup", () => {
+    for (const reserved of [
+      "api",
+      "www",
+      "admin",
+      "app",
+      "static",
+      "cdn",
+      "assets",
+      "ws",
+      "mail",
+      "docs",
+      "status",
+    ]) {
+      test(`subdomain '${reserved}' passes through with no tenant context`, async () => {
+        const app = createTestApp();
+        const res = await request(app, "/api/whoami", `${reserved}.crontech.ai`);
+        expect(res.status).toBe(200);
+        const body = (await res.json()) as {
+          tenantSlug: string | null;
+          tenantId: string | null;
+        };
+        expect(body.tenantSlug).toBeNull();
+        expect(body.tenantId).toBeNull();
+      });
+    }
+  });
 });

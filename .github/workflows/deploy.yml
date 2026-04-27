@@ -218,8 +218,17 @@ jobs:
               # Hono mounts the api under basePath("/api"), so the live health
               # route is /api/health, not /health. Curling /health returns 404
               # and rolls back every deploy silently — discovered 2026-04-26.
-              API=$(curl -sf http://localhost:3001/api/health 2>/dev/null | grep -o '"status":"ok"' || echo "fail")
-              WEB=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/ 2>/dev/null || echo "000")
+              #
+              # Pass `Host: api.crontech.ai` so this loopback check exercises
+              # the SAME middleware chain external traffic does (subdomainRouter,
+              # CSRF origin checks, etc.). Without the Host header, the
+              # subdomainRouter took the IP-address bypass and /api/health
+              # returned 200 internally even when api.crontech.ai/api/health
+              # was 500'ing externally — the 2026-04-26 ~24h outage. PR #211
+              # fixed the subdomainRouter; this Host header makes the deploy
+              # gate catch the same class of bug if it ever recurs.
+              API=$(curl -sf -H "Host: api.crontech.ai" http://localhost:3001/api/health 2>/dev/null | grep -o '"status":"ok"' || echo "fail")
+              WEB=$(curl -s -H "Host: crontech.ai" -o /dev/null -w "%{http_code}" http://localhost:3000/ 2>/dev/null || echo "000")
               echo "  Check $i/12: api=$API web=$WEB"
               if [ "$API" = '"status":"ok"' ] && [ "$WEB" = "200" ]; then
                 DEPLOY_OK=true

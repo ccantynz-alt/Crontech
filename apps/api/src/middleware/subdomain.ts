@@ -98,6 +98,41 @@ export function invalidateTenantCache(slug: string): void {
 
 const BASE_DOMAINS = ["crontech.ai", "crontech.dev", "localhost"];
 
+// ── Reserved system subdomains ───────────────────────────────────────
+// These are platform-owned subdomains, NOT tenant slugs. They must
+// NEVER trigger a tenant DB lookup, because:
+//   1. There is no tenant row matching them, so the lookup is wasted.
+//   2. If the DB query throws (transient connection issue, schema
+//      drift, etc.) the error bubbles to the global 500 handler and
+//      takes down EVERY request to the system subdomain — including
+//      api.crontech.ai/api/health.
+// On 2026-04-26 this exact failure mode was the root cause of the
+// "API responds 500 with requestId on every endpoint" outage that
+// blocked deploys for 24+ hours. The deploy succeeded, the box was
+// up, but `api.crontech.ai` → subdomain `api` → DB lookup → throw
+// → 500 wall.
+const RESERVED_SYSTEM_SUBDOMAINS = new Set([
+  "api",
+  "www",
+  "admin",
+  "app",
+  "static",
+  "cdn",
+  "assets",
+  "ws",
+  "mail",
+  "smtp",
+  "imap",
+  "ftp",
+  "ns",
+  "ns1",
+  "ns2",
+  "mx",
+  "blog",
+  "docs",
+  "status",
+]);
+
 // ── Middleware ────────────────────────────────────────────────────────
 
 export const subdomainRouter = createMiddleware<TenantEnv>(
@@ -127,6 +162,15 @@ export const subdomainRouter = createMiddleware<TenantEnv>(
     }
 
     if (subdomain) {
+      // Reserved platform subdomains (api, www, admin, …) are never
+      // tenant slugs — pass through immediately without a DB lookup.
+      // See RESERVED_SYSTEM_SUBDOMAINS above for the 2026-04-26
+      // outage analysis.
+      if (RESERVED_SYSTEM_SUBDOMAINS.has(subdomain)) {
+        await next();
+        return;
+      }
+
       // Look up tenant by slug
       const cached = getCachedBySlug(subdomain);
       if (cached) {
@@ -139,14 +183,30 @@ export const subdomainRouter = createMiddleware<TenantEnv>(
         return;
       }
 
-      // DB lookup
-      const rows = await db
-        .select({ id: tenants.id, slug: tenants.slug })
-        .from(tenants)
-        .where(eq(tenants.slug, subdomain))
-        .limit(1);
+      // DB lookup — wrapped so a transient DB failure does NOT propagate
+      // to the global 500 handler and take down every request.
+      let tenant: { id: string; slug: string } | undefined;
+      try {
+        const rows = await db
+          .select({ id: tenants.id, slug: tenants.slug })
+          .from(tenants)
+          .where(eq(tenants.slug, subdomain))
+          .limit(1);
+        tenant = rows[0];
+      } catch (err) {
+        // DB unreachable / schema drift / etc — degrade gracefully:
+        // pass through as if no tenant matched. The downstream route
+        // will respond normally; only tenant-context features (like
+        // per-tenant theming or rate-limit scoping) lose their
+        // attribution until the DB recovers.
+        console.error(
+          `[subdomain] tenant lookup failed for slug='${subdomain}', passing through:`,
+          err instanceof Error ? err.message : err,
+        );
+        await next();
+        return;
+      }
 
-      const tenant = rows[0];
       if (!tenant) {
         cacheSlugNotFound(subdomain);
         return c.json({ error: "TENANT_NOT_FOUND" }, 404);
@@ -173,14 +233,27 @@ export const subdomainRouter = createMiddleware<TenantEnv>(
       return;
     }
 
-    // DB lookup by custom domain
-    const domainRows = await db
-      .select({ id: tenants.id, slug: tenants.slug })
-      .from(tenants)
-      .where(eq(tenants.customDomain, host))
-      .limit(1);
+    // DB lookup by custom domain — wrapped for the same reason as the
+    // slug branch above. Without this, a transient DB failure on the
+    // platform's main domain (crontech.ai) returned 500 to every
+    // single visitor before the 2026-04-26 fix.
+    let domainTenant: { id: string; slug: string } | undefined;
+    try {
+      const domainRows = await db
+        .select({ id: tenants.id, slug: tenants.slug })
+        .from(tenants)
+        .where(eq(tenants.customDomain, host))
+        .limit(1);
+      domainTenant = domainRows[0];
+    } catch (err) {
+      console.error(
+        `[subdomain] custom-domain lookup failed for host='${host}', passing through:`,
+        err instanceof Error ? err.message : err,
+      );
+      await next();
+      return;
+    }
 
-    const domainTenant = domainRows[0];
     if (domainTenant) {
       cacheDomain(host, domainTenant.id, domainTenant.slug);
       c.set("tenantSlug", domainTenant.slug);
