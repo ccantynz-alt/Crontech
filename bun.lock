@@ -243,6 +243,18 @@
         "typescript": "^6.0.2",
       },
     },
+    "services/image-optimizer": {
+      "name": "@back-to-the-future/image-optimizer",
+      "version": "0.0.1",
+      "dependencies": {
+        "hono": "^4.7.11",
+        "zod": "^4.3.6",
+      },
+      "devDependencies": {
+        "@types/bun": "^1.2.0",
+        "typescript": "^6.0.2",
+      },
+    },
     "services/orchestrator": {
       "name": "@back-to-the-future/orchestrator",
       "version": "0.0.1",
@@ -427,6 +439,8 @@
     "@back-to-the-future/flywheel": ["@back-to-the-future/flywheel@workspace:packages/flywheel"],
 
     "@back-to-the-future/gpu-workers": ["@back-to-the-future/gpu-workers@workspace:services/gpu-workers"],
+
+    "@back-to-the-future/image-optimizer": ["@back-to-the-future/image-optimizer@workspace:services/image-optimizer"],
 
     "@back-to-the-future/orchestrator": ["@back-to-the-future/orchestrator@workspace:services/orchestrator"],
 
