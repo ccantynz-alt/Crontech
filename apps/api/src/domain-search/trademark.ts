@@ -16,13 +16,10 @@
 // All output is Zod-validated; if the model returns malformed JSON we
 // fall back to an empty list rather than crashing the request.
 
-import { z } from "zod";
+import { getAnthropicModel, hasAnthropicProvider } from "@back-to-the-future/ai-core";
 import { generateObject } from "ai";
-import {
-  getAnthropicModel,
-  hasAnthropicProvider,
-} from "@back-to-the-future/ai-core";
 import type { LanguageModel } from "ai";
+import { z } from "zod";
 
 export const TrademarkRiskSchema = z.enum(["low", "medium", "high"]);
 export type TrademarkRisk = z.infer<typeof TrademarkRiskSchema>;
@@ -74,7 +71,7 @@ function readAnthropicKey(): string | undefined {
     const proc = (globalThis as Record<string, unknown>)["process"] as
       | { env: Record<string, string | undefined> }
       | undefined;
-    return proc?.env["ANTHROPIC_API_KEY"];
+    return proc?.env.ANTHROPIC_API_KEY;
   } catch {
     return undefined;
   }
@@ -87,8 +84,8 @@ function readModelIdFromEnv(): string {
       | { env: Record<string, string | undefined> }
       | undefined;
     return (
-      proc?.env["DOMAIN_SEARCH_TRADEMARK_MODEL"] ??
-      proc?.env["DOMAIN_SEARCH_MODEL"] ??
+      proc?.env.DOMAIN_SEARCH_TRADEMARK_MODEL ??
+      proc?.env.DOMAIN_SEARCH_MODEL ??
       "claude-haiku-4-20250506"
     );
   } catch {
@@ -115,8 +112,7 @@ export async function scanTrademarkConflicts(
     if (!key || !hasAnthropicProvider()) {
       return {
         conflicts: [],
-        note:
-          "Trademark scan skipped — ANTHROPIC_API_KEY not configured. This is a best-effort pre-screen only; always consult counsel before filing.",
+        note: "Trademark scan skipped — ANTHROPIC_API_KEY not configured. This is a best-effort pre-screen only; always consult counsel before filing.",
       };
     }
     const modelId = opts.modelId ?? readModelIdFromEnv();

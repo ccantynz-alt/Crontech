@@ -1,11 +1,11 @@
 import { Title } from "@solidjs/meta";
-import { createSignal, createResource, For, Show, onCleanup } from "solid-js";
-import type { JSX } from "solid-js";
 import { useNavigate } from "@solidjs/router";
+import { For, Show, createResource, createSignal, onCleanup } from "solid-js";
+import type { JSX } from "solid-js";
 import { AdminRoute } from "../components/AdminRoute";
 import { PlatformSiblingsWidget } from "../components/PlatformSiblingsWidget";
-import { trpc } from "../lib/trpc";
 import { showToast } from "../components/Toast";
+import { trpc } from "../lib/trpc";
 
 // BLK-013: single-source-of-truth stats shape. Kept inline rather than
 // imported from the API package so the web bundle stays lean.
@@ -38,13 +38,18 @@ function StatCard(props: StatCardProps): JSX.Element {
     >
       <div class="relative z-10 flex items-start justify-between">
         <div class="flex flex-col gap-1">
-          <span class="text-xs font-medium uppercase tracking-widest" style={{ color: "var(--color-text-faint)" }}>
+          <span
+            class="text-xs font-medium uppercase tracking-widest"
+            style={{ color: "var(--color-text-faint)" }}
+          >
             {props.label}
           </span>
           <span class="text-3xl font-bold tracking-tight" style={{ color: "var(--color-text)" }}>
             {props.value}
           </span>
-          <span class="mt-1 text-xs font-medium" style={{ color: "var(--color-text-muted)" }}>{props.sublabel}</span>
+          <span class="mt-1 text-xs font-medium" style={{ color: "var(--color-text-muted)" }}>
+            {props.sublabel}
+          </span>
         </div>
         <div
           class="flex h-10 w-10 items-center justify-center rounded-xl text-lg"
@@ -76,21 +81,28 @@ function HealthRow(props: { label: string; status: HealthStatus; detail?: string
   };
 
   return (
-    <div class="flex items-center justify-between rounded-xl px-4 py-3 transition-all duration-200" style={{ border: "1px solid var(--color-border)", background: "var(--color-bg-subtle)" }}>
+    <div
+      class="flex items-center justify-between rounded-xl px-4 py-3 transition-all duration-200"
+      style={{ border: "1px solid var(--color-border)", background: "var(--color-bg-subtle)" }}
+    >
       <div class="flex items-center gap-3">
-        <div
-          class="h-2.5 w-2.5 rounded-full"
-          style={{ background: statusColor() }}
-        />
-        <span class="text-sm font-medium" style={{ color: "var(--color-text-secondary)" }}>{props.label}</span>
+        <div class="h-2.5 w-2.5 rounded-full" style={{ background: statusColor() }} />
+        <span class="text-sm font-medium" style={{ color: "var(--color-text-secondary)" }}>
+          {props.label}
+        </span>
       </div>
       <div class="flex items-center gap-3">
         <Show when={props.detail}>
-          <span class="text-xs" style={{ color: "var(--color-text-faint)" }}>{props.detail}</span>
+          <span class="text-xs" style={{ color: "var(--color-text-faint)" }}>
+            {props.detail}
+          </span>
         </Show>
         <span
           class="rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider"
-          style={{ background: `color-mix(in oklab, ${statusColor()} 10%, transparent)`, color: statusColor() }}
+          style={{
+            background: `color-mix(in oklab, ${statusColor()} 10%, transparent)`,
+            color: statusColor(),
+          }}
         >
           {props.status}
         </span>
@@ -131,7 +143,10 @@ function UserRow(props: {
   };
 
   return (
-    <div class="flex items-center gap-4 rounded-xl px-4 py-3.5 transition-all duration-200" style={{ border: "1px solid var(--color-border)", background: "var(--color-bg-subtle)" }}>
+    <div
+      class="flex items-center gap-4 rounded-xl px-4 py-3.5 transition-all duration-200"
+      style={{ border: "1px solid var(--color-border)", background: "var(--color-bg-subtle)" }}
+    >
       <div
         class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold"
         style={{ background: roleColor(), color: "var(--color-text)" }}
@@ -142,14 +157,20 @@ function UserRow(props: {
         <span class="text-sm font-medium" style={{ color: "var(--color-text)" }}>
           {props.user.displayName ?? props.user.email}
         </span>
-        <span class="text-xs" style={{ color: "var(--color-text-faint)" }}>{props.user.email}</span>
+        <span class="text-xs" style={{ color: "var(--color-text-faint)" }}>
+          {props.user.email}
+        </span>
       </div>
       <select
         value={props.user.role}
         disabled={props.pending}
         onChange={(e) => props.onChangeRole(e.currentTarget.value as UserRole)}
         class="w-24 rounded-lg px-2 py-1.5 text-xs outline-none transition-colors duration-200 disabled:opacity-50"
-        style={{ border: "1px solid var(--color-border)", background: "var(--color-bg-muted)", color: "var(--color-text-secondary)" }}
+        style={{
+          border: "1px solid var(--color-border)",
+          background: "var(--color-bg-muted)",
+          color: "var(--color-text-secondary)",
+        }}
       >
         <option value="admin">admin</option>
         <option value="editor">editor</option>
@@ -181,11 +202,11 @@ function AdminPageContent(): JSX.Element {
   // BLK-013: one tRPC query backs all five tiles. Returns AdminStats
   // or throws — the createResource error() channel surfaces a polite
   // fallback so a red Claude/DB blip never crashes the dashboard.
-  const [stats, { refetch: refetchStats }] = createResource<AdminStats>(
-    async () => trpc.admin.stats.query(),
+  const [stats, { refetch: refetchStats }] = createResource<AdminStats>(async () =>
+    trpc.admin.stats.query(),
   );
-  const [users, { refetch: refetchUsers }] = createResource(async () =>
-    (await trpc.admin.getRecentUsers.query()) as AdminUser[],
+  const [users, { refetch: refetchUsers }] = createResource(
+    async () => (await trpc.admin.getRecentUsers.query()) as AdminUser[],
   );
   const [health, { refetch: refetchHealth }] = createResource(async () =>
     trpc.admin.getSystemHealth.query(),
@@ -240,8 +261,7 @@ function AdminPageContent(): JSX.Element {
     return list.filter((u) => {
       const q = searchQuery().toLowerCase();
       const name = (u.displayName ?? "").toLowerCase();
-      const matchesSearch =
-        q === "" || u.email.toLowerCase().includes(q) || name.includes(q);
+      const matchesSearch = q === "" || u.email.toLowerCase().includes(q) || name.includes(q);
       const matchesRole = filterRole() === "all" || u.role === filterRole();
       return matchesSearch && matchesRole;
     });
@@ -267,7 +287,9 @@ function AdminPageContent(): JSX.Element {
         {/* Header */}
         <div class="mb-8 flex items-end justify-between">
           <div>
-            <h1 class="text-3xl font-bold tracking-tight" style={{ color: "var(--color-text)" }}>Admin Panel</h1>
+            <h1 class="text-3xl font-bold tracking-tight" style={{ color: "var(--color-text)" }}>
+              Admin Panel
+            </h1>
             <p class="mt-1 text-sm" style={{ color: "var(--color-text-faint)" }}>
               Live platform data. All numbers below come from the database — nothing is mocked.
             </p>
@@ -277,7 +299,11 @@ function AdminPageContent(): JSX.Element {
               type="button"
               onClick={refreshAll}
               class="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-all duration-200"
-              style={{ border: "1px solid var(--color-border)", background: "var(--color-bg-subtle)", color: "var(--color-text-secondary)" }}
+              style={{
+                border: "1px solid var(--color-border)",
+                background: "var(--color-bg-subtle)",
+                color: "var(--color-text-secondary)",
+              }}
             >
               <span class="text-base">&#8635;</span>
               Refresh
@@ -286,7 +312,11 @@ function AdminPageContent(): JSX.Element {
               type="button"
               onClick={handleExportUsers}
               class="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-all duration-200"
-              style={{ border: "1px solid var(--color-border)", background: "var(--color-bg-subtle)", color: "var(--color-text-secondary)" }}
+              style={{
+                border: "1px solid var(--color-border)",
+                background: "var(--color-bg-subtle)",
+                color: "var(--color-text-secondary)",
+              }}
             >
               <span class="text-base">&#128229;</span>
               Export Users
@@ -305,14 +335,8 @@ function AdminPageContent(): JSX.Element {
 
         {/* Stats Row — BLK-013 real tRPC data via trpc.admin.stats */}
         <div class="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
-          <Show
-            when={!stats.error}
-            fallback={<StatErrorFallback count={5} />}
-          >
-            <Show
-              when={stats()}
-              fallback={<StatSkeleton count={5} />}
-            >
+          <Show when={!stats.error} fallback={<StatErrorFallback count={5} />}>
+            <Show when={stats()} fallback={<StatSkeleton count={5} />}>
               {(s) => (
                 <>
                   <StatCard
@@ -366,11 +390,16 @@ function AdminPageContent(): JSX.Element {
           <div class="lg:col-span-2">
             <div
               class="rounded-2xl p-6"
-              style={{ background: "var(--color-bg-elevated)", border: "1px solid var(--color-border)" }}
+              style={{
+                background: "var(--color-bg-elevated)",
+                border: "1px solid var(--color-border)",
+              }}
             >
               <div class="mb-5 flex items-center justify-between">
                 <div>
-                  <h2 class="text-lg font-semibold" style={{ color: "var(--color-text)" }}>Recent Users</h2>
+                  <h2 class="text-lg font-semibold" style={{ color: "var(--color-text)" }}>
+                    Recent Users
+                  </h2>
                   <p class="text-xs" style={{ color: "var(--color-text-faint)" }}>
                     <Show when={users()} fallback={<span>Loading…</span>}>
                       {(list) => <span>{list().length} shown (latest 20)</span>}
@@ -382,7 +411,11 @@ function AdminPageContent(): JSX.Element {
                     value={filterRole()}
                     onChange={(e) => setFilterRole(e.currentTarget.value)}
                     class="rounded-lg px-3 py-2 text-xs outline-none transition-colors duration-200"
-                    style={{ border: "1px solid var(--color-border)", background: "var(--color-bg-muted)", color: "var(--color-text-secondary)" }}
+                    style={{
+                      border: "1px solid var(--color-border)",
+                      background: "var(--color-bg-muted)",
+                      color: "var(--color-text-secondary)",
+                    }}
                   >
                     <option value="all">All Roles</option>
                     <option value="admin">Admin</option>
@@ -397,18 +430,42 @@ function AdminPageContent(): JSX.Element {
                       value={searchQuery()}
                       onInput={(e) => setSearchQuery(e.currentTarget.value)}
                       class="w-56 rounded-lg py-2 pl-8 pr-3 text-xs outline-none transition-colors duration-200"
-                      style={{ border: "1px solid var(--color-border)", background: "var(--color-bg-muted)", color: "var(--color-text-secondary)" }}
+                      style={{
+                        border: "1px solid var(--color-border)",
+                        background: "var(--color-bg-muted)",
+                        color: "var(--color-text-secondary)",
+                      }}
                     />
-                    <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs" style={{ color: "var(--color-text-faint)" }}>&#128270;</span>
+                    <span
+                      class="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs"
+                      style={{ color: "var(--color-text-faint)" }}
+                    >
+                      &#128270;
+                    </span>
                   </div>
                 </div>
               </div>
 
               <div class="mb-2 flex items-center gap-4 px-4 py-2">
                 <div class="w-9 shrink-0" />
-                <span class="min-w-0 flex-1 text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--color-text-faint)" }}>User</span>
-                <span class="w-24 text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--color-text-faint)" }}>Role</span>
-                <span class="w-32 text-right text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--color-text-faint)" }}>Joined</span>
+                <span
+                  class="min-w-0 flex-1 text-[10px] font-semibold uppercase tracking-widest"
+                  style={{ color: "var(--color-text-faint)" }}
+                >
+                  User
+                </span>
+                <span
+                  class="w-24 text-[10px] font-semibold uppercase tracking-widest"
+                  style={{ color: "var(--color-text-faint)" }}
+                >
+                  Role
+                </span>
+                <span
+                  class="w-32 text-right text-[10px] font-semibold uppercase tracking-widest"
+                  style={{ color: "var(--color-text-faint)" }}
+                >
+                  Joined
+                </span>
               </div>
 
               <Show
@@ -416,7 +473,9 @@ function AdminPageContent(): JSX.Element {
                 fallback={
                   <div class="flex flex-col items-center gap-2 py-12">
                     <div class="loading-spinner" />
-                    <span class="text-sm" style={{ color: "var(--color-text-faint)" }}>Loading users…</span>
+                    <span class="text-sm" style={{ color: "var(--color-text-faint)" }}>
+                      Loading users…
+                    </span>
                   </div>
                 }
               >
@@ -435,7 +494,9 @@ function AdminPageContent(): JSX.Element {
                 </div>
                 <Show when={filteredUsers().length === 0}>
                   <div class="flex flex-col items-center gap-2 py-12">
-                    <span class="text-2xl" style={{ color: "var(--color-text-faint)" }}>&#128269;</span>
+                    <span class="text-2xl" style={{ color: "var(--color-text-faint)" }}>
+                      &#128269;
+                    </span>
                     <span class="text-sm" style={{ color: "var(--color-text-faint)" }}>
                       <Show
                         when={(users() ?? []).length > 0}
@@ -454,10 +515,15 @@ function AdminPageContent(): JSX.Element {
           <div class="flex flex-col gap-6">
             <div
               class="rounded-2xl p-6"
-              style={{ background: "var(--color-bg-elevated)", border: "1px solid var(--color-border)" }}
+              style={{
+                background: "var(--color-bg-elevated)",
+                border: "1px solid var(--color-border)",
+              }}
             >
               <div class="mb-4 flex items-center justify-between">
-                <h2 class="text-lg font-semibold" style={{ color: "var(--color-text)" }}>System Health</h2>
+                <h2 class="text-lg font-semibold" style={{ color: "var(--color-text)" }}>
+                  System Health
+                </h2>
                 <Show when={health()}>
                   {(h) => (
                     <Show when={h().database === "ok" && h().api === "ok"}>
@@ -466,7 +532,9 @@ function AdminPageContent(): JSX.Element {
                           class="h-2 w-2 rounded-full"
                           style={{ background: "var(--color-success)" }}
                         />
-                        <span class="text-xs font-medium" style={{ color: "var(--color-success)" }}>Operational</span>
+                        <span class="text-xs font-medium" style={{ color: "var(--color-success)" }}>
+                          Operational
+                        </span>
                       </div>
                     </Show>
                   )}
@@ -477,7 +545,9 @@ function AdminPageContent(): JSX.Element {
                 fallback={
                   <div class="flex flex-col items-center gap-2 py-6">
                     <div class="loading-spinner" />
-                    <span class="text-xs" style={{ color: "var(--color-text-faint)" }}>Checking services…</span>
+                    <span class="text-xs" style={{ color: "var(--color-text-faint)" }}>
+                      Checking services…
+                    </span>
                   </div>
                 }
               >
@@ -502,92 +572,223 @@ function AdminPageContent(): JSX.Element {
             {/* Quick Actions */}
             <div
               class="rounded-2xl p-6"
-              style={{ background: "var(--color-bg-elevated)", border: "1px solid var(--color-border)" }}
+              style={{
+                background: "var(--color-bg-elevated)",
+                border: "1px solid var(--color-border)",
+              }}
             >
-              <h2 class="mb-4 text-lg font-semibold" style={{ color: "var(--color-text)" }}>Quick Actions</h2>
+              <h2 class="mb-4 text-lg font-semibold" style={{ color: "var(--color-text)" }}>
+                Quick Actions
+              </h2>
               <div class="flex flex-col gap-2">
                 <button
                   type="button"
                   onClick={() => navigate("/admin/onboard")}
                   class="flex items-center gap-3 rounded-xl px-4 py-3 text-left transition-all duration-200"
-                  style={{ border: "1px solid var(--color-border)", background: "var(--color-bg-subtle)" }}
+                  style={{
+                    border: "1px solid var(--color-border)",
+                    background: "var(--color-bg-subtle)",
+                  }}
                 >
-                  <span class="flex h-8 w-8 items-center justify-center rounded-lg text-sm" style={{ background: "color-mix(in oklab, #6366f1 10%, transparent)", color: "#6366f1" }}>&#128640;</span>
+                  <span
+                    class="flex h-8 w-8 items-center justify-center rounded-lg text-sm"
+                    style={{
+                      background: "color-mix(in oklab, #6366f1 10%, transparent)",
+                      color: "#6366f1",
+                    }}
+                  >
+                    &#128640;
+                  </span>
                   <div>
-                    <span class="text-sm font-medium" style={{ color: "var(--color-text-secondary)" }}>Platform Onboarding</span>
-                    <p class="text-[11px]" style={{ color: "var(--color-text-faint)" }}>AI-assisted migration wizard — zero env vars left behind</p>
+                    <span
+                      class="text-sm font-medium"
+                      style={{ color: "var(--color-text-secondary)" }}
+                    >
+                      Platform Onboarding
+                    </span>
+                    <p class="text-[11px]" style={{ color: "var(--color-text-faint)" }}>
+                      AI-assisted migration wizard — zero env vars left behind
+                    </p>
                   </div>
                 </button>
                 <button
                   type="button"
                   onClick={() => navigate("/admin/claude")}
                   class="flex items-center gap-3 rounded-xl px-4 py-3 text-left transition-all duration-200"
-                  style={{ border: "1px solid var(--color-border)", background: "var(--color-bg-subtle)" }}
+                  style={{
+                    border: "1px solid var(--color-border)",
+                    background: "var(--color-bg-subtle)",
+                  }}
                 >
-                  <span class="flex h-8 w-8 items-center justify-center rounded-lg text-sm" style={{ background: "color-mix(in oklab, var(--color-primary) 10%, transparent)", color: "var(--color-primary)" }}>&#129504;</span>
+                  <span
+                    class="flex h-8 w-8 items-center justify-center rounded-lg text-sm"
+                    style={{
+                      background: "color-mix(in oklab, var(--color-primary) 10%, transparent)",
+                      color: "var(--color-primary)",
+                    }}
+                  >
+                    &#129504;
+                  </span>
                   <div>
-                    <span class="text-sm font-medium" style={{ color: "var(--color-text-secondary)" }}>Claude Console</span>
-                    <p class="text-[11px]" style={{ color: "var(--color-text-faint)" }}>Admin-only BYOK builder powered by Anthropic</p>
+                    <span
+                      class="text-sm font-medium"
+                      style={{ color: "var(--color-text-secondary)" }}
+                    >
+                      Claude Console
+                    </span>
+                    <p class="text-[11px]" style={{ color: "var(--color-text-faint)" }}>
+                      Admin-only BYOK builder powered by Anthropic
+                    </p>
                   </div>
                 </button>
                 <button
                   type="button"
                   onClick={() => navigate("/admin/ops")}
                   class="flex items-center gap-3 rounded-xl px-4 py-3 text-left transition-all duration-200"
-                  style={{ border: "1px solid var(--color-border)", background: "var(--color-bg-subtle)" }}
+                  style={{
+                    border: "1px solid var(--color-border)",
+                    background: "var(--color-bg-subtle)",
+                  }}
                 >
-                  <span class="flex h-8 w-8 items-center justify-center rounded-lg text-sm" style={{ background: "color-mix(in oklab, var(--color-success) 10%, transparent)", color: "var(--color-success)" }}>&#128736;</span>
+                  <span
+                    class="flex h-8 w-8 items-center justify-center rounded-lg text-sm"
+                    style={{
+                      background: "color-mix(in oklab, var(--color-success) 10%, transparent)",
+                      color: "var(--color-success)",
+                    }}
+                  >
+                    &#128736;
+                  </span>
                   <div>
-                    <span class="text-sm font-medium" style={{ color: "var(--color-text-secondary)" }}>Operations Console</span>
-                    <p class="text-[11px]" style={{ color: "var(--color-text-faint)" }}>Deploy drift, recent commits, services, diagnose battery</p>
+                    <span
+                      class="text-sm font-medium"
+                      style={{ color: "var(--color-text-secondary)" }}
+                    >
+                      Operations Console
+                    </span>
+                    <p class="text-[11px]" style={{ color: "var(--color-text-faint)" }}>
+                      Deploy drift, recent commits, services, diagnose battery
+                    </p>
                   </div>
                 </button>
                 <button
                   type="button"
                   onClick={() => navigate("/admin/support")}
                   class="flex items-center gap-3 rounded-xl px-4 py-3 text-left transition-all duration-200"
-                  style={{ border: "1px solid var(--color-border)", background: "var(--color-bg-subtle)" }}
+                  style={{
+                    border: "1px solid var(--color-border)",
+                    background: "var(--color-bg-subtle)",
+                  }}
                 >
-                  <span class="flex h-8 w-8 items-center justify-center rounded-lg text-sm" style={{ background: "color-mix(in oklab, var(--color-primary) 10%, transparent)", color: "var(--color-primary)" }}>&#128231;</span>
+                  <span
+                    class="flex h-8 w-8 items-center justify-center rounded-lg text-sm"
+                    style={{
+                      background: "color-mix(in oklab, var(--color-primary) 10%, transparent)",
+                      color: "var(--color-primary)",
+                    }}
+                  >
+                    &#128231;
+                  </span>
                   <div>
-                    <span class="text-sm font-medium" style={{ color: "var(--color-text-secondary)" }}>Support Queue</span>
-                    <p class="text-[11px]" style={{ color: "var(--color-text-faint)" }}>Review AI draft replies before they go out</p>
+                    <span
+                      class="text-sm font-medium"
+                      style={{ color: "var(--color-text-secondary)" }}
+                    >
+                      Support Queue
+                    </span>
+                    <p class="text-[11px]" style={{ color: "var(--color-text-faint)" }}>
+                      Review AI draft replies before they go out
+                    </p>
                   </div>
                 </button>
                 <button
                   type="button"
                   onClick={() => navigate("/admin/progress")}
                   class="flex items-center gap-3 rounded-xl px-4 py-3 text-left transition-all duration-200"
-                  style={{ border: "1px solid var(--color-border)", background: "var(--color-bg-subtle)" }}
+                  style={{
+                    border: "1px solid var(--color-border)",
+                    background: "var(--color-bg-subtle)",
+                  }}
                 >
-                  <span class="flex h-8 w-8 items-center justify-center rounded-lg text-sm" style={{ background: "color-mix(in oklab, var(--color-success) 10%, transparent)", color: "var(--color-success)" }}>&#128203;</span>
+                  <span
+                    class="flex h-8 w-8 items-center justify-center rounded-lg text-sm"
+                    style={{
+                      background: "color-mix(in oklab, var(--color-success) 10%, transparent)",
+                      color: "var(--color-success)",
+                    }}
+                  >
+                    &#128203;
+                  </span>
                   <div>
-                    <span class="text-sm font-medium" style={{ color: "var(--color-text-secondary)" }}>Progress Board</span>
-                    <p class="text-[11px]" style={{ color: "var(--color-text-faint)" }}>Track block status across the platform</p>
+                    <span
+                      class="text-sm font-medium"
+                      style={{ color: "var(--color-text-secondary)" }}
+                    >
+                      Progress Board
+                    </span>
+                    <p class="text-[11px]" style={{ color: "var(--color-text-faint)" }}>
+                      Track block status across the platform
+                    </p>
                   </div>
                 </button>
                 <button
                   type="button"
                   onClick={handleExportUsers}
                   class="flex items-center gap-3 rounded-xl px-4 py-3 text-left transition-all duration-200"
-                  style={{ border: "1px solid var(--color-border)", background: "var(--color-bg-subtle)" }}
+                  style={{
+                    border: "1px solid var(--color-border)",
+                    background: "var(--color-bg-subtle)",
+                  }}
                 >
-                  <span class="flex h-8 w-8 items-center justify-center rounded-lg text-sm" style={{ background: "color-mix(in oklab, var(--color-warning) 10%, transparent)", color: "var(--color-warning)" }}>&#128229;</span>
+                  <span
+                    class="flex h-8 w-8 items-center justify-center rounded-lg text-sm"
+                    style={{
+                      background: "color-mix(in oklab, var(--color-warning) 10%, transparent)",
+                      color: "var(--color-warning)",
+                    }}
+                  >
+                    &#128229;
+                  </span>
                   <div>
-                    <span class="text-sm font-medium" style={{ color: "var(--color-text-secondary)" }}>Export Users</span>
-                    <p class="text-[11px]" style={{ color: "var(--color-text-faint)" }}>Download CSV of real users from the DB</p>
+                    <span
+                      class="text-sm font-medium"
+                      style={{ color: "var(--color-text-secondary)" }}
+                    >
+                      Export Users
+                    </span>
+                    <p class="text-[11px]" style={{ color: "var(--color-text-faint)" }}>
+                      Download CSV of real users from the DB
+                    </p>
                   </div>
                 </button>
                 <button
                   type="button"
                   onClick={() => navigate("/status")}
                   class="flex items-center gap-3 rounded-xl px-4 py-3 text-left transition-all duration-200"
-                  style={{ border: "1px solid var(--color-border)", background: "var(--color-bg-subtle)" }}
+                  style={{
+                    border: "1px solid var(--color-border)",
+                    background: "var(--color-bg-subtle)",
+                  }}
                 >
-                  <span class="flex h-8 w-8 items-center justify-center rounded-lg text-sm" style={{ background: "color-mix(in oklab, var(--color-primary) 10%, transparent)", color: "var(--color-primary)" }}>&#128200;</span>
+                  <span
+                    class="flex h-8 w-8 items-center justify-center rounded-lg text-sm"
+                    style={{
+                      background: "color-mix(in oklab, var(--color-primary) 10%, transparent)",
+                      color: "var(--color-primary)",
+                    }}
+                  >
+                    &#128200;
+                  </span>
                   <div>
-                    <span class="text-sm font-medium" style={{ color: "var(--color-text-secondary)" }}>Status Page</span>
-                    <p class="text-[11px]" style={{ color: "var(--color-text-faint)" }}>Public uptime and incidents</p>
+                    <span
+                      class="text-sm font-medium"
+                      style={{ color: "var(--color-text-secondary)" }}
+                    >
+                      Status Page
+                    </span>
+                    <p class="text-[11px]" style={{ color: "var(--color-text-faint)" }}>
+                      Public uptime and incidents
+                    </p>
                   </div>
                 </button>
               </div>
@@ -632,15 +833,13 @@ interface DeployEvent {
 function DeployPanel(): JSX.Element {
   const [log, setLog] = createSignal<DeployEvent[]>([]);
   const [running, setRunning] = createSignal(false);
-  const [status, { refetch: refetchStatus }] = createResource<DeployStatus | null>(
-    async () => {
-      const res = await fetch("/api/admin/deploy/status", {
-        headers: { Authorization: `Bearer ${localStorage.getItem("ct_token") ?? ""}` },
-      });
-      if (!res.ok) return null;
-      return res.json() as Promise<DeployStatus>;
-    },
-  );
+  const [status, { refetch: refetchStatus }] = createResource<DeployStatus | null>(async () => {
+    const res = await fetch("/api/admin/deploy/status", {
+      headers: { Authorization: `Bearer ${localStorage.getItem("ct_token") ?? ""}` },
+    });
+    if (!res.ok) return null;
+    return res.json() as Promise<DeployStatus>;
+  });
 
   let abortController: AbortController | undefined;
 
@@ -725,7 +924,11 @@ function DeployPanel(): JSX.Element {
           type="button"
           onClick={() => refetchStatus()}
           class="rounded-lg px-3 py-1.5 text-xs font-medium transition-all"
-          style={{ border: "1px solid var(--color-border)", background: "var(--color-bg-subtle)", color: "var(--color-text-secondary)" }}
+          style={{
+            border: "1px solid var(--color-border)",
+            background: "var(--color-bg-subtle)",
+            color: "var(--color-text-secondary)",
+          }}
         >
           &#8635; Refresh
         </button>
@@ -745,7 +948,10 @@ function DeployPanel(): JSX.Element {
                     border: `1px solid color-mix(in oklab, ${serviceColor(state)} 25%, transparent)`,
                   }}
                 >
-                  <span class="h-1.5 w-1.5 rounded-full" style={{ background: serviceColor(state) }} />
+                  <span
+                    class="h-1.5 w-1.5 rounded-full"
+                    style={{ background: serviceColor(state) }}
+                  />
                   {svc}
                   <span class="opacity-70">·</span>
                   {state}
@@ -808,7 +1014,15 @@ function DeployPanel(): JSX.Element {
             {(e) => (
               <div class="flex items-start gap-2.5">
                 <span style={{ color: stepColor(e), "min-width": "0.75rem" }}>
-                  {e.status === "ok" ? "✓" : e.status === "error" ? "✗" : e.done ? (e.ok ? "✓" : "✗") : "·"}
+                  {e.status === "ok"
+                    ? "✓"
+                    : e.status === "error"
+                      ? "✗"
+                      : e.done
+                        ? e.ok
+                          ? "✓"
+                          : "✗"
+                        : "·"}
                 </span>
                 <Show
                   when={e.done}
@@ -825,7 +1039,12 @@ function DeployPanel(): JSX.Element {
                     </span>
                   }
                 >
-                  <span style={{ color: e.ok ? "var(--color-success)" : "var(--color-danger)", "font-weight": "600" }}>
+                  <span
+                    style={{
+                      color: e.ok ? "var(--color-success)" : "var(--color-danger)",
+                      "font-weight": "600",
+                    }}
+                  >
                     {e.ok ? "Deploy complete" : `Failed at: ${e.failedStep ?? "unknown"}`}
                   </span>
                 </Show>
@@ -869,7 +1088,7 @@ function ServerEnvPanel(): JSX.Element {
         setError(`Failed to load (${res.status})`);
         return;
       }
-      const body = await res.json() as { ok: boolean; vars?: EnvVarHint[] };
+      const body = (await res.json()) as { ok: boolean; vars?: EnvVarHint[] };
       setVars(body.vars ?? []);
     } catch {
       setError("Deploy agent unreachable");
@@ -898,7 +1117,7 @@ function ServerEnvPanel(): JSX.Element {
         setShowAdd(false);
         void load();
       } else {
-        const body = await res.json() as { error?: string };
+        const body = (await res.json()) as { error?: string };
         showToast(body.error ?? "Save failed", "error");
       }
     } catch {
@@ -941,7 +1160,8 @@ function ServerEnvPanel(): JSX.Element {
             Server Environment Variables
           </h3>
           <p class="mt-0.5 text-xs" style={{ color: "var(--color-text-faint)" }}>
-            Manages <code class="font-mono">/opt/crontech/.env</code> on the Vultr box via the deploy agent. Values are write-only — hints shown only.
+            Manages <code class="font-mono">/opt/crontech/.env</code> on the Vultr box via the
+            deploy agent. Values are write-only — hints shown only.
           </p>
         </div>
         <div class="flex gap-2">
@@ -982,7 +1202,11 @@ function ServerEnvPanel(): JSX.Element {
         >
           <div class="flex flex-col gap-3 sm:flex-row sm:items-end">
             <div class="flex-1">
-              <label for="admin-env-key" class="mb-1 block text-[11px] font-semibold uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>
+              <label
+                for="admin-env-key"
+                class="mb-1 block text-[11px] font-semibold uppercase tracking-wider"
+                style={{ color: "var(--color-text-muted)" }}
+              >
                 Key
               </label>
               <input
@@ -993,15 +1217,20 @@ function ServerEnvPanel(): JSX.Element {
                 placeholder="DATABASE_URL"
                 class="w-full rounded-lg border bg-transparent px-3 py-2 font-mono text-sm focus:outline-none"
                 style={{
-                  "border-color": newKey().length > 0 && !KEY_RE.test(newKey())
-                    ? "var(--color-danger)"
-                    : "var(--color-border)",
+                  "border-color":
+                    newKey().length > 0 && !KEY_RE.test(newKey())
+                      ? "var(--color-danger)"
+                      : "var(--color-border)",
                   color: "var(--color-text)",
                 }}
               />
             </div>
             <div class="flex-1">
-              <label for="admin-env-value" class="mb-1 block text-[11px] font-semibold uppercase tracking-wider" style={{ color: "var(--color-text-muted)" }}>
+              <label
+                for="admin-env-value"
+                class="mb-1 block text-[11px] font-semibold uppercase tracking-wider"
+                style={{ color: "var(--color-text-muted)" }}
+              >
                 Value
               </label>
               <input
@@ -1020,7 +1249,11 @@ function ServerEnvPanel(): JSX.Element {
             <div class="flex gap-2">
               <button
                 type="button"
-                onClick={() => { setShowAdd(false); setNewKey(""); setNewValue(""); }}
+                onClick={() => {
+                  setShowAdd(false);
+                  setNewKey("");
+                  setNewValue("");
+                }}
                 class="rounded-lg border px-3 py-2 text-xs font-medium transition-colors"
                 style={{ "border-color": "var(--color-border)", color: "var(--color-text-muted)" }}
               >
@@ -1044,14 +1277,25 @@ function ServerEnvPanel(): JSX.Element {
       </Show>
 
       <Show when={loading()}>
-        <div class="flex items-center gap-2 py-4 text-sm" style={{ color: "var(--color-text-faint)" }}>
-          <div class="h-4 w-4 animate-spin rounded-full border-2" style={{ "border-color": "var(--color-border)", "border-top-color": "var(--color-primary)" }} />
+        <div
+          class="flex items-center gap-2 py-4 text-sm"
+          style={{ color: "var(--color-text-faint)" }}
+        >
+          <div
+            class="h-4 w-4 animate-spin rounded-full border-2"
+            style={{
+              "border-color": "var(--color-border)",
+              "border-top-color": "var(--color-primary)",
+            }}
+          />
           Loading env vars from server…
         </div>
       </Show>
 
       <Show when={!loading() && error()}>
-        <p class="py-2 text-sm" style={{ color: "var(--color-danger)" }}>{error()}</p>
+        <p class="py-2 text-sm" style={{ color: "var(--color-danger)" }}>
+          {error()}
+        </p>
       </Show>
 
       <Show when={!loading() && !error()}>
@@ -1064,15 +1308,26 @@ function ServerEnvPanel(): JSX.Element {
           }
         >
           <div class="space-y-1">
-            <For each={vars().slice().sort((a, b) => a.key.localeCompare(b.key))}>
+            <For
+              each={vars()
+                .slice()
+                .sort((a, b) => a.key.localeCompare(b.key))}
+            >
               {(v) => (
                 <div
                   class="flex items-center justify-between rounded-lg px-3 py-2"
-                  style={{ background: "var(--color-bg-subtle)", border: "1px solid var(--color-border)" }}
+                  style={{
+                    background: "var(--color-bg-subtle)",
+                    border: "1px solid var(--color-border)",
+                  }}
                 >
-                  <span class="font-mono text-sm" style={{ color: "var(--color-text)" }}>{v.key}</span>
+                  <span class="font-mono text-sm" style={{ color: "var(--color-text)" }}>
+                    {v.key}
+                  </span>
                   <div class="flex items-center gap-3">
-                    <span class="font-mono text-xs" style={{ color: "var(--color-text-faint)" }}>{v.hint}</span>
+                    <span class="font-mono text-xs" style={{ color: "var(--color-text-faint)" }}>
+                      {v.hint}
+                    </span>
                     <button
                       type="button"
                       onClick={() => void remove(v.key)}
@@ -1122,10 +1377,7 @@ function StatErrorFallback(props: { count: number }): JSX.Element {
             >
               &mdash;
             </span>
-            <span
-              class="mt-1 text-xs font-medium"
-              style={{ color: "var(--color-text-muted)" }}
-            >
+            <span class="mt-1 text-xs font-medium" style={{ color: "var(--color-text-muted)" }}>
               Couldn&apos;t reach the data layer. Try Refresh above.
             </span>
           </div>
@@ -1149,9 +1401,18 @@ function StatSkeleton(props: { count: number }): JSX.Element {
           }}
         >
           <div class="flex flex-col gap-2">
-            <div class="h-3 w-24 animate-pulse rounded" style={{ background: "var(--color-bg-muted)" }} />
-            <div class="h-8 w-32 animate-pulse rounded" style={{ background: "var(--color-bg-inset)" }} />
-            <div class="h-3 w-20 animate-pulse rounded" style={{ background: "var(--color-bg-muted)" }} />
+            <div
+              class="h-3 w-24 animate-pulse rounded"
+              style={{ background: "var(--color-bg-muted)" }}
+            />
+            <div
+              class="h-8 w-32 animate-pulse rounded"
+              style={{ background: "var(--color-bg-inset)" }}
+            />
+            <div
+              class="h-3 w-20 animate-pulse rounded"
+              style={{ background: "var(--color-bg-muted)" }}
+            />
           </div>
         </div>
       )}

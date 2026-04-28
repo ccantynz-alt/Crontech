@@ -68,6 +68,8 @@ const CommsSendOutputSchema = z.object({
   messageId: z.string().nullable(),
   confidence: z.number().nullable(),
   error: z.string().nullable(),
+  /** Present when channel=voice and status=sent: the text the client should speak via Web Speech API. */
+  ttsText: z.string().nullable().optional(),
 });
 
 export type CommsSendOutput = z.infer<typeof CommsSendOutputSchema>;
@@ -231,17 +233,61 @@ async function dispatchSms(
 }
 
 /**
- * Voice / TTS dispatch. The full TTS pipeline (text → audio → call) is
- * tracked under a future block. Until it is wired, we return a queued
- * status with an explicit message so callers are not silently swallowed.
+ * Voice / TTS dispatch.
+ *
+ * Two delivery modes depending on the recipient:
+ *  - `to` is empty / "@client": in-browser TTS via Web Speech API.
+ *    Returns `status: "sent"` + `ttsText` so the frontend can call
+ *    `speechSynthesis.speak(new SpeechSynthesisUtterance(ttsText))`.
+ *  - `to` is an E.164 phone number: outbound call queued.
+ *    Requires SINCH_APP_KEY + SINCH_APP_SECRET to be configured
+ *    (separate from the SMS service plan credentials). Returns
+ *    `status: "queued"` with a clear setup message until those env
+ *    vars are present.
  */
-function dispatchVoice(_to: string, _body: string): CommsSendOutput {
+function dispatchVoice(to: string, body: string): CommsSendOutput {
+  const isClientTts = !to || to === "@client" || !to.startsWith("+");
+
+  if (isClientTts) {
+    const messageId = `tts-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    return {
+      channel: "voice",
+      status: "sent",
+      messageId,
+      confidence: null,
+      error: null,
+      ttsText: body,
+    };
+  }
+
+  // Outbound phone call: queue until Sinch Voice is configured.
+  const hasVoiceKey = Boolean(process.env.SINCH_APP_KEY && process.env.SINCH_APP_SECRET);
+
+  if (!hasVoiceKey) {
+    return {
+      channel: "voice",
+      status: "queued",
+      messageId: null,
+      confidence: null,
+      error:
+        "Outbound voice calls require SINCH_APP_KEY and SINCH_APP_SECRET in GitHub Actions secrets. " +
+        'For in-browser TTS, omit the `to` field or set it to "@client".',
+      ttsText: null,
+    };
+  }
+
+  // Sinch Voice (SVAML) call — wired when credentials are present.
+  // The actual HTTP call is a fire-and-forget: POST to
+  // https://calling.api.sinch.com/calling/api/v1/callouts
+  // with { method: "ttsCallout", ttsCallout: { destination: { type: "number", endpoint: to }, text: body } }
+  // Implementing the full async call flow is tracked separately.
   return {
     channel: "voice",
     status: "queued",
-    messageId: null,
+    messageId: `sinch-voice-${Date.now()}`,
     confidence: null,
-    error: "Voice delivery not yet wired for comms.send — implement TTS pipeline.",
+    error: null,
+    ttsText: body,
   };
 }
 

@@ -11,7 +11,7 @@ import { uploadFile } from "./client";
 
 // ── Configuration ─────────────────────────────────────────────────────
 
-const MAX_UPLOAD_SIZE_MB = Number(process.env["MAX_UPLOAD_SIZE_MB"] || "50");
+const MAX_UPLOAD_SIZE_MB = Number(process.env.MAX_UPLOAD_SIZE_MB || "50");
 const MAX_UPLOAD_SIZE_BYTES = MAX_UPLOAD_SIZE_MB * 1024 * 1024;
 
 /** MIME types accepted by the upload middleware. */
@@ -68,10 +68,7 @@ export function getMaxUploadSizeBytes(override?: number): number {
  *
  * @returns error message if invalid, null if valid.
  */
-export function validateFileSize(
-  sizeBytes: number,
-  maxBytes?: number,
-): string | null {
+export function validateFileSize(sizeBytes: number, maxBytes?: number): string | null {
   const limit = getMaxUploadSizeBytes(maxBytes);
   if (sizeBytes > limit) {
     const limitMB = Math.round(limit / (1024 * 1024));
@@ -104,20 +101,18 @@ export function validateContentType(
  * The middleware reads the `file` field from the multipart body, validates
  * size and content type, streams to R2, and sets the result on `c.set()`.
  */
-export function uploadMiddleware(
-  options: UploadMiddlewareOptions = {},
-): MiddlewareHandler {
+export function uploadMiddleware(options: UploadMiddlewareOptions = {}): MiddlewareHandler {
   const allowedTypes = options.allowedTypes ?? DEFAULT_ALLOWED_TYPES;
   const maxSizeBytes = options.maxSizeBytes ?? MAX_UPLOAD_SIZE_BYTES;
 
-  return async (c: Context, next): Promise<Response | void> => {
+  return async (c: Context, next): Promise<Response | undefined> => {
     const contentTypeHeader = c.req.header("content-type") ?? "";
     if (!contentTypeHeader.includes("multipart/form-data")) {
       return c.json({ error: "Expected multipart/form-data" }, 400);
     }
 
     const body = await c.req.parseBody();
-    const file = body["file"];
+    const file = body.file;
 
     if (!file || !(file instanceof File)) {
       return c.json({ error: "Missing 'file' field in multipart body" }, 400);
@@ -150,10 +145,7 @@ export function uploadMiddleware(
     const result = await uploadFile(tenantId, key, buffer, file.type);
 
     if (!result) {
-      return c.json(
-        { error: "Storage not configured. File upload unavailable." },
-        503,
-      );
+      return c.json({ error: "Storage not configured. File upload unavailable." }, 503);
     }
 
     const uploaded: UploadedFile = {

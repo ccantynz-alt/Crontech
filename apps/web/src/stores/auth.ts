@@ -1,3 +1,5 @@
+import type { User } from "@back-to-the-future/schemas";
+import { startAuthentication, startRegistration } from "@simplewebauthn/browser";
 import {
   type Accessor,
   type JSX,
@@ -7,12 +9,7 @@ import {
   createSignal,
   useContext,
 } from "solid-js";
-import {
-  startRegistration,
-  startAuthentication,
-} from "@simplewebauthn/browser";
-import type { User } from "@back-to-the-future/schemas";
-import { trpc, fetchCsrfToken, clearCsrfToken } from "../lib/trpc";
+import { clearCsrfToken, fetchCsrfToken, trpc } from "../lib/trpc";
 
 // ── Auth State Types ──────────────────────────────────────────────────
 

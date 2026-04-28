@@ -10,34 +10,23 @@
 //     the BLK-030 brief we front every number purchase manually until
 //     the SMS billing integration (separate block) lands.
 
-import { z } from "zod";
+import { smsMessages, smsNumbers } from "@back-to-the-future/db";
 import { TRPCError } from "@trpc/server";
 import { and, desc, eq, isNull } from "drizzle-orm";
-import {
-  smsMessages,
-  smsNumbers,
-} from "@back-to-the-future/db";
-import {
-  router,
-  protectedProcedure,
-  adminProcedure,
-} from "../init";
-import type { TRPCContext } from "../context";
+import { z } from "zod";
+import { type SendSmsDeps, SendSmsError, sendSms } from "../../sms/send";
 import {
   SinchClient,
+  type SinchClientDeps,
+  type SinchConfig,
+  applyMarkup,
   configFromEnv,
+  dollarsToMicrodollars,
   isValidE164,
   markupPercentFromEnv,
-  applyMarkup,
-  dollarsToMicrodollars,
-  type SinchConfig,
-  type SinchClientDeps,
 } from "../../sms/sinch-client";
-import {
-  sendSms,
-  SendSmsError,
-  type SendSmsDeps,
-} from "../../sms/send";
+import type { TRPCContext } from "../context";
+import { adminProcedure, protectedProcedure, router } from "../init";
 
 // ── Client factory + test hooks ──────────────────────────────────────
 
@@ -94,11 +83,9 @@ function currentMarkupPercent(): number {
 
 // ── Input schemas ────────────────────────────────────────────────────
 
-const E164Input = z
-  .string()
-  .refine(isValidE164, {
-    message: "Phone numbers must be in E.164 format, e.g. +14155551234.",
-  });
+const E164Input = z.string().refine(isValidE164, {
+  message: "Phone numbers must be in E.164 format, e.g. +14155551234.",
+});
 
 const SendInputSchema = z.object({
   to: E164Input,
@@ -167,11 +154,11 @@ function translateSendError(err: unknown): never {
 }
 
 function billingEnabled(): boolean {
-  return process.env["STRIPE_ENABLED"] === "true";
+  return process.env.STRIPE_ENABLED === "true";
 }
 
 function newNumberId(): string {
-  return `smsn_${Date.now().toString(36)}_${crypto.randomUUID().replace(/-/g, '').slice(0, 8)}`;
+  return `smsn_${Date.now().toString(36)}_${crypto.randomUUID().replace(/-/g, "").slice(0, 8)}`;
 }
 
 async function resolveFromNumber(
@@ -225,113 +212,105 @@ export const smsRouter = router({
    * E.164 format, applies rate limiting + markup, persists the row,
    * and retries 5xx with exponential backoff.
    */
-  send: protectedProcedure
-    .input(SendInputSchema)
-    .mutation(async ({ ctx, input }) => {
-      const fromNumber = await resolveFromNumber(ctx, ctx.userId, input.from);
-      const client = makeClient();
-      try {
-        const result = await sendSms(
-          {
-            userId: ctx.userId,
-            from: fromNumber,
-            to: input.to,
-            body: input.body,
-          },
-          {
-            db: ctx.db,
-            client,
-            markupPercent: currentMarkupPercent(),
-            ...(testHooks.sendOverrides ?? {}),
-          },
-        );
-        return {
-          id: result.id,
-          providerMessageId: result.providerMessageId,
-          status: result.status,
-          segments: result.segments,
+  send: protectedProcedure.input(SendInputSchema).mutation(async ({ ctx, input }) => {
+    const fromNumber = await resolveFromNumber(ctx, ctx.userId, input.from);
+    const client = makeClient();
+    try {
+      const result = await sendSms(
+        {
+          userId: ctx.userId,
           from: fromNumber,
           to: input.to,
-          costMicrodollars: result.costMicrodollars,
-          markupMicrodollars: result.markupMicrodollars,
-          retailMicrodollars: result.retailMicrodollars,
-        };
-      } catch (err) {
-        translateSendError(err);
-      }
-    }),
+          body: input.body,
+        },
+        {
+          db: ctx.db,
+          client,
+          markupPercent: currentMarkupPercent(),
+          ...(testHooks.sendOverrides ?? {}),
+        },
+      );
+      return {
+        id: result.id,
+        providerMessageId: result.providerMessageId,
+        status: result.status,
+        segments: result.segments,
+        from: fromNumber,
+        to: input.to,
+        costMicrodollars: result.costMicrodollars,
+        markupMicrodollars: result.markupMicrodollars,
+        retailMicrodollars: result.retailMicrodollars,
+      };
+    } catch (err) {
+      translateSendError(err);
+    }
+  }),
 
   /** List the caller's own SMS history, newest first. */
-  listMessages: protectedProcedure
-    .input(ListMessagesInputSchema)
-    .query(async ({ ctx, input }) => {
-      const limit = input.limit ?? 50;
-      const rows = await ctx.db
-        .select()
-        .from(smsMessages)
-        .where(eq(smsMessages.userId, ctx.userId))
-        .orderBy(desc(smsMessages.createdAt))
-        .limit(limit + 1);
-      const hasMore = rows.length > limit;
-      const slice = hasMore ? rows.slice(0, limit) : rows;
-      return {
-        messages: slice.map((r) => ({
-          id: r.id,
-          direction: r.direction,
-          from: r.fromNumber,
-          to: r.toNumber,
-          body: r.body,
-          segments: r.segments,
-          status: r.status,
-          providerMessageId: r.providerMessageId,
-          costMicrodollars: r.costMicrodollars,
-          markupMicrodollars: r.markupMicrodollars,
-          errorCode: r.errorCode,
-          errorMessage: r.errorMessage,
-          sentAt: r.sentAt ? r.sentAt.toISOString() : null,
-          deliveredAt: r.deliveredAt ? r.deliveredAt.toISOString() : null,
-          createdAt: r.createdAt.toISOString(),
-        })),
-        nextCursor: hasMore ? slice[slice.length - 1]?.id ?? null : null,
-      };
-    }),
+  listMessages: protectedProcedure.input(ListMessagesInputSchema).query(async ({ ctx, input }) => {
+    const limit = input.limit ?? 50;
+    const rows = await ctx.db
+      .select()
+      .from(smsMessages)
+      .where(eq(smsMessages.userId, ctx.userId))
+      .orderBy(desc(smsMessages.createdAt))
+      .limit(limit + 1);
+    const hasMore = rows.length > limit;
+    const slice = hasMore ? rows.slice(0, limit) : rows;
+    return {
+      messages: slice.map((r) => ({
+        id: r.id,
+        direction: r.direction,
+        from: r.fromNumber,
+        to: r.toNumber,
+        body: r.body,
+        segments: r.segments,
+        status: r.status,
+        providerMessageId: r.providerMessageId,
+        costMicrodollars: r.costMicrodollars,
+        markupMicrodollars: r.markupMicrodollars,
+        errorCode: r.errorCode,
+        errorMessage: r.errorMessage,
+        sentAt: r.sentAt ? r.sentAt.toISOString() : null,
+        deliveredAt: r.deliveredAt ? r.deliveredAt.toISOString() : null,
+        createdAt: r.createdAt.toISOString(),
+      })),
+      nextCursor: hasMore ? (slice[slice.length - 1]?.id ?? null) : null,
+    };
+  }),
 
   /** Fetch a single SMS the caller owns. */
-  getMessage: protectedProcedure
-    .input(GetMessageInputSchema)
-    .query(async ({ ctx, input }) => {
-      const rows = await ctx.db
-        .select()
-        .from(smsMessages)
-        .where(
-          and(eq(smsMessages.id, input.id), eq(smsMessages.userId, ctx.userId)),
-        )
-        .limit(1);
-      const row = rows[0];
-      if (!row) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "We could not find that message on your account.",
-        });
-      }
-      return {
-        id: row.id,
-        direction: row.direction,
-        from: row.fromNumber,
-        to: row.toNumber,
-        body: row.body,
-        segments: row.segments,
-        status: row.status,
-        providerMessageId: row.providerMessageId,
-        costMicrodollars: row.costMicrodollars,
-        markupMicrodollars: row.markupMicrodollars,
-        errorCode: row.errorCode,
-        errorMessage: row.errorMessage,
-        sentAt: row.sentAt ? row.sentAt.toISOString() : null,
-        deliveredAt: row.deliveredAt ? row.deliveredAt.toISOString() : null,
-        createdAt: row.createdAt.toISOString(),
-      };
-    }),
+  getMessage: protectedProcedure.input(GetMessageInputSchema).query(async ({ ctx, input }) => {
+    const rows = await ctx.db
+      .select()
+      .from(smsMessages)
+      .where(and(eq(smsMessages.id, input.id), eq(smsMessages.userId, ctx.userId)))
+      .limit(1);
+    const row = rows[0];
+    if (!row) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "We could not find that message on your account.",
+      });
+    }
+    return {
+      id: row.id,
+      direction: row.direction,
+      from: row.fromNumber,
+      to: row.toNumber,
+      body: row.body,
+      segments: row.segments,
+      status: row.status,
+      providerMessageId: row.providerMessageId,
+      costMicrodollars: row.costMicrodollars,
+      markupMicrodollars: row.markupMicrodollars,
+      errorCode: row.errorCode,
+      errorMessage: row.errorMessage,
+      sentAt: row.sentAt ? row.sentAt.toISOString() : null,
+      deliveredAt: row.deliveredAt ? row.deliveredAt.toISOString() : null,
+      createdAt: row.createdAt.toISOString(),
+    };
+  }),
 
   /** List every active + released number on the caller's account. */
   listNumbers: protectedProcedure.query(async ({ ctx }) => {
@@ -369,66 +348,64 @@ export const smsRouter = router({
    * — we refuse to commit revenue-affecting writes while billing is
    * still in pre-launch mode (CLAUDE.md §0.7).
    */
-  buyNumber: adminProcedure
-    .input(BuyNumberInputSchema)
-    .mutation(async ({ ctx, input }) => {
-      if (!billingEnabled()) {
-        throw new TRPCError({
-          code: "SERVICE_UNAVAILABLE",
-          message:
-            "Number purchasing is disabled while billing is pre-launch. Ask Craig to flip STRIPE_ENABLED=true once the SMS billing block ships.",
-        });
-      }
-      if (testHooks.buyNumberImpl) {
-        const fake = await testHooks.buyNumberImpl(
-          {
-            countryCode: input.countryCode,
-            ...(input.areaCode !== undefined ? { areaCode: input.areaCode } : {}),
-          },
-          ctx,
-        );
-        const row: typeof smsNumbers.$inferInsert = {
-          id: fake.id,
-          userId: ctx.userId,
-          e164Number: fake.e164Number,
+  buyNumber: adminProcedure.input(BuyNumberInputSchema).mutation(async ({ ctx, input }) => {
+    if (!billingEnabled()) {
+      throw new TRPCError({
+        code: "SERVICE_UNAVAILABLE",
+        message:
+          "Number purchasing is disabled while billing is pre-launch. Ask Craig to flip STRIPE_ENABLED=true once the SMS billing block ships.",
+      });
+    }
+    if (testHooks.buyNumberImpl) {
+      const fake = await testHooks.buyNumberImpl(
+        {
           countryCode: input.countryCode,
-          sinchNumberId: fake.sinchNumberId,
-          capabilities: JSON.stringify(["sms"]),
-          monthlyCostMicrodollars: fake.monthlyCostMicrodollars,
-        };
-        await ctx.db.insert(smsNumbers).values(row);
-        return {
-          id: row.id,
-          e164Number: row.e164Number,
-          sinchNumberId: row.sinchNumberId,
-          monthlyCostMicrodollars: row.monthlyCostMicrodollars,
-        };
-      }
-      // Real path would call Sinch's number provisioning API. Until the
-      // billing block lights up we keep the admin-gated stub polite but
-      // explicit.
-      const { retailMicrodollars } = applyMarkup(
-        dollarsToMicrodollars("1.00"),
-        currentMarkupPercent(),
+          ...(input.areaCode !== undefined ? { areaCode: input.areaCode } : {}),
+        },
+        ctx,
       );
-      const id = newNumberId();
       const row: typeof smsNumbers.$inferInsert = {
-        id,
+        id: fake.id,
         userId: ctx.userId,
-        e164Number: `+${input.countryCode === "US" ? "1" : "00"}${input.areaCode ?? "0000000000"}`,
+        e164Number: fake.e164Number,
         countryCode: input.countryCode,
-        sinchNumberId: `stub_${id}`,
+        sinchNumberId: fake.sinchNumberId,
         capabilities: JSON.stringify(["sms"]),
-        monthlyCostMicrodollars: retailMicrodollars,
+        monthlyCostMicrodollars: fake.monthlyCostMicrodollars,
       };
       await ctx.db.insert(smsNumbers).values(row);
       return {
-        id,
+        id: row.id,
         e164Number: row.e164Number,
         sinchNumberId: row.sinchNumberId,
         monthlyCostMicrodollars: row.monthlyCostMicrodollars,
       };
-    }),
+    }
+    // Real path would call Sinch's number provisioning API. Until the
+    // billing block lights up we keep the admin-gated stub polite but
+    // explicit.
+    const { retailMicrodollars } = applyMarkup(
+      dollarsToMicrodollars("1.00"),
+      currentMarkupPercent(),
+    );
+    const id = newNumberId();
+    const row: typeof smsNumbers.$inferInsert = {
+      id,
+      userId: ctx.userId,
+      e164Number: `+${input.countryCode === "US" ? "1" : "00"}${input.areaCode ?? "0000000000"}`,
+      countryCode: input.countryCode,
+      sinchNumberId: `stub_${id}`,
+      capabilities: JSON.stringify(["sms"]),
+      monthlyCostMicrodollars: retailMicrodollars,
+    };
+    await ctx.db.insert(smsNumbers).values(row);
+    return {
+      id,
+      e164Number: row.e164Number,
+      sinchNumberId: row.sinchNumberId,
+      monthlyCostMicrodollars: row.monthlyCostMicrodollars,
+    };
+  }),
 
   /**
    * Admin-only: list every SMS across every customer plus per-user
@@ -436,11 +413,7 @@ export const smsRouter = router({
    * the admin UI never asks the DB for the whole table.
    */
   adminListAll: adminProcedure
-    .input(
-      z
-        .object({ limit: z.number().int().min(1).max(1000).optional() })
-        .optional(),
-    )
+    .input(z.object({ limit: z.number().int().min(1).max(1000).optional() }).optional())
     .query(async ({ ctx, input }) => {
       const limit = input?.limit ?? 200;
       const rows = await ctx.db
@@ -509,41 +482,32 @@ export const smsRouter = router({
    * and stops the monthly charge. Kept admin-gated for v1 because a
    * released number is irreversible and costs money to re-acquire.
    */
-  releaseNumber: adminProcedure
-    .input(ReleaseNumberInputSchema)
-    .mutation(async ({ ctx, input }) => {
-      const rows = await ctx.db
-        .select()
-        .from(smsNumbers)
-        .where(eq(smsNumbers.id, input.id))
-        .limit(1);
-      const row = rows[0];
-      if (!row) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "That number is not on record.",
-        });
-      }
-      if (row.releasedAt) {
-        return {
-          id: row.id,
-          e164Number: row.e164Number,
-          releasedAt: row.releasedAt.toISOString(),
-          alreadyReleased: true,
-        };
-      }
-      const releasedAt = new Date();
-      await ctx.db
-        .update(smsNumbers)
-        .set({ releasedAt })
-        .where(eq(smsNumbers.id, row.id));
+  releaseNumber: adminProcedure.input(ReleaseNumberInputSchema).mutation(async ({ ctx, input }) => {
+    const rows = await ctx.db.select().from(smsNumbers).where(eq(smsNumbers.id, input.id)).limit(1);
+    const row = rows[0];
+    if (!row) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "That number is not on record.",
+      });
+    }
+    if (row.releasedAt) {
       return {
         id: row.id,
         e164Number: row.e164Number,
-        releasedAt: releasedAt.toISOString(),
-        alreadyReleased: false,
+        releasedAt: row.releasedAt.toISOString(),
+        alreadyReleased: true,
       };
-    }),
+    }
+    const releasedAt = new Date();
+    await ctx.db.update(smsNumbers).set({ releasedAt }).where(eq(smsNumbers.id, row.id));
+    return {
+      id: row.id,
+      e164Number: row.e164Number,
+      releasedAt: releasedAt.toISOString(),
+      alreadyReleased: false,
+    };
+  }),
 });
 
 export type SmsRouter = typeof smsRouter;

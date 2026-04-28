@@ -1,10 +1,10 @@
-import { describe, test, expect, beforeEach, afterEach } from "bun:test";
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import { db, scopedDb, sessions, users } from "@back-to-the-future/db";
 import { eq } from "drizzle-orm";
-import { db, users, sessions, scopedDb } from "@back-to-the-future/db";
-import { appRouter } from "./router";
-import { createSession } from "../auth/session";
 import { generateCsrfToken } from "../auth/csrf";
+import { createSession } from "../auth/session";
 import type { TRPCContext } from "./context";
+import { appRouter } from "./router";
 
 // ── Test Helpers ─────────────────────────────────────────────────────
 
@@ -193,7 +193,7 @@ describe("tRPC Billing", () => {
     const plans = await caller(ctx).billing.getPlans();
     expect(plans).toBeArray();
     expect(plans.length).toBeGreaterThanOrEqual(1);
-    expect(plans[0]!.name).toBeString();
+    expect(plans[0]?.name).toBeString();
   });
 
   test("getSubscription requires auth", async () => {
@@ -247,7 +247,7 @@ describe("tRPC Feature Flags", () => {
     const result = await caller(ctx).featureFlags.evaluate({ flagKey: "ai.client_inference" });
     expect(result.key).toBe("ai.client_inference");
     expect(result.flag).not.toBeNull();
-    expect(result.flag!.key).toBe("ai.client_inference");
+    expect(result.flag?.key).toBe("ai.client_inference");
   });
 });
 
@@ -383,7 +383,7 @@ describe("tRPC Auth Procedures", () => {
 
     // Session should be invalid now
     const validatedUserId = await import("./context").then(() =>
-      import("../auth/session").then((m) => m.validateSession(token, db))
+      import("../auth/session").then((m) => m.validateSession(token, db)),
     );
     expect(validatedUserId).toBeNull();
 

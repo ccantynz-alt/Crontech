@@ -7,15 +7,9 @@
 // Polite copy only — the customer sees "Crontech eSIM". No wholesaler
 // name appears in public copy. Tone rules: helpful, reassuring, concise.
 
-import {
-  createResource,
-  createSignal,
-  For,
-  Show,
-  type JSX,
-} from "solid-js";
-import { A } from "@solidjs/router";
 import { Badge, Button } from "@back-to-the-future/ui";
+import { A } from "@solidjs/router";
+import { For, type JSX, Show, createResource, createSignal } from "solid-js";
 import { SEOHead } from "../components/SEOHead";
 import { trpc } from "../lib/trpc";
 
@@ -70,10 +64,7 @@ export function regionBadgeTone(type: string): {
 }
 
 /** Describe the data bucket — handles unlimited + sub-1GB plans politely. */
-export function formatDataLabel(
-  dataGb: number,
-  isUnlimited: boolean,
-): string {
+export function formatDataLabel(dataGb: number, isUnlimited: boolean): string {
   if (isUnlimited) return "Unlimited data";
   if (dataGb >= 1) {
     const rounded = dataGb % 1 === 0 ? dataGb.toFixed(0) : dataGb.toFixed(1);
@@ -91,9 +82,7 @@ interface LoadParams {
   readonly minDataGb: number;
 }
 
-async function loadPackages(
-  params: LoadParams,
-): Promise<ListPackagesResponse> {
+async function loadPackages(params: LoadParams): Promise<ListPackagesResponse> {
   const input: {
     countryCode?: string;
     region?: "global" | "local";
@@ -166,11 +155,11 @@ export default function EsimPage(): JSX.Element {
             plan browser still renders so trusted beta testers can
             preview the catalog. */}
         <section class="mx-auto max-w-4xl px-6 pt-6">
-          <div
-            role="status"
+          <output
             aria-live="polite"
             class="flex flex-wrap items-center gap-3 rounded-xl px-4 py-3 text-sm"
             style={{
+              display: "flex",
               background: "var(--color-bg-subtle)",
               border: "1px dashed var(--color-border)",
               color: "var(--color-text-muted)",
@@ -192,10 +181,10 @@ export default function EsimPage(): JSX.Element {
               Coming soon
             </span>
             <span>
-              Public launch is pending partner activation — plans shown here
-              are a preview, checkout opens the moment we're live.
+              Public launch is pending partner activation — plans shown here are a preview, checkout
+              opens the moment we're live.
             </span>
-          </div>
+          </output>
         </section>
 
         {/* Hero */}
@@ -210,16 +199,13 @@ export default function EsimPage(): JSX.Element {
             class="mt-4 text-center text-base sm:text-lg"
             style={{ color: "var(--color-text-muted)" }}
           >
-            Travel eSIM data plans for 200+ countries. Install instantly with
-            a QR code — no physical SIM swap, no roaming bill surprises.
+            Travel eSIM data plans for 200+ countries. Install instantly with a QR code — no
+            physical SIM swap, no roaming bill surprises.
           </p>
 
           {/* Country picker */}
           <div class="mt-10">
-            <label
-              for="esim-country-input"
-              class="sr-only"
-            >
+            <label for="esim-country-input" class="sr-only">
               Select a country
             </label>
             <div class="mb-3 flex flex-wrap items-center justify-center gap-2">
@@ -234,12 +220,8 @@ export default function EsimPage(): JSX.Element {
                       aria-pressed={active()}
                       class="rounded-full px-3 py-1 text-xs font-medium transition"
                       style={{
-                        background: active()
-                          ? "var(--color-primary)"
-                          : "var(--color-bg-subtle)",
-                        color: active()
-                          ? "var(--color-primary-fg)"
-                          : "var(--color-text-muted)",
+                        background: active() ? "var(--color-primary)" : "var(--color-bg-subtle)",
+                        color: active() ? "var(--color-primary-fg)" : "var(--color-text-muted)",
                         border: "1px solid var(--color-border)",
                       }}
                     >
@@ -258,9 +240,7 @@ export default function EsimPage(): JSX.Element {
                 autocomplete="off"
                 autocapitalize="characters"
                 value={countryCode()}
-                onInput={(e) =>
-                  setCountryCode(e.currentTarget.value.toUpperCase())
-                }
+                onInput={(e) => setCountryCode(e.currentTarget.value.toUpperCase())}
                 placeholder="Or enter an ISO country code (e.g. PT)"
                 class="w-72 rounded-lg px-3 py-2 text-sm outline-none"
                 style={{
@@ -295,9 +275,7 @@ export default function EsimPage(): JSX.Element {
               <select
                 aria-label="Minimum data"
                 value={String(minDataGb())}
-                onChange={(e) =>
-                  setMinDataGb(Number.parseFloat(e.currentTarget.value) || 0)
-                }
+                onChange={(e) => setMinDataGb(Number.parseFloat(e.currentTarget.value) || 0)}
                 class="rounded-lg px-3 py-2 text-sm outline-none"
                 style={{
                   background: "var(--color-bg-elevated)",
@@ -346,8 +324,8 @@ export default function EsimPage(): JSX.Element {
                       color: "var(--color-text-muted)",
                     }}
                   >
-                    No plans match those filters right now. Try broadening the
-                    country or lowering the minimum data size.
+                    No plans match those filters right now. Try broadening the country or lowering
+                    the minimum data size.
                   </div>
                 );
               }
@@ -387,7 +365,10 @@ export default function EsimPage(): JSX.Element {
                           >
                             {pkg.title}
                           </p>
-                          <dl class="mt-3 space-y-1 text-xs" style={{ color: "var(--color-text-muted)" }}>
+                          <dl
+                            class="mt-3 space-y-1 text-xs"
+                            style={{ color: "var(--color-text-muted)" }}
+                          >
                             <div class="flex items-center justify-between gap-2">
                               <dt>Data</dt>
                               <dd>{formatDataLabel(pkg.dataGb, pkg.isUnlimited)}</dd>
@@ -411,10 +392,7 @@ export default function EsimPage(): JSX.Element {
                               >
                                 {formatRetail(pkg.retailMicrodollars)}
                               </div>
-                              <div
-                                class="text-[10px]"
-                                style={{ color: "var(--color-text-faint)" }}
-                              >
+                              <div class="text-[10px]" style={{ color: "var(--color-text-faint)" }}>
                                 USD · one-time
                               </div>
                             </div>

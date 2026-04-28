@@ -1,4 +1,4 @@
-import { type JSX, Show, splitProps, createEffect, onCleanup } from "solid-js";
+import { type JSX, Show, createEffect, onCleanup, splitProps } from "solid-js";
 
 export interface ModalProps {
   open?: boolean;
@@ -45,19 +45,23 @@ export function Modal(props: ModalProps): JSX.Element {
         class="modal-overlay"
         role="presentation"
         onClick={() => local.onClose?.()}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") local.onClose?.();
+        }}
       >
-        <div
+        <dialog
           class={`modal modal-${local.size ?? "md"} ${local.class ?? ""}`}
-          role="dialog"
           aria-modal="true"
           aria-label={local.title}
           onClick={(e) => e.stopPropagation()}
+          open
           {...rest}
         >
           <Show when={local.title}>
             <div class="modal-header">
               <h2 class="modal-title">{local.title}</h2>
               <button
+                type="button"
                 class="modal-close"
                 aria-label="Close"
                 onClick={() => local.onClose?.()}
@@ -70,7 +74,7 @@ export function Modal(props: ModalProps): JSX.Element {
             <p class="modal-description">{local.description}</p>
           </Show>
           <div class="modal-body">{local.children}</div>
-        </div>
+        </dialog>
       </div>
     </Show>
   );

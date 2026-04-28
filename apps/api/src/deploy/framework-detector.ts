@@ -141,7 +141,10 @@ export function parseGitHubUrl(url: string): RepoRef | null {
   // https://github.com/owner/repo.git
   // github.com/owner/repo
   // owner/repo (shorthand)
-  const trimmed = url.trim().replace(/\.git$/, "").replace(/\/$/, "");
+  const trimmed = url
+    .trim()
+    .replace(/\.git$/, "")
+    .replace(/\/$/, "");
 
   // Full URL pattern
   const fullMatch = /(?:https?:\/\/)?github\.com\/([^/]+)\/([^/]+)/.exec(trimmed);
@@ -168,11 +171,7 @@ interface FetchResult {
   found: boolean;
 }
 
-async function fetchRepoFile(
-  owner: string,
-  repo: string,
-  path: string,
-): Promise<FetchResult> {
+async function fetchRepoFile(owner: string, repo: string, path: string): Promise<FetchResult> {
   try {
     const url = `${GITHUB_API}/repos/${owner}/${repo}/contents/${path}`;
     const res = await fetch(url, {
@@ -210,10 +209,7 @@ function parsePackageJson(content: string): PackageJson | null {
 }
 
 function hasDep(pkg: PackageJson, name: string): boolean {
-  return (
-    pkg.dependencies?.[name] !== undefined ||
-    pkg.devDependencies?.[name] !== undefined
-  );
+  return pkg.dependencies?.[name] !== undefined || pkg.devDependencies?.[name] !== undefined;
 }
 
 /**
@@ -264,9 +260,7 @@ export async function detectFramework(repoUrl: string): Promise<DetectedConfig> 
     "vite.config.js",
   ];
 
-  const results = await Promise.all(
-    filesToCheck.map((path) => fetchRepoFile(owner, repo, path)),
-  );
+  const results = await Promise.all(filesToCheck.map((path) => fetchRepoFile(owner, repo, path)));
 
   const fileMap = new Map<string, FetchResult>();
   for (const result of results) {
@@ -371,11 +365,10 @@ function buildConfig(
   const config: DetectedConfig = { ...defaults, confidence };
 
   // If package.json has a "build" script, prefer that
-  if (pkg?.scripts?.["build"] && framework !== "static" && framework !== "docker") {
+  if (pkg?.scripts?.build && framework !== "static" && framework !== "docker") {
     // Use the package manager's run command based on detected runtime
     const hasLockBun =
-      pkg.dependencies?.["bun"] !== undefined ||
-      pkg.devDependencies?.["bun"] !== undefined;
+      pkg.dependencies?.bun !== undefined || pkg.devDependencies?.bun !== undefined;
     if (hasLockBun || config.runtime === "bun") {
       config.buildCommand = "bun run build";
       config.installCommand = "bun install";

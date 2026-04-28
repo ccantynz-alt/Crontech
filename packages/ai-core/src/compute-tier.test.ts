@@ -1,10 +1,10 @@
-import { describe, test, expect } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import {
   ComputeTierSchema,
-  computeTierRouter,
-  isComputeTier,
   type DeviceCapabilities,
   type ModelRequirements,
+  computeTierRouter,
+  isComputeTier,
 } from "./compute-tier";
 
 // ── Helper factories ─────────────────────────────────────────────────
@@ -46,26 +46,17 @@ describe("computeTierRouter - client tier", () => {
   });
 
   test("routes to client at exactly 2B parameters", () => {
-    const result = computeTierRouter(
-      makeDevice(),
-      makeModel({ parametersBillion: 2 }),
-    );
+    const result = computeTierRouter(makeDevice(), makeModel({ parametersBillion: 2 }));
     expect(result).toBe("client");
   });
 
   test("routes to client at exactly 10ms latency requirement", () => {
-    const result = computeTierRouter(
-      makeDevice(),
-      makeModel({ latencyMaxMs: 10 }),
-    );
+    const result = computeTierRouter(makeDevice(), makeModel({ latencyMaxMs: 10 }));
     expect(result).toBe("client");
   });
 
   test("routes to client when VRAM exactly meets minimum", () => {
-    const result = computeTierRouter(
-      makeDevice({ vramMB: 2048 }),
-      makeModel({ minVRAMMB: 2048 }),
-    );
+    const result = computeTierRouter(makeDevice({ vramMB: 2048 }), makeModel({ minVRAMMB: 2048 }));
     expect(result).toBe("client");
   });
 });

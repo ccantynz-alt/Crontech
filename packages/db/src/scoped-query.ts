@@ -18,7 +18,7 @@
 // Tables without that column are unsupported by the scoped helper —
 // use the raw db for those.
 
-import { eq, and, type SQL } from "drizzle-orm";
+import { type SQL, and, eq } from "drizzle-orm";
 import type { SQLiteTable } from "drizzle-orm/sqlite-core";
 
 // ── Types ───────────────────────────────────────────────────────────
@@ -39,27 +39,18 @@ export interface ScopedQueryClient {
   /**
    * INSERT into a table, auto-injecting tenantId into the values.
    */
-  insert: (
-    table: SQLiteTable,
-    data: Record<string, unknown>,
-  ) => Promise<unknown>;
+  insert: (table: SQLiteTable, data: Record<string, unknown>) => Promise<unknown>;
 
   /**
    * UPDATE a table, auto-scoped by tenantId.
    */
-  update: (
-    table: SQLiteTable,
-    data: Record<string, unknown>,
-  ) => Promise<unknown>;
+  update: (table: SQLiteTable, data: Record<string, unknown>) => Promise<unknown>;
 
   /**
    * DELETE from a table, auto-scoped by tenantId.
    * Optionally pass additional WHERE conditions.
    */
-  delete: (
-    table: SQLiteTable,
-    extraCondition?: SQL,
-  ) => Promise<unknown>;
+  delete: (table: SQLiteTable, extraCondition?: SQL) => Promise<unknown>;
 }
 
 // ── Implementation ──────────────────────────────────────────────────
@@ -74,8 +65,7 @@ function getColumn(table: SQLiteTable, columnName: string): unknown {
   const col = (table as any)[columnName];
   if (!col) {
     throw new Error(
-      `[scoped-query] Table does not have a "${columnName}" column. ` +
-        "Use the raw db client for tables without tenant scoping.",
+      `[scoped-query] Table does not have a "${columnName}" column. Use the raw db client for tables without tenant scoping.`,
     );
   }
   return col;
@@ -91,48 +81,43 @@ function getColumn(table: SQLiteTable, columnName: string): unknown {
  * @param tenantColumn - The column name to filter on (default: "userId")
  */
 // biome-ignore lint/suspicious/noExplicitAny: Drizzle client type is intentionally loose to support both libsql and neon drivers
-export function scopedDb(
-  db: any,
-  tenantId: string,
-  tenantColumn: string = "userId",
-): ScopedQueryClient {
+export function scopedDb(db: any, tenantId: string, tenantColumn = "userId"): ScopedQueryClient {
   return {
     tenantId,
     tenantColumn,
 
     async select(table: SQLiteTable): Promise<unknown[]> {
       const col = getColumn(table, tenantColumn);
-      // biome-ignore lint/suspicious/noExplicitAny: Drizzle column typing
-      return db.select().from(table).where(eq(col as any, tenantId));
+      return (
+        db
+          .select()
+          .from(table)
+          // biome-ignore lint/suspicious/noExplicitAny: Drizzle column typing requires any cast here
+          .where(eq(col as any, tenantId))
+      );
     },
 
-    async insert(
-      table: SQLiteTable,
-      data: Record<string, unknown>,
-    ): Promise<unknown> {
+    async insert(table: SQLiteTable, data: Record<string, unknown>): Promise<unknown> {
       const values = { ...data, [tenantColumn]: tenantId };
       return db.insert(table).values(values);
     },
 
-    async update(
-      table: SQLiteTable,
-      data: Record<string, unknown>,
-    ): Promise<unknown> {
+    async update(table: SQLiteTable, data: Record<string, unknown>): Promise<unknown> {
       const col = getColumn(table, tenantColumn);
-      // biome-ignore lint/suspicious/noExplicitAny: Drizzle column typing
-      return db.update(table).set(data).where(eq(col as any, tenantId));
+      return (
+        db
+          .update(table)
+          .set(data)
+          // biome-ignore lint/suspicious/noExplicitAny: Drizzle column typing requires any cast here
+          .where(eq(col as any, tenantId))
+      );
     },
 
-    async delete(
-      table: SQLiteTable,
-      extraCondition?: SQL,
-    ): Promise<unknown> {
+    async delete(table: SQLiteTable, extraCondition?: SQL): Promise<unknown> {
       const col = getColumn(table, tenantColumn);
       // biome-ignore lint/suspicious/noExplicitAny: Drizzle column typing
       const tenantFilter = eq(col as any, tenantId);
-      const condition = extraCondition
-        ? and(tenantFilter, extraCondition)
-        : tenantFilter;
+      const condition = extraCondition ? and(tenantFilter, extraCondition) : tenantFilter;
       return db.delete(table).where(condition);
     },
   };

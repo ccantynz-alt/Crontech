@@ -164,13 +164,7 @@ export type ServerMessage = z.infer<typeof ServerMessage>;
 
 // ── SSE Event Types ───────────────────────────────────────────────
 
-export const SSEEventType = z.enum([
-  "update",
-  "notification",
-  "ai_response",
-  "presence",
-  "cursor",
-]);
+export const SSEEventType = z.enum(["update", "notification", "ai_response", "presence", "cursor"]);
 
 export type SSEEventType = z.infer<typeof SSEEventType>;
 
@@ -187,18 +181,24 @@ export type SSEEvent = z.infer<typeof SSEEvent>;
 export interface RoomUser {
   userId: string;
   ws: WebSocket;
-  metadata: {
-    displayName?: string | undefined;
-    color?: string | undefined;
-  } | undefined;
-  presence: {
-    status: "active" | "idle" | "away";
-    data?: Record<string, unknown> | undefined;
-  } | undefined;
-  cursor: {
-    x: number;
-    y: number;
-    target?: string | undefined;
-  } | undefined;
+  metadata:
+    | {
+        displayName?: string | undefined;
+        color?: string | undefined;
+      }
+    | undefined;
+  presence:
+    | {
+        status: "active" | "idle" | "away";
+        data?: Record<string, unknown> | undefined;
+      }
+    | undefined;
+  cursor:
+    | {
+        x: number;
+        y: number;
+        target?: string | undefined;
+      }
+    | undefined;
   lastPing: number;
 }

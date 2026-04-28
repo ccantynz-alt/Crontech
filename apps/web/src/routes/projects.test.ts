@@ -29,12 +29,7 @@ const ROUTES: RouteSpec[] = [
   },
   {
     path: "projects/import.tsx",
-    mustContain: [
-      "trpc.import.",
-      "export default function",
-      "Vercel",
-      "Netlify",
-    ],
+    mustContain: ["trpc.import.", "export default function", "Vercel", "Netlify"],
     // The import page *names* Vercel / Netlify because that's the
     // neutral action ("import from X") — that's allowed by
     // POSITIONING.md §2. We only ban adversarial "replaces X" framing.

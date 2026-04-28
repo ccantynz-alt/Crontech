@@ -7,20 +7,20 @@
 // Migrated from Vercel AI SDK to use @anthropic-ai/sdk's native
 // client.messages.stream() for better control over SSE text streams.
 
-import { Hono } from "hono";
-import { streamText, type ModelMessage } from "ai";
-import { z } from "zod";
+import { scrypt } from "node:crypto";
+import { promisify } from "node:util";
 import {
+  ANTHROPIC_MODELS,
   getAnthropicModel,
   hasAnthropicProvider,
-  ANTHROPIC_MODELS,
 } from "@back-to-the-future/ai-core";
 import { db } from "@back-to-the-future/db";
 import { userProviderKeys } from "@back-to-the-future/db";
+import { type ModelMessage, streamText } from "ai";
 import { and, eq } from "drizzle-orm";
+import { Hono } from "hono";
+import { z } from "zod";
 import { validateSession } from "../auth/session";
-import { scrypt } from "crypto";
-import { promisify } from "util";
 
 const scryptAsync = promisify(scrypt);
 
@@ -44,7 +44,7 @@ const ChatStreamInput = z.object({
 // ── Key decryption ───────────────────────────────────────────────
 
 function getEncryptionKey(): string {
-  return process.env["SESSION_SECRET"] ?? "crontech-default-key-change-me";
+  return process.env.SESSION_SECRET ?? "crontech-default-key-change-me";
 }
 
 async function aesDecrypt(encryptedData: string, masterKey: string): Promise<string> {
@@ -56,8 +56,10 @@ async function aesDecrypt(encryptedData: string, masterKey: string): Promise<str
   }
   const { iv, salt, encrypted } = parsed;
 
-  const key = await scryptAsync(masterKey, Buffer.from(salt, "hex"), 32) as Buffer;
-  const decipher = await import("crypto").then(c => c.createDecipheriv("aes-256-gcm", key, Buffer.from(iv, "hex")));
+  const key = (await scryptAsync(masterKey, Buffer.from(salt, "hex"), 32)) as Buffer;
+  const decipher = await import("node:crypto").then((c) =>
+    c.createDecipheriv("aes-256-gcm", key, Buffer.from(iv, "hex")),
+  );
 
   let decrypted = decipher.update(encrypted, "hex", "utf8");
   decrypted += decipher.final("utf8");
@@ -70,7 +72,7 @@ async function aesDecrypt(encryptedData: string, masterKey: string): Promise<str
 
 class SecureString {
   private buffer: Buffer;
-  private destroyed: boolean = false;
+  private destroyed = false;
 
   constructor(value: string) {
     this.buffer = Buffer.from(value, "utf8");
@@ -147,7 +149,7 @@ chatStreamRoutes.post("/stream", async (c) => {
   let secureApiKey = await getUserAnthropicKey(userId);
   const useEnvFallback = !secureApiKey;
 
-  if (!secureApiKey && !process.env["ANTHROPIC_API_KEY"]) {
+  if (!secureApiKey && !process.env.ANTHROPIC_API_KEY) {
     return c.json(
       {
         error: "No Anthropic API key configured",
@@ -162,7 +164,9 @@ chatStreamRoutes.post("/stream", async (c) => {
     // The plaintext string is never stored in a long-lived variable; the
     // SecureString buffer is zeroed in the finally block.
     const anthropicModel = getAnthropicModel(
-      useEnvFallback ? (process.env["ANTHROPIC_API_KEY"] as string) : (secureApiKey as SecureString).toString(),
+      useEnvFallback
+        ? (process.env.ANTHROPIC_API_KEY as string)
+        : (secureApiKey as SecureString).toString(),
       model,
     );
 

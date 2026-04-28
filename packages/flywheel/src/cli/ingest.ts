@@ -4,7 +4,7 @@
 
 import "./resolve-db"; // MUST be first — sets DATABASE_URL before db loads
 import { db } from "@back-to-the-future/db";
-import { ingestTranscripts, defaultTranscriptDir } from "../ingest";
+import { defaultTranscriptDir, ingestTranscripts } from "../ingest";
 
 async function main(): Promise<void> {
   const force = process.argv.includes("--force");

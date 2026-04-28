@@ -11,11 +11,7 @@
 
 import type { JSX } from "solid-js";
 import { SEOHead } from "../../../components/SEOHead";
-import {
-  DocsArticle,
-  Callout,
-  KeyList,
-} from "../../../components/docs/DocsArticle";
+import { Callout, DocsArticle, KeyList } from "../../../components/docs/DocsArticle";
 
 export default function AiSdkIndexArticle(): JSX.Element {
   return (
@@ -40,17 +36,13 @@ export default function AiSdkIndexArticle(): JSX.Element {
         }}
       >
         <p>
-          The Crontech AI SDK is the layer that turns an AI request into
-          an answer. It does not care whether the model runs on the
-          user's GPU, on a Cloudflare Workers AI node, or on a Modal.com
-          H100 — the router picks a tier per call based on device
-          capability, model size, and latency budget. Your application
-          code just asks for a completion.
+          The Crontech AI SDK is the layer that turns an AI request into an answer. It does not care
+          whether the model runs on the user's GPU, on a Cloudflare Workers AI node, or on a
+          Modal.com H100 — the router picks a tier per call based on device capability, model size,
+          and latency budget. Your application code just asks for a completion.
         </p>
 
-        <p>
-          Three things sit behind that single API surface:
-        </p>
+        <p>Three things sit behind that single API surface:</p>
 
         <KeyList
           items={[
@@ -73,14 +65,11 @@ export default function AiSdkIndexArticle(): JSX.Element {
         />
 
         <Callout tone="info" title="How the pieces fit">
-          The router is a pure function — it doesn't call anyone. The
-          provider factory turns the router's decision into a concrete{" "}
-          <code>LanguageModel</code> for the <code>ai</code> package.
-          The client inference path runs the decision in the browser
-          when the tier
-          is <code>"client"</code>. The streaming endpoint at{" "}
-          <code>POST /chat/stream</code> wires all three together for
-          server-driven conversations.
+          The router is a pure function — it doesn't call anyone. The provider factory turns the
+          router's decision into a concrete <code>LanguageModel</code> for the <code>ai</code>{" "}
+          package. The client inference path runs the decision in the browser when the tier is{" "}
+          <code>"client"</code>. The streaming endpoint at <code>POST /chat/stream</code> wires all
+          three together for server-driven conversations.
         </Callout>
 
         <h2>What's in this category</h2>
@@ -135,26 +124,19 @@ export default function AiSdkIndexArticle(): JSX.Element {
         <h2>What's not yet live</h2>
 
         <Callout tone="note">
-          Multi-agent orchestration (LangGraph + Mastra), the full RAG
-          pipeline auto-indexing, and generative-UI streaming from the
-          component catalogue all have scaffolding in{" "}
-          <code>packages/ai-core/src/{"{agents,rag,generative-ui}"}</code>{" "}
-          but are still gated behind feature flags. This category will
-          grow articles for each as they flip on.
+          Multi-agent orchestration (LangGraph + Mastra), the full RAG pipeline auto-indexing, and
+          generative-UI streaming from the component catalogue all have scaffolding in{" "}
+          <code>packages/ai-core/src/{"{agents,rag,generative-ui}"}</code> but are still gated
+          behind feature flags. This category will grow articles for each as they flip on.
         </Callout>
 
         <h2>Where to go from here</h2>
         <p>
-          Read the three articles in order — they build on each other.
-          If you only have time for one, read{" "}
-          <a href="/docs/ai-sdk/three-tier-compute">
-            Three-tier compute routing
-          </a>
-          : every other piece of the SDK is downstream of that one
-          decision. Once you've read it, the{" "}
-          <a href="/docs/api-reference/ai-and-chat">AI & Chat procedures</a>{" "}
-          reference in the API Reference category is the procedure-by-
-          procedure companion.
+          Read the three articles in order — they build on each other. If you only have time for
+          one, read <a href="/docs/ai-sdk/three-tier-compute">Three-tier compute routing</a>: every
+          other piece of the SDK is downstream of that one decision. Once you've read it, the{" "}
+          <a href="/docs/api-reference/ai-and-chat">AI & Chat procedures</a> reference in the API
+          Reference category is the procedure-by- procedure companion.
         </p>
       </DocsArticle>
     </>

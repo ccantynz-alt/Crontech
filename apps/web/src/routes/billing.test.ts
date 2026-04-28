@@ -42,9 +42,7 @@ describe("billing route — smoke", () => {
     // waitlist" surface. The page must not render a fake "Update
     // payment method" form.
     const mentionsFallback =
-      src.includes("coming soon") ||
-      src.includes("waitlist") ||
-      src.includes("not yet");
+      src.includes("coming soon") || src.includes("waitlist") || src.includes("not yet");
     expect(mentionsFallback).toBe(true);
   });
 
@@ -78,8 +76,7 @@ describe("billing route — smoke", () => {
 
   test("polite tone — no competitor names", () => {
     const src = readFileSync(ROUTE_PATH, "utf-8").toLowerCase();
-    const fromCodes = (...codes: number[]): string =>
-      String.fromCharCode(...codes);
+    const fromCodes = (...codes: number[]): string => String.fromCharCode(...codes);
     // Billing-context banned names.
     const banned = [
       ` ${fromCodes(112, 97, 100, 100, 108, 101)} `, // paddle

@@ -1,7 +1,7 @@
-import { createMiddleware } from "hono/factory";
-import type { Context } from "hono";
-import { validateSession } from "./session";
 import { db } from "@back-to-the-future/db";
+import type { Context } from "hono";
+import { createMiddleware } from "hono/factory";
+import { validateSession } from "./session";
 
 export interface AuthEnv {
   Variables: {
@@ -41,9 +41,7 @@ export const authMiddleware = createMiddleware<AuthEnv>(async (c, next) => {
  * Helper to extract the session token from a Hono context for use in tRPC.
  * Returns the userId if the session is valid, null otherwise.
  */
-export async function getUserIdFromHeader(
-  c: Context,
-): Promise<string | null> {
+export async function getUserIdFromHeader(c: Context): Promise<string | null> {
   const authHeader = c.req.header("Authorization");
 
   if (!authHeader?.startsWith("Bearer ")) {

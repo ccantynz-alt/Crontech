@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { BuildKindSchema, RunStatusSchema, StepStatusSchema, LogStreamSchema } from "./types";
+import { BuildKindSchema, LogStreamSchema, RunStatusSchema, StepStatusSchema } from "./types";
 
 describe("theatre schemas", () => {
   it("validates run kinds", () => {

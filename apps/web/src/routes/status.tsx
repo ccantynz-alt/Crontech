@@ -1,4 +1,4 @@
-import { createResource, createSignal, For, onCleanup, onMount, Show } from "solid-js";
+import { For, Show, createResource, createSignal, onCleanup, onMount } from "solid-js";
 import type { JSX } from "solid-js";
 import { SEOHead } from "../components/SEOHead";
 
@@ -135,7 +135,9 @@ function statusConfig(status: RawStatus | "unreachable"): StatusStyle {
 }
 
 function serviceMeta(name: string): { label: string; description: string; icon: string } {
-  return SERVICE_META[name] ?? { label: name, description: "Platform service", icon: "\u2699\uFE0F" };
+  return (
+    SERVICE_META[name] ?? { label: name, description: "Platform service", icon: "\u2699\uFE0F" }
+  );
 }
 
 // ── History math (no lies) ──────────────────────────────────────────────
@@ -372,10 +374,7 @@ export default function StatusPage(): JSX.Element {
               >
                 <div class="flex items-center justify-center gap-3">
                   <div class="relative">
-                    <div
-                      class="h-3 w-3 rounded-full"
-                      style={{ background: overall().dotColor }}
-                    />
+                    <div class="h-3 w-3 rounded-full" style={{ background: overall().dotColor }} />
                     <div
                       class="absolute inset-0 h-3 w-3 animate-ping rounded-full opacity-50"
                       style={{ background: overall().dotColor }}
@@ -387,8 +386,8 @@ export default function StatusPage(): JSX.Element {
                 </div>
                 <Show when={data.error}>
                   <p class="mt-2 text-xs" style={{ color: "var(--color-text-faint)" }}>
-                    Could not reach the monitor endpoint. The API may be restarting or
-                    the browser may be offline. Retrying every 30s.
+                    Could not reach the monitor endpoint. The API may be restarting or the browser
+                    may be offline. Retrying every 30s.
                   </p>
                 </Show>
               </div>
@@ -399,7 +398,9 @@ export default function StatusPage(): JSX.Element {
         {/* Services */}
         <div class="mx-auto max-w-4xl px-6 pb-8">
           <div class="mb-6 flex items-center justify-between">
-            <h2 class="text-lg font-semibold" style={{ color: "var(--color-text)" }}>Service Status</h2>
+            <h2 class="text-lg font-semibold" style={{ color: "var(--color-text)" }}>
+              Service Status
+            </h2>
             <span class="font-mono text-xs" style={{ color: "var(--color-text-faint)" }}>
               {current()?.services.length ?? 0} services monitored
             </span>
@@ -416,7 +417,9 @@ export default function StatusPage(): JSX.Element {
                 }}
               >
                 <Show when={data.loading}>
-                  <p class="text-sm" style={{ color: "var(--color-text-faint)" }}>Loading health data…</p>
+                  <p class="text-sm" style={{ color: "var(--color-text-faint)" }}>
+                    Loading health data…
+                  </p>
                 </Show>
                 <Show when={data.error}>
                   <p class="text-sm" style={{ color: "var(--color-text-secondary)" }}>
@@ -456,7 +459,12 @@ export default function StatusPage(): JSX.Element {
                         <span class="w-8 shrink-0 text-center text-lg">{meta.icon}</span>
                         <div class="min-w-0 flex-1">
                           <div class="flex items-center gap-2">
-                            <span class="text-sm font-medium" style={{ color: "var(--color-text)" }}>{meta.label}</span>
+                            <span
+                              class="text-sm font-medium"
+                              style={{ color: "var(--color-text)" }}
+                            >
+                              {meta.label}
+                            </span>
                           </div>
                           <span class="text-xs" style={{ color: "var(--color-text-faint)" }}>
                             {service.detail ?? meta.description}
@@ -465,8 +473,16 @@ export default function StatusPage(): JSX.Element {
 
                         <div class="hidden shrink-0 items-center gap-6 sm:flex">
                           <div class="text-right">
-                            <span class="block text-xs" style={{ color: "var(--color-text-faint)" }}>Latency</span>
-                            <span class="font-mono text-sm" style={{ color: "var(--color-text-secondary)" }}>
+                            <span
+                              class="block text-xs"
+                              style={{ color: "var(--color-text-faint)" }}
+                            >
+                              Latency
+                            </span>
+                            <span
+                              class="font-mono text-sm"
+                              style={{ color: "var(--color-text-secondary)" }}
+                            >
                               {service.latencyMs > 0 ? `${service.latencyMs}ms` : "—"}
                             </span>
                           </div>
@@ -476,10 +492,7 @@ export default function StatusPage(): JSX.Element {
                           class="flex shrink-0 items-center gap-2 rounded-full px-3 py-1"
                           style={{ background: cfg.bgColor }}
                         >
-                          <div
-                            class="h-2 w-2 rounded-full"
-                            style={{ background: cfg.dotColor }}
-                          />
+                          <div class="h-2 w-2 rounded-full" style={{ background: cfg.dotColor }} />
                           <span class="text-xs font-medium" style={{ color: cfg.color }}>
                             {cfg.label}
                           </span>
@@ -509,7 +522,10 @@ export default function StatusPage(): JSX.Element {
                   (window: {formatWindow(history())}, {history().length} snapshots)
                 </span>
               </h3>
-              <div class="flex items-center gap-4 text-xs" style={{ color: "var(--color-text-faint)" }}>
+              <div
+                class="flex items-center gap-4 text-xs"
+                style={{ color: "var(--color-text-faint)" }}
+              >
                 <span class="flex items-center gap-1.5">
                   <span
                     class="inline-block h-2 w-2 rounded-sm"
@@ -535,8 +551,8 @@ export default function StatusPage(): JSX.Element {
             </div>
             <HistoryBar history={history()} />
             <p class="mt-3 text-xs" style={{ color: "var(--color-text-faint)" }}>
-              The API retains the last 1,000 health checks (one per minute). Longer
-              history requires a dedicated time-series store — tracked under BLK-011.
+              The API retains the last 1,000 health checks (one per minute). Longer history requires
+              a dedicated time-series store — tracked under BLK-011.
             </p>
           </div>
         </div>
@@ -582,9 +598,15 @@ export default function StatusPage(): JSX.Element {
                         background: "var(--color-bg-elevated)",
                       }}
                     >
-                      <div class="text-xl font-bold" style={{ color: "var(--color-text)" }}>{stat.value}</div>
-                      <div class="mt-1 text-xs" style={{ color: "var(--color-text-muted)" }}>{stat.label}</div>
-                      <div class="mt-0.5 text-xs" style={{ color: "var(--color-text-faint)" }}>{stat.sub}</div>
+                      <div class="text-xl font-bold" style={{ color: "var(--color-text)" }}>
+                        {stat.value}
+                      </div>
+                      <div class="mt-1 text-xs" style={{ color: "var(--color-text-muted)" }}>
+                        {stat.label}
+                      </div>
+                      <div class="mt-0.5 text-xs" style={{ color: "var(--color-text-faint)" }}>
+                        {stat.sub}
+                      </div>
                     </div>
                   )}
                 </For>
@@ -647,7 +669,10 @@ export default function StatusPage(): JSX.Element {
                               >
                                 {cfg.label}
                               </span>
-                              <span class="text-sm" style={{ color: "var(--color-text-secondary)" }}>
+                              <span
+                                class="text-sm"
+                                style={{ color: "var(--color-text-secondary)" }}
+                              >
                                 {start.toLocaleString()} — {end.toLocaleString()}
                               </span>
                             </div>

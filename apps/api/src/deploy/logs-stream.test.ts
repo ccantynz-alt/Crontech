@@ -16,14 +16,8 @@
  */
 
 import { beforeEach, describe, expect, test } from "bun:test";
+import { db, deploymentLogs, deployments, projects, users } from "@back-to-the-future/db";
 import { eq } from "drizzle-orm";
-import {
-  db,
-  deploymentLogs,
-  deployments,
-  projects,
-  users,
-} from "@back-to-the-future/db";
 import { createLogsStreamApp } from "./logs-stream";
 
 // ── Fixture helpers ─────────────────────────────────────────────────
@@ -134,7 +128,7 @@ beforeEach(async () => {
 describe("GET /deployments/:id/logs/stream", () => {
   test("returns 400 for a non-UUID deployment id", async () => {
     const app = makeApp();
-    const res = await app.request("/deployments/not-a-uuid/logs/stream?token=" + VALID_TOKEN);
+    const res = await app.request(`/deployments/not-a-uuid/logs/stream?token=${VALID_TOKEN}`);
     expect(res.status).toBe(400);
   });
 
@@ -146,18 +140,14 @@ describe("GET /deployments/:id/logs/stream", () => {
 
   test("returns 401 when the token does not resolve to a user", async () => {
     const app = makeApp({ validate: async () => null });
-    const res = await app.request(
-      `/deployments/${DEPLOYMENT_ID}/logs/stream?token=bogus`,
-    );
+    const res = await app.request(`/deployments/${DEPLOYMENT_ID}/logs/stream?token=bogus`);
     expect(res.status).toBe(401);
   });
 
   test("returns 404 when the deployment does not exist", async () => {
     await seedUser();
     const app = makeApp();
-    const res = await app.request(
-      `/deployments/${DEPLOYMENT_ID}/logs/stream?token=${VALID_TOKEN}`,
-    );
+    const res = await app.request(`/deployments/${DEPLOYMENT_ID}/logs/stream?token=${VALID_TOKEN}`);
     expect(res.status).toBe(404);
   });
 
@@ -168,9 +158,7 @@ describe("GET /deployments/:id/logs/stream", () => {
     await seedDeployment("live");
     // DeploymentId exists but projectId is owned by OTHER_USER_ID.
     const app = makeApp();
-    const res = await app.request(
-      `/deployments/${DEPLOYMENT_ID}/logs/stream?token=${VALID_TOKEN}`,
-    );
+    const res = await app.request(`/deployments/${DEPLOYMENT_ID}/logs/stream?token=${VALID_TOKEN}`);
     expect(res.status).toBe(404);
   });
 
@@ -183,9 +171,7 @@ describe("GET /deployments/:id/logs/stream", () => {
     await seedLog("log-0003-0003-4003-8003-000000000003", "Deployed", "stdout", 2_000);
 
     const app = makeApp();
-    const res = await app.request(
-      `/deployments/${DEPLOYMENT_ID}/logs/stream?token=${VALID_TOKEN}`,
-    );
+    const res = await app.request(`/deployments/${DEPLOYMENT_ID}/logs/stream?token=${VALID_TOKEN}`);
     expect(res.status).toBe(200);
     const contentType = res.headers.get("Content-Type") ?? "";
     expect(contentType).toContain("text/event-stream");
@@ -219,10 +205,7 @@ describe("GET /deployments/:id/logs/stream", () => {
     // Give the handler a moment to emit its initial frames, then flip the
     // deployment to terminal so the tail loop exits.
     await new Promise((r) => setTimeout(r, 50));
-    await db
-      .update(deployments)
-      .set({ status: "failed" })
-      .where(eq(deployments.id, DEPLOYMENT_ID));
+    await db.update(deployments).set({ status: "failed" }).where(eq(deployments.id, DEPLOYMENT_ID));
 
     const res = await resPromise;
     const text = await collectText(res);

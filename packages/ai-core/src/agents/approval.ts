@@ -127,9 +127,7 @@ export function rejectRequest(requestId: string, rejectedBy: string): ApprovalRe
 }
 
 export function getPendingApprovals(sessionId?: string): ApprovalRequest[] {
-  const all = Array.from(pendingApprovals.values()).filter(
-    (r) => r.status === "pending",
-  );
+  const all = Array.from(pendingApprovals.values()).filter((r) => r.status === "pending");
   if (sessionId) return all.filter((r) => r.sessionId === sessionId);
   return all;
 }

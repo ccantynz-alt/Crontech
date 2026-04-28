@@ -3,12 +3,9 @@ import { drizzle } from "drizzle-orm/libsql";
 import { migrate } from "drizzle-orm/libsql/migrator";
 import * as schema from "./schema";
 
-export async function runMigrations(
-  url?: string,
-  authToken?: string,
-): Promise<void> {
-  const dbUrl = url ?? process.env["DATABASE_URL"] ?? "file:local.db";
-  const token = authToken ?? process.env["DATABASE_AUTH_TOKEN"];
+export async function runMigrations(url?: string, authToken?: string): Promise<void> {
+  const dbUrl = url ?? process.env.DATABASE_URL ?? "file:local.db";
+  const token = authToken ?? process.env.DATABASE_AUTH_TOKEN;
 
   const clientConfig: Parameters<typeof createLibSQLClient>[0] = { url: dbUrl };
   if (token) {

@@ -16,20 +16,20 @@
 // need to prove the attribute plumbing flows through ALS correctly.
 // The HTTP-level enrichment is exercised end-to-end by `withProjectAttrs`.
 
-import { describe, expect, test, beforeEach } from "bun:test";
-import {
-  runWithProjectId,
-  getCurrentProjectId,
-  withProjectAttrs,
-  projectAttributionMiddleware,
-  projectAttributionTrpcMiddleware,
-} from "./project-attribution";
+import { beforeEach, describe, expect, test } from "bun:test";
 import {
   _getProjectInflightSnapshot,
   _resetProjectInflight,
-  incrementProjectInflight,
   decrementProjectInflight,
+  incrementProjectInflight,
 } from "../telemetry";
+import {
+  getCurrentProjectId,
+  projectAttributionMiddleware,
+  projectAttributionTrpcMiddleware,
+  runWithProjectId,
+  withProjectAttrs,
+} from "./project-attribution";
 
 describe("AsyncLocalStorage primitives", () => {
   test("getCurrentProjectId returns undefined outside any frame", () => {
@@ -105,8 +105,7 @@ describe("Hono middleware", () => {
     return {
       req: {
         path,
-        header: (name: string): string | undefined =>
-          headers[name.toLowerCase()],
+        header: (name: string): string | undefined => headers[name.toLowerCase()],
       },
     };
   }
@@ -123,12 +122,9 @@ describe("Hono middleware", () => {
 
   test("sets project_id from an explicit x-project-id header", async () => {
     let observed: string | undefined;
-    await mw(
-      fakeCtx("/api/unrelated", { "x-project-id": "proj-header-42" }),
-      async () => {
-        observed = getCurrentProjectId();
-      },
-    );
+    await mw(fakeCtx("/api/unrelated", { "x-project-id": "proj-header-42" }), async () => {
+      observed = getCurrentProjectId();
+    });
     expect(observed).toBe("proj-header-42");
   });
 
@@ -144,14 +140,9 @@ describe("Hono middleware", () => {
     // Simulates exactly what the Hono telemetry middleware does: call
     // `withProjectAttrs` while the request-scoped frame is active.
     const captured: Array<Record<string, string | number | boolean>> = [];
-    await mw(
-      fakeCtx("/api/projects/abcdef01-2345-6789-abcd-ef0123456789"),
-      async () => {
-        captured.push(
-          withProjectAttrs({ method: "GET", path: "/api/projects/x" }),
-        );
-      },
-    );
+    await mw(fakeCtx("/api/projects/abcdef01-2345-6789-abcd-ef0123456789"), async () => {
+      captured.push(withProjectAttrs({ method: "GET", path: "/api/projects/x" }));
+    });
     expect(captured[0]).toEqual({
       method: "GET",
       path: "/api/projects/x",
@@ -323,8 +314,7 @@ describe("project_requests_inflight — Hono middleware integration", () => {
     return {
       req: {
         path,
-        header: (name: string): string | undefined =>
-          headers[name.toLowerCase()],
+        header: (name: string): string | undefined => headers[name.toLowerCase()],
       },
     };
   }
@@ -335,33 +325,24 @@ describe("project_requests_inflight — Hono middleware integration", () => {
 
   test("middleware increments on entry and returns to 0 on exit", async () => {
     let seenCount: number | undefined;
-    await mw(
-      fakeCtx("/api/projects/11111111-1111-1111-1111-111111111111/deploy"),
-      async () => {
-        seenCount = _getProjectInflightSnapshot()
-          .get("11111111-1111-1111-1111-111111111111")?.count;
-      },
-    );
+    await mw(fakeCtx("/api/projects/11111111-1111-1111-1111-111111111111/deploy"), async () => {
+      seenCount = _getProjectInflightSnapshot().get("11111111-1111-1111-1111-111111111111")?.count;
+    });
     expect(seenCount).toBe(1);
-    expect(
-      _getProjectInflightSnapshot()
-        .get("11111111-1111-1111-1111-111111111111")?.count,
-    ).toBe(0);
+    expect(_getProjectInflightSnapshot().get("11111111-1111-1111-1111-111111111111")?.count).toBe(
+      0,
+    );
   });
 
   test("middleware still decrements when the handler throws", async () => {
     await expect(
-      mw(
-        fakeCtx("/api/projects/22222222-2222-2222-2222-222222222222"),
-        async () => {
-          throw new Error("boom");
-        },
-      ),
+      mw(fakeCtx("/api/projects/22222222-2222-2222-2222-222222222222"), async () => {
+        throw new Error("boom");
+      }),
     ).rejects.toThrow("boom");
-    expect(
-      _getProjectInflightSnapshot()
-        .get("22222222-2222-2222-2222-222222222222")?.count,
-    ).toBe(0);
+    expect(_getProjectInflightSnapshot().get("22222222-2222-2222-2222-222222222222")?.count).toBe(
+      0,
+    );
   });
 
   test("requests with no projectId do not touch the map", async () => {
@@ -375,17 +356,21 @@ describe("project_requests_inflight — Hono middleware integration", () => {
     let blocker1!: () => void;
     let blocker2!: () => void;
 
-    const p1 = mw(fakeCtx(`/api/projects/${id}`), () =>
-      new Promise<void>((resolve) => {
-        peak = Math.max(peak, _getProjectInflightSnapshot().get(id)?.count ?? 0);
-        blocker1 = resolve;
-      }),
+    const p1 = mw(
+      fakeCtx(`/api/projects/${id}`),
+      () =>
+        new Promise<void>((resolve) => {
+          peak = Math.max(peak, _getProjectInflightSnapshot().get(id)?.count ?? 0);
+          blocker1 = resolve;
+        }),
     );
-    const p2 = mw(fakeCtx(`/api/projects/${id}`), () =>
-      new Promise<void>((resolve) => {
-        peak = Math.max(peak, _getProjectInflightSnapshot().get(id)?.count ?? 0);
-        blocker2 = resolve;
-      }),
+    const p2 = mw(
+      fakeCtx(`/api/projects/${id}`),
+      () =>
+        new Promise<void>((resolve) => {
+          peak = Math.max(peak, _getProjectInflightSnapshot().get(id)?.count ?? 0);
+          blocker2 = resolve;
+        }),
     );
 
     // Give the microtask queue a chance to enter both handlers.
@@ -428,9 +413,7 @@ describe("project_requests_inflight — tRPC middleware integration", () => {
         },
       }),
     ).rejects.toThrow("handler failed");
-    expect(
-      _getProjectInflightSnapshot().get("trpc-proj-err")?.count,
-    ).toBe(0);
+    expect(_getProjectInflightSnapshot().get("trpc-proj-err")?.count).toBe(0);
   });
 
   test("input without a projectId does not touch the map", async () => {

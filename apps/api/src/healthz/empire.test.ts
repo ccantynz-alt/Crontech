@@ -6,12 +6,8 @@
  * database, network, TLS, or filesystem access.
  */
 
-import { describe, test, expect } from "bun:test";
-import {
-  createEmpireHealthApp,
-  runEmpireHealthCheck,
-  type EmpireHealthDeps,
-} from "./empire";
+import { describe, expect, test } from "bun:test";
+import { type EmpireHealthDeps, createEmpireHealthApp, runEmpireHealthCheck } from "./empire";
 
 function fakeDeps(overrides: Partial<EmpireHealthDeps> = {}): EmpireHealthDeps {
   return {
@@ -61,9 +57,7 @@ describe("GET /healthz/empire — auth", () => {
   });
 
   test("returns 401 when HEALTH_CHECK_TOKEN is unset even if a token is provided", async () => {
-    const app = createEmpireHealthApp(
-      fakeDeps({ getToken: () => undefined }),
-    );
+    const app = createEmpireHealthApp(fakeDeps({ getToken: () => undefined }));
     const res = await app.request("/healthz/empire", {
       headers: { Authorization: "Bearer anything" },
     });
@@ -281,13 +275,7 @@ describe("runEmpireHealthCheck() — shape contract", () => {
     const { body } = await runEmpireHealthCheck(fakeDeps());
     const keys = Object.keys(body.components).sort();
     expect(keys).toEqual(
-      [
-        "caddy_cert",
-        "disk_free_pct",
-        "gatetest",
-        "gluecron",
-        "postgres",
-      ].sort(),
+      ["caddy_cert", "disk_free_pct", "gatetest", "gluecron", "postgres"].sort(),
     );
   });
 

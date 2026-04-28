@@ -15,14 +15,14 @@
 
 import { z } from "zod";
 import {
+  type CelitechInstallFields,
+  type CelitechPackage,
   CelitechPackagesResponseSchema,
+  type CelitechPurchase,
   CelitechPurchaseListResponseSchema,
   CelitechPurchaseResponseSchema,
   CelitechPurchaseSchema,
   CelitechTokenResponseSchema,
-  type CelitechInstallFields,
-  type CelitechPackage,
-  type CelitechPurchase,
   type EsimInstallInfo,
   type EsimPackageSummary,
 } from "./celitech-types";
@@ -48,12 +48,10 @@ export interface CelitechClientDeps {
 
 /** Construct config from the standard Celitech environment variables. */
 export function configFromEnv(): CelitechConfig {
-  const clientId = process.env["CELITECH_CLIENT_ID"] ?? "";
-  const clientSecret = process.env["CELITECH_CLIENT_SECRET"] ?? "";
-  const baseUrl =
-    process.env["CELITECH_BASE_URL"] ?? "https://api.celitech.com/v1";
-  const tokenUrl =
-    process.env["CELITECH_TOKEN_URL"] ?? "https://api.celitech.com/oauth2/token";
+  const clientId = process.env.CELITECH_CLIENT_ID ?? "";
+  const clientSecret = process.env.CELITECH_CLIENT_SECRET ?? "";
+  const baseUrl = process.env.CELITECH_BASE_URL ?? "https://api.celitech.com/v1";
+  const tokenUrl = process.env.CELITECH_TOKEN_URL ?? "https://api.celitech.com/oauth2/token";
   return {
     clientId,
     clientSecret,
@@ -71,12 +69,7 @@ export class CelitechError extends Error {
   public readonly status: number | undefined;
   public readonly bodySnippet: string | undefined;
 
-  constructor(
-    message: string,
-    action: string,
-    status?: number,
-    bodySnippet?: string,
-  ) {
+  constructor(message: string, action: string, status?: number, bodySnippet?: string) {
     super(message);
     this.name = "CelitechError";
     this.action = action;
@@ -97,9 +90,7 @@ export function applyMarkup(
   wholesaleMicrodollars: number,
   markupPercent: number,
 ): { retailMicrodollars: number; markupMicrodollars: number } {
-  const markup = Math.round(
-    (wholesaleMicrodollars * markupPercent) / 100,
-  );
+  const markup = Math.round((wholesaleMicrodollars * markupPercent) / 100);
   return {
     retailMicrodollars: wholesaleMicrodollars + markup,
     markupMicrodollars: markup,
@@ -114,7 +105,7 @@ export function dollarsToMicrodollars(value: string | number): number {
 }
 
 export function markupPercentFromEnv(): number {
-  const raw = process.env["ESIM_MARKUP_PERCENT"];
+  const raw = process.env.ESIM_MARKUP_PERCENT;
   const parsed = raw ? Number.parseFloat(raw) : Number.NaN;
   if (!Number.isFinite(parsed) || parsed < 0) return 25;
   return parsed;
@@ -154,11 +145,7 @@ function inferRegionType(destination: string | null): "global" | "local" {
   if (!destination) return "global";
   if (destination.length === 2) return "local";
   const lower = destination.toLowerCase();
-  if (
-    lower === "global" ||
-    lower === "worldwide" ||
-    lower.startsWith("region")
-  ) {
+  if (lower === "global" || lower === "worldwide" || lower.startsWith("region")) {
     return "global";
   }
   return "local";
@@ -180,8 +167,7 @@ function buildPackageTitle(pkg: CelitechPackage): string {
 function toSummary(pkg: CelitechPackage): EsimPackageSummary {
   const { dataGb, isUnlimited } = parseDataGb(pkg.data);
   const destination = pkg.destination ?? null;
-  const countryCode =
-    destination && destination.length === 2 ? destination.toUpperCase() : null;
+  const countryCode = destination && destination.length === 2 ? destination.toUpperCase() : null;
   return {
     id: pkg.id,
     title: buildPackageTitle(pkg),
@@ -290,10 +276,7 @@ export class CelitechClient {
     return parsed.access_token;
   }
 
-  private async request(
-    path: string,
-    init: RequestInit & { action: string },
-  ): Promise<unknown> {
+  private async request(path: string, init: RequestInit & { action: string }): Promise<unknown> {
     const token = await this.getAccessToken();
     const headers: Record<string, string> = {
       Accept: "application/json",
@@ -327,11 +310,13 @@ export class CelitechClient {
    * region group, and `filter.dataGb` is an advisory hint we pass through
    * when the upstream accepts it.
    */
-  async listPackages(filter: {
-    countryCode?: string;
-    region?: string;
-    dataGb?: number;
-  } = {}): Promise<EsimPackageSummary[]> {
+  async listPackages(
+    filter: {
+      countryCode?: string;
+      region?: string;
+      dataGb?: number;
+    } = {},
+  ): Promise<EsimPackageSummary[]> {
     const query = new URLSearchParams();
     if (filter.countryCode) query.set("destination", filter.countryCode);
     else if (filter.region) query.set("destination", filter.region);
@@ -390,14 +375,11 @@ export class CelitechClient {
 
   /** Fetch a single purchase by id. */
   async getPurchase(input: { id: string }): Promise<CelitechPurchase | null> {
-    const raw = await this.request(
-      `/purchases/${encodeURIComponent(input.id)}`,
-      { method: "GET", action: "getPurchase" },
-    );
-    const envelope = z
-      .object({ purchase: CelitechPurchaseSchema })
-      .passthrough()
-      .safeParse(raw);
+    const raw = await this.request(`/purchases/${encodeURIComponent(input.id)}`, {
+      method: "GET",
+      action: "getPurchase",
+    });
+    const envelope = z.object({ purchase: CelitechPurchaseSchema }).passthrough().safeParse(raw);
     if (envelope.success) return envelope.data.purchase;
     const direct = CelitechPurchaseSchema.safeParse(raw);
     if (direct.success) return direct.data;
@@ -430,4 +412,3 @@ async function safeReadSnippet(res: Response): Promise<string> {
     return "";
   }
 }
-

@@ -8,11 +8,7 @@
 
 import type { JSX } from "solid-js";
 import { SEOHead } from "../../../components/SEOHead";
-import {
-  DocsArticle,
-  Callout,
-  KeyList,
-} from "../../../components/docs/DocsArticle";
+import { Callout, DocsArticle, KeyList } from "../../../components/docs/DocsArticle";
 
 export default function GuidesOverviewArticle(): JSX.Element {
   return (
@@ -37,18 +33,15 @@ export default function GuidesOverviewArticle(): JSX.Element {
         }}
       >
         <p>
-          Guides are opinionated. Where the API Reference shows every
-          procedure and the Deployment category shows every lever, a
-          guide picks one goal — "ship a billed SaaS", "wire real-time
-          collaboration" — and walks the full path. Every step links
-          out to the underlying reference article so you can dig
-          deeper when you need to.
+          Guides are opinionated. Where the API Reference shows every procedure and the Deployment
+          category shows every lever, a guide picks one goal — "ship a billed SaaS", "wire real-time
+          collaboration" — and walks the full path. Every step links out to the underlying reference
+          article so you can dig deeper when you need to.
         </p>
 
         <Callout tone="info">
-          Guides are written against the dashboard-driven flow that
-          ships today. There is no public CLI yet, so every click in
-          these walkthroughs is one you'll actually make in the UI.
+          Guides are written against the dashboard-driven flow that ships today. There is no public
+          CLI yet, so every click in these walkthroughs is one you'll actually make in the UI.
         </Callout>
 
         <h2>What's in this category</h2>
@@ -70,9 +63,8 @@ export default function GuidesOverviewArticle(): JSX.Element {
 
         <h2>What counts as a guide</h2>
         <p>
-          A guide is not a feature spec and not a marketing page. It
-          is the path a real team would walk to ship a real outcome.
-          Every guide follows the same shape:
+          A guide is not a feature spec and not a marketing page. It is the path a real team would
+          walk to ship a real outcome. Every guide follows the same shape:
         </p>
 
         <KeyList
@@ -98,11 +90,10 @@ export default function GuidesOverviewArticle(): JSX.Element {
         <h2>Where to start</h2>
         <p>
           If you're evaluating the platform end-to-end, start with{" "}
-          <a href="/docs/guides/build-a-saas">Build a SaaS</a>. If
-          you're already deployed and just need to wire billing, skip
-          to <a href="/docs/guides/integrate-stripe">Integrate Stripe</a>
-          . More guides — real-time collaboration, AI-first onboarding,
-          multi-tenant setup — land one at a time.
+          <a href="/docs/guides/build-a-saas">Build a SaaS</a>. If you're already deployed and just
+          need to wire billing, skip to <a href="/docs/guides/integrate-stripe">Integrate Stripe</a>
+          . More guides — real-time collaboration, AI-first onboarding, multi-tenant setup — land
+          one at a time.
         </p>
       </DocsArticle>
     </>

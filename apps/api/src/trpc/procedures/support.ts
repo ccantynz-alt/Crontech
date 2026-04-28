@@ -1,14 +1,10 @@
-import { z } from "zod";
+import { supportMessages, supportTickets, users } from "@back-to-the-future/db";
 import { TRPCError } from "@trpc/server";
-import { eq, desc, sql, inArray, and } from "drizzle-orm";
-import { router, protectedProcedure, publicProcedure, middleware } from "../init";
-import {
-  users,
-  supportTickets,
-  supportMessages,
-} from "@back-to-the-future/db";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
+import { z } from "zod";
 import { sendEmail } from "../../email/client";
 import { processInboundEmail } from "../../support/auto-responder";
+import { middleware, protectedProcedure, publicProcedure, router } from "../init";
 
 // ── Admin Middleware (local) ─────────────────────────────────────────
 
@@ -45,22 +41,14 @@ const StatusEnum = z.enum([
   "escalated",
 ]);
 
-const CategoryEnum = z.enum([
-  "billing",
-  "technical",
-  "bug",
-  "feature",
-  "sales",
-  "spam",
-  "other",
-]);
+const CategoryEnum = z.enum(["billing", "technical", "bug", "feature", "sales", "spam", "other"]);
 
 function newId(prefix: string): string {
-  return `${prefix}_${Date.now().toString(36)}_${crypto.randomUUID().replace(/-/g, '').slice(0, 8)}`;
+  return `${prefix}_${Date.now().toString(36)}_${crypto.randomUUID().replace(/-/g, "").slice(0, 8)}`;
 }
 
 function getSupportFromAddress(): string {
-  return process.env["SUPPORT_EMAIL"] ?? "support@yourdomain.com";
+  return process.env.SUPPORT_EMAIL ?? "support@yourdomain.com";
 }
 
 function bodyToHtml(body: string): string {
@@ -107,26 +95,24 @@ export const supportRouter = router({
     }),
 
   // ── Admin: get a single ticket with the full message thread ───────
-  getTicket: adminProcedure
-    .input(z.object({ id: z.string() }))
-    .query(async ({ ctx, input }) => {
-      const ticketRows = await ctx.db
-        .select()
-        .from(supportTickets)
-        .where(eq(supportTickets.id, input.id))
-        .limit(1);
-      const ticket = ticketRows[0];
-      if (!ticket) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Ticket not found." });
-      }
-      const messages = await ctx.db
-        .select()
-        .from(supportMessages)
-        .where(eq(supportMessages.ticketId, input.id))
-        .orderBy(supportMessages.sentAt);
+  getTicket: adminProcedure.input(z.object({ id: z.string() })).query(async ({ ctx, input }) => {
+    const ticketRows = await ctx.db
+      .select()
+      .from(supportTickets)
+      .where(eq(supportTickets.id, input.id))
+      .limit(1);
+    const ticket = ticketRows[0];
+    if (!ticket) {
+      throw new TRPCError({ code: "NOT_FOUND", message: "Ticket not found." });
+    }
+    const messages = await ctx.db
+      .select()
+      .from(supportMessages)
+      .where(eq(supportMessages.ticketId, input.id))
+      .orderBy(supportMessages.sentAt);
 
-      return { ticket, messages };
-    }),
+    return { ticket, messages };
+  }),
 
   // ── Admin: approve the AI draft and send it ───────────────────────
   approveDraft: adminProcedure
@@ -247,20 +233,15 @@ export const supportRouter = router({
         status: input.status,
         updatedAt: now,
       };
-      if (input.status === "resolved") update["resolvedAt"] = now;
-      if (input.assignedTo) update["assignedTo"] = input.assignedTo;
-      await ctx.db
-        .update(supportTickets)
-        .set(update)
-        .where(eq(supportTickets.id, input.id));
+      if (input.status === "resolved") update.resolvedAt = now;
+      if (input.assignedTo) update.assignedTo = input.assignedTo;
+      await ctx.db.update(supportTickets).set(update).where(eq(supportTickets.id, input.id));
       return { ok: true as const };
     }),
 
   // ── Admin: stats for the dashboard ───────────────────────────────
   getStats: adminProcedure.query(async ({ ctx }) => {
-    const totalRows = await ctx.db
-      .select({ count: sql<number>`count(*)` })
-      .from(supportTickets);
+    const totalRows = await ctx.db.select({ count: sql<number>`count(*)` }).from(supportTickets);
     const totalTickets = totalRows[0]?.count ?? 0;
 
     const autoResolvedRows = await ctx.db
@@ -287,11 +268,7 @@ export const supportRouter = router({
         resolved: supportTickets.resolvedAt,
       })
       .from(supportTickets)
-      .where(
-        and(
-          eq(supportTickets.status, "sent"),
-        ),
-      )
+      .where(and(eq(supportTickets.status, "sent")))
       .limit(200);
 
     let totalMs = 0;
@@ -304,9 +281,7 @@ export const supportRouter = router({
     }
     const avgResponseTime = counted > 0 ? Math.round(totalMs / counted / 1000) : 0;
 
-    const aiAccuracy = totalTickets > 0
-      ? Math.round((autoResolved / totalTickets) * 100)
-      : 0;
+    const aiAccuracy = totalTickets > 0 ? Math.round((autoResolved / totalTickets) * 100) : 0;
 
     return {
       totalTickets,
@@ -364,9 +339,7 @@ export const supportRouter = router({
       }),
     )
     .mutation(async ({ input }) => {
-      const subject =
-        `[${input.category}] ${input.message.slice(0, 60).replace(/\s+/g, " ").trim()}` +
-        (input.message.length > 60 ? "..." : "");
+      const subject = `[${input.category}] ${input.message.slice(0, 60).replace(/\s+/g, " ").trim()}${input.message.length > 60 ? "..." : ""}`;
       const body = `From: ${input.name} <${input.email}>\n\n${input.message}`;
       const result = await processInboundEmail({
         from: input.email,

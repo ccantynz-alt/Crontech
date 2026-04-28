@@ -1,6 +1,6 @@
-import type { JSX } from "solid-js";
+import { Badge, Button, Card, Stack, Text } from "@back-to-the-future/ui";
 import { A } from "@solidjs/router";
-import { Button, Card, Stack, Text, Badge } from "@back-to-the-future/ui";
+import type { JSX } from "solid-js";
 import { SEOHead } from "../components/SEOHead";
 
 // Founding Member landing page. Per docs/POSITIONING.md:
@@ -20,7 +20,9 @@ export default function Founding(): JSX.Element {
       />
       <Stack direction="vertical" gap="xl" class="page-padded">
         <Stack direction="vertical" align="center" justify="center" gap="md" class="hero">
-          <Badge variant="info" size="sm">First 100 seats only</Badge>
+          <Badge variant="info" size="sm">
+            First 100 seats only
+          </Badge>
           <Text variant="h1" weight="bold" align="center" class="heading">
             Founding Member cohort.
           </Text>
@@ -31,16 +33,20 @@ export default function Founding(): JSX.Element {
         <Card padding="lg">
           <Stack direction="vertical" gap="md" align="center">
             <Text variant="body" class="text-muted" align="center">
-              Founding Members get full access to every layer of Crontech from day one —
-              edge compute, unified data, type-safe APIs, real-time collaboration, the
-              AI runtime, and admin — on one platform with one dashboard and one bill.
+              Founding Members get full access to every layer of Crontech from day one — edge
+              compute, unified data, type-safe APIs, real-time collaboration, the AI runtime, and
+              admin — on one platform with one dashboard and one bill.
             </Text>
             <Stack direction="horizontal" gap="sm" justify="center">
               <A href="/register">
-                <Button variant="primary" size="lg">Create an account</Button>
+                <Button variant="primary" size="lg">
+                  Create an account
+                </Button>
               </A>
               <A href="/">
-                <Button variant="outline" size="lg">Back to home</Button>
+                <Button variant="outline" size="lg">
+                  Back to home
+                </Button>
               </A>
             </Stack>
           </Stack>

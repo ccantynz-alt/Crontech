@@ -13,8 +13,8 @@
  */
 
 import { randomUUID } from "node:crypto";
-import { and, desc, eq, gte, lte, sql } from "drizzle-orm";
 import { db, usageEvents } from "@back-to-the-future/db";
+import { and, desc, eq, gte, lte, sql } from "drizzle-orm";
 
 // ── Types ──────────────────────────────────────────────────────────
 
@@ -120,9 +120,7 @@ export async function recordUsage(
   metadata?: Record<string, unknown>,
 ): Promise<{ id: string }> {
   if (!Number.isFinite(quantity) || quantity < 0) {
-    throw new Error(
-      `recordUsage: quantity must be a finite non-negative number (got ${quantity})`,
-    );
+    throw new Error(`recordUsage: quantity must be a finite non-negative number (got ${quantity})`);
   }
 
   // Overloaded signature — accept either (projectId, metadata) or options.
@@ -156,10 +154,7 @@ export async function recordUsage(
  * Aggregate one user's usage for a given billing month, grouped by
  * event type. Month format: "YYYY-MM" (UTC).
  */
-export async function getMonthlyUsage(
-  userId: string,
-  month: string,
-): Promise<MonthlyUsageRow[]> {
+export async function getMonthlyUsage(userId: string, month: string): Promise<MonthlyUsageRow[]> {
   if (!/^\d{4}-\d{2}$/.test(month)) {
     throw new Error(`getMonthlyUsage: month must be YYYY-MM (got ${month})`);
   }
@@ -171,12 +166,7 @@ export async function getMonthlyUsage(
       unit: sql<string>`coalesce(max(${usageEvents.unit}), '')`,
     })
     .from(usageEvents)
-    .where(
-      and(
-        eq(usageEvents.userId, userId),
-        eq(usageEvents.billingMonth, month),
-      ),
-    )
+    .where(and(eq(usageEvents.userId, userId), eq(usageEvents.billingMonth, month)))
     .groupBy(usageEvents.eventType);
 
   return rows.map((r) => ({
@@ -192,9 +182,7 @@ export function getUsageLimit(plan: PlanTier, eventType: UsageEventType): number
 }
 
 /** All limits for a plan — useful for the limits view. */
-export function getUsageLimits(
-  plan: PlanTier,
-): Record<UsageEventType, number> {
+export function getUsageLimits(plan: PlanTier): Record<UsageEventType, number> {
   return { ...PLAN_LIMITS[plan] };
 }
 
@@ -225,12 +213,8 @@ export async function checkUsageLimit(
   const used = Number(rows[0]?.total ?? 0);
   const limit = getUsageLimit(plan, eventType);
   const exceeded = used >= limit;
-  const remaining = Number.isFinite(limit)
-    ? Math.max(0, limit - used)
-    : UNLIMITED;
-  const percent = Number.isFinite(limit) && limit > 0
-    ? Math.min(100, (used / limit) * 100)
-    : 0;
+  const remaining = Number.isFinite(limit) ? Math.max(0, limit - used) : UNLIMITED;
+  const percent = Number.isFinite(limit) && limit > 0 ? Math.min(100, (used / limit) * 100) : 0;
 
   return { used, limit, exceeded, remaining, percent };
 }
@@ -239,10 +223,7 @@ export async function checkUsageLimit(
  * Return daily totals for the last N days, grouped by (day, eventType).
  * Used by the usage history view. Defaults to 30 days.
  */
-export async function getUsageHistory(
-  userId: string,
-  days = 30,
-): Promise<DailyUsagePoint[]> {
+export async function getUsageHistory(userId: string, days = 30): Promise<DailyUsagePoint[]> {
   const safeDays = Math.max(1, Math.min(365, Math.trunc(days)));
   const now = new Date();
   const from = new Date(now.getTime() - safeDays * 24 * 60 * 60 * 1000);
@@ -284,9 +265,7 @@ export async function getUsageHistory(
   }
 
   return [...buckets.values()].sort((a, b) =>
-    a.day === b.day
-      ? a.eventType.localeCompare(b.eventType)
-      : a.day.localeCompare(b.day),
+    a.day === b.day ? a.eventType.localeCompare(b.eventType) : a.day.localeCompare(b.day),
   );
 }
 

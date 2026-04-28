@@ -5,7 +5,7 @@
 
 import "./resolve-db"; // MUST be first — sets DATABASE_URL before db loads
 import { db } from "@back-to-the-future/db";
-import { buildSessionBrief, renderBrief, getTopLessons } from "../brief";
+import { buildSessionBrief, getTopLessons, renderBrief } from "../brief";
 
 async function main(): Promise<void> {
   const entries = await buildSessionBrief(db, { limit: 3 });

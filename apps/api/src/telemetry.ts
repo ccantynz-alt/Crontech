@@ -1,13 +1,13 @@
-import { trace, metrics, SpanStatusCode } from "@opentelemetry/api";
-import { log } from "./log";
+import { SpanStatusCode, metrics, trace } from "@opentelemetry/api";
 import type { Span } from "@opentelemetry/api";
-import { withProjectAttrs } from "./telemetry/project-attribution";
 // `@opentelemetry/sdk-node` pulls in Node built-ins (fs, async_hooks, etc.)
 // that Cloudflare Workers cannot parse. Import the type only at the top; the
 // value import happens lazily inside `initTelemetry()` so that Workers can
 // bundle this module without ReferenceErrors. Bun and Node evaluate the
 // dynamic import normally.
 import type { NodeSDK } from "@opentelemetry/sdk-node";
+import { log } from "./log";
+import { withProjectAttrs } from "./telemetry/project-attribution";
 
 // ── OpenTelemetry Configuration ──────────────────────────────────────
 // Observability across edge, cloud, and client -- including AI agent
@@ -17,7 +17,7 @@ const SERVICE_NAME = "back-to-the-future-api";
 const SERVICE_VERSION = "0.0.1";
 
 export async function initTelemetry(): Promise<NodeSDK | null> {
-  const otlpEndpoint = process.env["OTEL_EXPORTER_OTLP_ENDPOINT"];
+  const otlpEndpoint = process.env.OTEL_EXPORTER_OTLP_ENDPOINT;
 
   // Skip telemetry initialization if no endpoint configured
   if (!otlpEndpoint) {
@@ -49,7 +49,7 @@ export async function initTelemetry(): Promise<NodeSDK | null> {
   const resource = resourceFromAttributes({
     [ATTR_SERVICE_NAME]: SERVICE_NAME,
     [ATTR_SERVICE_VERSION]: SERVICE_VERSION,
-    "deployment.environment": process.env["NODE_ENV"] ?? "development",
+    "deployment.environment": process.env.NODE_ENV ?? "development",
   });
 
   const traceExporter = new OTLPTraceExporter({
@@ -242,13 +242,9 @@ export function _resetProjectInflight(): void {
   projectInflightMap.clear();
 }
 
-export const projectRequestsInflight = meter.createObservableGauge(
-  "project.requests.inflight",
-  {
-    description:
-      "Number of HTTP requests currently in flight, labelled by project_id",
-  },
-);
+export const projectRequestsInflight = meter.createObservableGauge("project.requests.inflight", {
+  description: "Number of HTTP requests currently in flight, labelled by project_id",
+});
 
 projectRequestsInflight.addCallback((observableResult) => {
   const now = Date.now();
@@ -322,10 +318,7 @@ export function traceAICall(
         // inference path shows up in the per-project dashboard rather
         // than being silent. Errors still propagate.
         duration = performance.now() - start;
-        aiInferenceLatency.record(
-          duration,
-          withProjectAttrs({ model, status: "error" }),
-        );
+        aiInferenceLatency.record(duration, withProjectAttrs({ model, status: "error" }));
         span.setAttribute("ai.latency_ms", Math.round(duration));
         throw err;
       }
@@ -335,10 +328,7 @@ export function traceAICall(
 }
 
 /** Wrap a tRPC-like procedure call with an OpenTelemetry span. */
-export function traceProcedure<T>(
-  procedureName: string,
-  fn: () => Promise<T>,
-): Promise<T> {
+export function traceProcedure<T>(procedureName: string, fn: () => Promise<T>): Promise<T> {
   return traceAsync(
     `trpc.${procedureName}`,
     async (span) => {

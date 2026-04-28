@@ -4,15 +4,11 @@
  * All operations are tenant-scoped via the authenticated user's ID.
  */
 
-import { z } from "zod";
-import { TRPCError } from "@trpc/server";
-import { router, protectedProcedure, adminProcedure } from "../init";
-import {
-  generateUploadUrl,
-  generateDownloadUrl,
-  deleteFile,
-} from "@back-to-the-future/storage";
 import { createClientFromEnv } from "@back-to-the-future/object-storage/client";
+import { deleteFile, generateDownloadUrl, generateUploadUrl } from "@back-to-the-future/storage";
+import { TRPCError } from "@trpc/server";
+import { z } from "zod";
+import { adminProcedure, protectedProcedure, router } from "../init";
 
 export const storageRouter = router({
   /**
@@ -28,12 +24,7 @@ export const storageRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       const key = `uploads/${Date.now()}-${crypto.randomUUID()}-${input.filename}`;
-      const result = await generateUploadUrl(
-        ctx.userId,
-        key,
-        input.contentType,
-        input.expiresIn,
-      );
+      const result = await generateUploadUrl(ctx.userId, key, input.contentType, input.expiresIn);
 
       if (!result) {
         throw new TRPCError({
@@ -71,11 +62,7 @@ export const storageRouter = router({
 
       // Strip the tenantId prefix since generateDownloadUrl re-adds it
       const rawKey = input.key.slice(ctx.userId.length + 1);
-      const result = await generateDownloadUrl(
-        ctx.userId,
-        rawKey,
-        input.expiresIn,
-      );
+      const result = await generateDownloadUrl(ctx.userId, rawKey, input.expiresIn);
 
       if (!result) {
         throw new TRPCError({

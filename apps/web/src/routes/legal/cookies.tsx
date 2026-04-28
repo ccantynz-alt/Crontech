@@ -1,6 +1,6 @@
+import { Card, Separator, Stack, Text } from "@back-to-the-future/ui";
 import { For } from "solid-js";
 import type { JSX } from "solid-js";
-import { Stack, Text, Card, Separator } from "@back-to-the-future/ui";
 import { SEOHead } from "../../components/SEOHead";
 
 interface Section {
@@ -13,7 +13,7 @@ const sections: Section[] = [
     title: "1. What Are Cookies",
     content: [
       "Cookies are small text files that are placed on your device (computer, tablet, or mobile phone) when you visit a website. They are widely used to make websites work more efficiently, provide a better user experience, and supply information to site operators.",
-      "Crontech Technologies, Inc. (\"Crontech,\" \"we,\" \"us,\" or \"our\") uses cookies and similar technologies on the Crontech platform (\"Service\") as described in this Cookie Policy. This policy explains what cookies we use, why we use them, and how you can control them.",
+      'Crontech Technologies, Inc. ("Crontech," "we," "us," or "our") uses cookies and similar technologies on the Crontech platform ("Service") as described in this Cookie Policy. This policy explains what cookies we use, why we use them, and how you can control them.',
       "This Cookie Policy should be read alongside our Privacy Policy (/legal/privacy) and our Terms of Service (/legal/terms).",
     ],
   },
@@ -21,7 +21,7 @@ const sections: Section[] = [
     title: "2. Essential Cookies (Strictly Necessary)",
     content: [
       "Essential cookies are required for the Service to function. They enable core capabilities such as authentication, security, and session management. These cookies cannot be disabled without breaking fundamental Service functionality. Under GDPR and ePrivacy Directive, these cookies do not require consent because the Service cannot operate without them.",
-      "\u2022 Authentication Session Token (ct_session) \u2014 An httpOnly, Secure, SameSite=Lax cookie that identifies your authenticated session after login. Without it, you would need to sign in on every page load. Duration: session (expires on browser close) or up to 30 days if \"Remember Me\" is selected. Type: first-party.",
+      '\u2022 Authentication Session Token (ct_session) \u2014 An httpOnly, Secure, SameSite=Lax cookie that identifies your authenticated session after login. Without it, you would need to sign in on every page load. Duration: session (expires on browser close) or up to 30 days if "Remember Me" is selected. Type: first-party.',
       "\u2022 CSRF Protection Token (ct_csrf) \u2014 An httpOnly, Secure, SameSite=Strict cookie that protects against Cross-Site Request Forgery attacks. It ensures that form submissions and state-changing requests originate from our Service, not from a malicious third-party site. Duration: session. Type: first-party.",
       "\u2022 Load Balancing Identifier (ct_lb) \u2014 A cookie used by our edge infrastructure to route your requests to the same server during a session for consistent performance. Contains no personal information. Duration: session. Type: first-party.",
       "\u2022 Cookie Consent State (ct_consent) \u2014 Stores your cookie consent preferences so we do not re-prompt you on every visit. Duration: 365 days. Type: first-party.",
@@ -121,7 +121,7 @@ const sections: Section[] = [
     content: [
       "We may update this Cookie Policy from time to time to reflect changes in our practices, technology, legal requirements, or for other operational reasons.",
       "Material Changes. For material changes (new cookie categories, new third-party integrations, changes to consent mechanisms), we will provide at least 30 days' advance notice via email to registered users and an in-Service notification banner. Your consent preferences will be reset so you can make an informed choice under the updated policy.",
-      "Non-Material Changes. For minor updates (wording clarifications, formatting, cookie name changes that do not affect functionality), we will update the \"Last Updated\" date at the top of this page.",
+      'Non-Material Changes. For minor updates (wording clarifications, formatting, cookie name changes that do not affect functionality), we will update the "Last Updated" date at the top of this page.',
       "We encourage you to review this Cookie Policy periodically. Continued use of the Service after changes take effect constitutes acceptance of the updated policy.",
     ],
   },
@@ -166,7 +166,11 @@ export default function CookiesPage(): JSX.Element {
         <div class="mx-auto max-w-4xl px-6 py-16 sm:px-8 lg:py-24">
           <Stack direction="vertical" gap="lg">
             <Stack direction="vertical" gap="sm">
-              <Text variant="h1" weight="bold" class="bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+              <Text
+                variant="h1"
+                weight="bold"
+                class="bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent"
+              >
                 Cookie Policy
               </Text>
               <Text variant="caption" style={{ color: "var(--color-text-faint)" }}>
@@ -183,7 +187,11 @@ export default function CookiesPage(): JSX.Element {
                     </Text>
                     <For each={section.content}>
                       {(paragraph) => (
-                        <Text variant="body" class="leading-relaxed" style={{ color: "var(--color-text-muted)" }}>
+                        <Text
+                          variant="body"
+                          class="leading-relaxed"
+                          style={{ color: "var(--color-text-muted)" }}
+                        >
                           {paragraph}
                         </Text>
                       )}

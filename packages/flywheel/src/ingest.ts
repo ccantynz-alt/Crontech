@@ -1,9 +1,9 @@
-import { readdir, readFile } from "node:fs/promises";
-import { join } from "node:path";
+import { readFile, readdir } from "node:fs/promises";
 import { homedir } from "node:os";
-import { eq } from "drizzle-orm";
-import { flywheelSessions, flywheelTurns, db } from "@back-to-the-future/db";
+import { join } from "node:path";
+import { type db, flywheelSessions, flywheelTurns } from "@back-to-the-future/db";
 import { startRun } from "@back-to-the-future/theatre";
+import { eq } from "drizzle-orm";
 import { normalizeTranscript, parseJsonlLines } from "./parse";
 import type { NormalizedSession, NormalizedTurn, RawTurn } from "./types";
 
@@ -61,9 +61,7 @@ export async function ingestTranscripts(
     const result = await run.step("scan transcripts", async (step) => {
       try {
         const entries = await readdir(dir);
-        const files = entries
-          .filter((f) => f.endsWith(".jsonl"))
-          .map((f) => join(dir, f));
+        const files = entries.filter((f) => f.endsWith(".jsonl")).map((f) => join(dir, f));
         await step.log(`found ${files.length} .jsonl file(s) in ${dir}`);
         return files;
       } catch (err) {
@@ -141,18 +139,14 @@ export async function ingestTranscripts(
             turnsInserted += normalized.turns.length;
           }
           ingested += 1;
-          await step.log(
-            `  ✓ ${sessionId.slice(0, 8)}… ${normalized.turns.length} turns`,
-          );
+          await step.log(`  ✓ ${sessionId.slice(0, 8)}… ${normalized.turns.length} turns`);
         } catch (err) {
           errors.push({ file: `session:${sessionId}`, message: errorMessage(err) });
           await step.log(`  ! ${sessionId}: ${errorMessage(err)}`, "stderr");
         }
       }
 
-      await step.log(
-        `done: ingested=${ingested} skipped=${skipped} turns=${turnsInserted}`,
-      );
+      await step.log(`done: ingested=${ingested} skipped=${skipped} turns=${turnsInserted}`);
       return { ingested, skipped, turnsInserted };
     });
 
@@ -177,10 +171,7 @@ export async function ingestTranscripts(
   }
 }
 
-async function insertSession(
-  database: Database,
-  session: NormalizedSession,
-): Promise<void> {
+async function insertSession(database: Database, session: NormalizedSession): Promise<void> {
   await database.insert(flywheelSessions).values({
     id: session.id,
     cwd: session.cwd,

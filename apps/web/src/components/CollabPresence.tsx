@@ -46,10 +46,7 @@ export interface PresenceSummary {
  * Pure reducer: turns an awareness snapshot into the render model the
  * chip row needs. Extracted so we can unit-test it without Solid.
  */
-export function summarizePresence(
-  users: CollabUser[],
-  currentUserId: string,
-): PresenceSummary {
+export function summarizePresence(users: CollabUser[], currentUserId: string): PresenceSummary {
   let humans = 0;
   let agents = 0;
   const seen = new Set<string>();
@@ -77,10 +74,8 @@ export function summarizePresence(
 }
 
 function summaryLabel(summary: PresenceSummary): string {
-  const humanPart =
-    summary.humans === 1 ? "1 human" : `${summary.humans} humans`;
-  const agentPart =
-    summary.agents === 1 ? "1 AI agent" : `${summary.agents} AI agents`;
+  const humanPart = summary.humans === 1 ? "1 human" : `${summary.humans} humans`;
+  const agentPart = summary.agents === 1 ? "1 AI agent" : `${summary.agents} AI agents`;
   return `${humanPart} + ${agentPart} editing`;
 }
 
@@ -122,8 +117,7 @@ export function CollabPresence(props: CollabPresenceProps): JSX.Element {
   });
 
   return (
-    <div
-      role="group"
+    <output
       aria-label="Collaborators"
       data-testid="collab-presence"
       style={{
@@ -162,9 +156,7 @@ export function CollabPresence(props: CollabPresenceProps): JSX.Element {
                 color: "var(--color-text)",
                 "font-size": "9px",
                 "font-weight": "700",
-                border: chip.isAI
-                  ? "1px dashed var(--color-text)"
-                  : "1px solid transparent",
+                border: chip.isAI ? "1px dashed var(--color-text)" : "1px solid transparent",
               }}
             >
               {chip.isAI ? "AI" : chip.initials}
@@ -214,7 +206,7 @@ export function CollabPresence(props: CollabPresenceProps): JSX.Element {
       >
         {summaryLabel(summary())}
       </span>
-    </div>
+    </output>
   );
 }
 

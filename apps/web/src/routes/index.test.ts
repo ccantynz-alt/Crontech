@@ -51,24 +51,11 @@ describe("landing route (/) — smoke", () => {
       const a = (lines[i] ?? "").trim();
       const b = (lines[i + 1] ?? "").trim();
       // A pair of identical opening tags longer than a trivial wrapper.
-      if (
-        a.startsWith("<section") &&
-        b.startsWith("<section") &&
-        a.length > 20 &&
-        a === b
-      ) {
-        throw new Error(
-          `Duplicate <section> on lines ${i + 1} and ${i + 2}: ${a}`,
-        );
+      if (a.startsWith("<section") && b.startsWith("<section") && a.length > 20 && a === b) {
+        throw new Error(`Duplicate <section> on lines ${i + 1} and ${i + 2}: ${a}`);
       }
-      if (
-        a.startsWith('<div class="relative') &&
-        b.startsWith('<div class="relative') &&
-        a === b
-      ) {
-        throw new Error(
-          `Duplicate outer <div> on lines ${i + 1} and ${i + 2}: ${a}`,
-        );
+      if (a.startsWith('<div class="relative') && b.startsWith('<div class="relative') && a === b) {
+        throw new Error(`Duplicate outer <div> on lines ${i + 1} and ${i + 2}: ${a}`);
       }
     }
     expect(true).toBe(true);
@@ -76,8 +63,7 @@ describe("landing route (/) — smoke", () => {
 
   test("polite tone — no competitor names in public landing copy", () => {
     const src = readFileSync(ROUTE_PATH, "utf-8").toLowerCase();
-    const fromCodes = (...codes: number[]): string =>
-      String.fromCharCode(...codes);
+    const fromCodes = (...codes: number[]): string => String.fromCharCode(...codes);
     // Space-bounded tokens so substrings don't false-positive inside
     // larger words (e.g. "descript" inside "description").
     const banned = [

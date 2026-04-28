@@ -25,23 +25,9 @@
  *     skipped without touching Stripe.
  */
 
-import {
-  describe,
-  test,
-  expect,
-  beforeAll,
-  beforeEach,
-  afterEach,
-  mock,
-} from "bun:test";
+import { afterEach, beforeAll, beforeEach, describe, expect, mock, test } from "bun:test";
+import { db, subscriptions, usageEvents, usageReports, users } from "@back-to-the-future/db";
 import { and, eq } from "drizzle-orm";
-import {
-  db,
-  subscriptions,
-  usageEvents,
-  usageReports,
-  users,
-} from "@back-to-the-future/db";
 import { priceMapFromEnv } from "./usage-reporter";
 
 // ── Stripe SDK Boundary Mock ──────────────────────────────────────
@@ -70,7 +56,7 @@ let mockRetrieveImpl: RetrieveImpl = async (id) => ({
   items: { data: [] },
 });
 let mockCreateImpl: CreateImpl = async () => ({
-  id: `ur_default_${crypto.randomUUID().replace(/-/g, '').slice(0, 6)}`,
+  id: `ur_default_${crypto.randomUUID().replace(/-/g, "").slice(0, 6)}`,
 });
 
 await mock.module("../stripe/client", () => ({
@@ -112,7 +98,7 @@ async function createTestUser(): Promise<string> {
   const id = crypto.randomUUID();
   await db.insert(users).values({
     id,
-    email: `usage-reporter-${Date.now()}-${crypto.randomUUID().replace(/-/g, '').slice(0, 6)}@example.com`,
+    email: `usage-reporter-${Date.now()}-${crypto.randomUUID().replace(/-/g, "").slice(0, 6)}@example.com`,
     displayName: "Usage Reporter Test",
   });
   return id;
@@ -140,8 +126,8 @@ async function cleanup(userId: string): Promise<void> {
 }
 
 function setPriceMap(value: string | null): void {
-  if (value === null) delete process.env["STRIPE_USAGE_PRICE_MAP"];
-  else process.env["STRIPE_USAGE_PRICE_MAP"] = value;
+  if (value === null) process.env.STRIPE_USAGE_PRICE_MAP = undefined;
+  else process.env.STRIPE_USAGE_PRICE_MAP = value;
 }
 
 /** Insert a raw usage_events row directly so we don't depend on the
@@ -177,7 +163,7 @@ describe("priceMapFromEnv", () => {
   test("ignores unknown event types", () => {
     const map = priceMapFromEnv("build=price_a,bogus=price_x");
     expect(map.build).toBe("price_a");
-    expect((map as Record<string, string>)["bogus"]).toBeUndefined();
+    expect((map as Record<string, string>).bogus).toBeUndefined();
   });
 
   test("empty string yields an empty map", () => {
@@ -211,27 +197,24 @@ describe("reportUsageForUser", () => {
   });
 
   beforeEach(async () => {
-    savedFlag = process.env["STRIPE_ENABLED"];
-    savedPriceMap = process.env["STRIPE_USAGE_PRICE_MAP"];
-    process.env["STRIPE_ENABLED"] = "true";
-    setPriceMap(
-      `build=${BUILD_PRICE},ai_tokens=${TOKENS_PRICE}`,
-    );
+    savedFlag = process.env.STRIPE_ENABLED;
+    savedPriceMap = process.env.STRIPE_USAGE_PRICE_MAP;
+    process.env.STRIPE_ENABLED = "true";
+    setPriceMap(`build=${BUILD_PRICE},ai_tokens=${TOKENS_PRICE}`);
     retrieveCalls = [];
     createCalls = [];
     mockCreateImpl = async () => ({
-      id: `ur_${crypto.randomUUID().replace(/-/g, '').slice(0, 8)}`,
+      id: `ur_${crypto.randomUUID().replace(/-/g, "").slice(0, 8)}`,
     });
     userId = await createTestUser();
     await seedSubscription(userId);
   });
 
   afterEach(async () => {
-    if (savedFlag === undefined) delete process.env["STRIPE_ENABLED"];
-    else process.env["STRIPE_ENABLED"] = savedFlag;
-    if (savedPriceMap === undefined)
-      delete process.env["STRIPE_USAGE_PRICE_MAP"];
-    else process.env["STRIPE_USAGE_PRICE_MAP"] = savedPriceMap;
+    if (savedFlag === undefined) process.env.STRIPE_ENABLED = undefined;
+    else process.env.STRIPE_ENABLED = savedFlag;
+    if (savedPriceMap === undefined) process.env.STRIPE_USAGE_PRICE_MAP = undefined;
+    else process.env.STRIPE_USAGE_PRICE_MAP = savedPriceMap;
     await cleanup(userId);
   });
 
@@ -247,19 +230,17 @@ describe("reportUsageForUser", () => {
 
     const buildResult = outcome.results.find((r) => r.eventType === "build");
     expect(buildResult).toBeDefined();
-    expect(buildResult!.status).toBe("pushed");
-    expect(buildResult!.delta).toBe(15);
-    expect(buildResult!.quantity).toBe(15);
-    expect(buildResult!.subscriptionItemId).toBe(BUILD_ITEM);
+    expect(buildResult?.status).toBe("pushed");
+    expect(buildResult?.delta).toBe(15);
+    expect(buildResult?.quantity).toBe(15);
+    expect(buildResult?.subscriptionItemId).toBe(BUILD_ITEM);
 
     // Stripe was called exactly once for build (ai_tokens had no events
     // so delta=0 → noop, no Stripe call). Other unmapped types (request,
     // storage) short-circuit at the mapping check.
     expect(createCalls).toHaveLength(1);
-    expect(createCalls[0]!.itemId).toBe(BUILD_ITEM);
-    expect(
-      (createCalls[0]!.params as { quantity: number }).quantity,
-    ).toBe(15);
+    expect(createCalls[0]?.itemId).toBe(BUILD_ITEM);
+    expect((createCalls[0]?.params as { quantity: number }).quantity).toBe(15);
 
     const row = await db.query.usageReports.findFirst({
       where: and(
@@ -269,9 +250,9 @@ describe("reportUsageForUser", () => {
       ),
     });
     expect(row).toBeDefined();
-    expect(row!.reportedQuantity).toBe(15);
-    expect(row!.stripeSubscriptionItemId).toBe(BUILD_ITEM);
-    expect(row!.lastStripeUsageRecordId).toBeTruthy();
+    expect(row?.reportedQuantity).toBe(15);
+    expect(row?.stripeSubscriptionItemId).toBe(BUILD_ITEM);
+    expect(row?.lastStripeUsageRecordId).toBeTruthy();
   });
 
   test("second run with no new events is a noop (no Stripe call)", async () => {
@@ -284,8 +265,8 @@ describe("reportUsageForUser", () => {
     createCalls = [];
     const second = await reportUsageForUser(userId, month);
     const buildResult = second.results.find((r) => r.eventType === "build");
-    expect(buildResult!.status).toBe("noop");
-    expect(buildResult!.delta).toBe(0);
+    expect(buildResult?.status).toBe("noop");
+    expect(buildResult?.delta).toBe(0);
     expect(createCalls).toHaveLength(0);
   });
 
@@ -300,14 +281,12 @@ describe("reportUsageForUser", () => {
     const second = await reportUsageForUser(userId, month);
 
     const buildResult = second.results.find((r) => r.eventType === "build");
-    expect(buildResult!.status).toBe("pushed");
-    expect(buildResult!.delta).toBe(7);
-    expect(buildResult!.quantity).toBe(17);
+    expect(buildResult?.status).toBe("pushed");
+    expect(buildResult?.delta).toBe(7);
+    expect(buildResult?.quantity).toBe(17);
 
     expect(createCalls).toHaveLength(1);
-    expect(
-      (createCalls[0]!.params as { quantity: number }).quantity,
-    ).toBe(7);
+    expect((createCalls[0]?.params as { quantity: number }).quantity).toBe(7);
 
     const row = await db.query.usageReports.findFirst({
       where: and(
@@ -316,7 +295,7 @@ describe("reportUsageForUser", () => {
         eq(usageReports.eventType, "build"),
       ),
     });
-    expect(row!.reportedQuantity).toBe(17);
+    expect(row?.reportedQuantity).toBe(17);
   });
 
   test("Stripe failure leaves local state untouched so the next run retries cleanly", async () => {
@@ -330,8 +309,8 @@ describe("reportUsageForUser", () => {
     const outcome = await reportUsageForUser(userId, month);
     expect(outcome.ok).toBe(false);
     const buildResult = outcome.results.find((r) => r.eventType === "build");
-    expect(buildResult!.status).toBe("failed");
-    expect(buildResult!.reason).toContain("stripe_unavailable");
+    expect(buildResult?.status).toBe("failed");
+    expect(buildResult?.reason).toContain("stripe_unavailable");
 
     // DB was NOT updated — the next run should see reportedQuantity=0
     // (no row inserted) and push the full 25 again.
@@ -350,13 +329,13 @@ describe("reportUsageForUser", () => {
     const retry = await reportUsageForUser(userId, month);
     expect(retry.ok).toBe(true);
     const retryBuild = retry.results.find((r) => r.eventType === "build");
-    expect(retryBuild!.status).toBe("pushed");
-    expect(retryBuild!.delta).toBe(25);
+    expect(retryBuild?.status).toBe("pushed");
+    expect(retryBuild?.delta).toBe(25);
     expect(createCalls).toHaveLength(1);
   });
 
   test("pre-launch guard: STRIPE_ENABLED !== 'true' is a no-op (no Stripe calls)", async () => {
-    delete process.env["STRIPE_ENABLED"];
+    process.env.STRIPE_ENABLED = undefined;
     const month = "2026-04";
     await recordEvent(userId, "build", 99, month);
 
@@ -377,9 +356,9 @@ describe("reportUsageForUser", () => {
 
     const outcome = await reportUsageForUser(userId, month);
     const tokens = outcome.results.find((r) => r.eventType === "ai_tokens");
-    expect(tokens!.status).toBe("skipped");
-    expect(tokens!.reason).toBe("no-price-mapping");
-    expect(tokens!.quantity).toBe(500);
+    expect(tokens?.status).toBe("skipped");
+    expect(tokens?.reason).toBe("no-price-mapping");
+    expect(tokens?.quantity).toBe(500);
     expect(createCalls).toHaveLength(0);
   });
 });

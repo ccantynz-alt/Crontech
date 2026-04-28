@@ -1,6 +1,6 @@
-import { describe, test, expect } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import { Hono } from "hono";
-import { createKvRateLimiter, type KvNamespaceLike } from "./rate-limiter-kv";
+import { type KvNamespaceLike, createKvRateLimiter } from "./rate-limiter-kv";
 
 // ── In-memory KV stub ───────────────────────────────────────────────
 // Implements the minimal surface we use. Tracks put/get calls and
@@ -32,11 +32,7 @@ function createStubKv(opts: { now?: () => number } = {}): KvNamespaceLike & {
       }
       return entry.value;
     },
-    async put(
-      key: string,
-      value: string,
-      options?: { expirationTtl?: number },
-    ): Promise<void> {
+    async put(key: string, value: string, options?: { expirationTtl?: number }): Promise<void> {
       kv._puts++;
       const ttl = options?.expirationTtl ?? 60;
       store.set(key, { value, expiresAt: now() + ttl * 1000 });
@@ -180,14 +176,17 @@ describe("createKvRateLimiter — KV failure fallback", () => {
     const kv = createBrokenKv();
     const app = new Hono();
     let fallbackHit = 0;
-    app.use("/api/*", createKvRateLimiter({
-      kv,
-      max: 100,
-      fallback: async (_c, next) => {
-        fallbackHit++;
-        return next();
-      },
-    }));
+    app.use(
+      "/api/*",
+      createKvRateLimiter({
+        kv,
+        max: 100,
+        fallback: async (_c, next) => {
+          fallbackHit++;
+          return next();
+        },
+      }),
+    );
     app.get("/api/test", (c) => c.json({ ok: true }));
     const res = await makeRequest(app, "10.0.4.2");
     expect(res.status).toBe(200);

@@ -128,11 +128,7 @@ export class RoomManager {
     }
   }
 
-  broadcast(
-    roomId: string,
-    message: ServerMessage,
-    excludeUserId?: string,
-  ): void {
+  broadcast(roomId: string, message: ServerMessage, excludeUserId?: string): void {
     const room = this.rooms.get(roomId);
     if (!room) return;
 
@@ -153,9 +149,7 @@ export class RoomManager {
     this.pushToSSESubscribers(roomId, message);
   }
 
-  getRoomUsers(
-    roomId: string,
-  ): Array<{
+  getRoomUsers(roomId: string): Array<{
     userId: string;
     metadata?: RoomUser["metadata"];
     presence?: RoomUser["presence"];
@@ -199,13 +193,7 @@ export class RoomManager {
     );
   }
 
-  updateCursor(
-    roomId: string,
-    userId: string,
-    x: number,
-    y: number,
-    target?: string,
-  ): void {
+  updateCursor(roomId: string, userId: string, x: number, y: number, target?: string): void {
     const room = this.rooms.get(roomId);
     if (!room) return;
 
@@ -271,10 +259,7 @@ export class RoomManager {
     subscribers.add({ writer, controller });
   }
 
-  removeSSESubscriber(
-    roomId: string,
-    writer: WritableStreamDefaultWriter<string>,
-  ): void {
+  removeSSESubscriber(roomId: string, writer: WritableStreamDefaultWriter<string>): void {
     const subscribers = this.sseSubscribers.get(roomId);
     if (!subscribers) return;
 
@@ -315,9 +300,7 @@ export class RoomManager {
     }
   }
 
-  private serverMessageToSSEEvent(
-    type: ServerMessage["type"],
-  ): string {
+  private serverMessageToSSEEvent(type: ServerMessage["type"]): string {
     switch (type) {
       case "cursor_update":
         return "cursor";

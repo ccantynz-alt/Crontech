@@ -17,9 +17,9 @@ const VECTOR_SIZE = 1536; // OpenAI text-embedding-3-small dimensions
 
 export function createQdrantClient(config?: QdrantConfig): QdrantClient {
   const params: { url: string; apiKey?: string } = {
-    url: config?.url ?? process.env["QDRANT_URL"] ?? "http://localhost:6333",
+    url: config?.url ?? process.env.QDRANT_URL ?? "http://localhost:6333",
   };
-  const apiKey = config?.apiKey ?? process.env["QDRANT_API_KEY"];
+  const apiKey = config?.apiKey ?? process.env.QDRANT_API_KEY;
   if (apiKey !== undefined) params.apiKey = apiKey;
   return new QdrantClient(params);
 }
@@ -99,22 +99,23 @@ export async function searchSimilar(
   queryVector: number[],
   options: SearchOptions = {},
 ): Promise<SearchHit[]> {
-  const {
-    collection = DEFAULT_COLLECTION,
-    limit = 10,
-    scoreThreshold = 0.7,
-    filter,
-  } = options;
+  const { collection = DEFAULT_COLLECTION, limit = 10, scoreThreshold = 0.7, filter } = options;
 
   const results = await client.search(collection, {
     vector: queryVector,
     limit,
     score_threshold: scoreThreshold,
     with_payload: true,
-    ...(filter ? { filter: { must: Object.entries(filter).map(([key, value]) => ({
-      key,
-      match: { value },
-    })) } } : {}),
+    ...(filter
+      ? {
+          filter: {
+            must: Object.entries(filter).map(([key, value]) => ({
+              key,
+              match: { value },
+            })),
+          },
+        }
+      : {}),
   });
 
   return results.map((r) => ({

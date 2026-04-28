@@ -1,8 +1,8 @@
+import { Badge, Button, Spinner } from "@back-to-the-future/ui";
 import { Title } from "@solidjs/meta";
 import { A, useNavigate } from "@solidjs/router";
 import { For, Show, createMemo, onCleanup, onMount } from "solid-js";
 import type { JSX } from "solid-js";
-import { Badge, Button, Spinner } from "@back-to-the-future/ui";
 import { ProtectedRoute } from "../components/ProtectedRoute";
 import { SEOHead } from "../components/SEOHead";
 import { registerShortcut } from "../lib/keyboard";
@@ -138,11 +138,8 @@ interface ProjectCardProps {
 
 function ProjectCard(props: ProjectCardProps): JSX.Element {
   const isBuilding = (): boolean =>
-    props.status === "building" ||
-    props.status === "deploying" ||
-    props.status === "creating";
-  const isFailed = (): boolean =>
-    props.status === "failed" || props.status === "error";
+    props.status === "building" || props.status === "deploying" || props.status === "creating";
+  const isFailed = (): boolean => props.status === "failed" || props.status === "error";
 
   return (
     <A href={`/projects/${props.id}`} class="block group">
@@ -153,14 +150,11 @@ function ProjectCard(props: ProjectCardProps): JSX.Element {
           border: "1px solid var(--color-border)",
         }}
       >
-
         <div class="relative z-10 flex flex-col gap-4">
           {/* Header: name + status (dot / spinner + badge) */}
           <div class="flex items-start justify-between gap-3">
             <div class="flex items-center gap-3 min-w-0">
-              <span class="text-xl shrink-0">
-                {frameworkIcon(props.framework ?? "")}
-              </span>
+              <span class="text-xl shrink-0">{frameworkIcon(props.framework ?? "")}</span>
               <h3 class="text-sm font-semibold truncate" style={{ color: "var(--color-text)" }}>
                 {props.name}
               </h3>
@@ -196,23 +190,29 @@ function ProjectCard(props: ProjectCardProps): JSX.Element {
               }}
             >
               <span class="font-semibold">Deploy failed:</span>{" "}
-              <span style={{ color: "var(--color-text)" }}>
-                {props.errorMessage}
-              </span>
+              <span style={{ color: "var(--color-text)" }}>{props.errorMessage}</span>
             </div>
           </Show>
 
           {/* Details */}
           <div class="flex flex-col gap-2">
             <div class="flex items-center gap-2">
-              <span class="text-[11px] font-medium uppercase tracking-wider" style={{ color: "var(--color-text-secondary)" }}>
+              <span
+                class="text-[11px] font-medium uppercase tracking-wider"
+                style={{ color: "var(--color-text-secondary)" }}
+              >
                 Framework
               </span>
-              <span class="text-xs" style={{ color: "var(--color-text)" }}>{props.framework ?? "Unknown"}</span>
+              <span class="text-xs" style={{ color: "var(--color-text)" }}>
+                {props.framework ?? "Unknown"}
+              </span>
             </div>
 
             <div class="flex items-center gap-2">
-              <span class="text-[11px] font-medium uppercase tracking-wider" style={{ color: "var(--color-text-secondary)" }}>
+              <span
+                class="text-[11px] font-medium uppercase tracking-wider"
+                style={{ color: "var(--color-text-secondary)" }}
+              >
                 Updated
               </span>
               <span class="text-xs" style={{ color: "var(--color-text-muted)" }}>
@@ -245,7 +245,6 @@ function ProjectCard(props: ProjectCardProps): JSX.Element {
             </Show>
           </div>
         </div>
-
       </div>
     </A>
   );
@@ -256,14 +255,19 @@ function ProjectCard(props: ProjectCardProps): JSX.Element {
 function EmptyState(): JSX.Element {
   return (
     <div class="flex flex-col items-center justify-center gap-6 py-24">
-      <div class="flex h-20 w-20 items-center justify-center rounded-2xl" style={{ background: "var(--color-bg-subtle)" }}>
+      <div
+        class="flex h-20 w-20 items-center justify-center rounded-2xl"
+        style={{ background: "var(--color-bg-subtle)" }}
+      >
         <span class="text-4xl">{"\u{1F680}"}</span>
       </div>
       <div class="flex flex-col items-center gap-2 text-center">
-        <h2 class="text-xl font-bold" style={{ color: "var(--color-text)" }}>No projects yet</h2>
+        <h2 class="text-xl font-bold" style={{ color: "var(--color-text)" }}>
+          No projects yet
+        </h2>
         <p class="max-w-sm text-sm" style={{ color: "var(--color-text-secondary)" }}>
-          Deploy your first app on Crontech. Connect a repo or start from a
-          template and have it live on the edge in under a minute.
+          Deploy your first app on Crontech. Connect a repo or start from a template and have it
+          live on the edge in under a minute.
         </p>
       </div>
       <A href="/projects/new">
@@ -278,10 +282,10 @@ function EmptyState(): JSX.Element {
 // ── Projects Page ───────────────────────────────────────────────────
 
 export default function ProjectsPage(): ReturnType<typeof ProtectedRoute> {
-  const projects = useQuery(() =>
-    trpc.projects.list.query().catch(() => []),
-    { key: "projects", refetchInterval: 30_000 },
-  );
+  const projects = useQuery(() => trpc.projects.list.query().catch(() => []), {
+    key: "projects",
+    refetchInterval: 30_000,
+  });
 
   // ── URL-backed filter ─────────────────────────────────────────────
   // The text filter and status filter both round-trip through the
@@ -327,10 +331,7 @@ export default function ProjectsPage(): ReturnType<typeof ProtectedRoute> {
     return all.filter((p) => {
       if (status !== "all" && p.status !== status) return false;
       if (!q) return true;
-      return (
-        p.name.toLowerCase().includes(q) ||
-        (p.framework ?? "").toLowerCase().includes(q)
-      );
+      return p.name.toLowerCase().includes(q) || (p.framework ?? "").toLowerCase().includes(q);
     });
   });
 
@@ -411,10 +412,7 @@ export default function ProjectsPage(): ReturnType<typeof ProtectedRoute> {
             <Show
               when={filtered().length > 0}
               fallback={
-                <Show
-                  when={(projects.data() ?? []).length > 0}
-                  fallback={<EmptyState />}
-                >
+                <Show when={(projects.data() ?? []).length > 0} fallback={<EmptyState />}>
                   <div
                     class="py-16 text-center text-sm"
                     style={{ color: "var(--color-text-muted)" }}
@@ -439,8 +437,7 @@ export default function ProjectsPage(): ReturnType<typeof ProtectedRoute> {
                         null
                       }
                       errorMessage={
-                        (project as { errorMessage?: string | null })
-                          .errorMessage ?? null
+                        (project as { errorMessage?: string | null }).errorMessage ?? null
                       }
                     />
                   )}

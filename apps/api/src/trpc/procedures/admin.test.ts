@@ -8,21 +8,21 @@
 //   5. The exported Zod schema enumerates exactly the five fields
 //      the /admin dashboard consumes — no field drift.
 
-import { describe, test, expect, afterEach } from "bun:test";
-import { eq, inArray } from "drizzle-orm";
+import { afterEach, describe, expect, test } from "bun:test";
 import {
+  chatMessages,
+  conversations,
   db,
-  users,
-  sessions,
   deployments,
   projects,
-  conversations,
-  chatMessages,
   scopedDb,
+  sessions,
+  users,
 } from "@back-to-the-future/db";
-import { appRouter } from "../router";
+import { eq, inArray } from "drizzle-orm";
 import { createSession } from "../../auth/session";
 import type { TRPCContext } from "../context";
+import { appRouter } from "../router";
 import { adminStatsOutputSchema } from "./admin";
 
 // ── Context helpers ──────────────────────────────────────────────────
@@ -37,10 +37,8 @@ function ctxFor(userId: string, sessionToken: string): TRPCContext {
   };
 }
 
-async function createUser(
-  role: "admin" | "viewer" | "editor",
-): Promise<string> {
-  const id = `admin-stats-${role}-${Date.now()}-${crypto.randomUUID().replace(/-/g, '').slice(0, 6)}`;
+async function createUser(role: "admin" | "viewer" | "editor"): Promise<string> {
+  const id = `admin-stats-${role}-${Date.now()}-${crypto.randomUUID().replace(/-/g, "").slice(0, 6)}`;
   await db.insert(users).values({
     id,
     email: `${id}@example.com`,
@@ -53,15 +51,10 @@ async function createUser(
 async function cleanupUser(userId: string): Promise<void> {
   // Delete child rows that don't cascade from users.
   const projectIds = (
-    await db
-      .select({ id: projects.id })
-      .from(projects)
-      .where(eq(projects.userId, userId))
+    await db.select({ id: projects.id }).from(projects).where(eq(projects.userId, userId))
   ).map((r) => r.id);
   if (projectIds.length > 0) {
-    await db
-      .delete(deployments)
-      .where(inArray(deployments.projectId, projectIds));
+    await db.delete(deployments).where(inArray(deployments.projectId, projectIds));
     await db.delete(projects).where(inArray(projects.id, projectIds));
   }
   const convoIds = (
@@ -71,9 +64,7 @@ async function cleanupUser(userId: string): Promise<void> {
       .where(eq(conversations.userId, userId))
   ).map((r) => r.id);
   if (convoIds.length > 0) {
-    await db
-      .delete(chatMessages)
-      .where(inArray(chatMessages.conversationId, convoIds));
+    await db.delete(chatMessages).where(inArray(chatMessages.conversationId, convoIds));
     await db.delete(conversations).where(inArray(conversations.id, convoIds));
   }
   await db.delete(sessions).where(eq(sessions.userId, userId));
@@ -163,14 +154,14 @@ describe("admin.stats — BLK-013 dashboard aggregator", () => {
     const before = await caller.admin.stats();
 
     // Seed a project + a deployment created today (this month, all-time).
-    const projectId = `proj-blk013-${Date.now()}-${crypto.randomUUID().replace(/-/g, '').slice(0, 6)}`;
+    const projectId = `proj-blk013-${Date.now()}-${crypto.randomUUID().replace(/-/g, "").slice(0, 6)}`;
     await db.insert(projects).values({
       id: projectId,
       userId: adminId,
       name: "BLK-013 Stats Test Project",
       slug: projectId,
     });
-    const deploymentId = `dep-blk013-${Date.now()}-${crypto.randomUUID().replace(/-/g, '').slice(0, 6)}`;
+    const deploymentId = `dep-blk013-${Date.now()}-${crypto.randomUUID().replace(/-/g, "").slice(0, 6)}`;
     await db.insert(deployments).values({
       id: deploymentId,
       projectId,
@@ -191,13 +182,13 @@ describe("admin.stats — BLK-013 dashboard aggregator", () => {
 
     // Seed a conversation with a message in the current month so the
     // cost aggregator has something to sum.
-    const convoId = `conv-blk013-${Date.now()}-${crypto.randomUUID().replace(/-/g, '').slice(0, 6)}`;
+    const convoId = `conv-blk013-${Date.now()}-${crypto.randomUUID().replace(/-/g, "").slice(0, 6)}`;
     await db.insert(conversations).values({
       id: convoId,
       userId: adminId,
       title: "BLK-013 Test Conversation",
     });
-    const msgId = `msg-blk013-${Date.now()}-${crypto.randomUUID().replace(/-/g, '').slice(0, 6)}`;
+    const msgId = `msg-blk013-${Date.now()}-${crypto.randomUUID().replace(/-/g, "").slice(0, 6)}`;
     await db.insert(chatMessages).values({
       id: msgId,
       conversationId: convoId,

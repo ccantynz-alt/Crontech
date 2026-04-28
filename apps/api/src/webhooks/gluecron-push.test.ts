@@ -10,13 +10,9 @@
  */
 
 import { beforeEach, describe, expect, test } from "bun:test";
-import { eq } from "drizzle-orm";
 import { db, tenantGitRepos, tenants } from "@back-to-the-future/db";
-import {
-  createGluecronPushApp,
-  timingSafeEqual,
-  type GluecronHookDeps,
-} from "./gluecron-push";
+import { eq } from "drizzle-orm";
+import { type GluecronHookDeps, createGluecronPushApp, timingSafeEqual } from "./gluecron-push";
 
 // ── Fixture helpers ─────────────────────────────────────────────────
 
@@ -124,7 +120,7 @@ function validPayload(overrides: Partial<Record<string, unknown>> = {}): string 
 
 function makeRequest(body: string, auth?: string): Request {
   const headers: Record<string, string> = { "Content-Type": "application/json" };
-  if (auth !== undefined) headers["Authorization"] = auth;
+  if (auth !== undefined) headers.Authorization = auth;
   return new Request("http://localhost/hooks/gluecron/push", {
     method: "POST",
     headers,
@@ -164,18 +160,14 @@ describe("POST /hooks/gluecron/push — auth", () => {
   test("401 when Bearer token is wrong", async () => {
     const { deps } = makeDeps();
     const app = createGluecronPushApp(deps);
-    const res = await app.fetch(
-      makeRequest(validPayload(), "Bearer wrong_secret_xxx"),
-    );
+    const res = await app.fetch(makeRequest(validPayload(), "Bearer wrong_secret_xxx"));
     expect(res.status).toBe(401);
   });
 
   test("401 when secret is unset on the server", async () => {
     const { deps } = makeDeps({ secret: NO_SECRET });
     const app = createGluecronPushApp(deps);
-    const res = await app.fetch(
-      makeRequest(validPayload(), `Bearer ${SECRET}`),
-    );
+    const res = await app.fetch(makeRequest(validPayload(), `Bearer ${SECRET}`));
     expect(res.status).toBe(401);
   });
 
@@ -183,9 +175,7 @@ describe("POST /hooks/gluecron/push — auth", () => {
     await seedRepo();
     const { deps } = makeDeps();
     const app = createGluecronPushApp(deps);
-    const res = await app.fetch(
-      makeRequest(validPayload(), `Bearer ${SECRET}`),
-    );
+    const res = await app.fetch(makeRequest(validPayload(), `Bearer ${SECRET}`));
     expect(res.status).toBe(200);
   });
 });
@@ -198,9 +188,7 @@ describe("POST /hooks/gluecron/push — payload validation", () => {
   test("400 when body is not JSON", async () => {
     const { deps } = makeDeps();
     const app = createGluecronPushApp(deps);
-    const res = await app.fetch(
-      makeRequest("not-json-at-all", `Bearer ${SECRET}`),
-    );
+    const res = await app.fetch(makeRequest("not-json-at-all", `Bearer ${SECRET}`));
     expect(res.status).toBe(400);
   });
 
@@ -218,9 +206,7 @@ describe("POST /hooks/gluecron/push — payload validation", () => {
   test("400 when sha is not 40 hex chars", async () => {
     const { deps } = makeDeps();
     const app = createGluecronPushApp(deps);
-    const res = await app.fetch(
-      makeRequest(validPayload({ sha: "short" }), `Bearer ${SECRET}`),
-    );
+    const res = await app.fetch(makeRequest(validPayload({ sha: "short" }), `Bearer ${SECRET}`));
     expect(res.status).toBe(400);
   });
 
@@ -243,10 +229,7 @@ describe("POST /hooks/gluecron/push — lookup + deploy", () => {
     const { deps, calls } = makeDeps();
     const app = createGluecronPushApp(deps);
     const res = await app.fetch(
-      makeRequest(
-        validPayload({ repository: "unknown/repo" }),
-        `Bearer ${SECRET}`,
-      ),
+      makeRequest(validPayload({ repository: "unknown/repo" }), `Bearer ${SECRET}`),
     );
     expect(res.status).toBe(404);
     expect(calls.length).toBe(0);
@@ -256,9 +239,7 @@ describe("POST /hooks/gluecron/push — lookup + deploy", () => {
     await seedRepo({ autoDeploy: false });
     const { deps, calls } = makeDeps();
     const app = createGluecronPushApp(deps);
-    const res = await app.fetch(
-      makeRequest(validPayload(), `Bearer ${SECRET}`),
-    );
+    const res = await app.fetch(makeRequest(validPayload(), `Bearer ${SECRET}`));
     expect(res.status).toBe(200);
     const body = (await res.json()) as {
       ok: boolean;
@@ -277,9 +258,7 @@ describe("POST /hooks/gluecron/push — lookup + deploy", () => {
     await seedRepo({ autoDeploy: true });
     const { deps, calls } = makeDeps();
     const app = createGluecronPushApp(deps);
-    const res = await app.fetch(
-      makeRequest(validPayload(), `Bearer ${SECRET}`),
-    );
+    const res = await app.fetch(makeRequest(validPayload(), `Bearer ${SECRET}`));
     expect(res.status).toBe(200);
     const body = (await res.json()) as {
       ok: boolean;
@@ -292,10 +271,10 @@ describe("POST /hooks/gluecron/push — lookup + deploy", () => {
 
     // Orchestrator was called with the stored config values.
     expect(calls.length).toBe(1);
-    expect(calls[0]!.appName).toBe("example-app");
-    expect(calls[0]!.branch).toBe("main");
-    expect(calls[0]!.runtime).toBe("bun");
-    expect(calls[0]!.repoUrl).toBe(`https://github.com/${REPO}.git`);
+    expect(calls[0]?.appName).toBe("example-app");
+    expect(calls[0]?.branch).toBe("main");
+    expect(calls[0]?.runtime).toBe("bun");
+    expect(calls[0]?.repoUrl).toBe(`https://github.com/${REPO}.git`);
   });
 
   test("502 when orchestrator deploy throws", async () => {
@@ -304,9 +283,7 @@ describe("POST /hooks/gluecron/push — lookup + deploy", () => {
       deployError: new Error("orchestrator unreachable"),
     });
     const app = createGluecronPushApp(deps);
-    const res = await app.fetch(
-      makeRequest(validPayload(), `Bearer ${SECRET}`),
-    );
+    const res = await app.fetch(makeRequest(validPayload(), `Bearer ${SECRET}`));
     expect(res.status).toBe(502);
     expect(calls.length).toBe(1);
   });

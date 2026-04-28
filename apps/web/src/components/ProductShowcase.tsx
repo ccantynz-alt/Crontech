@@ -48,7 +48,8 @@ export const PRODUCTS: Product[] = [
   {
     icon: "database",
     title: "Edge Database",
-    description: "Turso SQLite replicas, Neon Postgres, and Qdrant vector search — one unified data layer.",
+    description:
+      "Turso SQLite replicas, Neon Postgres, and Qdrant vector search — one unified data layer.",
     href: "/database",
     status: "live",
   },
@@ -69,14 +70,16 @@ export const PRODUCTS: Product[] = [
   {
     icon: "brain",
     title: "AI Runtime",
-    description: "Three-tier compute with BYOK routing. Client GPU, edge, or cloud H100s on demand.",
+    description:
+      "Three-tier compute with BYOK routing. Client GPU, edge, or cloud H100s on demand.",
     href: "/chat",
     status: "live",
   },
   {
     icon: "radio",
     title: "Real-Time",
-    description: "SSE, WebSockets, and Yjs CRDTs on every edge node. Multi-user ready out of the box.",
+    description:
+      "SSE, WebSockets, and Yjs CRDTs on every edge node. Multi-user ready out of the box.",
     href: "/chat",
     status: "live",
   },
@@ -166,8 +169,8 @@ export function ProductShowcase(props: ProductShowcaseProps): JSX.Element {
           </div>
           <h2 class="product-showcase-title">Everything one platform can be</h2>
           <p class="product-showcase-subtitle">
-            Every product Crontech ships, in one place — unified billing, one
-            dashboard, one type-safe surface from the edge to the database.
+            Every product Crontech ships, in one place — unified billing, one dashboard, one
+            type-safe surface from the edge to the database.
           </p>
         </div>
 

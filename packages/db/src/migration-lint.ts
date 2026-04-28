@@ -165,9 +165,7 @@ export interface LintSummary {
  * Run `lintMigrationFile` over a list of `{ file, source }` records and
  * return a summary with findings split by severity.
  */
-export function lintMigrationSet(
-  files: Array<{ file: string; source: string }>,
-): LintSummary {
+export function lintMigrationSet(files: Array<{ file: string; source: string }>): LintSummary {
   const errors: LintFinding[] = [];
   const warnings: LintFinding[] = [];
   const erroredFiles = new Set<string>();

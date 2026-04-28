@@ -11,12 +11,12 @@
 // wrapper around `openai.chat.completions.create` or Anthropic's tool
 // use API. Deferred to Phase B so Phase A can ship.
 
-import { streamText, generateObject, stepCountIs, type ModelMessage } from "ai";
+import { ComponentCatalog, ComponentSchema } from "@back-to-the-future/schemas";
+import { type ModelMessage, generateObject, stepCountIs, streamText } from "ai";
 import { z } from "zod";
-import { ComponentSchema, ComponentCatalog } from "@back-to-the-future/schemas";
-import { getModelForTier, getDefaultModel, type AIProviderEnv } from "../providers";
-import { allTools } from "../tools";
 import type { ComputeTier } from "../compute-tier";
+import { type AIProviderEnv, getDefaultModel, getModelForTier } from "../providers";
+import { allTools } from "../tools";
 
 // ── System Prompt ─────────────────────────────────────────────────
 
@@ -35,17 +35,17 @@ ${Object.entries(ComponentCatalog)
   .map(([name]) => {
     switch (name) {
       case "Button":
-        return `- **Button**: Interactive button. Variants: default, primary, secondary, destructive, outline, ghost, link. Sizes: sm, md, lg, icon. Props: variant, size, disabled, loading, label, onClick.`;
+        return "- **Button**: Interactive button. Variants: default, primary, secondary, destructive, outline, ghost, link. Sizes: sm, md, lg, icon. Props: variant, size, disabled, loading, label, onClick.";
       case "Input":
-        return `- **Input**: Text input field. Types: text, email, password, number, search, tel, url. Props: type, placeholder, label, required, disabled, error, name.`;
+        return "- **Input**: Text input field. Types: text, email, password, number, search, tel, url. Props: type, placeholder, label, required, disabled, error, name.";
       case "Card":
-        return `- **Card**: Content container. Props: title, description, padding (none/sm/md/lg). Can contain children components.`;
+        return "- **Card**: Content container. Props: title, description, padding (none/sm/md/lg). Can contain children components.";
       case "Stack":
-        return `- **Stack**: Layout container. Direction: horizontal/vertical. Gap: none/xs/sm/md/lg/xl. Align: start/center/end/stretch. Justify: start/center/end/between/around. Can contain children.`;
+        return "- **Stack**: Layout container. Direction: horizontal/vertical. Gap: none/xs/sm/md/lg/xl. Align: start/center/end/stretch. Justify: start/center/end/between/around. Can contain children.";
       case "Text":
-        return `- **Text**: Text display. Variants: h1, h2, h3, h4, body, caption, code. Weight: normal/medium/semibold/bold. Align: left/center/right.`;
+        return "- **Text**: Text display. Variants: h1, h2, h3, h4, body, caption, code. Weight: normal/medium/semibold/bold. Align: left/center/right.";
       case "Modal":
-        return `- **Modal**: Dialog overlay. Size: sm/md/lg/xl/full. Props: title, description, open. Can contain children.`;
+        return "- **Modal**: Dialog overlay. Size: sm/md/lg/xl/full. Props: title, description, open. Can contain children.";
       default:
         return `- **${name}**: Available component.`;
     }

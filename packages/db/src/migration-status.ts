@@ -155,9 +155,7 @@ export interface MigrationStatusDb {
  * Query the `__drizzle_migrations` table directly. Returns an empty
  * array if the table does not exist yet (fresh DB, never migrated).
  */
-export async function readAppliedMigrations(
-  db: MigrationStatusDb,
-): Promise<DrizzleMigrationRow[]> {
+export async function readAppliedMigrations(db: MigrationStatusDb): Promise<DrizzleMigrationRow[]> {
   // Probe for the table first so we don't log a scary error on fresh DBs.
   const probe = await db.all<{ name: string }>(
     sql`SELECT name FROM sqlite_master WHERE type = 'table' AND name = '__drizzle_migrations'`,
@@ -171,8 +169,8 @@ export async function readAppliedMigrations(
   );
 
   return rows.map((row) => {
-    const hash = typeof row["hash"] === "string" ? row["hash"] : String(row["hash"]);
-    const rawCreatedAt = row["created_at"];
+    const hash = typeof row.hash === "string" ? row.hash : String(row.hash);
+    const rawCreatedAt = row.created_at;
     const createdAt =
       typeof rawCreatedAt === "number"
         ? rawCreatedAt
@@ -224,9 +222,7 @@ export async function getMigrationStatus(
   const lastApplied =
     applied.length === 0
       ? null
-      : applied.reduce((best, m) =>
-          (m.appliedAt ?? 0) > (best.appliedAt ?? 0) ? m : best,
-        );
+      : applied.reduce((best, m) => ((m.appliedAt ?? 0) > (best.appliedAt ?? 0) ? m : best));
 
   const driftOnFilesystem = pending;
   const inSync = driftOnFilesystem.length === 0 && driftInDatabase.length === 0;

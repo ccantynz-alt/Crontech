@@ -12,13 +12,13 @@
 //   6. Second identical call hits the in-memory cache (cached=true).
 //   7. Router health probe responds with the default TLD set.
 
-import { describe, test, expect, beforeEach } from "bun:test";
+import { beforeEach, describe, expect, test } from "bun:test";
 import { db } from "@back-to-the-future/db";
 import { initTRPC } from "@trpc/server";
-import { createDomainSearchRouter } from "./domain-search";
 import { DomainSearchCache } from "../../domain-search";
 import type { SoaResolver } from "../../domain-search/availability";
 import type { TRPCContext } from "../context";
+import { createDomainSearchRouter } from "./domain-search";
 
 function publicCtx(): TRPCContext {
   return {
@@ -74,7 +74,7 @@ describe("domainSearch.search", () => {
   beforeEach(() => {
     // Ensure no env leakage from a dev machine with a real key changes
     // the default-model path during tests.
-    process.env["ANTHROPIC_API_KEY"] = "";
+    process.env.ANTHROPIC_API_KEY = "";
   });
 
   test("returns only available domains and omits taken ones", async () => {
@@ -250,8 +250,6 @@ describe("domainSearch — orchestrator plumbing", () => {
     });
     // Either the suggestions array populated, or a polite error note
     // was returned — both are acceptable without a real model.
-    expect(
-      Array.isArray(out.suggestions) || typeof out.suggestionsNote === "string",
-    ).toBe(true);
+    expect(Array.isArray(out.suggestions) || typeof out.suggestionsNote === "string").toBe(true);
   });
 });

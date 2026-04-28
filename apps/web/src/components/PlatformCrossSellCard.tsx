@@ -61,24 +61,18 @@ export function PlatformCrossSellCard(): JSX.Element {
           >
             Pairs well with
           </span>
-          <h3
-            class="text-lg font-bold tracking-tight"
-            style={{ color: "var(--color-text)" }}
-          >
+          <h3 class="text-lg font-bold tracking-tight" style={{ color: "var(--color-text)" }}>
             Crontech plus Gluecron and GateTest
           </h3>
-          <p
-            class="max-w-xl text-sm"
-            style={{ color: "var(--color-text-muted)" }}
-          >
-            Two sibling products that fit alongside Crontech — Gluecron for
-            git hosting and GateTest for preview environments. Same team,
-            same feel, no new account needed to take a look.
+          <p class="max-w-xl text-sm" style={{ color: "var(--color-text-muted)" }}>
+            Two sibling products that fit alongside Crontech — Gluecron for git hosting and GateTest
+            for preview environments. Same team, same feel, no new account needed to take a look.
           </p>
         </div>
         <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {SIBLINGS.map((sibling) => (
             <a
+              key={sibling.href}
               href={sibling.href}
               target="_blank"
               rel="noopener noreferrer"
@@ -100,16 +94,10 @@ export function PlatformCrossSellCard(): JSX.Element {
                 {sibling.icon}
               </span>
               <span class="flex min-w-0 flex-1 flex-col">
-                <span
-                  class="text-sm font-semibold"
-                  style={{ color: "var(--color-text)" }}
-                >
+                <span class="text-sm font-semibold" style={{ color: "var(--color-text)" }}>
                   {sibling.name}
                 </span>
-                <span
-                  class="text-[11px]"
-                  style={{ color: "var(--color-text-faint)" }}
-                >
+                <span class="text-[11px]" style={{ color: "var(--color-text-faint)" }}>
                   {sibling.blurb}
                 </span>
               </span>

@@ -1,9 +1,9 @@
-import { describe, test, expect } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import {
+  calculatePasswordStrength,
+  loginWithPasswordSchema,
   passwordSchema,
   registerWithPasswordSchema,
-  loginWithPasswordSchema,
-  calculatePasswordStrength,
 } from "./password";
 
 const STRONG_PASSWORD = "MyP@ssw0rd!23";

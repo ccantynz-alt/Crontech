@@ -19,15 +19,8 @@
 // gates its page content.
 
 import { Title } from "@solidjs/meta";
-import {
-  createSignal,
-  createResource,
-  For,
-  Show,
-  onMount,
-  type JSX,
-} from "solid-js";
 import { A } from "@solidjs/router";
+import { For, type JSX, Show, createResource, createSignal, onMount } from "solid-js";
 import { AdminRoute } from "../../components/AdminRoute";
 import { trpc } from "../../lib/trpc";
 
@@ -97,8 +90,8 @@ export function formatMonthlySpend(dollars: number | null | undefined): string {
 export function isMissingKeyError(payload: unknown): boolean {
   if (!payload || typeof payload !== "object") return false;
   const record = payload as Record<string, unknown>;
-  const error = typeof record["error"] === "string" ? (record["error"] as string) : "";
-  const hint = typeof record["hint"] === "string" ? (record["hint"] as string) : "";
+  const error = typeof record.error === "string" ? (record.error as string) : "";
+  const hint = typeof record.hint === "string" ? (record.hint as string) : "";
   const combined = `${error} ${hint}`.toLowerCase();
   if (combined.includes("no anthropic api key")) return true;
   if (combined.includes("provider key")) return true;
@@ -113,21 +106,19 @@ export function isMissingKeyError(payload: unknown): boolean {
  * stays well-formed without needing to render.
  */
 export function buildModelOptions(): ModelOption[] {
-  return (Object.entries(ANTHROPIC_MODELS) as Array<[
-    AnthropicModelId,
-    (typeof ANTHROPIC_MODELS)[AnthropicModelId],
-  ]>).map(([id, info]) => ({ id, name: info.name }));
+  return (
+    Object.entries(ANTHROPIC_MODELS) as Array<
+      [AnthropicModelId, (typeof ANTHROPIC_MODELS)[AnthropicModelId]]
+    >
+  ).map(([id, info]) => ({ id, name: info.name }));
 }
 
 // ── API URL + session helpers (mirrors chat.tsx) ────────────────────
 
 function getApiUrl(): string {
   if (typeof window !== "undefined") {
-    const meta = import.meta as unknown as Record<
-      string,
-      Record<string, string> | undefined
-    >;
-    const envUrl = meta["env"]?.["VITE_PUBLIC_API_URL"];
+    const meta = import.meta as unknown as Record<string, Record<string, string> | undefined>;
+    const envUrl = meta.env?.VITE_PUBLIC_API_URL;
     if (envUrl) return envUrl;
     const { protocol, hostname } = window.location;
     if (hostname === "crontech.ai" || hostname === "www.crontech.ai") {
@@ -164,9 +155,7 @@ function ConversationItem(props: {
       style={{
         background: props.isActive ? "var(--color-bg-elevated)" : "transparent",
         color: props.isActive ? "var(--color-text)" : "var(--color-text-secondary)",
-        border: props.isActive
-          ? "1px solid var(--color-border)"
-          : "1px solid transparent",
+        border: props.isActive ? "1px solid var(--color-border)" : "1px solid transparent",
       }}
     >
       <div class="flex min-w-0 flex-1 flex-col">
@@ -195,17 +184,13 @@ function MessageBubble(props: { message: ChatMessage }): JSX.Element {
       >
         {isUser() ? "You" : "C"}
       </div>
-      <div
-        class={`flex max-w-[80%] flex-col gap-1.5 ${isUser() ? "items-end" : ""}`}
-      >
+      <div class={`flex max-w-[80%] flex-col gap-1.5 ${isUser() ? "items-end" : ""}`}>
         <div
           class="rounded-2xl px-4 py-3 text-sm leading-relaxed"
           style={{
             background: isUser() ? "var(--color-primary)" : "var(--color-bg-muted)",
             border: "1px solid var(--color-border)",
-            color: isUser()
-              ? "var(--color-primary-text)"
-              : "var(--color-text-secondary)",
+            color: isUser() ? "var(--color-primary-text)" : "var(--color-text-secondary)",
             "white-space": "pre-wrap",
           }}
         >
@@ -260,8 +245,8 @@ function MissingKeyCallout(): JSX.Element {
           Add an Anthropic API key to start chatting
         </span>
         <span class="text-xs" style={{ color: "var(--color-text-muted)" }}>
-          The Claude Console needs a provider key before it can stream a
-          reply. Save yours in Settings to unlock the console.
+          The Claude Console needs a provider key before it can stream a reply. Save yours in
+          Settings to unlock the console.
         </span>
       </div>
       <A
@@ -294,9 +279,7 @@ function AdminClaudeConsole(): JSX.Element {
   const [input, setInput] = createSignal("");
   const [isStreaming, setIsStreaming] = createSignal(false);
   const [streamContent, setStreamContent] = createSignal("");
-  const [selectedModel, setSelectedModel] = createSignal<string>(
-    "claude-sonnet-4-6",
-  );
+  const [selectedModel, setSelectedModel] = createSignal<string>("claude-sonnet-4-6");
   const [error, setError] = createSignal<string | null>(null);
   const [needsKey, setNeedsKey] = createSignal(false);
 
@@ -435,11 +418,11 @@ function AdminClaudeConsole(): JSX.Element {
         } else {
           const hint =
             payload && typeof payload === "object" && "hint" in payload
-              ? String((payload as Record<string, unknown>)["hint"])
+              ? String((payload as Record<string, unknown>).hint)
               : null;
           const errText =
             payload && typeof payload === "object" && "error" in payload
-              ? String((payload as Record<string, unknown>)["error"])
+              ? String((payload as Record<string, unknown>).error)
               : `Stream failed (${response.status}).`;
           setError(hint ?? errText);
         }
@@ -505,8 +488,7 @@ function AdminClaudeConsole(): JSX.Element {
     }
   };
 
-  const monthSpendLabel = (): string =>
-    formatMonthlySpend(usage()?.monthCostDollars);
+  const monthSpendLabel = (): string => formatMonthlySpend(usage()?.monthCostDollars);
 
   return (
     <div class="flex h-screen flex-col" style={{ background: "var(--color-bg)" }}>
@@ -554,9 +536,7 @@ function AdminClaudeConsole(): JSX.Element {
             >
               Month
             </span>
-            <span style={{ color: "var(--color-primary-light)" }}>
-              {monthSpendLabel()}
-            </span>
+            <span style={{ color: "var(--color-primary-light)" }}>{monthSpendLabel()}</span>
           </span>
           <A
             href="/admin/claude/settings"
@@ -582,20 +562,14 @@ function AdminClaudeConsole(): JSX.Element {
             "border-right": "1px solid var(--color-border)",
           }}
         >
-          <div
-            class="px-5 py-4"
-            style={{ "border-bottom": "1px solid var(--color-border)" }}
-          >
+          <div class="px-5 py-4" style={{ "border-bottom": "1px solid var(--color-border)" }}>
             <span
               class="text-[10px] font-semibold uppercase tracking-widest"
               style={{ color: "var(--color-text-faint)" }}
             >
               Conversations
             </span>
-            <div
-              class="mt-1 text-xs"
-              style={{ color: "var(--color-text-muted)" }}
-            >
+            <div class="mt-1 text-xs" style={{ color: "var(--color-text-muted)" }}>
               Pick one to load its history, or start a new message below.
             </div>
           </div>
@@ -604,10 +578,7 @@ function AdminClaudeConsole(): JSX.Element {
               when={conversations().length > 0}
               fallback={
                 <div class="flex flex-col items-center gap-2 py-12 text-center">
-                  <span
-                    class="text-xs"
-                    style={{ color: "var(--color-text-faint)" }}
-                  >
+                  <span class="text-xs" style={{ color: "var(--color-text-faint)" }}>
                     No conversations yet. Send your first message to start one.
                   </span>
                 </div>
@@ -639,8 +610,7 @@ function AdminClaudeConsole(): JSX.Element {
           >
             <span class="text-sm font-semibold" style={{ color: "var(--color-text)" }}>
               {activeConvId()
-                ? (conversations().find((c) => c.id === activeConvId())?.title ??
-                  "Conversation")
+                ? (conversations().find((c) => c.id === activeConvId())?.title ?? "Conversation")
                 : "New conversation"}
             </span>
             <label class="flex items-center gap-2 text-xs">
@@ -675,10 +645,7 @@ function AdminClaudeConsole(): JSX.Element {
               }}
             >
               <span style={{ color: "var(--color-text-secondary)" }}>!</span>
-              <span
-                class="flex-1 text-xs"
-                style={{ color: "var(--color-text-secondary)" }}
-              >
+              <span class="flex-1 text-xs" style={{ color: "var(--color-text-secondary)" }}>
                 {error()}
               </span>
               <button
@@ -696,26 +663,17 @@ function AdminClaudeConsole(): JSX.Element {
             <div class="mx-auto flex max-w-3xl flex-col gap-6">
               <Show when={messages().length === 0 && !isStreaming()}>
                 <div class="flex flex-col items-center gap-3 py-16 text-center">
-                  <span
-                    class="text-sm font-semibold"
-                    style={{ color: "var(--color-text)" }}
-                  >
+                  <span class="text-sm font-semibold" style={{ color: "var(--color-text)" }}>
                     Claude Console
                   </span>
-                  <span
-                    class="max-w-sm text-xs"
-                    style={{ color: "var(--color-text-muted)" }}
-                  >
-                    Ask a question, review a file, or draft a plan. Replies stream
-                    directly from the Anthropic API using the key stored in
-                    Settings.
+                  <span class="max-w-sm text-xs" style={{ color: "var(--color-text-muted)" }}>
+                    Ask a question, review a file, or draft a plan. Replies stream directly from the
+                    Anthropic API using the key stored in Settings.
                   </span>
                 </div>
               </Show>
 
-              <For each={messages()}>
-                {(msg) => <MessageBubble message={msg} />}
-              </For>
+              <For each={messages()}>{(msg) => <MessageBubble message={msg} />}</For>
 
               <Show when={isStreaming()}>
                 <div class="flex gap-3">
@@ -739,11 +697,7 @@ function AdminClaudeConsole(): JSX.Element {
                   >
                     <Show
                       when={streamContent()}
-                      fallback={
-                        <span style={{ color: "var(--color-text-faint)" }}>
-                          Thinking…
-                        </span>
-                      }
+                      fallback={<span style={{ color: "var(--color-text-faint)" }}>Thinking…</span>}
                     >
                       {streamContent()}
                     </Show>
@@ -797,16 +751,10 @@ function AdminClaudeConsole(): JSX.Element {
                 </button>
               </div>
               <div class="mt-2 flex items-center justify-between px-1">
-                <span
-                  class="text-[10px]"
-                  style={{ color: "var(--color-text-faint)" }}
-                >
+                <span class="text-[10px]" style={{ color: "var(--color-text-faint)" }}>
                   Shift+Enter for a new line.
                 </span>
-                <span
-                  class="text-[10px]"
-                  style={{ color: "var(--color-text-faint)" }}
-                >
+                <span class="text-[10px]" style={{ color: "var(--color-text-faint)" }}>
                   Streaming through /api/chat/stream.
                 </span>
               </div>

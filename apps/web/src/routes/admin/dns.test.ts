@@ -11,12 +11,7 @@
 import { describe, expect, test } from "bun:test";
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import {
-  isValidZoneName,
-  isValidAdminEmail,
-  formatZoneSerial,
-  normalizeZoneRow,
-} from "./dns";
+import { formatZoneSerial, isValidAdminEmail, isValidZoneName, normalizeZoneRow } from "./dns";
 
 const ROUTE_PATH = resolve(import.meta.dir, "dns.tsx");
 

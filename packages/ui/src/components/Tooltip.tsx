@@ -1,4 +1,4 @@
-import { type JSX, Show, splitProps, createSignal } from "solid-js";
+import { type JSX, Show, createSignal, splitProps } from "solid-js";
 
 export interface TooltipProps {
   content: string;
@@ -8,12 +8,7 @@ export interface TooltipProps {
 }
 
 export function Tooltip(props: TooltipProps): JSX.Element {
-  const [local, rest] = splitProps(props, [
-    "content",
-    "position",
-    "class",
-    "children",
-  ]);
+  const [local, rest] = splitProps(props, ["content", "position", "class", "children"]);
 
   const [visible, setVisible] = createSignal(false);
 
@@ -28,10 +23,7 @@ export function Tooltip(props: TooltipProps): JSX.Element {
     >
       {local.children}
       <Show when={visible()}>
-        <div
-          class={`tooltip tooltip-${local.position ?? "top"}`}
-          role="tooltip"
-        >
+        <div class={`tooltip tooltip-${local.position ?? "top"}`} role="tooltip">
           {local.content}
         </div>
       </Show>

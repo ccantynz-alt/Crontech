@@ -1,5 +1,5 @@
 import type { MiddlewareHandler } from "hono";
-import { createKvRateLimiter, type KvNamespaceLike } from "./rate-limiter-kv";
+import { type KvNamespaceLike, createKvRateLimiter } from "./rate-limiter-kv";
 
 interface RateLimitBucket {
   tokens: number;
@@ -18,13 +18,11 @@ interface RateLimiterOptions {
  * fallback path when KV is unreachable. Preserved for green-ecosystem
  * backwards compatibility — do not delete.
  */
-export function createMemoryRateLimiter(
-  opts: RateLimiterOptions = {},
-): MiddlewareHandler {
+export function createMemoryRateLimiter(opts: RateLimiterOptions = {}): MiddlewareHandler {
   const windowMs = opts.windowMs ?? 60_000;
   const max = opts.max ?? 100;
 
-  return async (c, next): Promise<Response | void> => {
+  return async (c, next): Promise<Response | undefined> => {
     const ip = c.req.header("x-forwarded-for") ?? c.req.header("x-real-ip") ?? "unknown";
     const key = `${ip}:${c.req.path}`;
     const now = Date.now();
@@ -76,9 +74,7 @@ interface AutoRateLimiterOptions extends RateLimiterOptions {
  * back to the in-memory limiter otherwise. This is the preferred entry
  * point for all new wiring.
  */
-export function createRateLimiter(
-  opts: AutoRateLimiterOptions = {},
-): MiddlewareHandler {
+export function createRateLimiter(opts: AutoRateLimiterOptions = {}): MiddlewareHandler {
   const kv = opts.env?.RATE_LIMIT_KV;
   if (kv) {
     const kvOpts: Parameters<typeof createKvRateLimiter>[0] = { kv };

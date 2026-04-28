@@ -5,16 +5,16 @@
 //
 // Writes (ingest) are handled by the CLI + theatre emitter, not tRPC.
 
-import { z } from "zod";
-import { TRPCError } from "@trpc/server";
 import {
-  searchMemory,
-  getSession,
-  listRecentSessions,
   buildSessionBrief,
+  getSession,
   getTopLessons,
+  listRecentSessions,
+  searchMemory,
 } from "@back-to-the-future/flywheel";
-import { router, protectedProcedure } from "../init";
+import { TRPCError } from "@trpc/server";
+import { z } from "zod";
+import { protectedProcedure, router } from "../init";
 
 export const flywheelRouter = router({
   /** List the most recent ingested sessions, optionally filtered by branch. */

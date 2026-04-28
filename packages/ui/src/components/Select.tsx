@@ -1,5 +1,5 @@
 import type { JSX } from "solid-js";
-import { splitProps, Show, For } from "solid-js";
+import { For, Show, splitProps } from "solid-js";
 
 export interface SelectOption {
   value: string;
@@ -32,12 +32,19 @@ export function Select(props: SelectProps): JSX.Element {
     "onChange",
   ]);
 
+  const selectId =
+    local.name ??
+    (local.label ? `select-${local.label.toLowerCase().replace(/\s+/g, "-")}` : undefined);
+
   return (
     <div class="select-wrapper">
       <Show when={local.label}>
-        <label class="select-label">{local.label}</label>
+        <label class="select-label" for={selectId}>
+          {local.label}
+        </label>
       </Show>
       <select
+        id={selectId}
         class={`select ${local.error ? "select-error" : ""} ${local.class ?? ""}`}
         value={local.value ?? ""}
         name={local.name}

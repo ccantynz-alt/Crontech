@@ -5,8 +5,8 @@
 
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { randomUUID } from "node:crypto";
+import { db, usageEvents, users } from "@back-to-the-future/db";
 import { eq } from "drizzle-orm";
-import { db, users, usageEvents } from "@back-to-the-future/db";
 import {
   billingMonthFor,
   checkUsageLimit,
@@ -64,8 +64,8 @@ describe("usage-meter", () => {
     const month = currentBillingMonth();
     const rows = await getMonthlyUsage(USER_ID, month);
     const byType = Object.fromEntries(rows.map((r) => [r.eventType, r.total]));
-    expect(byType["build"]).toBe(12);
-    expect(byType["ai_tokens"]).toBe(2_500);
+    expect(byType.build).toBe(12);
+    expect(byType.ai_tokens).toBe(2_500);
   });
 
   test("checkUsageLimit reports exceeded state against a plan", async () => {

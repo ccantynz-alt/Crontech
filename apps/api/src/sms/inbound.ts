@@ -13,8 +13,6 @@
 // delivery guarantees live in the webhook engine, and we want the
 // Sinch reply to be fast (< 200ms target).
 
-import { Hono } from "hono";
-import { and, desc, eq } from "drizzle-orm";
 import {
   smsMessages,
   smsNumbers,
@@ -23,11 +21,10 @@ import {
   webhookDeliveries,
 } from "@back-to-the-future/db";
 import { db as defaultDb } from "@back-to-the-future/db";
-import {
-  SinchInboundWebhookSchema,
-  type SinchInboundWebhook,
-} from "./sinch-types";
+import { and, desc, eq } from "drizzle-orm";
+import { Hono } from "hono";
 import { verifySinchSignature } from "./sinch-client";
+import { type SinchInboundWebhook, SinchInboundWebhookSchema } from "./sinch-types";
 
 export type DbClient = typeof defaultDb;
 
@@ -47,8 +44,7 @@ export interface InboundHookDeps {
  */
 export function createInboundSmsApp(deps: InboundHookDeps = {}): Hono {
   const db = deps.db ?? defaultDb;
-  const getSecret =
-    deps.getSecret ?? (() => process.env["SINCH_WEBHOOK_SECRET"]);
+  const getSecret = deps.getSecret ?? (() => process.env.SINCH_WEBHOOK_SECRET);
   const now = deps.now ?? (() => Date.now());
 
   const app = new Hono();
@@ -68,9 +64,7 @@ export function createInboundSmsApp(deps: InboundHookDeps = {}): Hono {
       );
     }
     const provided =
-      c.req.header("x-sinch-signature") ??
-      c.req.header("x-sinch-webhook-signature") ??
-      null;
+      c.req.header("x-sinch-signature") ?? c.req.header("x-sinch-webhook-signature") ?? null;
     const valid = await verifySinchSignature({
       rawBody,
       provided,
@@ -86,8 +80,7 @@ export function createInboundSmsApp(deps: InboundHookDeps = {}): Hono {
       const json = JSON.parse(rawBody) as unknown;
       parsed = SinchInboundWebhookSchema.parse(json);
     } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Unable to parse the inbound payload.";
+      const message = err instanceof Error ? err.message : "Unable to parse the inbound payload.";
       return c.json({ ok: false, error: message }, 400);
     }
 
@@ -98,13 +91,11 @@ export function createInboundSmsApp(deps: InboundHookDeps = {}): Hono {
     const owner = await findNumberOwner(db, parsed.to);
     if (!owner) {
       // Ack the webhook so Sinch does not storm us, but log.
-      console.warn(
-        `[sms-inbound] Ignoring inbound to ${parsed.to}: number not owned by any user.`,
-      );
+      console.warn(`[sms-inbound] Ignoring inbound to ${parsed.to}: number not owned by any user.`);
       return c.json({ ok: true, status: "ignored" as const });
     }
 
-    const messageId = `sms_${Date.now().toString(36)}_${crypto.randomUUID().replace(/-/g, '').slice(0, 8)}`;
+    const messageId = `sms_${Date.now().toString(36)}_${crypto.randomUUID().replace(/-/g, "").slice(0, 8)}`;
     const receivedAt = new Date(now());
     const row: typeof smsMessages.$inferInsert = {
       id: messageId,
@@ -157,10 +148,7 @@ export const inboundSmsApp = createInboundSmsApp();
 
 // ── Helpers ────────────────────────────────────────────────────────────
 
-async function findNumberOwner(
-  db: DbClient,
-  e164: string,
-): Promise<{ userId: string } | null> {
+async function findNumberOwner(db: DbClient, e164: string): Promise<{ userId: string } | null> {
   const rows = await db
     .select({ userId: smsNumbers.userId })
     .from(smsNumbers)
@@ -218,14 +206,11 @@ async function enqueueCustomerWebhook(
       .select()
       .from(userWebhooks)
       .where(
-        and(
-          eq(userWebhooks.userId, input.userId),
-          eq(userWebhooks.url, sub.customerWebhookUrl),
-        ),
+        and(eq(userWebhooks.userId, input.userId), eq(userWebhooks.url, sub.customerWebhookUrl)),
       )
       .limit(1);
     if (!shadow[0]) {
-      const shadowId = `uwh_${Date.now().toString(36)}_${crypto.randomUUID().replace(/-/g, '').slice(0, 6)}`;
+      const shadowId = `uwh_${Date.now().toString(36)}_${crypto.randomUUID().replace(/-/g, "").slice(0, 6)}`;
       await db.insert(userWebhooks).values({
         id: shadowId,
         userId: input.userId,
@@ -234,15 +219,11 @@ async function enqueueCustomerWebhook(
         secret: sub.hmacSecret,
         isActive: true,
       });
-      shadow = await db
-        .select()
-        .from(userWebhooks)
-        .where(eq(userWebhooks.id, shadowId))
-        .limit(1);
+      shadow = await db.select().from(userWebhooks).where(eq(userWebhooks.id, shadowId)).limit(1);
     }
     const hook = shadow[0];
     if (!hook) continue;
-    const deliveryId = `wdel_${Date.now().toString(36)}_${crypto.randomUUID().replace(/-/g, '').slice(0, 6)}`;
+    const deliveryId = `wdel_${Date.now().toString(36)}_${crypto.randomUUID().replace(/-/g, "").slice(0, 6)}`;
     await db.insert(webhookDeliveries).values({
       id: deliveryId,
       webhookId: hook.id,

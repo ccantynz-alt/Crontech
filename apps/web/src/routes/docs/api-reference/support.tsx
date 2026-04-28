@@ -6,11 +6,7 @@
 
 import type { JSX } from "solid-js";
 import { SEOHead } from "../../../components/SEOHead";
-import {
-  DocsArticle,
-  Callout,
-  KeyList,
-} from "../../../components/docs/DocsArticle";
+import { Callout, DocsArticle, KeyList } from "../../../components/docs/DocsArticle";
 
 export default function SupportReference(): JSX.Element {
   return (
@@ -30,24 +26,22 @@ export default function SupportReference(): JSX.Element {
         nextStep={{
           label: "Back to the API Reference index",
           href: "/docs/api-reference",
-          description:
-            "Every other router in the app, grouped by subsystem.",
+          description: "Every other router in the app, grouped by subsystem.",
         }}
       >
         <p>
-          A previous iteration of the support page faked a submission
-          — the form dispatched a <code>setTimeout</code> success
-          toast and nothing ever reached anyone. The current router
-          routes every submission through the real inbound-email
-          pipeline, the same pipeline that handles{" "}
-          <code>support@crontech.ai</code> email, so a prospect who
-          fills the form gets the same treatment as a prospect who
-          emails the address directly.
+          A previous iteration of the support page faked a submission — the form dispatched a{" "}
+          <code>setTimeout</code> success toast and nothing ever reached anyone. The current router
+          routes every submission through the real inbound-email pipeline, the same pipeline that
+          handles <code>support@crontech.ai</code> email, so a prospect who fills the form gets the
+          same treatment as a prospect who emails the address directly.
         </p>
 
         <h2>Submission (two flavours)</h2>
 
-        <h3><code>support.submitPublic</code></h3>
+        <h3>
+          <code>support.submitPublic</code>
+        </h3>
         <p>
           Public <em>mutation</em>. Input:
         </p>
@@ -70,14 +64,14 @@ export default function SupportReference(): JSX.Element {
 })`}</code>
         </pre>
         <p>
-          The <code>from</code> address is derived from the submitted{" "}
-          <code>email</code> field (not a session). The subject is
-          auto-built from the first 60 characters of the message plus
-          the category prefix. Returns{" "}
-          <code>{`{ ticketId, action }`}</code>.
+          The <code>from</code> address is derived from the submitted <code>email</code> field (not
+          a session). The subject is auto-built from the first 60 characters of the message plus the
+          category prefix. Returns <code>{"{ ticketId, action }"}</code>.
         </p>
 
-        <h3><code>support.submitRequest</code></h3>
+        <h3>
+          <code>support.submitRequest</code>
+        </h3>
         <p>
           Protected <em>mutation</em>. Input:
         </p>
@@ -99,71 +93,72 @@ export default function SupportReference(): JSX.Element {
 })`}</code>
         </pre>
         <p>
-          Same pipeline as public submission, but the <code>from</code>{" "}
-          address comes from the session's user row. No need for the
-          caller to re-type their email.
+          Same pipeline as public submission, but the <code>from</code> address comes from the
+          session's user row. No need for the caller to re-type their email.
         </p>
 
         <Callout tone="info" title="Category enum">
-          Both submission procedures share a single category enum —
-          billing, account, bug, feature, security, other. The admin
-          UI uses the category to auto-assign tickets to the right
-          queue.
+          Both submission procedures share a single category enum — billing, account, bug, feature,
+          security, other. The admin UI uses the category to auto-assign tickets to the right queue.
         </Callout>
 
         <h2>Admin triage</h2>
 
         <Callout tone="warn">
-          Every procedure below is admin-gated. An unauthenticated or
-          non-admin caller receives <code>UNAUTHORIZED</code>.
+          Every procedure below is admin-gated. An unauthenticated or non-admin caller receives{" "}
+          <code>UNAUTHORIZED</code>.
         </Callout>
 
-        <h3><code>support.listTickets</code></h3>
+        <h3>
+          <code>support.listTickets</code>
+        </h3>
         <p>
-          Admin <em>query</em>. Input carries pagination + filter
-          params (<code>status</code>, <code>category</code>,{" "}
-          <code>search</code>). Returns a page of tickets with their
-          latest message, assignment, and AI-draft status.
+          Admin <em>query</em>. Input carries pagination + filter params (<code>status</code>,{" "}
+          <code>category</code>, <code>search</code>). Returns a page of tickets with their latest
+          message, assignment, and AI-draft status.
         </p>
 
-        <h3><code>support.getTicket</code></h3>
+        <h3>
+          <code>support.getTicket</code>
+        </h3>
         <p>
-          Admin <em>query</em>. Input{" "}
-          <code>{`{ id: string }`}</code>. Returns the full ticket —
-          every message, attachments, assignment history, and the
-          current AI-drafted reply (if any).
+          Admin <em>query</em>. Input <code>{"{ id: string }"}</code>. Returns the full ticket —
+          every message, attachments, assignment history, and the current AI-drafted reply (if any).
         </p>
 
-        <h3><code>support.approveDraft</code></h3>
+        <h3>
+          <code>support.approveDraft</code>
+        </h3>
         <p>
-          Admin <em>mutation</em>. Input{" "}
-          <code>{`{ ticketId: string }`}</code>. The agent has read the
-          AI-drafted reply and green-lit it as-is. The draft is sent
-          as an email, appended to the ticket thread, and the status
-          advances accordingly.
+          Admin <em>mutation</em>. Input <code>{"{ ticketId: string }"}</code>. The agent has read
+          the AI-drafted reply and green-lit it as-is. The draft is sent as an email, appended to
+          the ticket thread, and the status advances accordingly.
         </p>
 
-        <h3><code>support.editAndSend</code></h3>
+        <h3>
+          <code>support.editAndSend</code>
+        </h3>
         <p>
-          Admin <em>mutation</em>. Input{" "}
-          <code>{`{ ticketId: string, body: string }`}</code>. The
-          agent has rewritten (or fully replaced) the AI draft. The
-          edited body is the canonical reply — sent, threaded, logged.
+          Admin <em>mutation</em>. Input <code>{"{ ticketId: string, body: string }"}</code>. The
+          agent has rewritten (or fully replaced) the AI draft. The edited body is the canonical
+          reply — sent, threaded, logged.
         </p>
 
-        <h3><code>support.updateStatus</code></h3>
+        <h3>
+          <code>support.updateStatus</code>
+        </h3>
         <p>
-          Admin <em>mutation</em>. Input{" "}
-          <code>{`{ id: string, status: StatusEnum }`}</code>. Status
-          values are <code>open</code>, <code>pending</code>,{" "}
-          <code>resolved</code>, <code>closed</code>.
+          Admin <em>mutation</em>. Input <code>{"{ id: string, status: StatusEnum }"}</code>. Status
+          values are <code>open</code>, <code>pending</code>, <code>resolved</code>,{" "}
+          <code>closed</code>.
         </p>
 
-        <h3><code>support.getStats</code></h3>
+        <h3>
+          <code>support.getStats</code>
+        </h3>
         <p>
-          Admin <em>query</em>. No input. Returns the dashboard
-          stats — open ticket count, average response time, backlog by
-          category, AI-draft acceptance rate.
+          Admin <em>query</em>. No input. Returns the dashboard stats — open ticket count, average
+          response time, backlog by category, AI-draft acceptance rate.
         </p>
 
         <h2>Worked example — submit a ticket from a marketing page</h2>
@@ -212,11 +207,10 @@ export default function SupportReference(): JSX.Element {
         />
 
         <Callout tone="note">
-          The <code>processInboundEmail</code> helper is shared
-          between this router and the real inbound SMTP pipeline, so
-          every ticket — whether it came from a logged-in dashboard
-          submission, a public marketing-page form, or a direct email
-          — lands in the same queue with the same shape.
+          The <code>processInboundEmail</code> helper is shared between this router and the real
+          inbound SMTP pipeline, so every ticket — whether it came from a logged-in dashboard
+          submission, a public marketing-page form, or a direct email — lands in the same queue with
+          the same shape.
         </Callout>
       </DocsArticle>
     </>

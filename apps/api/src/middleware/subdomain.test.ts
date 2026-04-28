@@ -1,8 +1,8 @@
-import { describe, test, expect, beforeAll } from "bun:test";
-import { Hono } from "hono";
+import { beforeAll, describe, expect, test } from "bun:test";
 import { db } from "@back-to-the-future/db";
 import { tenants } from "@back-to-the-future/db/schema";
-import { subdomainRouter, invalidateTenantCache, type TenantEnv } from "./subdomain";
+import { Hono } from "hono";
+import { type TenantEnv, invalidateTenantCache, subdomainRouter } from "./subdomain";
 
 // ── Test Hono app ────────────────────────────────────────────────────
 
@@ -17,11 +17,7 @@ function createTestApp(): Hono<TenantEnv> {
   return app;
 }
 
-async function request(
-  app: Hono<TenantEnv>,
-  path: string,
-  host: string,
-): Promise<Response> {
+async function request(app: Hono<TenantEnv>, path: string, host: string): Promise<Response> {
   return app.request(path, {
     headers: { host },
   });

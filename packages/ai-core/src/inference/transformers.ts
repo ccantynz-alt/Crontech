@@ -303,7 +303,9 @@ export async function classifyText(
   const output = (await pipe(text)) as ClassificationLabel[] | ClassificationLabel[][];
 
   // The pipeline may return nested arrays for single inputs.
-  const labels = Array.isArray(output[0]) ? (output[0] as ClassificationLabel[]) : (output as ClassificationLabel[]);
+  const labels = Array.isArray(output[0])
+    ? (output[0] as ClassificationLabel[])
+    : (output as ClassificationLabel[]);
 
   return {
     labels,
@@ -394,9 +396,7 @@ export async function extractFeatures(
 /**
  * Returns metadata for a specific Transformers.js model.
  */
-export function getTransformersModelInfo(
-  modelId: TransformersModelId,
-): TransformersModelInfo {
+export function getTransformersModelInfo(modelId: TransformersModelId): TransformersModelInfo {
   const info = TRANSFORMERS_MODELS.find((m) => m.id === modelId);
   if (!info) {
     throw new Error(`Unknown Transformers.js model: ${modelId}`);

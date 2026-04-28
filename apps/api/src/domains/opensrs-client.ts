@@ -24,22 +24,22 @@
 
 import { createHash } from "node:crypto";
 import {
-  OpensrsEnvelopeSchema,
-  OpensrsLookupAttributesSchema,
-  OpensrsWhoisAttributesSchema,
-  OpensrsGetPriceAttributesSchema,
-  OpensrsRegisterAttributesSchema,
-  OpensrsRenewAttributesSchema,
-  OpensrsTransferAttributesSchema,
-  isOpensrsSuccess,
-  type OpensrsEnvelope,
-  type OpensrsLookupAttributes,
-  type OpensrsWhoisAttributes,
-  type OpensrsGetPriceAttributes,
-  type OpensrsRegisterAttributes,
-  type OpensrsRenewAttributes,
-  type OpensrsTransferAttributes,
   type ContactInfo,
+  type OpensrsEnvelope,
+  OpensrsEnvelopeSchema,
+  type OpensrsGetPriceAttributes,
+  OpensrsGetPriceAttributesSchema,
+  type OpensrsLookupAttributes,
+  OpensrsLookupAttributesSchema,
+  type OpensrsRegisterAttributes,
+  OpensrsRegisterAttributesSchema,
+  type OpensrsRenewAttributes,
+  OpensrsRenewAttributesSchema,
+  type OpensrsTransferAttributes,
+  OpensrsTransferAttributesSchema,
+  type OpensrsWhoisAttributes,
+  OpensrsWhoisAttributesSchema,
+  isOpensrsSuccess,
 } from "./opensrs-types";
 
 // ── Config ────────────────────────────────────────────────────────────
@@ -61,10 +61,9 @@ export interface OpensrsClientDeps {
 
 /** Construct config from the standard environment variables. */
 export function configFromEnv(): OpensrsConfig {
-  const user = process.env["OPENSRS_USER"] ?? "";
-  const key = process.env["OPENSRS_KEY"] ?? "";
-  const host =
-    process.env["OPENSRS_HOST"] ?? "https://rr-n1-tomweb.opensrs.net:55443";
+  const user = process.env.OPENSRS_USER ?? "";
+  const key = process.env.OPENSRS_KEY ?? "";
+  const host = process.env.OPENSRS_HOST ?? "https://rr-n1-tomweb.opensrs.net:55443";
   return { user, key, host };
 }
 
@@ -78,12 +77,7 @@ export class OpensrsError extends Error {
   public readonly action: string;
   public readonly envelope: OpensrsEnvelope | undefined;
 
-  constructor(
-    message: string,
-    action: string,
-    code?: string | number,
-    envelope?: OpensrsEnvelope,
-  ) {
+  constructor(message: string, action: string, code?: string | number, envelope?: OpensrsEnvelope) {
     super(message);
     this.name = "OpensrsError";
     this.action = action;
@@ -128,21 +122,13 @@ function encodeValue(value: OpensrsValue): string {
   if (typeof value === "number") return xmlEscape(String(value));
   if (typeof value === "boolean") return xmlEscape(value ? "1" : "0");
   if (Array.isArray(value)) {
-    const items = value
-      .map(
-        (v, i) =>
-          `<item key="${i}">${encodeValueWrapper(v)}</item>`,
-      )
-      .join("");
+    const items = value.map((v, i) => `<item key="${i}">${encodeValueWrapper(v)}</item>`).join("");
     return `<dt_array>${items}</dt_array>`;
   }
   // object
   const items = Object.entries(value)
     .filter(([, v]) => v !== undefined)
-    .map(
-      ([k, v]) =>
-        `<item key="${xmlEscape(k)}">${encodeValueWrapper(v)}</item>`,
-    )
+    .map(([k, v]) => `<item key="${xmlEscape(k)}">${encodeValueWrapper(v)}</item>`)
     .join("");
   return `<dt_assoc>${items}</dt_assoc>`;
 }
@@ -153,11 +139,7 @@ function encodeValue(value: OpensrsValue): string {
  */
 function encodeValueWrapper(value: OpensrsValue): string {
   if (value === null || value === undefined) return "";
-  if (
-    typeof value === "string" ||
-    typeof value === "number" ||
-    typeof value === "boolean"
-  ) {
+  if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
     return encodeValue(value);
   }
   return encodeValue(value);
@@ -204,10 +186,7 @@ export function parseResponseBody(xml: string): unknown {
   // inner <data_block> payload. We then walk tokens.
   const dataBlockMatch = xml.match(/<data_block>([\s\S]*?)<\/data_block>/);
   if (!dataBlockMatch) {
-    throw new OpensrsError(
-      "OpenSRS response was missing the data_block payload.",
-      "parse",
-    );
+    throw new OpensrsError("OpenSRS response was missing the data_block payload.", "parse");
   }
   const body = dataBlockMatch[1] ?? "";
   const { value } = parseNode(body, 0);
@@ -341,8 +320,12 @@ function xmlUnescape(value: string): string {
 // ── Signature ─────────────────────────────────────────────────────────
 
 export function signRequest(body: string, key: string): string {
-  const inner = createHash("md5").update(body + key).digest("hex");
-  return createHash("md5").update(inner + key).digest("hex");
+  const inner = createHash("md5")
+    .update(body + key)
+    .digest("hex");
+  return createHash("md5")
+    .update(inner + key)
+    .digest("hex");
 }
 
 // ── Core transport ────────────────────────────────────────────────────
@@ -391,8 +374,7 @@ export class OpensrsClient {
     const envelope = OpensrsEnvelopeSchema.parse(parsed);
     if (!isOpensrsSuccess(envelope)) {
       throw new OpensrsError(
-        envelope.response_text ??
-          `OpenSRS returned an unsuccessful response for ${action}.`,
+        envelope.response_text ?? `OpenSRS returned an unsuccessful response for ${action}.`,
         action,
         envelope.response_code,
         envelope,
@@ -419,10 +401,7 @@ export class OpensrsClient {
   }
 
   /** Get the wholesale price for a single domain + period. */
-  async getPrice(
-    domain: string,
-    years: number,
-  ): Promise<OpensrsGetPriceAttributes> {
+  async getPrice(domain: string, years: number): Promise<OpensrsGetPriceAttributes> {
     const env = await this.call("GET_PRICE", "DOMAIN", {
       domain,
       period: years,
@@ -455,7 +434,7 @@ export class OpensrsClient {
       handle: "process",
     };
     if (nameservers && nameservers.length > 0) {
-      attributes["nameserver_list"] = nameservers.map((n, i) => ({
+      attributes.nameserver_list = nameservers.map((n, i) => ({
         sortorder: i + 1,
         name: n,
       }));
@@ -479,7 +458,7 @@ export class OpensrsClient {
       auto_renew: autoRenew ? 1 : 0,
     };
     if (currentExpiration) {
-      attributes["currentexpirationyear"] = currentExpiration;
+      attributes.currentexpirationyear = currentExpiration;
     }
     const env = await this.call("RENEW", "DOMAIN", attributes);
     return OpensrsRenewAttributesSchema.parse(env.attributes ?? {});
@@ -518,18 +497,19 @@ function contactToOpensrs(c: ContactInfo): Record<string, OpensrsValue> {
     phone: c.phone,
     email: c.email,
   };
-  if (c.orgName !== undefined) out["org_name"] = c.orgName;
-  if (c.address2 !== undefined) out["address2"] = c.address2;
+  if (c.orgName !== undefined) out.org_name = c.orgName;
+  if (c.address2 !== undefined) out.address2 = c.address2;
   return out;
 }
 
 /** Non-cryptographic password stand-in for the reg_password slot. */
 function randomPassword(): string {
-  const chars =
-    "ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
+  const chars = "ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
   let out = "";
   for (let i = 0; i < 16; i++) {
-    const idx = Math.floor(crypto.getRandomValues(new Uint32Array(1))[0]! / 0x100000000 * chars.length);
+    const idx = Math.floor(
+      ((crypto.getRandomValues(new Uint32Array(1))[0] ?? 0) / 0x100000000) * chars.length,
+    );
     out += chars[idx];
   }
   return out;
@@ -561,7 +541,7 @@ export function dollarsToMicrodollars(value: string | number): number {
 }
 
 export function markupPercentFromEnv(): number {
-  const raw = process.env["DOMAIN_MARKUP_PERCENT"];
+  const raw = process.env.DOMAIN_MARKUP_PERCENT;
   const parsed = raw ? Number.parseFloat(raw) : Number.NaN;
   if (!Number.isFinite(parsed) || parsed < 0) return 20;
   return parsed;

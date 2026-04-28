@@ -8,11 +8,7 @@
 
 import type { JSX } from "solid-js";
 import { SEOHead } from "../../../components/SEOHead";
-import {
-  DocsArticle,
-  Callout,
-  KeyList,
-} from "../../../components/docs/DocsArticle";
+import { Callout, DocsArticle, KeyList } from "../../../components/docs/DocsArticle";
 
 export default function SecurityOverviewArticle(): JSX.Element {
   return (
@@ -37,12 +33,10 @@ export default function SecurityOverviewArticle(): JSX.Element {
         }}
       >
         <p>
-          Security on Crontech is not an add-on — it's the default
-          posture. Every request is authenticated, every session is
-          bound to a bearer token, every mutation is a candidate for
-          the audit log, and every sensitive value is encrypted in
-          transit and at rest. This category documents the pieces
-          that make that true.
+          Security on Crontech is not an add-on — it's the default posture. Every request is
+          authenticated, every session is bound to a bearer token, every mutation is a candidate for
+          the audit log, and every sensitive value is encrypted in transit and at rest. This
+          category documents the pieces that make that true.
         </p>
 
         <h2>What's in this category</h2>
@@ -100,23 +94,18 @@ export default function SecurityOverviewArticle(): JSX.Element {
         />
 
         <Callout tone="info">
-          The compliance posture described in the next article is the
-          target architecture — SOC 2 Type II is in motion, ISO 27001
-          is on the roadmap, and HIPAA BAAs are available on request
-          for enterprise customers. The Authentication article covers
-          the code that's already shipped and enforced today.
+          The compliance posture described in the next article is the target architecture — SOC 2
+          Type II is in motion, ISO 27001 is on the roadmap, and HIPAA BAAs are available on request
+          for enterprise customers. The Authentication article covers the code that's already
+          shipped and enforced today.
         </Callout>
 
         <h2>Where to start</h2>
         <p>
           If you're wiring login on a new project, start with{" "}
-          <a href="/docs/security/authentication">Authentication</a>.
-          If you're evaluating the platform for regulated workloads,
-          start with{" "}
-          <a href="/docs/security/audit-and-compliance">
-            Audit and compliance
-          </a>
-          .
+          <a href="/docs/security/authentication">Authentication</a>. If you're evaluating the
+          platform for regulated workloads, start with{" "}
+          <a href="/docs/security/audit-and-compliance">Audit and compliance</a>.
         </p>
       </DocsArticle>
     </>

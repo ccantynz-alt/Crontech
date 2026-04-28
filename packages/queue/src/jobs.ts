@@ -66,25 +66,19 @@ export async function enqueueEmail(data: SendEmailJob): Promise<string> {
   return job.id ?? crypto.randomUUID();
 }
 
-export async function enqueueWebhook(
-  data: ProcessWebhookJob,
-): Promise<string> {
+export async function enqueueWebhook(data: ProcessWebhookJob): Promise<string> {
   const validated = ProcessWebhookJobSchema.parse(data);
   const job = await getQueue().add("process_webhook", validated);
   return job.id ?? crypto.randomUUID();
 }
 
-export async function enqueueTenantProvision(
-  data: ProvisionTenantJob,
-): Promise<string> {
+export async function enqueueTenantProvision(data: ProvisionTenantJob): Promise<string> {
   const validated = ProvisionTenantJobSchema.parse(data);
   const job = await getQueue().add("provision_tenant", validated);
   return job.id ?? crypto.randomUUID();
 }
 
-export async function enqueueSiteGeneration(
-  data: GenerateSiteJob,
-): Promise<string> {
+export async function enqueueSiteGeneration(data: GenerateSiteJob): Promise<string> {
   const validated = GenerateSiteJobSchema.parse(data);
   const job = await getQueue().add("generate_site", validated);
   return job.id ?? crypto.randomUUID();

@@ -16,33 +16,33 @@
 //      or wrong signature returns 401.
 //   6. Admin-only number purchase / release — viewers get FORBIDDEN.
 
-import { describe, test, expect, beforeEach, afterEach } from "bun:test";
-import { eq } from "drizzle-orm";
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import {
   db,
-  users,
-  sessions,
   scopedDb,
+  sessions,
   smsMessages,
   smsNumbers,
   smsWebhookSubscriptions,
   userWebhooks,
+  users,
   webhookDeliveries,
 } from "@back-to-the-future/db";
-import { appRouter } from "../router";
+import { eq } from "drizzle-orm";
 import { createSession } from "../../auth/session";
-import type { TRPCContext } from "../context";
-import { __setSmsTestHooks, __resetSmsTestHooks } from "./sms";
+import { createInboundSmsApp } from "../../sms/inbound";
+import { clearSmsRateLimits } from "../../sms/send";
 import {
+  type SinchClient,
   SinchError,
-  segmentSms,
   applyMarkup,
   dollarsToMicrodollars,
+  segmentSms,
   verifySinchSignature,
-  type SinchClient,
 } from "../../sms/sinch-client";
-import { clearSmsRateLimits } from "../../sms/send";
-import { createInboundSmsApp } from "../../sms/inbound";
+import type { TRPCContext } from "../context";
+import { appRouter } from "../router";
+import { __resetSmsTestHooks, __setSmsTestHooks } from "./sms";
 
 // ── Test harness ──────────────────────────────────────────────────────
 
@@ -60,7 +60,7 @@ async function createUser(role: "admin" | "viewer"): Promise<string> {
   const id = crypto.randomUUID();
   await db.insert(users).values({
     id,
-    email: `sms-${role}-${Date.now()}-${crypto.randomUUID().replace(/-/g, '').slice(0, 6)}@example.com`,
+    email: `sms-${role}-${Date.now()}-${crypto.randomUUID().replace(/-/g, "").slice(0, 6)}@example.com`,
     displayName: `SMS Test ${role}`,
     role,
   });
@@ -70,9 +70,7 @@ async function createUser(role: "admin" | "viewer"): Promise<string> {
 async function cleanupUser(userId: string): Promise<void> {
   await db.delete(smsMessages).where(eq(smsMessages.userId, userId));
   await db.delete(smsNumbers).where(eq(smsNumbers.userId, userId));
-  await db
-    .delete(smsWebhookSubscriptions)
-    .where(eq(smsWebhookSubscriptions.userId, userId));
+  await db.delete(smsWebhookSubscriptions).where(eq(smsWebhookSubscriptions.userId, userId));
   await db.delete(webhookDeliveries);
   await db.delete(userWebhooks).where(eq(userWebhooks.userId, userId));
   await db.delete(sessions).where(eq(sessions.userId, userId));
@@ -81,11 +79,11 @@ async function cleanupUser(userId: string): Promise<void> {
 
 async function attachNumber(userId: string, e164: string): Promise<void> {
   await db.insert(smsNumbers).values({
-    id: `smsn_test_${crypto.randomUUID().replace(/-/g, '').slice(0, 8)}`,
+    id: `smsn_test_${crypto.randomUUID().replace(/-/g, "").slice(0, 8)}`,
     userId,
     e164Number: e164,
     countryCode: "US",
-    sinchNumberId: `sinch_${crypto.randomUUID().replace(/-/g, '').slice(0, 8)}`,
+    sinchNumberId: `sinch_${crypto.randomUUID().replace(/-/g, "").slice(0, 8)}`,
     capabilities: JSON.stringify(["sms"]),
     monthlyCostMicrodollars: 1_000_000,
   });
@@ -122,7 +120,7 @@ function makeFakeClient(state: FakeClientState): SinchClient {
       state.log.send.push(input);
       const outcome =
         state.sendQueue.length > 0
-          ? state.sendQueue.shift()!
+          ? (state.sendQueue.shift() ?? ({ kind: "ok", id: "sinch-default" } as SendOutcome))
           : ({ kind: "ok", id: "sinch-default" } as SendOutcome);
       if (outcome.kind === "err") throw outcome.error;
       const segments = outcome.segments ?? segmentSms(input.body).segments;
@@ -168,20 +166,18 @@ describe("sms router", () => {
         retry: { maxAttempts: 3, baseDelayMs: 1, maxDelayMs: 4 },
       },
     });
-    savedStripe = process.env["STRIPE_ENABLED"];
+    savedStripe = process.env.STRIPE_ENABLED;
   });
 
   afterEach(async () => {
     __resetSmsTestHooks();
     clearSmsRateLimits();
-    if (savedStripe === undefined) delete process.env["STRIPE_ENABLED"];
-    else process.env["STRIPE_ENABLED"] = savedStripe;
+    if (savedStripe === undefined) process.env.STRIPE_ENABLED = undefined;
+    else process.env.STRIPE_ENABLED = savedStripe;
     for (const id of createdUsers.splice(0)) await cleanupUser(id);
   });
 
-  async function protectedCaller(
-    role: "admin" | "viewer" = "viewer",
-  ): Promise<{
+  async function protectedCaller(role: "admin" | "viewer" = "viewer"): Promise<{
     caller: ReturnType<typeof appRouter.createCaller>;
     userId: string;
   }> {
@@ -319,10 +315,7 @@ describe("sms router", () => {
     expect(state.log.send).toHaveLength(3);
 
     // Row persisted with status `failed` — customer sees the attempt.
-    const rows = await db
-      .select()
-      .from(smsMessages)
-      .where(eq(smsMessages.userId, userId));
+    const rows = await db.select().from(smsMessages).where(eq(smsMessages.userId, userId));
     const failed = rows.filter((r) => r.status === "failed");
     expect(failed).toHaveLength(1);
     expect(failed[0]?.errorCode).toBe("502");
@@ -383,13 +376,9 @@ describe("sms router", () => {
       to: "+14155550100",
       body: "hi",
     });
-    const signature = createHmac("sha256", secret)
-      .update(rawBody, "utf8")
-      .digest("hex");
+    const signature = createHmac("sha256", secret).update(rawBody, "utf8").digest("hex");
 
-    expect(
-      await verifySinchSignature({ rawBody, provided: signature, secret }),
-    ).toBe(true);
+    expect(await verifySinchSignature({ rawBody, provided: signature, secret })).toBe(true);
     expect(
       await verifySinchSignature({
         rawBody,
@@ -404,9 +393,7 @@ describe("sms router", () => {
         secret,
       }),
     ).toBe(false);
-    expect(
-      await verifySinchSignature({ rawBody, provided: null, secret }),
-    ).toBe(false);
+    expect(await verifySinchSignature({ rawBody, provided: null, secret })).toBe(false);
   });
 
   test("inbound webhook returns 401 for bad signatures, 200 for valid ones, and persists the row", async () => {
@@ -425,9 +412,7 @@ describe("sms router", () => {
       body: "Hello Crontech",
     });
     const { createHmac } = await import("node:crypto");
-    const signature = createHmac("sha256", secret)
-      .update(rawBody, "utf8")
-      .digest("hex");
+    const signature = createHmac("sha256", secret).update(rawBody, "utf8").digest("hex");
 
     // Bad signature → 401.
     const bad = await app.request("/sms/inbound", {
@@ -475,7 +460,7 @@ describe("sms router", () => {
     const e164 = "+14155550178";
     await attachNumber(userId, e164);
     await db.insert(smsWebhookSubscriptions).values({
-      id: `sub_${crypto.randomUUID().replace(/-/g, '').slice(0, 6)}`,
+      id: `sub_${crypto.randomUUID().replace(/-/g, "").slice(0, 6)}`,
       userId,
       e164Number: e164,
       customerWebhookUrl: "https://example.com/sms",
@@ -492,9 +477,7 @@ describe("sms router", () => {
       body: "Fanout me",
     });
     const { createHmac } = await import("node:crypto");
-    const signature = createHmac("sha256", secret)
-      .update(rawBody, "utf8")
-      .digest("hex");
+    const signature = createHmac("sha256", secret).update(rawBody, "utf8").digest("hex");
 
     const res = await app.request("/sms/inbound", {
       method: "POST",
@@ -519,7 +502,7 @@ describe("sms router", () => {
   // ── 6. Admin-only purchase / release ────────────────────────────────
 
   test("buyNumber rejects viewers with FORBIDDEN", async () => {
-    process.env["STRIPE_ENABLED"] = "true";
+    process.env.STRIPE_ENABLED = "true";
     const { caller } = await protectedCaller("viewer");
     let caught: unknown;
     try {
@@ -532,7 +515,7 @@ describe("sms router", () => {
   });
 
   test("buyNumber refuses while billing is pre-launch (SERVICE_UNAVAILABLE)", async () => {
-    delete process.env["STRIPE_ENABLED"];
+    process.env.STRIPE_ENABLED = undefined;
     const { caller } = await protectedCaller("admin");
     let caught: unknown;
     try {
@@ -545,13 +528,13 @@ describe("sms router", () => {
   });
 
   test("admin buyNumber + releaseNumber round-trips a number row", async () => {
-    process.env["STRIPE_ENABLED"] = "true";
+    process.env.STRIPE_ENABLED = "true";
     const { caller, userId } = await protectedCaller("admin");
     __setSmsTestHooks({
       clientFactory: () => makeFakeClient(state),
       markupPercent: 30,
       buyNumberImpl: async () => ({
-        id: `smsn_${crypto.randomUUID().replace(/-/g, '').slice(0, 6)}`,
+        id: `smsn_${crypto.randomUUID().replace(/-/g, "").slice(0, 6)}`,
         e164Number: "+14155550123",
         sinchNumberId: "sinch-num-xyz",
         monthlyCostMicrodollars: 1_300_000,
@@ -566,10 +549,7 @@ describe("sms router", () => {
     expect(released.e164Number).toBe("+14155550123");
     expect(released.alreadyReleased).toBe(false);
 
-    const rows = await db
-      .select()
-      .from(smsNumbers)
-      .where(eq(smsNumbers.userId, userId));
+    const rows = await db.select().from(smsNumbers).where(eq(smsNumbers.userId, userId));
     expect(rows[0]?.releasedAt).not.toBeNull();
   });
 

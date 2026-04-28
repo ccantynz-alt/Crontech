@@ -8,13 +8,7 @@ import type { JSX } from "solid-js";
 // ── Types ───────────────────────────────────────────────────────────
 
 /** Supported framework keys (must match the backend projects.create input). */
-export type TemplateFramework =
-  | "solidstart"
-  | "nextjs"
-  | "remix"
-  | "astro"
-  | "hono"
-  | "other";
+export type TemplateFramework = "solidstart" | "nextjs" | "remix" | "astro" | "hono" | "other";
 
 /** Supported runtime keys (must match the backend projects.create input). */
 export type TemplateRuntime = "bun" | "node" | "deno";
@@ -88,8 +82,7 @@ export const projectTemplates: readonly ProjectTemplate[] = [
     description:
       "Streaming chat interface backed by the Anthropic SDK with generative UI, tool-calls, and three-tier compute routing. Ships with Claude 4.7 wired in.",
     icon: "\uD83E\uDD16",
-    gradient:
-      "linear-gradient(135deg, var(--color-primary), var(--color-danger))",
+    gradient: "linear-gradient(135deg, var(--color-primary), var(--color-danger))",
     framework: "solidstart",
     runtime: "bun",
     buildCommand: "bun run build",
@@ -120,8 +113,7 @@ export const projectTemplates: readonly ProjectTemplate[] = [
     description:
       "Content-driven Astro site with MDX, image optimisation, and zero JS by default. Ships to Cloudflare Pages with a single command.",
     icon: "\uD83D\uDCC4",
-    gradient:
-      "linear-gradient(135deg, var(--color-accent, #06b6d4), var(--color-primary))",
+    gradient: "linear-gradient(135deg, var(--color-accent, #06b6d4), var(--color-primary))",
     framework: "astro",
     runtime: "node",
     buildCommand: "bun run build",
@@ -136,8 +128,7 @@ export const projectTemplates: readonly ProjectTemplate[] = [
     description:
       "An empty starting point with only the Crontech deploy hooks wired up. Bring your own framework, runtime, and build pipeline.",
     icon: "\u2728",
-    gradient:
-      "linear-gradient(135deg, var(--color-bg-muted), var(--color-bg-elevated))",
+    gradient: "linear-gradient(135deg, var(--color-bg-muted), var(--color-bg-elevated))",
     framework: "other",
     runtime: "bun",
     buildCommand: "",
@@ -163,9 +154,7 @@ export const TEMPLATE_TAG_FILTERS: readonly TemplateTag[] = [
 // ── Helpers ─────────────────────────────────────────────────────────
 
 /** Look up a template by its id. Returns undefined when not found. */
-export function getTemplateById(
-  id: string | null | undefined,
-): ProjectTemplate | undefined {
+export function getTemplateById(id: string | null | undefined): ProjectTemplate | undefined {
   if (!id) return undefined;
   return projectTemplates.find((t) => t.id === id);
 }

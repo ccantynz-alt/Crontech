@@ -1,17 +1,21 @@
-import { describe, test, expect } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import {
-  WebLLMConfigSchema,
-  isWebGPUAvailable,
   WEBLLM_MODELS,
-  getModelInfo,
-  selectModelForVRAM,
+  WebLLMConfigSchema,
   WebLLMModelId,
+  getModelInfo,
+  isWebGPUAvailable,
+  selectModelForVRAM,
 } from "./webllm";
 
 describe("WebLLM Module", () => {
   describe("WebLLMConfigSchema", () => {
     test("accepts valid config", () => {
-      const config = { modelId: "Llama-3.1-8B-Instruct-q4f32_1-MLC", temperature: 0.7, maxTokens: 512 };
+      const config = {
+        modelId: "Llama-3.1-8B-Instruct-q4f32_1-MLC",
+        temperature: 0.7,
+        maxTokens: 512,
+      };
       const result = WebLLMConfigSchema.safeParse(config);
       expect(result.success).toBe(true);
     });

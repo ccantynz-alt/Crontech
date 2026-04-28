@@ -13,40 +13,17 @@
 // Zero HTML — SolidJS JSX. Polite tone, no named competitors.
 
 import { Title } from "@solidjs/meta";
-import {
-  createSignal,
-  createResource,
-  For,
-  Show,
-  type JSX,
-} from "solid-js";
-import { A, useParams, useNavigate } from "@solidjs/router";
+import { A, useNavigate, useParams } from "@solidjs/router";
+import { For, type JSX, Show, createResource, createSignal } from "solid-js";
 import { AdminRoute } from "../../../components/AdminRoute";
 import { showToast } from "../../../components/Toast";
 import { trpc } from "../../../lib/trpc";
 
 // ── Types ───────────────────────────────────────────────────────────
 
-type RecordType =
-  | "A"
-  | "AAAA"
-  | "CNAME"
-  | "MX"
-  | "TXT"
-  | "NS"
-  | "SRV"
-  | "CAA";
+type RecordType = "A" | "AAAA" | "CNAME" | "MX" | "TXT" | "NS" | "SRV" | "CAA";
 
-const RECORD_TYPES: RecordType[] = [
-  "A",
-  "AAAA",
-  "CNAME",
-  "MX",
-  "TXT",
-  "NS",
-  "SRV",
-  "CAA",
-];
+const RECORD_TYPES: RecordType[] = ["A", "AAAA", "CNAME", "MX", "TXT", "NS", "SRV", "CAA"];
 
 /** Whether a given record type requires a `priority` field. */
 export function requiresPriority(type: RecordType): boolean {
@@ -107,18 +84,13 @@ export default function AdminZoneDetailPage(): JSX.Element {
         id: params.zoneId,
         adminEmail: zoneAdminEmail(),
         primaryNs: zonePrimaryNs(),
-        ...(zoneSecondaryNs()
-          ? { secondaryNs: zoneSecondaryNs() }
-          : { secondaryNs: null }),
+        ...(zoneSecondaryNs() ? { secondaryNs: zoneSecondaryNs() } : { secondaryNs: null }),
       });
       setEditingZone(false);
       await refetch();
       showToast("Zone updated", "success");
     } catch (err) {
-      showToast(
-        `Zone update failed: ${(err as Error).message}`,
-        "error",
-      );
+      showToast(`Zone update failed: ${(err as Error).message}`, "error");
     }
   }
 
@@ -128,9 +100,7 @@ export default function AdminZoneDetailPage(): JSX.Element {
   const [newType, setNewType] = createSignal<RecordType>("A");
   const [newContent, setNewContent] = createSignal("");
   const [newTtl, setNewTtl] = createSignal(300);
-  const [newPriority, setNewPriority] = createSignal<number | null>(
-    null,
-  );
+  const [newPriority, setNewPriority] = createSignal<number | null>(null);
 
   function resetCreateForm(): void {
     setNewName("");
@@ -157,10 +127,7 @@ export default function AdminZoneDetailPage(): JSX.Element {
       await refetch();
       showToast("Record created", "success");
     } catch (err) {
-      showToast(
-        `Create failed: ${(err as Error).message}`,
-        "error",
-      );
+      showToast(`Create failed: ${(err as Error).message}`, "error");
     }
   }
 
@@ -172,10 +139,7 @@ export default function AdminZoneDetailPage(): JSX.Element {
       await refetch();
       showToast("Record deleted", "success");
     } catch (err) {
-      showToast(
-        `Delete failed: ${(err as Error).message}`,
-        "error",
-      );
+      showToast(`Delete failed: ${(err as Error).message}`, "error");
     }
   }
 
@@ -190,34 +154,21 @@ export default function AdminZoneDetailPage(): JSX.Element {
         }}
       >
         {/* ── Breadcrumb ─────────────────────────────────────────────── */}
-        <nav
-          aria-label="Breadcrumb"
-          style={{ "margin-bottom": "1rem", "font-size": "0.875rem" }}
-        >
+        <nav aria-label="Breadcrumb" style={{ "margin-bottom": "1rem", "font-size": "0.875rem" }}>
           <A href="/admin" style={{ color: "var(--color-text-secondary)" }}>
             Admin
           </A>
-          <span style={{ margin: "0 0.5rem", color: "var(--color-text-faint)" }}>
-            ›
-          </span>
+          <span style={{ margin: "0 0.5rem", color: "var(--color-text-faint)" }}>›</span>
           <A href="/admin/dns" style={{ color: "var(--color-text-secondary)" }}>
             DNS
           </A>
-          <span style={{ margin: "0 0.5rem", color: "var(--color-text-faint)" }}>
-            ›
-          </span>
-          <span style={{ color: "var(--color-text)" }}>
-            {data()?.zone.name ?? "—"}
-          </span>
+          <span style={{ margin: "0 0.5rem", color: "var(--color-text-faint)" }}>›</span>
+          <span style={{ color: "var(--color-text)" }}>{data()?.zone.name ?? "—"}</span>
         </nav>
 
         <Show
           when={!data.loading && data()}
-          fallback={
-            <p style={{ color: "var(--color-text-secondary)" }}>
-              Loading zone…
-            </p>
-          }
+          fallback={<p style={{ color: "var(--color-text-secondary)" }}>Loading zone…</p>}
         >
           {(loaded) => (
             <>
@@ -256,8 +207,7 @@ export default function AdminZoneDetailPage(): JSX.Element {
                         "margin-top": "0.25rem",
                       }}
                     >
-                      Serial {loaded().zone.serial} · {loaded().records.length}{" "}
-                      records
+                      Serial {loaded().zone.serial} · {loaded().records.length} records
                     </p>
                   </div>
                   <Show
@@ -324,24 +274,16 @@ export default function AdminZoneDetailPage(): JSX.Element {
                       }}
                     >
                       <div>
-                        <dt style={{ color: "var(--color-text-secondary)" }}>
-                          Admin email
-                        </dt>
+                        <dt style={{ color: "var(--color-text-secondary)" }}>Admin email</dt>
                         <dd style={{ margin: 0 }}>{loaded().zone.adminEmail}</dd>
                       </div>
                       <div>
-                        <dt style={{ color: "var(--color-text-secondary)" }}>
-                          Primary NS
-                        </dt>
+                        <dt style={{ color: "var(--color-text-secondary)" }}>Primary NS</dt>
                         <dd style={{ margin: 0 }}>{loaded().zone.primaryNs}</dd>
                       </div>
                       <div>
-                        <dt style={{ color: "var(--color-text-secondary)" }}>
-                          Secondary NS
-                        </dt>
-                        <dd style={{ margin: 0 }}>
-                          {loaded().zone.secondaryNs ?? "—"}
-                        </dd>
+                        <dt style={{ color: "var(--color-text-secondary)" }}>Secondary NS</dt>
+                        <dd style={{ margin: 0 }}>{loaded().zone.secondaryNs ?? "—"}</dd>
                       </div>
                     </dl>
                   }
@@ -361,9 +303,7 @@ export default function AdminZoneDetailPage(): JSX.Element {
                         "font-size": "0.875rem",
                       }}
                     >
-                      <span style={{ color: "var(--color-text-secondary)" }}>
-                        Admin email
-                      </span>
+                      <span style={{ color: "var(--color-text-secondary)" }}>Admin email</span>
                       <input
                         type="text"
                         value={zoneAdminEmail()}
@@ -386,9 +326,7 @@ export default function AdminZoneDetailPage(): JSX.Element {
                         "font-size": "0.875rem",
                       }}
                     >
-                      <span style={{ color: "var(--color-text-secondary)" }}>
-                        Primary NS
-                      </span>
+                      <span style={{ color: "var(--color-text-secondary)" }}>Primary NS</span>
                       <input
                         type="text"
                         value={zonePrimaryNs()}
@@ -476,8 +414,7 @@ export default function AdminZoneDetailPage(): JSX.Element {
                       border: "1px solid var(--color-border)",
                       "margin-bottom": "1rem",
                       display: "grid",
-                      "grid-template-columns":
-                        "minmax(140px, 1fr) 120px 2fr 100px 100px auto",
+                      "grid-template-columns": "minmax(140px, 1fr) 120px 2fr 100px 100px auto",
                       gap: "0.5rem",
                       "align-items": "end",
                     }}
@@ -517,9 +454,7 @@ export default function AdminZoneDetailPage(): JSX.Element {
                       <span>Type</span>
                       <select
                         value={newType()}
-                        onChange={(e) =>
-                          setNewType(e.currentTarget.value as RecordType)
-                        }
+                        onChange={(e) => setNewType(e.currentTarget.value as RecordType)}
                         aria-label="Record type"
                         style={{
                           padding: "0.4rem",
@@ -529,9 +464,7 @@ export default function AdminZoneDetailPage(): JSX.Element {
                           color: "var(--color-text)",
                         }}
                       >
-                        <For each={RECORD_TYPES}>
-                          {(t) => <option value={t}>{t}</option>}
-                        </For>
+                        <For each={RECORD_TYPES}>{(t) => <option value={t}>{t}</option>}</For>
                       </select>
                     </label>
                     <label
@@ -571,9 +504,7 @@ export default function AdminZoneDetailPage(): JSX.Element {
                         type="number"
                         min="30"
                         value={newTtl()}
-                        onInput={(e) =>
-                          setNewTtl(Number(e.currentTarget.value) || 300)
-                        }
+                        onInput={(e) => setNewTtl(Number(e.currentTarget.value) || 300)}
                         aria-label="Record TTL"
                         style={{
                           padding: "0.4rem",
@@ -750,10 +681,7 @@ export default function AdminZoneDetailPage(): JSX.Element {
                             <button
                               type="button"
                               onClick={() =>
-                                deleteRecord(
-                                  record.id,
-                                  `${record.type} ${record.name}`,
-                                )
+                                deleteRecord(record.id, `${record.type} ${record.name}`)
                               }
                               aria-label={`Delete ${record.type} record ${record.name}`}
                               style={{

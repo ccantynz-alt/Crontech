@@ -3,16 +3,16 @@
 // The router-level tests (`trpc/procedures/sms.test.ts`) drive the
 // integration path; this file covers the seams below it.
 
-import { describe, test, expect } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import {
   SinchClient,
   SinchError,
-  isValidE164,
-  segmentSms,
   applyMarkup,
   dollarsToMicrodollars,
-  verifySinchSignature,
+  isValidE164,
   markupPercentFromEnv,
+  segmentSms,
+  verifySinchSignature,
 } from "./sinch-client";
 
 describe("isValidE164", () => {
@@ -53,8 +53,8 @@ describe("segmentSms", () => {
 
   test("non-GSM characters flip to UCS-2 with a 70-char single-seg limit", () => {
     expect(segmentSms("héllo 🌍").encoding).toBe("ucs2");
-    expect(segmentSms("A".repeat(70) + "🌍").encoding).toBe("ucs2");
-    expect(segmentSms("A".repeat(70) + "🌍").segments).toBeGreaterThanOrEqual(2);
+    expect(segmentSms(`${"A".repeat(70)}🌍`).encoding).toBe("ucs2");
+    expect(segmentSms(`${"A".repeat(70)}🌍`).segments).toBeGreaterThanOrEqual(2);
   });
 });
 
@@ -91,17 +91,17 @@ describe("dollarsToMicrodollars", () => {
 
 describe("markupPercentFromEnv", () => {
   test("reads SMS_MARKUP_PERCENT when valid, otherwise defaults to 30", () => {
-    const saved = process.env["SMS_MARKUP_PERCENT"];
+    const saved = process.env.SMS_MARKUP_PERCENT;
     try {
-      delete process.env["SMS_MARKUP_PERCENT"];
+      process.env.SMS_MARKUP_PERCENT = undefined;
       expect(markupPercentFromEnv()).toBe(30);
-      process.env["SMS_MARKUP_PERCENT"] = "50";
+      process.env.SMS_MARKUP_PERCENT = "50";
       expect(markupPercentFromEnv()).toBe(50);
-      process.env["SMS_MARKUP_PERCENT"] = "not a number";
+      process.env.SMS_MARKUP_PERCENT = "not a number";
       expect(markupPercentFromEnv()).toBe(30);
     } finally {
-      if (saved === undefined) delete process.env["SMS_MARKUP_PERCENT"];
-      else process.env["SMS_MARKUP_PERCENT"] = saved;
+      if (saved === undefined) process.env.SMS_MARKUP_PERCENT = undefined;
+      else process.env.SMS_MARKUP_PERCENT = saved;
     }
   });
 });
@@ -113,9 +113,7 @@ describe("verifySinchSignature", () => {
     const secret = "shh";
     const sig = createHmac("sha256", secret).update(rawBody, "utf8").digest("hex");
     expect(await verifySinchSignature({ rawBody, provided: sig, secret })).toBe(true);
-    expect(
-      await verifySinchSignature({ rawBody, provided: `sha256=${sig}`, secret }),
-    ).toBe(true);
+    expect(await verifySinchSignature({ rawBody, provided: `sha256=${sig}`, secret })).toBe(true);
     expect(await verifySinchSignature({ rawBody, provided: "bogus", secret })).toBe(false);
     expect(await verifySinchSignature({ rawBody, provided: null, secret })).toBe(false);
     expect(await verifySinchSignature({ rawBody, provided: sig, secret: "" })).toBe(false);
@@ -134,17 +132,14 @@ function asFetch(impl: FetchLike): typeof fetch {
 }
 
 describe("SinchClient.sendSms", () => {
-  function buildClient(
-    fetchImpl: FetchLike,
-  ): { client: SinchClient; calls: Array<{ url: string; init: RequestInit }> } {
+  function buildClient(fetchImpl: FetchLike): {
+    client: SinchClient;
+    calls: Array<{ url: string; init: RequestInit }>;
+  } {
     const calls: Array<{ url: string; init: RequestInit }> = [];
     const wrapped: FetchLike = async (input, init) => {
       const url =
-        typeof input === "string"
-          ? input
-          : input instanceof URL
-            ? input.toString()
-            : input.url;
+        typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
       calls.push({ url, init: init ?? {} });
       return fetchImpl(input, init);
     };
@@ -184,9 +179,7 @@ describe("SinchClient.sendSms", () => {
     const call = calls[0];
     expect(call).toBeDefined();
     expect(call?.url).toBe("https://sinch.test/xms/v1/plan-1/batches");
-    expect((call?.init.headers as Record<string, string>).Authorization).toBe(
-      "Bearer tok-1",
-    );
+    expect((call?.init.headers as Record<string, string>).Authorization).toBe("Bearer tok-1");
   });
 
   test("rejects non-E.164 input before issuing the HTTP call", async () => {
@@ -257,8 +250,6 @@ describe("SinchClient.listMessages", () => {
       { fetchImpl: asFetch(fetchImpl) },
     );
     await client.listMessages({ cursor: "3", limit: 20 });
-    expect(calls[0]).toBe(
-      "https://sinch.test/xms/v1/plan-1/batches?page=3&page_size=20",
-    );
+    expect(calls[0]).toBe("https://sinch.test/xms/v1/plan-1/batches?page=3&page_size=20");
   });
 });

@@ -1,6 +1,6 @@
-import { For, Show, createEffect, createSignal, onCleanup } from "solid-js";
 import type { Component } from "@back-to-the-future/schemas";
 import { Badge, Button, Card, Stack, Text } from "@back-to-the-future/ui";
+import { For, Show, createEffect, createSignal, onCleanup } from "solid-js";
 
 // ── Project Assistant ──────────────────────────────────────────────
 // Sidebar panel that lists AI suggestions for the current project.
@@ -41,9 +41,7 @@ function defaultAnalyze(tree: Component[]): AssistantSuggestion[] {
     flat.some(
       (c) =>
         c.component === "Button" &&
-        kw.some((k) =>
-          ((c.props as { label?: string }).label?.toLowerCase() ?? "").includes(k),
-        ),
+        kw.some((k) => ((c.props as { label?: string }).label?.toLowerCase() ?? "").includes(k)),
     );
 
   if (!hasButtonLike(["start", "sign up", "buy", "get", "try", "join", "contact"])) {
@@ -54,7 +52,9 @@ function defaultAnalyze(tree: Component[]): AssistantSuggestion[] {
       severity: "tip",
     });
   }
-  if (!flat.some((c) => c.component === "Text" && (c.props as { variant?: string }).variant === "h1")) {
+  if (
+    !flat.some((c) => c.component === "Text" && (c.props as { variant?: string }).variant === "h1")
+  ) {
     out.push({
       id: "missing-headline",
       title: "There is no main headline on this page.",
@@ -113,15 +113,11 @@ export function ProjectAssistant(props: ProjectAssistantProps): ReturnType<typeo
   return (
     <Card title="AI Project Assistant" padding="md">
       <Stack direction="vertical" gap="md" align="stretch" justify="start">
-        <Text variant="caption">
-          Smart suggestions based on what's in your project right now.
-        </Text>
+        <Text variant="caption">Smart suggestions based on what's in your project right now.</Text>
         <Show
           when={suggestions().length > 0}
           fallback={
-            <Text variant="body">
-              Looking great! No suggestions right now. Keep building.
-            </Text>
+            <Text variant="body">Looking great! No suggestions right now. Keep building.</Text>
           }
         >
           <For each={suggestions()}>
@@ -151,9 +147,7 @@ export function ProjectAssistant(props: ProjectAssistantProps): ReturnType<typeo
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() =>
-                        setSuggestions((prev) => prev.filter((x) => x.id !== s.id))
-                      }
+                      onClick={() => setSuggestions((prev) => prev.filter((x) => x.id !== s.id))}
                     >
                       Dismiss
                     </Button>

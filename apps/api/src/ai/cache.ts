@@ -10,8 +10,8 @@
 // fn, stash the response, and serve it next time. Tenant-scoped so
 // hits cannot leak across customers.
 
+import { aiCache, db } from "@back-to-the-future/db";
 import { eq, lt, sql } from "drizzle-orm";
-import { db, aiCache } from "@back-to-the-future/db";
 import { sha256Hex, stableStringify } from "../trpc/middleware/idempotency";
 
 // Default TTL: 7 days. Tunable per call via opts.ttlMs.
@@ -63,11 +63,7 @@ export async function lookupCache<T>(
   deserializer: (raw: string) => T = JSON.parse,
 ): Promise<T | undefined> {
   try {
-    const rows = await db
-      .select()
-      .from(aiCache)
-      .where(eq(aiCache.cacheKey, cacheKey))
-      .limit(1);
+    const rows = await db.select().from(aiCache).where(eq(aiCache.cacheKey, cacheKey)).limit(1);
     const row = rows[0];
     if (!row) return undefined;
     if (row.expiresAt.getTime() < Date.now()) {
@@ -167,8 +163,7 @@ export async function cachedAICall<T>(
   } = {};
   if (opts.ttlMs !== undefined) storeOpts.ttlMs = opts.ttlMs;
   if (opts.tokensUsed !== undefined) storeOpts.tokensUsed = opts.tokensUsed;
-  if (opts.costUsdMicros !== undefined)
-    storeOpts.costUsdMicros = opts.costUsdMicros;
+  if (opts.costUsdMicros !== undefined) storeOpts.costUsdMicros = opts.costUsdMicros;
   if (opts.serializer !== undefined) storeOpts.serializer = opts.serializer;
   await storeCache(cacheKey, opts, value, storeOpts);
   return { value, cached: false, cacheKey };

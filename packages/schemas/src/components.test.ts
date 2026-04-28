@@ -1,30 +1,30 @@
-import { describe, test, expect } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import {
-  ButtonSchema,
-  ButtonVariant,
-  ButtonSize,
-  InputSchema,
-  InputType,
-  CardSchema,
-  StackSchema,
-  StackDirection,
-  TextSchema,
-  ModalSchema,
-  BadgeSchema,
-  BadgeVariant,
   AlertSchema,
   AlertVariant,
   AvatarSchema,
-  TabsSchema,
-  TabItemSchema,
-  SelectSchema,
-  SelectOptionSchema,
-  TextareaSchema,
-  SpinnerSchema,
-  TooltipSchema,
-  SeparatorSchema,
-  ComponentSchema,
+  BadgeSchema,
+  BadgeVariant,
+  ButtonSchema,
+  ButtonSize,
+  ButtonVariant,
+  CardSchema,
   ComponentCatalog,
+  ComponentSchema,
+  InputSchema,
+  InputType,
+  ModalSchema,
+  SelectOptionSchema,
+  SelectSchema,
+  SeparatorSchema,
+  SpinnerSchema,
+  StackDirection,
+  StackSchema,
+  TabItemSchema,
+  TabsSchema,
+  TextSchema,
+  TextareaSchema,
+  TooltipSchema,
 } from "./components";
 
 // ── ButtonSchema ─────────────────────────────────────────────────────
@@ -94,15 +94,7 @@ describe("ButtonSchema", () => {
 
 describe("ButtonVariant", () => {
   test("accepts all valid variants", () => {
-    const variants = [
-      "default",
-      "primary",
-      "secondary",
-      "destructive",
-      "outline",
-      "ghost",
-      "link",
-    ];
+    const variants = ["default", "primary", "secondary", "destructive", "outline", "ghost", "link"];
     for (const v of variants) {
       expect(ButtonVariant.safeParse(v).success).toBe(true);
     }
@@ -460,7 +452,12 @@ describe("AlertSchema", () => {
   test("accepts valid alert with all props", () => {
     const result = AlertSchema.safeParse({
       component: "Alert",
-      props: { variant: "error", title: "Error", description: "Something broke", dismissible: true },
+      props: {
+        variant: "error",
+        title: "Error",
+        description: "Something broke",
+        dismissible: true,
+      },
     });
     expect(result.success).toBe(true);
   });
@@ -659,7 +656,9 @@ describe("SelectOptionSchema", () => {
   });
 
   test("accepts disabled option", () => {
-    expect(SelectOptionSchema.safeParse({ value: "1", label: "One", disabled: true }).success).toBe(true);
+    expect(SelectOptionSchema.safeParse({ value: "1", label: "One", disabled: true }).success).toBe(
+      true,
+    );
   });
 });
 

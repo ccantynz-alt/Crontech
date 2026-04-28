@@ -8,12 +8,9 @@
  */
 
 import { beforeEach, describe, expect, test } from "bun:test";
+import { db, userWebhooks, users, webhookDeliveries } from "@back-to-the-future/db";
 import { eq } from "drizzle-orm";
-import { db, users, userWebhooks, webhookDeliveries } from "@back-to-the-future/db";
-import {
-  computeSignature,
-  runDispatcher,
-} from "./dispatcher";
+import { computeSignature, runDispatcher } from "./dispatcher";
 import { emitWebhook } from "./emit";
 
 // ── Fixture helpers ─────────────────────────────────────────────────
@@ -37,14 +34,16 @@ async function ensureUser(userId: string): Promise<void> {
   });
 }
 
-async function seedWebhook(overrides: Partial<{
-  id: string;
-  userId: string;
-  url: string;
-  events: string[];
-  secret: string;
-  isActive: boolean;
-}> = {}): Promise<string> {
+async function seedWebhook(
+  overrides: Partial<{
+    id: string;
+    userId: string;
+    url: string;
+    events: string[];
+    secret: string;
+    isActive: boolean;
+  }> = {},
+): Promise<string> {
   const id = overrides.id ?? crypto.randomUUID();
   const userId = overrides.userId ?? `user-${id.slice(0, 8)}`;
   await ensureUser(userId);
@@ -114,23 +113,17 @@ describe("runDispatcher — happy path", () => {
     expect(result.failed).toBe(0);
     expect(fakeFetch.calls.length).toBe(1);
 
-    const call = fakeFetch.calls[0]!;
-    expect(call.url).toBe("https://example.test/hook");
-    const headers = call.init?.headers as Record<string, string>;
+    const call = fakeFetch.calls.at(0);
+    expect(call?.url).toBe("https://example.test/hook");
+    const headers = call?.init?.headers as Record<string, string>;
     expect(headers["Content-Type"]).toBe("application/json");
     expect(headers["X-Crontech-Event"]).toBe("payment.succeeded");
     expect(headers["X-Crontech-Delivery"]).toBe(deliveryId);
 
     // Verify HMAC signature matches the expected value.
     const expectedTimestamp = Math.floor(fixedNow / 1000);
-    const expectedSig = await computeSignature(
-      "whsec_hmac_test",
-      expectedTimestamp,
-      payload,
-    );
-    expect(headers["X-Crontech-Signature"]).toBe(
-      `t=${expectedTimestamp},v1=${expectedSig}`,
-    );
+    const expectedSig = await computeSignature("whsec_hmac_test", expectedTimestamp, payload);
+    expect(headers["X-Crontech-Signature"]).toBe(`t=${expectedTimestamp},v1=${expectedSig}`);
 
     // Row should now be `delivered`.
     const rows = await db
@@ -138,9 +131,9 @@ describe("runDispatcher — happy path", () => {
       .from(webhookDeliveries)
       .where(eq(webhookDeliveries.id, deliveryId));
     expect(rows.length).toBe(1);
-    expect(rows[0]!.status).toBe("delivered");
-    expect(rows[0]!.lastStatusCode).toBe(200);
-    expect(rows[0]!.deliveredAt).not.toBeNull();
+    expect(rows[0]?.status).toBe("delivered");
+    expect(rows[0]?.lastStatusCode).toBe(200);
+    expect(rows[0]?.deliveredAt).not.toBeNull();
   });
 
   test("future-dated pending rows are skipped", async () => {
@@ -189,8 +182,8 @@ describe("runDispatcher — failure handling", () => {
       .select()
       .from(webhookDeliveries)
       .where(eq(webhookDeliveries.id, deliveryId));
-    expect(rows[0]!.status).toBe("failed");
-    expect(rows[0]!.lastStatusCode).toBe(400);
+    expect(rows[0]?.status).toBe("failed");
+    expect(rows[0]?.lastStatusCode).toBe(400);
   });
 
   test("5xx response increments attempt_count and schedules retry", async () => {
@@ -216,12 +209,12 @@ describe("runDispatcher — failure handling", () => {
       .select()
       .from(webhookDeliveries)
       .where(eq(webhookDeliveries.id, deliveryId));
-    const row = rows[0]!;
-    expect(row.status).toBe("pending");
-    expect(row.attemptCount).toBe(1);
-    expect(row.lastStatusCode).toBe(503);
+    const row = rows.at(0);
+    expect(row?.status).toBe("pending");
+    expect(row?.attemptCount).toBe(1);
+    expect(row?.lastStatusCode).toBe(503);
     // Backoff[0] = 30s => next_retry_at = fixedNow + 30_000
-    expect(row.nextRetryAt.getTime()).toBe(fixedNow + 30_000);
+    expect(row?.nextRetryAt?.getTime()).toBe(fixedNow + 30_000);
   });
 
   test("429 is treated as transient and retried", async () => {
@@ -243,8 +236,8 @@ describe("runDispatcher — failure handling", () => {
       .select()
       .from(webhookDeliveries)
       .where(eq(webhookDeliveries.id, deliveryId));
-    expect(rows[0]!.status).toBe("pending");
-    expect(rows[0]!.attemptCount).toBe(1);
+    expect(rows[0]?.status).toBe("pending");
+    expect(rows[0]?.attemptCount).toBe(1);
   });
 
   test("after 5 failed attempts, delivery is marked failed AND parent webhook is deactivated", async () => {
@@ -267,14 +260,11 @@ describe("runDispatcher — failure handling", () => {
       .select()
       .from(webhookDeliveries)
       .where(eq(webhookDeliveries.id, deliveryId));
-    expect(rows[0]!.status).toBe("failed");
-    expect(rows[0]!.attemptCount).toBe(5);
+    expect(rows[0]?.status).toBe("failed");
+    expect(rows[0]?.attemptCount).toBe(5);
 
-    const parents = await db
-      .select()
-      .from(userWebhooks)
-      .where(eq(userWebhooks.id, webhookId));
-    expect(parents[0]!.isActive).toBe(false);
+    const parents = await db.select().from(userWebhooks).where(eq(userWebhooks.id, webhookId));
+    expect(parents[0]?.isActive).toBe(false);
   });
 
   test("network error is retried (allSettled contains no unhandled rejections)", async () => {
@@ -300,9 +290,9 @@ describe("runDispatcher — failure handling", () => {
       .select()
       .from(webhookDeliveries)
       .where(eq(webhookDeliveries.id, deliveryId));
-    expect(rows[0]!.status).toBe("pending");
-    expect(rows[0]!.attemptCount).toBe(1);
-    expect(rows[0]!.lastError).toContain("ECONNREFUSED");
+    expect(rows[0]?.status).toBe("pending");
+    expect(rows[0]?.attemptCount).toBe(1);
+    expect(rows[0]?.lastError).toContain("ECONNREFUSED");
   });
 });
 
@@ -332,9 +322,9 @@ describe("emitWebhook", () => {
 
     const deliveries = await db.select().from(webhookDeliveries);
     expect(deliveries.length).toBe(1);
-    expect(deliveries[0]!.webhookId).toBe(hookA);
-    expect(deliveries[0]!.status).toBe("pending");
-    expect(deliveries[0]!.event).toBe("payment.succeeded");
+    expect(deliveries[0]?.webhookId).toBe(hookA);
+    expect(deliveries[0]?.status).toBe("pending");
+    expect(deliveries[0]?.event).toBe("payment.succeeded");
 
     // Sanity: unmatched hook still has zero deliveries.
     const bDeliveries = await db

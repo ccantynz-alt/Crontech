@@ -83,7 +83,7 @@ export function isFailoverable(err: unknown): boolean {
 
 function readEnv(key: string): string | undefined {
   try {
-    const proc = (globalThis as Record<string, unknown>)["process"] as
+    const proc = (globalThis as Record<string, unknown>).process as
       | { env: Record<string, string | undefined> }
       | undefined;
     return proc?.env[key] ?? undefined;
@@ -121,8 +121,8 @@ async function callAnthropic(input: ProviderCallInput): Promise<ProviderCallResu
     max_tokens: input.maxTokens ?? 1024,
     messages: conversation,
   };
-  if (systemContent.length > 0) body["system"] = systemContent;
-  if (input.temperature !== undefined) body["temperature"] = input.temperature;
+  if (systemContent.length > 0) body.system = systemContent;
+  if (input.temperature !== undefined) body.temperature = input.temperature;
 
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
@@ -164,8 +164,8 @@ async function callOpenAI(input: ProviderCallInput): Promise<ProviderCallResult>
     model: input.model,
     messages: input.messages,
   };
-  if (input.maxTokens !== undefined) body["max_tokens"] = input.maxTokens;
-  if (input.temperature !== undefined) body["temperature"] = input.temperature;
+  if (input.maxTokens !== undefined) body.max_tokens = input.maxTokens;
+  if (input.temperature !== undefined) body.temperature = input.temperature;
 
   const res = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",

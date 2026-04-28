@@ -3,8 +3,8 @@
 // Cost per token: $0. No API call. No latency. No server.
 // Falls back gracefully to edge/cloud when WebGPU is unavailable.
 
-import { getDeviceCapabilities, canRunLocally, type WebGPUInfo, detectWebGPU } from "./webgpu";
 import type { ComputeTier, DeviceCapabilities } from "@back-to-the-future/ai-core";
+import { type WebGPUInfo, canRunLocally, detectWebGPU, getDeviceCapabilities } from "./webgpu";
 
 // ── Types ────────────────────────────────────────────────────────────
 
@@ -55,7 +55,12 @@ export type ModelStatus = "idle" | "loading" | "ready" | "error" | "unavailable"
 export class InferenceError extends Error {
   constructor(
     message: string,
-    public readonly code: "NO_WEBGPU" | "MODEL_TOO_LARGE" | "LOAD_FAILED" | "INFERENCE_FAILED" | "NOT_LOADED",
+    public readonly code:
+      | "NO_WEBGPU"
+      | "MODEL_TOO_LARGE"
+      | "LOAD_FAILED"
+      | "INFERENCE_FAILED"
+      | "NOT_LOADED",
     public readonly tier: ComputeTier = "client",
   ) {
     super(message);
@@ -169,7 +174,9 @@ export async function detectCapabilities(): Promise<InferenceCapabilities> {
   const supportedModels = MODEL_REGISTRY.filter((model) => {
     if (!gpuInfo.supported) return false;
     if (model.backend === "webllm") {
-      return canRunLocally(deviceCaps, model.parametersBillion) && deviceCaps.vramMB >= model.minVRAMMB;
+      return (
+        canRunLocally(deviceCaps, model.parametersBillion) && deviceCaps.vramMB >= model.minVRAMMB
+      );
     }
     // Transformers.js embeddings have very low requirements
     return gpuInfo.supported;
@@ -204,7 +211,10 @@ export async function loadModel(
   }
 
   if (model.type !== "chat") {
-    throw new InferenceError(`Model ${modelId} is not a chat model. Use getEmbeddings() instead.`, "LOAD_FAILED");
+    throw new InferenceError(
+      `Model ${modelId} is not a chat model. Use getEmbeddings() instead.`,
+      "LOAD_FAILED",
+    );
   }
 
   const supported = caps.supportedModels.find((m) => m.id === modelId);
@@ -229,11 +239,11 @@ export async function loadModel(
 
   try {
     const { CreateMLCEngine } = await import("@mlc-ai/web-llm");
-    chatEngine = await CreateMLCEngine(model.backendId, {
+    chatEngine = (await CreateMLCEngine(model.backendId, {
       initProgressCallback: (report: { progress: number; text: string }) => {
         onProgress?.(report.progress, report.text);
       },
-    }) as unknown as WebLLMEngine;
+    })) as unknown as WebLLMEngine;
 
     currentModelId = modelId;
     modelStatus = "ready";
@@ -249,7 +259,10 @@ export async function loadModel(
 }
 
 /** Run text generation on the loaded client-side model. Returns streamed tokens via callback. */
-export async function generate(prompt: string, options: GenerateOptions = {}): Promise<GenerateResult> {
+export async function generate(
+  prompt: string,
+  options: GenerateOptions = {},
+): Promise<GenerateResult> {
   if (!chatEngine || !currentModelId) {
     throw new InferenceError("No model loaded. Call loadModel() first.", "NOT_LOADED");
   }
@@ -275,7 +288,9 @@ export async function generate(prompt: string, options: GenerateOptions = {}): P
       });
 
       let text = "";
-      for await (const chunk of stream as AsyncIterable<{ choices: Array<{ delta: { content?: string } }> }>) {
+      for await (const chunk of stream as AsyncIterable<{
+        choices: Array<{ delta: { content?: string } }>;
+      }>) {
         const token = chunk.choices[0]?.delta?.content ?? "";
         if (token) {
           text += token;
@@ -304,7 +319,8 @@ export async function generate(prompt: string, options: GenerateOptions = {}): P
     });
 
     const message =
-      (reply as { choices: Array<{ message: { content: string } }> }).choices[0]?.message?.content ?? "";
+      (reply as { choices: Array<{ message: { content: string } }> }).choices[0]?.message
+        ?.content ?? "";
     tokenCount = message.split(/\s+/).filter(Boolean).length;
     const latencyMs = Math.round(performance.now() - start);
 
@@ -327,7 +343,7 @@ export async function generate(prompt: string, options: GenerateOptions = {}): P
 /** Generate embeddings locally via Transformers.js. */
 export async function getEmbeddings(
   text: string,
-  modelId: string = "embedding-minilm",
+  modelId = "embedding-minilm",
 ): Promise<EmbeddingResult> {
   const caps = await detectCapabilities();
 

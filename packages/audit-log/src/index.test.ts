@@ -6,11 +6,15 @@
 import { describe, expect, test } from "bun:test";
 
 import {
-  AuditLog,
+  type AuditEntry,
+  type AuditEntryInput,
   AuditEntrySchema,
+  AuditLog,
   GENESIS_PREVIOUS_HASH,
   InMemoryWormStorage,
   NullTsa,
+  type TimestampAuthority,
+  type TsaToken,
   canonicalJSON,
   computeEntryHash,
   isAuditAction,
@@ -18,10 +22,6 @@ import {
   sealEntry,
   sha256Hex,
   verifyChain,
-  type AuditEntry,
-  type AuditEntryInput,
-  type TimestampAuthority,
-  type TsaToken,
 } from "./index";
 
 // ── Fixtures ────────────────────────────────────────────────────────
@@ -67,9 +67,7 @@ describe("canonicalJSON", () => {
   });
 
   test("recurses into nested objects", () => {
-    expect(canonicalJSON({ b: { d: 1, c: 2 }, a: 3 })).toBe(
-      '{"a":3,"b":{"c":2,"d":1}}',
-    );
+    expect(canonicalJSON({ b: { d: 1, c: 2 }, a: 3 })).toBe('{"a":3,"b":{"c":2,"d":1}}');
   });
 
   test("preserves array order", () => {
@@ -105,9 +103,7 @@ describe("sha256Hex", () => {
   });
 
   test("empty string has known hash", () => {
-    expect(sha256Hex("")).toBe(
-      "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    );
+    expect(sha256Hex("")).toBe("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855");
   });
 });
 
@@ -224,16 +220,8 @@ describe("computeEntryHash", () => {
       ...a,
       detail: { x: 1, y: 2 },
     };
-    const {
-      entryHash: _ignoredA,
-      timestampToken: _tA,
-      ...hashableA
-    } = a;
-    const {
-      entryHash: _ignoredB,
-      timestampToken: _tB,
-      ...hashableB
-    } = b;
+    const { entryHash: _ignoredA, timestampToken: _tA, ...hashableA } = a;
+    const { entryHash: _ignoredB, timestampToken: _tB, ...hashableB } = b;
     void _ignoredA;
     void _ignoredB;
     void _tA;
@@ -314,9 +302,7 @@ describe("AuditLog.append", () => {
     // Fire 25 concurrent appends. If the lock didn't work, the
     // chain would have gaps or broken previousHash references.
     await Promise.all(
-      Array.from({ length: 25 }, (_, i) =>
-        log.append(sampleInput({ detail: { i } })),
-      ),
+      Array.from({ length: 25 }, (_, i) => log.append(sampleInput({ detail: { i } }))),
     );
     const verified = await log.verify();
     expect(verified.ok).toBe(true);
@@ -387,16 +373,14 @@ describe("AuditLog.verify", () => {
     // matches the canonical form. Because entryHash is computed over
     // previousHash, recomputing will flag hash_mismatch on entry 2.
     storage.__tamper(2, {
-      previousHash:
-        "0000000000000000000000000000000000000000000000000000000000000000",
+      previousHash: "0000000000000000000000000000000000000000000000000000000000000000",
     });
     const result = await log.verify();
     expect(result.ok).toBe(false);
     const reasons = result.failures.map((f) => f.reason);
-    expect(
-      reasons.includes("previous_hash_mismatch") ||
-        reasons.includes("hash_mismatch"),
-    ).toBe(true);
+    expect(reasons.includes("previous_hash_mismatch") || reasons.includes("hash_mismatch")).toBe(
+      true,
+    );
   });
 
   test("detects schema-invalid entries", () => {

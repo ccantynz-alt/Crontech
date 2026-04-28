@@ -3,23 +3,35 @@
 // AI generates JSON specs → json-render validates & renders → SolidJS components.
 // This replaces manual Switch/Match rendering with a catalog-driven renderer.
 
-import { createSignal, For, Show } from "solid-js";
-import type { JSX, Component } from "solid-js";
 import {
-  Renderer,
-  useChatUI,
-  useUIStream,
-  JSONUIProvider,
-  StateProvider,
+  Alert,
+  Avatar,
+  Badge,
+  Button,
+  Card,
+  Input,
+  Modal,
+  Select,
+  Separator,
+  Spinner,
+  Stack,
+  Tabs,
+  Text,
+  Textarea,
+  Tooltip,
+} from "@back-to-the-future/ui";
+import {
   type ComponentRenderProps,
   type CreateRendererProps,
+  JSONUIProvider,
+  Renderer,
   type Spec,
+  StateProvider,
+  useChatUI,
+  useUIStream,
 } from "@json-render/solid";
-import {
-  Button, Input, Card, Stack, Text, Modal,
-  Badge, Alert, Avatar, Tabs, Select, Textarea,
-  Spinner, Tooltip, Separator,
-} from "@back-to-the-future/ui";
+import { For, Show, createSignal } from "solid-js";
+import type { Component, JSX } from "solid-js";
 
 // ── Component Catalog (json-render format) ──────────────────────────
 // Maps component type names to SolidJS render functions.
@@ -33,13 +45,20 @@ import {
 // AI-generated props arrive as unstructured strings; validate them against the
 // component's literal union and fall back to a sane default when the value is
 // missing or unknown. Keeps the renderer strict without trusting the model.
-const asEnum = <T extends string>(
-  value: unknown,
-  valid: readonly T[],
-  fallback: T,
-): T => (typeof value === "string" && (valid as readonly string[]).includes(value) ? (value as T) : fallback);
+const asEnum = <T extends string>(value: unknown, valid: readonly T[], fallback: T): T =>
+  typeof value === "string" && (valid as readonly string[]).includes(value)
+    ? (value as T)
+    : fallback;
 
-const BUTTON_VARIANTS = ["default", "primary", "secondary", "destructive", "outline", "ghost", "link"] as const;
+const BUTTON_VARIANTS = [
+  "default",
+  "primary",
+  "secondary",
+  "destructive",
+  "outline",
+  "ghost",
+  "link",
+] as const;
 const BUTTON_SIZES = ["sm", "md", "lg", "icon"] as const;
 const CARD_PADDINGS = ["none", "sm", "md", "lg"] as const;
 const STACK_DIRECTIONS = ["horizontal", "vertical"] as const;
@@ -83,10 +102,7 @@ export const componentRegistry: Record<string, Component<ComponentRenderProps>> 
   Card: (props: ComponentRenderProps) => {
     const p = props.element.props as Record<string, unknown>;
     return (
-      <Card
-        title={p.title as string}
-        padding={asEnum(p.padding, CARD_PADDINGS, "md")}
-      >
+      <Card title={p.title as string} padding={asEnum(p.padding, CARD_PADDINGS, "md")}>
         {props.children}
       </Card>
     );
@@ -119,10 +135,7 @@ export const componentRegistry: Record<string, Component<ComponentRenderProps>> 
   Modal: (props: ComponentRenderProps) => {
     const p = props.element.props as Record<string, unknown>;
     return (
-      <Modal
-        title={(p.title as string) ?? ""}
-        open={(p.open as boolean) ?? false}
-      >
+      <Modal title={(p.title as string) ?? ""} open={(p.open as boolean) ?? false}>
         {props.children}
       </Modal>
     );
@@ -141,10 +154,7 @@ export const componentRegistry: Record<string, Component<ComponentRenderProps>> 
   Alert: (props: ComponentRenderProps) => {
     const p = props.element.props as Record<string, unknown>;
     return (
-      <Alert
-        variant={asEnum(p.variant, ALERT_VARIANTS, "info")}
-        title={p.title as string}
-      >
+      <Alert variant={asEnum(p.variant, ALERT_VARIANTS, "info")} title={p.title as string}>
         {props.children}
       </Alert>
     );
@@ -152,21 +162,12 @@ export const componentRegistry: Record<string, Component<ComponentRenderProps>> 
 
   Avatar: (props: ComponentRenderProps) => {
     const p = props.element.props as Record<string, unknown>;
-    return (
-      <Avatar
-        initials={p.initials as string}
-        size={asEnum(p.size, AVATAR_SIZES, "md")}
-      />
-    );
+    return <Avatar initials={p.initials as string} size={asEnum(p.size, AVATAR_SIZES, "md")} />;
   },
 
   Tabs: (props: ComponentRenderProps) => {
     const p = props.element.props as Record<string, unknown>;
-    return (
-      <Tabs
-        items={(p.items as Array<{ id: string; label: string }>) ?? []}
-      />
-    );
+    return <Tabs items={(p.items as Array<{ id: string; label: string }>) ?? []} />;
   },
 
   Select: (props: ComponentRenderProps) => {
@@ -181,12 +182,7 @@ export const componentRegistry: Record<string, Component<ComponentRenderProps>> 
 
   Textarea: (props: ComponentRenderProps) => {
     const p = props.element.props as Record<string, unknown>;
-    return (
-      <Textarea
-        placeholder={p.placeholder as string}
-        rows={(p.rows as number) ?? 3}
-      />
-    );
+    return <Textarea placeholder={p.placeholder as string} rows={(p.rows as number) ?? 3} />;
   },
 
   Spinner: (props: ComponentRenderProps) => {
@@ -196,20 +192,12 @@ export const componentRegistry: Record<string, Component<ComponentRenderProps>> 
 
   Tooltip: (props: ComponentRenderProps) => {
     const p = props.element.props as Record<string, unknown>;
-    return (
-      <Tooltip content={(p.content as string) ?? ""}>
-        {props.children}
-      </Tooltip>
-    );
+    return <Tooltip content={(p.content as string) ?? ""}>{props.children}</Tooltip>;
   },
 
   Separator: (props: ComponentRenderProps) => {
     const p = props.element.props as Record<string, unknown>;
-    return (
-      <Separator
-        orientation={asEnum(p.orientation, SEPARATOR_ORIENTATIONS, "horizontal")}
-      />
-    );
+    return <Separator orientation={asEnum(p.orientation, SEPARATOR_ORIENTATIONS, "horizontal")} />;
   },
 };
 
@@ -252,11 +240,7 @@ export function StreamingGenUI(props: StreamingGenUIProps): JSX.Element {
       }
     >
       <JSONUIProvider registry={componentRegistry}>
-        <Renderer
-          spec={stream.spec}
-          registry={componentRegistry}
-          loading={stream.isStreaming}
-        />
+        <Renderer spec={stream.spec} registry={componentRegistry} loading={stream.isStreaming} />
       </JSONUIProvider>
     </Show>
   );
@@ -306,10 +290,7 @@ export function ChatGenUI(props: ChatGenUIProps): JSX.Element {
                 </Show>
                 <Show when={msg.spec}>
                   <JSONUIProvider registry={componentRegistry}>
-                    <Renderer
-                      spec={msg.spec}
-                      registry={componentRegistry}
-                    />
+                    <Renderer spec={msg.spec} registry={componentRegistry} />
                   </JSONUIProvider>
                 </Show>
               </Stack>
@@ -325,9 +306,7 @@ export function ChatGenUI(props: ChatGenUIProps): JSX.Element {
           placeholder={props.placeholder ?? "Describe the UI you want..."}
           value={inputValue()}
           label="Describe UI"
-          onInput={(e: Event) =>
-            setInputValue((e.target as HTMLInputElement).value)
-          }
+          onInput={(e: Event) => setInputValue((e.target as HTMLInputElement).value)}
           onKeyDown={(e: KeyboardEvent) => {
             if (e.key === "Enter") handleSend();
           }}

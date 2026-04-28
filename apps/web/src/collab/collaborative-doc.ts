@@ -2,13 +2,9 @@
 // Binds a Yjs document to the builder's component tree.
 // Provides undo/redo, awareness (cursors/presence), and change listeners.
 
+import type { WebsocketProvider } from "y-websocket";
 import * as Y from "yjs";
-import { WebsocketProvider } from "y-websocket";
-import {
-  createCollabRoom,
-  getRandomColor,
-  type CollabRoom,
-} from "./yjs-provider";
+import { type CollabRoom, createCollabRoom, getRandomColor } from "./yjs-provider";
 
 // ── Types ────────────────────────────────────────────────────────────
 

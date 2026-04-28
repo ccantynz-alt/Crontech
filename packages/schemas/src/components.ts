@@ -28,15 +28,7 @@ export const ButtonSchema = z.object({
   }),
 });
 
-export const InputType = z.enum([
-  "text",
-  "email",
-  "password",
-  "number",
-  "search",
-  "tel",
-  "url",
-]);
+export const InputType = z.enum(["text", "email", "password", "number", "search", "tel", "url"]);
 
 export const InputSchema = z.object({
   component: z.literal("Input"),
@@ -69,9 +61,7 @@ export const StackSchema = z.object({
     direction: StackDirection.default("vertical"),
     gap: z.enum(["none", "xs", "sm", "md", "lg", "xl"]).default("md"),
     align: z.enum(["start", "center", "end", "stretch"]).default("stretch"),
-    justify: z
-      .enum(["start", "center", "end", "between", "around"])
-      .default("start"),
+    justify: z.enum(["start", "center", "end", "between", "around"]).default("start"),
   }),
   children: z.array(z.lazy((): z.ZodType => ComponentSchema)).optional(),
 });
@@ -80,9 +70,7 @@ export const TextSchema = z.object({
   component: z.literal("Text"),
   props: z.object({
     content: z.string(),
-    variant: z
-      .enum(["h1", "h2", "h3", "h4", "body", "caption", "code"])
-      .default("body"),
+    variant: z.enum(["h1", "h2", "h3", "h4", "body", "caption", "code"]).default("body"),
     weight: z.enum(["normal", "medium", "semibold", "bold"]).default("normal"),
     align: z.enum(["left", "center", "right"]).default("left"),
   }),
@@ -99,13 +87,7 @@ export const ModalSchema = z.object({
   children: z.array(z.lazy((): z.ZodType => ComponentSchema)).optional(),
 });
 
-export const BadgeVariant = z.enum([
-  "default",
-  "success",
-  "warning",
-  "error",
-  "info",
-]);
+export const BadgeVariant = z.enum(["default", "success", "warning", "error", "info"]);
 
 export const BadgeSchema = z.object({
   component: z.literal("Badge"),

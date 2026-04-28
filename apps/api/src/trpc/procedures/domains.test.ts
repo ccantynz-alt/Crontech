@@ -18,29 +18,20 @@
 // (or would be if added). Here we mock at the client method level so
 // the router logic is what's under test.
 
-import { describe, test, expect, afterEach, beforeEach } from "bun:test";
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import { db, domainRegistrations, scopedDb, sessions, users } from "@back-to-the-future/db";
 import { eq } from "drizzle-orm";
-import {
-  db,
-  users,
-  sessions,
-  scopedDb,
-  domainRegistrations,
-} from "@back-to-the-future/db";
-import { appRouter } from "../router";
 import { createSession } from "../../auth/session";
-import type { TRPCContext } from "../context";
-import {
-  __setDomainsTestHooks,
-  __resetDomainsTestHooks,
-} from "./domains";
 import type { OpensrsClient } from "../../domains/opensrs-client";
 import type {
-  OpensrsLookupAttributes,
   OpensrsGetPriceAttributes,
+  OpensrsLookupAttributes,
   OpensrsRegisterAttributes,
   OpensrsRenewAttributes,
 } from "../../domains/opensrs-types";
+import type { TRPCContext } from "../context";
+import { appRouter } from "../router";
+import { __resetDomainsTestHooks, __setDomainsTestHooks } from "./domains";
 
 // ── Test harness ──────────────────────────────────────────────────────
 
@@ -58,7 +49,7 @@ async function createUser(role: "admin" | "viewer"): Promise<string> {
   const id = crypto.randomUUID();
   await db.insert(users).values({
     id,
-    email: `dom-${role}-${Date.now()}-${crypto.randomUUID().replace(/-/g, '').slice(0, 6)}@example.com`,
+    email: `dom-${role}-${Date.now()}-${crypto.randomUUID().replace(/-/g, "").slice(0, 6)}@example.com`,
     displayName: `Domain Test ${role}`,
     role,
   });
@@ -66,9 +57,7 @@ async function createUser(role: "admin" | "viewer"): Promise<string> {
 }
 
 async function cleanupUser(userId: string): Promise<void> {
-  await db
-    .delete(domainRegistrations)
-    .where(eq(domainRegistrations.userId, userId));
+  await db.delete(domainRegistrations).where(eq(domainRegistrations.userId, userId));
   await db.delete(sessions).where(eq(sessions.userId, userId));
   await db.delete(users).where(eq(users.id, userId));
 }
@@ -85,10 +74,7 @@ interface FakeClientState {
     | { kind: "ok"; value: OpensrsRegisterAttributes }
     | { kind: "err"; error: Error }
     | null;
-  renewResult:
-    | { kind: "ok"; value: OpensrsRenewAttributes }
-    | { kind: "err"; error: Error }
-    | null;
+  renewResult: { kind: "ok"; value: OpensrsRenewAttributes } | { kind: "err"; error: Error } | null;
   lookupCalls: string[];
   registerCalls: Array<{ domain: string; years: number }>;
 }
@@ -331,11 +317,7 @@ describe("domains router", () => {
     const { OpensrsError } = await import("../../domains/opensrs-client");
     state.registerResult = {
       kind: "err",
-      error: new OpensrsError(
-        "Domain already registered to another reseller.",
-        "SW_REGISTER",
-        400,
-      ),
+      error: new OpensrsError("Domain already registered to another reseller.", "SW_REGISTER", 400),
     };
 
     const caller = await adminCaller();

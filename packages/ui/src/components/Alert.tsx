@@ -1,4 +1,4 @@
-import { type JSX, Show, splitProps, createSignal } from "solid-js";
+import { type JSX, Show, createSignal, splitProps } from "solid-js";
 
 export interface AlertProps {
   variant?: "info" | "success" | "warning" | "error" | undefined;
@@ -39,6 +39,7 @@ export function Alert(props: AlertProps): JSX.Element {
         </div>
         <Show when={local.dismissible}>
           <button
+            type="button"
             class="alert-dismiss"
             aria-label="Dismiss alert"
             onClick={() => setDismissed(true)}

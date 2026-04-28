@@ -9,12 +9,7 @@
 
 import type { JSX } from "solid-js";
 import { SEOHead } from "../../../components/SEOHead";
-import {
-  DocsArticle,
-  Callout,
-  KeyList,
-  Steps,
-} from "../../../components/docs/DocsArticle";
+import { Callout, DocsArticle, KeyList, Steps } from "../../../components/docs/DocsArticle";
 
 export default function ComponentsCustomizationArticle(): JSX.Element {
   return (
@@ -39,21 +34,18 @@ export default function ComponentsCustomizationArticle(): JSX.Element {
         }}
       >
         <p>
-          The library leans hard on CSS custom properties. Every primitive
-          reaches for tokens like <code>var(--color-primary)</code>,{" "}
-          <code>var(--color-bg-subtle)</code>, and{" "}
-          <code>var(--color-text)</code> instead of baking a specific
-          colour into the component source. That means two things: one,
-          retheming the whole platform is a single edit on{" "}
-          <code>:root</code>. Two, you rarely need to fork a component —
-          you only need to override a token.
+          The library leans hard on CSS custom properties. Every primitive reaches for tokens like{" "}
+          <code>var(--color-primary)</code>, <code>var(--color-bg-subtle)</code>, and{" "}
+          <code>var(--color-text)</code> instead of baking a specific colour into the component
+          source. That means two things: one, retheming the whole platform is a single edit on{" "}
+          <code>:root</code>. Two, you rarely need to fork a component — you only need to override a
+          token.
         </p>
 
         <h2>The theme tokens</h2>
         <p>
-          Every token lives on <code>:root</code> in the web app's global
-          stylesheet. Here is the short-list of tokens you will reach for
-          most often:
+          Every token lives on <code>:root</code> in the web app's global stylesheet. Here is the
+          short-list of tokens you will reach for most often:
         </p>
 
         <KeyList
@@ -82,18 +74,16 @@ export default function ComponentsCustomizationArticle(): JSX.Element {
         />
 
         <Callout tone="info">
-          Dark mode is not a separate stylesheet. It is the same set of
-          tokens with different values in{" "}
-          <code>@media (prefers-color-scheme: dark)</code>. Add your
-          tokens to both branches and every primitive adopts the new
-          palette automatically.
+          Dark mode is not a separate stylesheet. It is the same set of tokens with different values
+          in <code>@media (prefers-color-scheme: dark)</code>. Add your tokens to both branches and
+          every primitive adopts the new palette automatically.
         </Callout>
 
         <h2>Rebranding in one block</h2>
         <p>
-          To reskin every Crontech surface for your own brand, override
-          the tokens on <code>:root</code> (or scope them to a wrapper
-          element if you are embedding inside another app):
+          To reskin every Crontech surface for your own brand, override the tokens on{" "}
+          <code>:root</code> (or scope them to a wrapper element if you are embedding inside another
+          app):
         </p>
 
         <pre
@@ -125,9 +115,8 @@ export default function ComponentsCustomizationArticle(): JSX.Element {
 
         <h2>Overriding a single call site</h2>
         <p>
-          Every primitive accepts a <code>class</code> prop and (where
-          relevant) a <code>style</code> prop. Use them for one-off
-          tweaks — not for themes:
+          Every primitive accepts a <code>class</code> prop and (where relevant) a{" "}
+          <code>style</code> prop. Use them for one-off tweaks — not for themes:
         </p>
 
         <pre
@@ -153,73 +142,61 @@ export default function ComponentsCustomizationArticle(): JSX.Element {
         </pre>
 
         <Callout tone="warn" title="Do not fork the library for a colour">
-          If you find yourself copy-pasting a component into your app to
-          change a border or a hover, stop. Almost every such change is a
-          theme-token override. Forking a primitive breaks the AI
-          composability contract — the renderer still hands AI output to
-          the catalog version, not your fork, so your "improvement"
-          silently vanishes for anything the agent renders.
+          If you find yourself copy-pasting a component into your app to change a border or a hover,
+          stop. Almost every such change is a theme-token override. Forking a primitive breaks the
+          AI composability contract — the renderer still hands AI output to the catalog version, not
+          your fork, so your "improvement" silently vanishes for anything the agent renders.
         </Callout>
 
         <h2>Extending the catalog with a new primitive</h2>
         <p>
-          When a primitive genuinely does not exist yet, the library has
-          room for it. But the bar for shipping a new component is three
-          gates — the same three gates every existing primitive passed.
-          Miss any one and the component is not considered shipped.
+          When a primitive genuinely does not exist yet, the library has room for it. But the bar
+          for shipping a new component is three gates — the same three gates every existing
+          primitive passed. Miss any one and the component is not considered shipped.
         </p>
 
         <Steps>
           <li>
             <strong>Component.</strong> Add the SolidJS implementation at{" "}
-            <code>packages/ui/src/components/YourThing.tsx</code> and
-            export it from <code>packages/ui/src/index.ts</code>. Use
-            theme tokens, never hard-coded colours. Keep props to a
-            serialisable shape (strings, numbers, booleans, enums) — AI
-            cannot compose over closures.
+            <code>packages/ui/src/components/YourThing.tsx</code> and export it from{" "}
+            <code>packages/ui/src/index.ts</code>. Use theme tokens, never hard-coded colours. Keep
+            props to a serialisable shape (strings, numbers, booleans, enums) — AI cannot compose
+            over closures.
           </li>
           <li>
-            <strong>Schema.</strong> Add{" "}
-            <code>YourThingSchema</code> to{" "}
-            <code>packages/schemas/src/components.ts</code> and extend
-            the discriminated <code>ComponentSchema</code> union so the
-            parser knows about it. Constrain enum props with{" "}
-            <code>z.enum</code> — that's how the AI is guaranteed to hand
-            back a valid variant.
+            <strong>Schema.</strong> Add <code>YourThingSchema</code> to{" "}
+            <code>packages/schemas/src/components.ts</code> and extend the discriminated{" "}
+            <code>ComponentSchema</code> union so the parser knows about it. Constrain enum props
+            with <code>z.enum</code> — that's how the AI is guaranteed to hand back a valid variant.
           </li>
           <li>
-            <strong>Renderer entry.</strong> Add a{" "}
-            <code>YourThing</code> entry to the{" "}
-            <code>componentRegistry</code> in{" "}
-            <code>apps/web/src/components/JsonRenderUI.tsx</code>. Use
-            the same <code>asEnum</code> helper the existing entries use
-            — never trust a raw string off the model.
+            <strong>Renderer entry.</strong> Add a <code>YourThing</code> entry to the{" "}
+            <code>componentRegistry</code> in <code>apps/web/src/components/JsonRenderUI.tsx</code>.
+            Use the same <code>asEnum</code> helper the existing entries use — never trust a raw
+            string off the model.
           </li>
         </Steps>
 
         <p>
-          Once all three gates are in place, a short test in your feature
-          branch — mount the component, parse a fixture schema, pass it
-          through <code>JsonRenderUI</code>, snapshot the output — is the
-          final guard. If the test passes, AI agents can compose with
-          your new primitive from their next turn onward.
+          Once all three gates are in place, a short test in your feature branch — mount the
+          component, parse a fixture schema, pass it through <code>JsonRenderUI</code>, snapshot the
+          output — is the final guard. If the test passes, AI agents can compose with your new
+          primitive from their next turn onward.
         </p>
 
         <Callout tone="note">
-          A new component with a real schema and a real renderer entry
-          will show up in the catalog article automatically on the next
-          docs sweep. Please open a PR for the catalog article at the
-          same time — keep the docs honest with the source.
+          A new component with a real schema and a real renderer entry will show up in the catalog
+          article automatically on the next docs sweep. Please open a PR for the catalog article at
+          the same time — keep the docs honest with the source.
         </Callout>
 
         <h2>You are done with the category</h2>
         <p>
-          Between the overview, the catalog, the AI-composable guide, and
-          this customisation article, you have everything required to
-          build a full surface on the library, retheme it for your brand,
-          and let AI agents drive it safely. The next unshipped docs
-          category lands the moment its subsystem stabilises — come back
-          to <a href="/docs">/docs</a> to see what's new.
+          Between the overview, the catalog, the AI-composable guide, and this customisation
+          article, you have everything required to build a full surface on the library, retheme it
+          for your brand, and let AI agents drive it safely. The next unshipped docs category lands
+          the moment its subsystem stabilises — come back to <a href="/docs">/docs</a> to see what's
+          new.
         </p>
       </DocsArticle>
     </>

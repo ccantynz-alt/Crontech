@@ -13,13 +13,10 @@
 // tRPC caller because the procedure is a thin wrapper around this
 // function and exercising both surfaces the same defect.
 
-import { describe, test, expect, beforeEach } from "bun:test";
+import { beforeEach, describe, expect, test } from "bun:test";
+import { db, dnsRecords, dnsZones } from "@back-to-the-future/db";
 import { and, eq } from "drizzle-orm";
-import { db, dnsZones, dnsRecords } from "@back-to-the-future/db";
-import {
-  importFromCloudflare,
-  type CloudflareRecord,
-} from "./dns-import";
+import { type CloudflareRecord, importFromCloudflare } from "./dns-import";
 
 // ── Helpers ─────────────────────────────────────────────────────────
 
@@ -116,37 +113,31 @@ describe("importFromCloudflare — happy path", () => {
     expect(summary.zoneName).toBe("crontech.ai");
 
     // Zone row exists, serial was bumped from 1 -> 2 at the end.
-    const zoneRows = await db
-      .select()
-      .from(dnsZones)
-      .where(eq(dnsZones.name, "crontech.ai"));
+    const zoneRows = await db.select().from(dnsZones).where(eq(dnsZones.name, "crontech.ai"));
     expect(zoneRows.length).toBe(1);
-    expect(zoneRows[0]!.serial).toBe(2);
+    expect(zoneRows[0]?.serial).toBe(2);
     // Defaults were synthesised.
-    expect(zoneRows[0]!.adminEmail.length).toBeGreaterThan(0);
-    expect(zoneRows[0]!.primaryNs.length).toBeGreaterThan(0);
+    expect(zoneRows[0]?.adminEmail.length).toBeGreaterThan(0);
+    expect(zoneRows[0]?.primaryNs.length).toBeGreaterThan(0);
 
     // All four records landed with their Cloudflare fields intact.
-    const rows = await db
-      .select()
-      .from(dnsRecords)
-      .where(eq(dnsRecords.zoneId, summary.zoneId));
+    const rows = await db.select().from(dnsRecords).where(eq(dnsRecords.zoneId, summary.zoneId));
     expect(rows.length).toBe(4);
 
     const mx = rows.find((r) => r.type === "MX");
     expect(mx).toBeDefined();
-    expect(mx!.priority).toBe(10);
-    expect(mx!.content).toBe("mx1.crontech.ai");
-    expect(mx!.ttl).toBe(3600);
+    expect(mx?.priority).toBe(10);
+    expect(mx?.content).toBe("mx1.crontech.ai");
+    expect(mx?.ttl).toBe(3600);
 
     // First call should hit /zones?name=..., second /zones/<id>/dns_records
     expect(fake.calls.length).toBe(2);
-    expect(fake.calls[0]!.url).toContain("/zones?name=crontech.ai");
-    expect(fake.calls[1]!.url).toContain("/zones/cf_zone_abc/dns_records");
+    expect(fake.calls[0]?.url).toContain("/zones?name=crontech.ai");
+    expect(fake.calls[1]?.url).toContain("/zones/cf_zone_abc/dns_records");
     // Bearer auth on every call.
     for (const call of fake.calls) {
       const headers = call.init?.headers as Record<string, string>;
-      expect(headers["Authorization"]).toBe("Bearer cf_token_xyz");
+      expect(headers.Authorization).toBe("Bearer cf_token_xyz");
     }
   });
 });
@@ -188,19 +179,13 @@ describe("importFromCloudflare — dedupe", () => {
     expect(second.zoneId).toBe(first.zoneId);
 
     // Only the original 2 rows exist.
-    const rows = await db
-      .select()
-      .from(dnsRecords)
-      .where(eq(dnsRecords.zoneId, first.zoneId));
+    const rows = await db.select().from(dnsRecords).where(eq(dnsRecords.zoneId, first.zoneId));
     expect(rows.length).toBe(2);
 
     // Serial bumped once for the first import (1 -> 2) and NOT again on
     // the second run because nothing was imported.
-    const zoneRows = await db
-      .select()
-      .from(dnsZones)
-      .where(eq(dnsZones.id, first.zoneId));
-    expect(zoneRows[0]!.serial).toBe(2);
+    const zoneRows = await db.select().from(dnsZones).where(eq(dnsZones.id, first.zoneId));
+    expect(zoneRows[0]?.serial).toBe(2);
   });
 });
 
@@ -232,12 +217,7 @@ describe("importFromCloudflare — unsupported types", () => {
     const rows = await db
       .select()
       .from(dnsRecords)
-      .where(
-        and(
-          eq(dnsRecords.zoneId, summary.zoneId),
-          eq(dnsRecords.type, "A"),
-        ),
-      );
+      .where(and(eq(dnsRecords.zoneId, summary.zoneId), eq(dnsRecords.type, "A")));
     expect(rows.length).toBe(1);
   });
 });

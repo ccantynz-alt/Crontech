@@ -10,12 +10,7 @@
 
 import type { JSX } from "solid-js";
 import { SEOHead } from "../../../components/SEOHead";
-import {
-  DocsArticle,
-  Steps,
-  Callout,
-  KeyList,
-} from "../../../components/docs/DocsArticle";
+import { Callout, DocsArticle, KeyList, Steps } from "../../../components/docs/DocsArticle";
 
 export default function PresenceAndCursorsArticle(): JSX.Element {
   return (
@@ -40,8 +35,8 @@ export default function PresenceAndCursorsArticle(): JSX.Element {
         }}
       >
         <p>
-          The room manager lives at <code>/ws</code> on the API and is
-          implemented across three files:
+          The room manager lives at <code>/ws</code> on the API and is implemented across three
+          files:
         </p>
 
         <KeyList
@@ -67,47 +62,38 @@ export default function PresenceAndCursorsArticle(): JSX.Element {
         <h2>The message protocol</h2>
 
         <p>
-          A client joins a room, updates its state, and leaves. Every
-          step is a JSON message matching a Zod-defined shape. Here's
-          the typical sequence:
+          A client joins a room, updates its state, and leaves. Every step is a JSON message
+          matching a Zod-defined shape. Here's the typical sequence:
         </p>
 
         <Steps>
           <li>
-            Connect to <code>wss://your-api.crontech.app/ws</code>.
-            The server responds with a <code>pong</code> frame to
-            confirm the socket is alive.
+            Connect to <code>wss://your-api.crontech.app/ws</code>. The server responds with a{" "}
+            <code>pong</code> frame to confirm the socket is alive.
           </li>
           <li>
-            Send a <code>join_room</code> message with a{" "}
-            <code>roomId</code> (any string up to 255 chars), a{" "}
-            <code>userId</code> (must be a UUID), and optional{" "}
-            <code>metadata</code> (displayName + color for cursor
-            rendering).
+            Send a <code>join_room</code> message with a <code>roomId</code> (any string up to 255
+            chars), a <code>userId</code> (must be a UUID), and optional <code>metadata</code>{" "}
+            (displayName + color for cursor rendering).
           </li>
           <li>
-            The server responds with a <code>room_joined</code>{" "}
-            message that lists every user currently in the room. Every
-            other user gets a <code>user_joined</code> notification at
+            The server responds with a <code>room_joined</code> message that lists every user
+            currently in the room. Every other user gets a <code>user_joined</code> notification at
             the same time.
           </li>
           <li>
-            Send <code>cursor_move</code> whenever the local cursor
-            moves, <code>presence_update</code> when the user's
-            activity state changes, and <code>broadcast</code> for any
-            custom payload.
+            Send <code>cursor_move</code> whenever the local cursor moves,{" "}
+            <code>presence_update</code> when the user's activity state changes, and{" "}
+            <code>broadcast</code> for any custom payload.
           </li>
           <li>
-            Send <code>ping</code> every ~10 seconds. The server
-            records the ping against your user and replies with{" "}
-            <code>pong</code>. Miss three pings and the server will
-            disconnect you as dead.
+            Send <code>ping</code> every ~10 seconds. The server records the ping against your user
+            and replies with <code>pong</code>. Miss three pings and the server will disconnect you
+            as dead.
           </li>
           <li>
-            Send <code>leave_room</code> to leave cleanly, or just
-            close the socket — both trigger{" "}
-            <code>user_left</code> notifications to the rest of the
-            room.
+            Send <code>leave_room</code> to leave cleanly, or just close the socket — both trigger{" "}
+            <code>user_left</code> notifications to the rest of the room.
           </li>
         </Steps>
 
@@ -139,17 +125,16 @@ export default function PresenceAndCursorsArticle(): JSX.Element {
         />
 
         <Callout tone="info">
-          The error codes the server returns are an enum: invalid_message,
-          room_not_found, unauthorized, rate_limited, internal_error.
-          Client code can pattern-match on them without parsing prose.
+          The error codes the server returns are an enum: invalid_message, room_not_found,
+          unauthorized, rate_limited, internal_error. Client code can pattern-match on them without
+          parsing prose.
         </Callout>
 
         <h2>Read-only observers via SSE</h2>
 
         <p>
-          If you want a dashboard to watch a room without joining it —
-          say, an admin view that shows every active room and who's
-          in them — use the SSE endpoint instead:
+          If you want a dashboard to watch a room without joining it — say, an admin view that shows
+          every active room and who's in them — use the SSE endpoint instead:
         </p>
 
         <pre>
@@ -157,13 +142,10 @@ export default function PresenceAndCursorsArticle(): JSX.Element {
         </pre>
 
         <p>
-          Implemented in <code>apps/api/src/realtime/sse.ts</code>,
-          this endpoint opens a Server-Sent Events stream and
-          forwards every server-originated message for the room:
-          cursor updates, presence syncs, user joined / left,
-          broadcasts. SSE observers are not room members — they
-          cannot send messages — and they don't count against the
-          100-user room cap.
+          Implemented in <code>apps/api/src/realtime/sse.ts</code>, this endpoint opens a
+          Server-Sent Events stream and forwards every server-originated message for the room:
+          cursor updates, presence syncs, user joined / left, broadcasts. SSE observers are not room
+          members — they cannot send messages — and they don't count against the 100-user room cap.
         </p>
 
         <KeyList
@@ -204,11 +186,10 @@ export default function PresenceAndCursorsArticle(): JSX.Element {
         />
 
         <Callout tone="note">
-          The room manager is process-local today. Two Bun nodes do
-          not share rooms. For single-server deployments this is a
-          non-issue; multi-region collaboration is on the roadmap
-          (BLK-011 🔵 PLANNED) behind a Durable Object-backed
-          variant. The article will be updated when it ships.
+          The room manager is process-local today. Two Bun nodes do not share rooms. For
+          single-server deployments this is a non-issue; multi-region collaboration is on the
+          roadmap (BLK-011 🔵 PLANNED) behind a Durable Object-backed variant. The article will be
+          updated when it ships.
         </Callout>
       </DocsArticle>
     </>

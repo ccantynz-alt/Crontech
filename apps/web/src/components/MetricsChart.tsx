@@ -1,5 +1,5 @@
-import { createSignal, createMemo, createEffect, onCleanup, For, Show } from "solid-js";
-import type { JSX, Accessor } from "solid-js";
+import { For, Show, createEffect, createMemo, createSignal, onCleanup } from "solid-js";
+import type { Accessor, JSX } from "solid-js";
 
 // ── Types ────────────────────────────────────────────────────────────
 
@@ -44,22 +44,23 @@ function defaultFormatTime(ts: number): string {
 /** Compute smooth bezier control points for a cubic spline */
 function computeBezierPath(points: Array<{ x: number; y: number }>): string {
   if (points.length === 0) return "";
-  if (points.length === 1) return `M${points[0]!.x},${points[0]!.y}`;
+  if (points.length === 1) return `M${points[0]?.x},${points[0]?.y}`;
 
-  const first = points[0]!;
+  const zero = { x: 0, y: 0 };
+  const first = points[0] ?? zero;
   let d = `M${first.x},${first.y}`;
 
   if (points.length === 2) {
-    const second = points[1]!;
+    const second = points[1] ?? zero;
     d += ` L${second.x},${second.y}`;
     return d;
   }
 
   for (let i = 0; i < points.length - 1; i++) {
-    const p0 = points[Math.max(0, i - 1)]!;
-    const p1 = points[i]!;
-    const p2 = points[i + 1]!;
-    const p3 = points[Math.min(points.length - 1, i + 2)]!;
+    const p0 = points[Math.max(0, i - 1)] ?? zero;
+    const p1 = points[i] ?? zero;
+    const p2 = points[i + 1] ?? zero;
+    const p3 = points[Math.min(points.length - 1, i + 2)] ?? zero;
 
     const tension = 0.3;
     const cp1x = p1.x + (p2.x - p0.x) * tension;
@@ -165,8 +166,9 @@ export function MetricsChart(props: MetricsChartProps): JSX.Element {
     const pts = mappedPoints();
     if (pts.length === 0) return "";
     const base = linePath();
-    const lastPt = pts[pts.length - 1]!;
-    const firstPt = pts[0]!;
+    const zero2d = { x: 0, y: 0, data: { timestamp: 0, value: 0 } };
+    const lastPt = pts[pts.length - 1] ?? zero2d;
+    const firstPt = pts[0] ?? zero2d;
     const bottom = PADDING.top + plotHeight();
     return `${base} L${lastPt.x},${bottom} L${firstPt.x},${bottom} Z`;
   });
@@ -187,12 +189,12 @@ export function MetricsChart(props: MetricsChartProps): JSX.Element {
     const step = Math.max(1, Math.floor((pts.length - 1) / (count - 1)));
     const ticks: Array<{ x: number; label: string }> = [];
     for (let i = 0; i < pts.length; i += step) {
-      const pt = pts[i]!;
+      const pt = pts[i] ?? { x: 0, data: { timestamp: 0 } };
       ticks.push({ x: pt.x, label: formatTm()(pt.data.timestamp) });
     }
     // Always include last point
-    const last = pts[pts.length - 1]!;
-    if (ticks.length === 0 || ticks[ticks.length - 1]!.x !== last.x) {
+    const last = pts[pts.length - 1] ?? { x: 0, data: { timestamp: 0 } };
+    if (ticks.length === 0 || ticks[ticks.length - 1]?.x !== last.x) {
       ticks.push({ x: last.x, label: formatTm()(last.data.timestamp) });
     }
     return ticks;
@@ -221,9 +223,9 @@ export function MetricsChart(props: MetricsChartProps): JSX.Element {
     if (pts.length === 0) return;
 
     let closestIdx = 0;
-    let closestDist = Infinity;
+    let closestDist = Number.POSITIVE_INFINITY;
     for (let i = 0; i < pts.length; i++) {
-      const dist = Math.abs(pts[i]!.x - mouseX);
+      const dist = Math.abs(pts[i]?.x - mouseX);
       if (dist < closestDist) {
         closestDist = dist;
         closestIdx = i;
@@ -236,7 +238,8 @@ export function MetricsChart(props: MetricsChartProps): JSX.Element {
     setHoveredIndex(null);
   }
 
-  const gradientId = (): string => `metrics-gradient-${props.label.replace(/\s+/g, "-").toLowerCase()}`;
+  const gradientId = (): string =>
+    `metrics-gradient-${props.label.replace(/\s+/g, "-").toLowerCase()}`;
   const glowId = (): string => `metrics-glow-${props.label.replace(/\s+/g, "-").toLowerCase()}`;
 
   return (
@@ -254,6 +257,7 @@ export function MetricsChart(props: MetricsChartProps): JSX.Element {
         preserveAspectRatio="none"
         class="overflow-visible"
       >
+        <title>Metrics chart</title>
         <defs>
           {/* Gradient fill */}
           <linearGradient id={gradientId()} x1="0" x2="0" y1="0" y2="1">
@@ -328,11 +332,7 @@ export function MetricsChart(props: MetricsChartProps): JSX.Element {
 
         {/* Gradient area fill */}
         <Show when={mappedPoints().length > 1}>
-          <path
-            d={areaPath()}
-            fill={`url(#${gradientId()})`}
-            opacity={animProgress()}
-          />
+          <path d={areaPath()} fill={`url(#${gradientId()})`} opacity={animProgress()} />
         </Show>
 
         {/* Main line */}
@@ -398,11 +398,15 @@ export function MetricsChart(props: MetricsChartProps): JSX.Element {
               transform: "translateX(-50%)",
               background: "var(--color-bg-elevated)",
               "backdrop-filter": "blur(12px)",
-              "box-shadow": `0 4px 24px rgba(0,0,0,0.2)`,
+              "box-shadow": "0 4px 24px rgba(0,0,0,0.2)",
             }}
           >
-            <span class="text-sm font-semibold" style={{ color: "var(--color-text)" }}>{t().value}</span>
-            <span class="text-[10px]" style={{ color: "var(--color-text-muted)" }}>{t().time}</span>
+            <span class="text-sm font-semibold" style={{ color: "var(--color-text)" }}>
+              {t().value}
+            </span>
+            <span class="text-[10px]" style={{ color: "var(--color-text-muted)" }}>
+              {t().time}
+            </span>
           </div>
         )}
       </Show>

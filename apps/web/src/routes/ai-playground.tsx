@@ -18,8 +18,8 @@
 
 import { A } from "@solidjs/router";
 import type { JSX } from "solid-js";
-import { SEOHead } from "../components/SEOHead";
 import { Icon, type IconName } from "../components/Icon";
+import { SEOHead } from "../components/SEOHead";
 
 interface Surface {
   readonly icon: IconName;
@@ -33,16 +33,14 @@ const SURFACES: ReadonlyArray<Surface> = [
   {
     icon: "brain",
     title: "Claude Chat",
-    body:
-      "Direct Anthropic API access with your own key. No subscription, no rate-limits from us, no surprises. Bring your key, pay per token, stream responses.",
+    body: "Direct Anthropic API access with your own key. No subscription, no rate-limits from us, no surprises. Bring your key, pay per token, stream responses.",
     href: "/chat",
     cta: "Open Claude Chat",
   },
   {
     icon: "zap",
     title: "Component Composer",
-    body:
-      "Generate validated SolidJS component trees from a prompt. Three-tier compute routing picks client GPU, edge, or cloud H100 based on your device and the task. Every response is typed end to end.",
+    body: "Generate validated SolidJS component trees from a prompt. Three-tier compute routing picks client GPU, edge, or cloud H100 based on your device and the task. Every response is typed end to end.",
     href: "/builder",
     cta: "Open Composer",
   },
@@ -94,9 +92,8 @@ export default function AiPlaygroundPage(): JSX.Element {
               class="mx-auto mt-6 max-w-2xl text-base leading-relaxed sm:text-lg"
               style={{ color: "rgba(255,255,255,0.65)" }}
             >
-              The Crontech AI layer is two real surfaces today — Claude
-              Chat and the Component Composer. Pick one below and you'll
-              be talking to an actual model within seconds.
+              The Crontech AI layer is two real surfaces today — Claude Chat and the Component
+              Composer. Pick one below and you'll be talking to an actual model within seconds.
             </p>
           </div>
         </section>
@@ -106,6 +103,7 @@ export default function AiPlaygroundPage(): JSX.Element {
           <div class="grid gap-6 md:grid-cols-2">
             {SURFACES.map((surface) => (
               <article
+                key={surface.href}
                 class="flex flex-col rounded-2xl p-7"
                 style={{
                   background: "rgba(255,255,255,0.03)",
@@ -124,16 +122,10 @@ export default function AiPlaygroundPage(): JSX.Element {
                 >
                   <Icon name={surface.icon} size={22} />
                 </div>
-                <h2
-                  class="mt-5 text-xl font-semibold tracking-tight"
-                  style={{ color: "#f0f0f5" }}
-                >
+                <h2 class="mt-5 text-xl font-semibold tracking-tight" style={{ color: "#f0f0f5" }}>
                   {surface.title}
                 </h2>
-                <p
-                  class="mt-2 text-sm leading-[1.75]"
-                  style={{ color: "rgba(255,255,255,0.6)" }}
-                >
+                <p class="mt-2 text-sm leading-[1.75]" style={{ color: "rgba(255,255,255,0.6)" }}>
                   {surface.body}
                 </p>
                 <A
@@ -151,12 +143,9 @@ export default function AiPlaygroundPage(): JSX.Element {
               </article>
             ))}
           </div>
-          <p
-            class="mt-8 text-center text-xs"
-            style={{ color: "rgba(255,255,255,0.45)" }}
-          >
-            No canned responses, no fake tokens-per-second. Both surfaces
-            call real models with your real key.
+          <p class="mt-8 text-center text-xs" style={{ color: "rgba(255,255,255,0.45)" }}>
+            No canned responses, no fake tokens-per-second. Both surfaces call real models with your
+            real key.
           </p>
         </section>
       </div>

@@ -4,21 +4,21 @@
 // 16 Apr 2026. Webhook handlers intentionally NOT tested here — they
 // must stay unguarded.
 
-import { describe, test, expect, beforeEach, afterEach } from "bun:test";
-import { eq } from "drizzle-orm";
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import {
-  db,
-  users,
-  sessions,
-  scopedDb,
   billingAccounts,
   buildMinutesUsage,
+  db,
   deployments,
   projects,
+  scopedDb,
+  sessions,
+  users,
 } from "@back-to-the-future/db";
-import { appRouter } from "../router";
+import { eq } from "drizzle-orm";
 import { createSession } from "../../auth/session";
 import type { TRPCContext } from "../context";
+import { appRouter } from "../router";
 
 function ctxFor(userId: string, sessionToken: string): TRPCContext {
   return {
@@ -34,7 +34,7 @@ async function createTestUser(): Promise<string> {
   const id = crypto.randomUUID();
   await db.insert(users).values({
     id,
-    email: `billing-test-${Date.now()}-${crypto.randomUUID().replace(/-/g, '').slice(0, 6)}@example.com`,
+    email: `billing-test-${Date.now()}-${crypto.randomUUID().replace(/-/g, "").slice(0, 6)}@example.com`,
     displayName: "Billing Test User",
   });
   return id;
@@ -51,16 +51,16 @@ describe("billing pre-launch guard", () => {
   let savedFlag: string | undefined;
 
   beforeEach(async () => {
-    savedFlag = process.env["STRIPE_ENABLED"];
+    savedFlag = process.env.STRIPE_ENABLED;
     // Default disabled posture — the actual scenario we run in pre-launch.
-    delete process.env["STRIPE_ENABLED"];
+    process.env.STRIPE_ENABLED = undefined;
     userId = await createTestUser();
     token = await createSession(userId, db);
   });
 
   afterEach(async () => {
-    if (savedFlag === undefined) delete process.env["STRIPE_ENABLED"];
-    else process.env["STRIPE_ENABLED"] = savedFlag;
+    if (savedFlag === undefined) process.env.STRIPE_ENABLED = undefined;
+    else process.env.STRIPE_ENABLED = savedFlag;
     await cleanupTestUser(userId);
   });
 
@@ -78,7 +78,7 @@ describe("billing pre-launch guard", () => {
   });
 
   test("createCheckoutSession is blocked when STRIPE_ENABLED !== 'true'", async () => {
-    process.env["STRIPE_ENABLED"] = "false";
+    process.env.STRIPE_ENABLED = "false";
     const caller = appRouter.createCaller(ctxFor(userId, token));
     let threw = false;
     try {
@@ -188,9 +188,7 @@ describe("BLK-010: billing.getCurrentUsage", () => {
   });
 
   afterEach(async () => {
-    await db
-      .delete(buildMinutesUsage)
-      .where(eq(buildMinutesUsage.userId, userId));
+    await db.delete(buildMinutesUsage).where(eq(buildMinutesUsage.userId, userId));
     await db.delete(deployments).where(eq(deployments.userId, userId));
     await db.delete(projects).where(eq(projects.userId, userId));
     await cleanupTestUser(userId);
@@ -239,20 +237,17 @@ describe("BLK-010: billing.getPortalUrl", () => {
   let savedFlag: string | undefined;
 
   beforeEach(async () => {
-    savedFlag = process.env["STRIPE_ENABLED"];
-    delete process.env["STRIPE_ENABLED"];
+    savedFlag = process.env.STRIPE_ENABLED;
+    process.env.STRIPE_ENABLED = undefined;
     userId = await createTestUser();
     // Promote to admin so the adminProcedure passes.
-    await db
-      .update(users)
-      .set({ role: "admin" })
-      .where(eq(users.id, userId));
+    await db.update(users).set({ role: "admin" }).where(eq(users.id, userId));
     token = await createSession(userId, db);
   });
 
   afterEach(async () => {
-    if (savedFlag === undefined) delete process.env["STRIPE_ENABLED"];
-    else process.env["STRIPE_ENABLED"] = savedFlag;
+    if (savedFlag === undefined) process.env.STRIPE_ENABLED = undefined;
+    else process.env.STRIPE_ENABLED = savedFlag;
     await db.delete(billingAccounts).where(eq(billingAccounts.userId, userId));
     await cleanupTestUser(userId);
   });
@@ -273,7 +268,7 @@ describe("BLK-010: billing.getPortalUrl", () => {
   });
 
   test("throws PRECONDITION_FAILED when the admin has no billing_accounts row", async () => {
-    process.env["STRIPE_ENABLED"] = "true";
+    process.env.STRIPE_ENABLED = "true";
     const caller = appRouter.createCaller(ctxFor(userId, token));
     let threw = false;
     try {
@@ -289,12 +284,9 @@ describe("BLK-010: billing.getPortalUrl", () => {
   });
 
   test("non-admin callers are rejected by adminProcedure middleware", async () => {
-    process.env["STRIPE_ENABLED"] = "true";
+    process.env.STRIPE_ENABLED = "true";
     // Demote the user and retry.
-    await db
-      .update(users)
-      .set({ role: "viewer" })
-      .where(eq(users.id, userId));
+    await db.update(users).set({ role: "viewer" }).where(eq(users.id, userId));
     const caller = appRouter.createCaller(ctxFor(userId, token));
     let threw = false;
     try {

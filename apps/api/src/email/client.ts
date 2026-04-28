@@ -54,14 +54,12 @@ interface AlecRaeResponse {
 
 function getAlecRaeBaseUrl(): string | undefined {
   // Preferred name per AlecRae onboarding checklist.
-  const preferred = process.env["ALECRAE_BASE_URL"];
+  const preferred = process.env.ALECRAE_BASE_URL;
   if (preferred) return preferred;
   // Legacy fallback — warn so we notice stale envs in logs.
-  const legacy = process.env["ALECRAE_API_URL"];
+  const legacy = process.env.ALECRAE_API_URL;
   if (legacy) {
-    console.warn(
-      "[EMAIL] ALECRAE_API_URL is deprecated — rename to ALECRAE_BASE_URL",
-    );
+    console.warn("[EMAIL] ALECRAE_API_URL is deprecated — rename to ALECRAE_BASE_URL");
     return legacy;
   }
   return undefined;
@@ -74,7 +72,7 @@ async function sendViaAlecRae(
   options: { headers?: Record<string, string>; messageId?: string },
 ): Promise<SendEmailResult> {
   const baseUrl = getAlecRaeBaseUrl();
-  const apiKey = process.env["ALECRAE_API_KEY"];
+  const apiKey = process.env.ALECRAE_API_KEY;
 
   if (!baseUrl || !apiKey) return { success: false, error: "not_configured" };
 
@@ -134,12 +132,8 @@ interface ResendErrorResponse {
   message: string;
 }
 
-async function sendViaResend(
-  to: string,
-  subject: string,
-  html: string,
-): Promise<SendEmailResult> {
-  const apiKey = process.env["RESEND_API_KEY"];
+async function sendViaResend(to: string, subject: string, html: string): Promise<SendEmailResult> {
+  const apiKey = process.env.RESEND_API_KEY;
 
   if (!apiKey) return { success: false, error: "not_configured" };
 
@@ -177,11 +171,7 @@ async function sendViaResend(
 
 // ── Provider: Console (Development) ────────────────────────────
 
-function sendViaConsole(
-  to: string,
-  subject: string,
-  html: string,
-): SendEmailResult {
+function sendViaConsole(to: string, subject: string, html: string): SendEmailResult {
   log.info("[EMAIL DEV] Logging email (no provider configured):");
   log.info(`  To: ${to}`);
   log.info(`  Subject: ${subject}`);
@@ -194,15 +184,15 @@ function sendViaConsole(
 function getFromAddress(): string {
   // Prefer AlecRae's onboarding name. If it already has a display name
   // ("Crontech <noreply@...>"), use as-is. Otherwise wrap with SITE_NAME.
-  const alec = process.env["ALECRAE_FROM_ADDRESS"];
+  const alec = process.env.ALECRAE_FROM_ADDRESS;
   if (alec) {
     if (alec.includes("<")) return alec;
-    const siteName = process.env["SITE_NAME"] ?? "Crontech";
+    const siteName = process.env.SITE_NAME ?? "Crontech";
     return `${siteName} <${alec}>`;
   }
   // Legacy fallback.
-  const siteName = process.env["SITE_NAME"] ?? "Crontech";
-  const fromEmail = process.env["EMAIL_FROM"] ?? "noreply@crontech.ai";
+  const siteName = process.env.SITE_NAME ?? "Crontech";
+  const fromEmail = process.env.EMAIL_FROM ?? "noreply@crontech.ai";
   if (fromEmail.includes("<")) return fromEmail;
   return `${siteName} <${fromEmail}>`;
 }
@@ -261,10 +251,10 @@ export async function sendEmail(
  * Check which email provider is currently active.
  */
 export function getActiveProvider(): "alecrae" | "resend" | "console" {
-  if (getAlecRaeBaseUrl() && process.env["ALECRAE_API_KEY"]) {
+  if (getAlecRaeBaseUrl() && process.env.ALECRAE_API_KEY) {
     return "alecrae";
   }
-  if (process.env["RESEND_API_KEY"]) {
+  if (process.env.RESEND_API_KEY) {
     return "resend";
   }
   return "console";

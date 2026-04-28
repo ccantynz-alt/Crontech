@@ -8,7 +8,7 @@
 //
 // The connection auto-reconnects on failure with exponential backoff.
 
-import { invalidateQueries, invalidateAll } from "./use-trpc";
+import { invalidateAll, invalidateQueries } from "./use-trpc";
 
 let eventSource: EventSource | null = null;
 let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
@@ -56,7 +56,11 @@ function scheduleReconnect(): void {
     connectLiveUpdates();
   }, reconnectDelay);
   // Exponential backoff with jitter
-  reconnectDelay = Math.min(reconnectDelay * 2 + Math.floor(crypto.getRandomValues(new Uint32Array(1))[0]! / 0x100000000 * 500), MAX_RECONNECT_DELAY);
+  reconnectDelay = Math.min(
+    reconnectDelay * 2 +
+      Math.floor(((crypto.getRandomValues(new Uint32Array(1))[0] ?? 0) / 0x100000000) * 500),
+    MAX_RECONNECT_DELAY,
+  );
 }
 
 /** Connect to the live updates SSE channel. Safe to call multiple times. */
@@ -65,7 +69,10 @@ export function connectLiveUpdates(): void {
   if (typeof window === "undefined" || typeof EventSource === "undefined") return;
 
   // Already connected
-  if (eventSource?.readyState === EventSource.OPEN || eventSource?.readyState === EventSource.CONNECTING) {
+  if (
+    eventSource?.readyState === EventSource.OPEN ||
+    eventSource?.readyState === EventSource.CONNECTING
+  ) {
     return;
   }
 

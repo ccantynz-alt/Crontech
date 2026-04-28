@@ -1,6 +1,6 @@
-import { createEffect, createMemo, createSignal, For, onCleanup, Show } from "solid-js";
-import type { JSX } from "solid-js";
 import { Button } from "@back-to-the-future/ui";
+import { For, Show, createEffect, createMemo, createSignal, onCleanup } from "solid-js";
+import type { JSX } from "solid-js";
 import { useDeploymentLogStream } from "../lib/useDeploymentLogStream";
 
 // ── Types ────────────────────────────────────────────────────────────
@@ -50,7 +50,10 @@ function formatTimestamp(iso: string): string {
 
 function toPlainText(lines: ReadonlyArray<DeploymentLogLine>): string {
   return lines
-    .map((l) => `[${formatTimestamp(l.timestamp)}] ${l.stream === "stderr" ? "ERR " : "OUT "}${l.message}`)
+    .map(
+      (l) =>
+        `[${formatTimestamp(l.timestamp)}] ${l.stream === "stderr" ? "ERR " : "OUT "}${l.message}`,
+    )
     .join("\n");
 }
 
@@ -63,12 +66,12 @@ export function DeploymentLogs(props: DeploymentLogsProps): JSX.Element {
   // Live stream mode — opens an EventSource via the hook and renders the
   // accumulated lines. When `live` is false the hook receives a null id
   // so no connection is ever opened.
-  const liveStream = useDeploymentLogStream(
-    () => (props.live === true ? props.deploymentId : null),
+  const liveStream = useDeploymentLogStream(() =>
+    props.live === true ? props.deploymentId : null,
   );
 
   const effectiveLines = createMemo<ReadonlyArray<DeploymentLogLine>>(() =>
-    props.live === true ? liveStream.lines() : props.lines ?? [],
+    props.live === true ? liveStream.lines() : (props.lines ?? []),
   );
 
   const effectiveStreaming = createMemo<boolean>(() => {
@@ -226,9 +229,7 @@ export function DeploymentLogs(props: DeploymentLogsProps): JSX.Element {
           <For each={effectiveLines()}>
             {(line) => (
               <div class="whitespace-pre-wrap break-all">
-                <span style={{ color: "#6b7280" }}>
-                  [{formatTimestamp(line.timestamp)}]
-                </span>{" "}
+                <span style={{ color: "#6b7280" }}>[{formatTimestamp(line.timestamp)}]</span>{" "}
                 <span
                   style={{
                     color: line.stream === "stderr" ? "#f87171" : "#e5e7eb",

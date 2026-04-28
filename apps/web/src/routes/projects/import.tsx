@@ -1,8 +1,8 @@
+import { Badge, Button, Input, Spinner } from "@back-to-the-future/ui";
 import { Title } from "@solidjs/meta";
-import { createSignal, For, Show } from "solid-js";
-import type { JSX } from "solid-js";
 import { useNavigate } from "@solidjs/router";
-import { Button, Input, Badge, Spinner } from "@back-to-the-future/ui";
+import { For, Show, createSignal } from "solid-js";
+import type { JSX } from "solid-js";
 import { ProtectedRoute } from "../../components/ProtectedRoute";
 import { trpc } from "../../lib/trpc";
 
@@ -24,13 +24,7 @@ interface ImportResult {
   framework: string | null;
 }
 
-type ImportStep =
-  | "platform"
-  | "token"
-  | "select"
-  | "review"
-  | "importing"
-  | "done";
+type ImportStep = "platform" | "token" | "select" | "review" | "importing" | "done";
 
 interface ImportProgress {
   label: string;
@@ -274,8 +268,7 @@ export default function ImportProject(): JSX.Element {
       setExternalProjects(projectList);
       setStep("select");
     } catch (err: unknown) {
-      const message =
-        err instanceof Error ? err.message : "Failed to connect. Check your token.";
+      const message = err instanceof Error ? err.message : "Failed to connect. Check your token.";
       setTokenError(message);
     } finally {
       setLoading(false);
@@ -359,8 +352,7 @@ export default function ImportProject(): JSX.Element {
       setImportResult(result);
       setStep("done");
     } catch (err: unknown) {
-      const message =
-        err instanceof Error ? err.message : "Import failed. Please try again.";
+      const message = err instanceof Error ? err.message : "Import failed. Please try again.";
       setImportError(message);
 
       // Mark current active step as error
@@ -379,7 +371,7 @@ export default function ImportProject(): JSX.Element {
   function handleGoToProject(): void {
     const result = importResult();
     if (result) {
-      navigate(`/dashboard`);
+      navigate("/dashboard");
     }
   }
 
@@ -446,9 +438,7 @@ export default function ImportProject(): JSX.Element {
                     </div>
                     <span
                       class={`hidden text-xs font-medium sm:inline ${
-                        isCompleted()
-                          ? "text-cyan-400/60"
-                          : ""
+                        isCompleted() ? "text-cyan-400/60" : ""
                       }`}
                       style={{
                         color: isActive()
@@ -577,8 +567,7 @@ export default function ImportProject(): JSX.Element {
               </h2>
               <p class="mb-6 text-sm" style={{ color: "var(--color-text-muted)" }}>
                 Found {externalProjects().length} project
-                {externalProjects().length !== 1 ? "s" : ""} on{" "}
-                {getPlatformMeta()?.name}.
+                {externalProjects().length !== 1 ? "s" : ""} on {getPlatformMeta()?.name}.
               </p>
 
               <div class="max-h-96 space-y-2 overflow-y-auto pr-1">
@@ -609,6 +598,7 @@ export default function ImportProject(): JSX.Element {
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
+                        aria-hidden="true"
                       >
                         <path
                           stroke-linecap="round"
@@ -654,26 +644,34 @@ export default function ImportProject(): JSX.Element {
 
               <div class="space-y-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-subtle)] p-6">
                 <div class="flex items-center justify-between">
-                  <span class="text-sm" style={{ color: "var(--color-text-muted)" }}>Source Platform</span>
+                  <span class="text-sm" style={{ color: "var(--color-text-muted)" }}>
+                    Source Platform
+                  </span>
                   <Badge variant="info">{getPlatformMeta()?.name}</Badge>
                 </div>
                 <div class="h-px bg-[var(--color-border)]" />
                 <div class="flex items-center justify-between">
-                  <span class="text-sm" style={{ color: "var(--color-text-muted)" }}>Project Name</span>
+                  <span class="text-sm" style={{ color: "var(--color-text-muted)" }}>
+                    Project Name
+                  </span>
                   <span class="font-medium" style={{ color: "var(--color-text)" }}>
                     {selectedProject()?.name}
                   </span>
                 </div>
                 <div class="h-px bg-[var(--color-border)]" />
                 <div class="flex items-center justify-between">
-                  <span class="text-sm" style={{ color: "var(--color-text-muted)" }}>Framework</span>
+                  <span class="text-sm" style={{ color: "var(--color-text-muted)" }}>
+                    Framework
+                  </span>
                   <span class="text-sm" style={{ color: "var(--color-text)" }}>
                     {selectedProject()?.framework ?? "Not detected"}
                   </span>
                 </div>
                 <div class="h-px bg-[var(--color-border)]" />
                 <div class="flex items-center justify-between">
-                  <span class="text-sm" style={{ color: "var(--color-text-muted)" }}>What we will import</span>
+                  <span class="text-sm" style={{ color: "var(--color-text-muted)" }}>
+                    What we will import
+                  </span>
                   <div class="flex gap-2">
                     <Badge>Project Config</Badge>
                     <Badge>Env Vars</Badge>
@@ -683,10 +681,7 @@ export default function ImportProject(): JSX.Element {
               </div>
 
               <div class="mt-6 flex gap-3">
-                <Button
-                  variant="ghost"
-                  onClick={() => setStep("select")}
-                >
+                <Button variant="ghost" onClick={() => setStep("select")}>
                   Back
                 </Button>
                 <Button
@@ -718,20 +713,14 @@ export default function ImportProject(): JSX.Element {
               </p>
 
               <div class="space-y-1">
-                <For each={progressSteps()}>
-                  {(s) => <ProgressItem step={s} />}
-                </For>
+                <For each={progressSteps()}>{(s) => <ProgressItem step={s} />}</For>
               </div>
 
               <Show when={importError()}>
                 <div class="mt-6 rounded-xl border border-red-500/20 bg-red-500/[0.06] p-4">
                   <p class="text-sm text-red-400">{importError()}</p>
                   <div class="mt-3 flex gap-3">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={resetWizard}
-                    >
+                    <Button variant="ghost" size="sm" onClick={resetWizard}>
                       Start Over
                     </Button>
                     <Button
@@ -775,19 +764,25 @@ export default function ImportProject(): JSX.Element {
               <div class="mx-auto mb-8 grid max-w-md grid-cols-3 gap-4">
                 <div class="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-subtle)] p-4">
                   <div class="text-2xl font-bold text-cyan-400">1</div>
-                  <div class="text-xs" style={{ color: "var(--color-text-muted)" }}>Project</div>
+                  <div class="text-xs" style={{ color: "var(--color-text-muted)" }}>
+                    Project
+                  </div>
                 </div>
                 <div class="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-subtle)] p-4">
                   <div class="text-2xl font-bold text-cyan-400">
                     {importResult()?.envVarsImported ?? 0}
                   </div>
-                  <div class="text-xs" style={{ color: "var(--color-text-muted)" }}>Env Vars</div>
+                  <div class="text-xs" style={{ color: "var(--color-text-muted)" }}>
+                    Env Vars
+                  </div>
                 </div>
                 <div class="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-subtle)] p-4">
                   <div class="text-2xl font-bold text-cyan-400">
                     {importResult()?.domainsImported ?? 0}
                   </div>
-                  <div class="text-xs" style={{ color: "var(--color-text-muted)" }}>Domains</div>
+                  <div class="text-xs" style={{ color: "var(--color-text-muted)" }}>
+                    Domains
+                  </div>
                 </div>
               </div>
 

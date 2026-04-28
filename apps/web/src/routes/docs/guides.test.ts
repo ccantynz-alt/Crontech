@@ -53,8 +53,7 @@ describe("docs/guides — three-article series", () => {
   });
 
   test("polite tone — no competitor names in guides articles", () => {
-    const fromCodes = (...codes: number[]): string =>
-      String.fromCharCode(...codes);
+    const fromCodes = (...codes: number[]): string => String.fromCharCode(...codes);
     const banned = [
       ` ${fromCodes(118, 101, 114, 99, 101, 108)} `, // vercel
       ` ${fromCodes(110, 101, 116, 108, 105, 102, 121)} `, // netlify
@@ -62,10 +61,7 @@ describe("docs/guides — three-article series", () => {
       ` ${fromCodes(114, 101, 110, 100, 101, 114)} `, // render
     ];
     for (const { file } of ARTICLES) {
-      const src = readFileSync(
-        resolve(GUIDES_DIR, file),
-        "utf-8",
-      ).toLowerCase();
+      const src = readFileSync(resolve(GUIDES_DIR, file), "utf-8").toLowerCase();
       for (const name of banned) {
         expect(src).not.toContain(name);
       }
@@ -73,10 +69,7 @@ describe("docs/guides — three-article series", () => {
   });
 
   test("integrate-stripe is honest about the STRIPE_ENABLED flag", () => {
-    const src = readFileSync(
-      resolve(GUIDES_DIR, "integrate-stripe.tsx"),
-      "utf-8",
-    );
+    const src = readFileSync(resolve(GUIDES_DIR, "integrate-stripe.tsx"), "utf-8");
     // If a future session removes the STRIPE_ENABLED honesty, the
     // suite fails — the article must reflect the real gating in
     // apps/api/src/stripe/client.ts.
@@ -85,10 +78,7 @@ describe("docs/guides — three-article series", () => {
   });
 
   test("build-a-saas cross-links to shipped reference articles", () => {
-    const src = readFileSync(
-      resolve(GUIDES_DIR, "build-a-saas.tsx"),
-      "utf-8",
-    );
+    const src = readFileSync(resolve(GUIDES_DIR, "build-a-saas.tsx"), "utf-8");
     // The guide must stitch together real articles from other
     // categories. If any of these cross-links are removed, it
     // stops being a guide and starts being a silo.

@@ -5,18 +5,18 @@
 
 import { z } from "zod";
 import type {
-  ChatMessage,
-  ChatCompletionResult,
-  ChatCompletionChunk,
-  WebLLMConfig,
-} from "./webllm";
-import type {
-  EmbeddingResult,
   ClassificationResult,
-  SummarizationResult,
+  EmbeddingResult,
   FeatureExtractionResult,
+  SummarizationResult,
   TransformersConfig,
 } from "./transformers";
+import type {
+  ChatCompletionChunk,
+  ChatCompletionResult,
+  ChatMessage,
+  WebLLMConfig,
+} from "./webllm";
 
 // ── Re-exports ──────────────────────────────────────────────────
 
@@ -235,8 +235,13 @@ async function handleChatTask(options: ClientInferOptions): Promise<ClientInferR
   }
 
   // Lazy-import WebLLM functions to keep the module tree-shakeable.
-  const { chatCompletion, chatCompletionStream, isWebLLMReady, initializeWebLLM, selectModelForVRAM } =
-    await import("./webllm");
+  const {
+    chatCompletion,
+    chatCompletionStream,
+    isWebLLMReady,
+    initializeWebLLM,
+    selectModelForVRAM,
+  } = await import("./webllm");
 
   // Auto-initialize if not already ready.
   if (!isWebLLMReady()) {
@@ -244,8 +249,7 @@ async function handleChatTask(options: ClientInferOptions): Promise<ClientInferR
     const bestModel = selectModelForVRAM(caps.estimatedVRAMMB);
     if (!bestModel) {
       throw new Error(
-        "No WebLLM model fits within the estimated VRAM budget. " +
-          `Estimated VRAM: ${String(caps.estimatedVRAMMB)}MB.`,
+        `No WebLLM model fits within the estimated VRAM budget. Estimated VRAM: ${String(caps.estimatedVRAMMB)}MB.`,
       );
     }
     await initializeWebLLM({
@@ -272,9 +276,7 @@ async function handleEmbeddingsTask(options: ClientInferOptions): Promise<Client
   return { task: "embeddings", result };
 }
 
-async function handleClassificationTask(
-  options: ClientInferOptions,
-): Promise<ClientInferResult> {
+async function handleClassificationTask(options: ClientInferOptions): Promise<ClientInferResult> {
   const texts = normalizeTexts(options.texts, "classification");
   const text = texts[0];
   if (!text) {
@@ -285,9 +287,7 @@ async function handleClassificationTask(
   return { task: "classification", result };
 }
 
-async function handleSummarizationTask(
-  options: ClientInferOptions,
-): Promise<ClientInferResult> {
+async function handleSummarizationTask(options: ClientInferOptions): Promise<ClientInferResult> {
   const texts = normalizeTexts(options.texts, "summarization");
   const text = texts[0];
   if (!text) {
@@ -314,10 +314,7 @@ async function handleFeatureExtractionTask(
 
 // ── Helpers ─────────────────────────────────────────────────────
 
-function normalizeTexts(
-  input: string[] | string | undefined,
-  taskName: string,
-): string[] {
+function normalizeTexts(input: string[] | string | undefined, taskName: string): string[] {
   if (input === undefined) {
     throw new Error(`Task "${taskName}" requires "texts" to be provided.`);
   }

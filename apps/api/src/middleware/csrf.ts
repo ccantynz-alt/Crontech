@@ -5,7 +5,7 @@ const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
 export function csrf(opts?: { allowedOrigins?: string[] }): MiddlewareHandler {
   const allowedOrigins = opts?.allowedOrigins ?? [];
 
-  return async (c, next): Promise<Response | void> => {
+  return async (c, next): Promise<Response | undefined> => {
     if (SAFE_METHODS.has(c.req.method)) {
       return next();
     }

@@ -18,11 +18,11 @@
 import { For, Show, createSignal, onCleanup, onMount } from "solid-js";
 import type { JSX } from "solid-js";
 import {
+  type RegisteredShortcut,
+  type ShortcutGroup,
   groupShortcuts,
   listShortcuts,
   registerShortcut,
-  type RegisteredShortcut,
-  type ShortcutGroup,
 } from "../lib/keyboard";
 
 // ── Display ordering ────────────────────────────────────────────────
@@ -126,6 +126,9 @@ export function KeyboardHelp(): JSX.Element {
     <Show when={open()}>
       <div
         onClick={close}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") close();
+        }}
         role="presentation"
         style={{
           position: "fixed",
@@ -138,9 +141,10 @@ export function KeyboardHelp(): JSX.Element {
           "padding-top": "8vh",
         }}
       >
-        <div
+        <dialog
+          open
           onClick={(e) => e.stopPropagation()}
-          role="dialog"
+          onKeyDown={(e) => e.stopPropagation()}
           aria-modal="true"
           aria-labelledby="keyboard-help-title"
           style={{
@@ -152,6 +156,9 @@ export function KeyboardHelp(): JSX.Element {
             overflow: "hidden",
             display: "flex",
             "flex-direction": "column",
+            border: "none",
+            padding: "0",
+            margin: "0",
           }}
         >
           {/* ── Header ──────────────────────────────────────────── */}
@@ -280,8 +287,7 @@ export function KeyboardHelp(): JSX.Element {
                                                   <span
                                                     style={{
                                                       margin: "0 4px",
-                                                      color:
-                                                        "var(--color-text-muted)",
+                                                      color: "var(--color-text-muted)",
                                                     }}
                                                   >
                                                     +
@@ -292,10 +298,8 @@ export function KeyboardHelp(): JSX.Element {
                                                     display: "inline-block",
                                                     padding: "2px 8px",
                                                     "border-radius": "6px",
-                                                    border:
-                                                      "1px solid var(--color-border)",
-                                                    background:
-                                                      "var(--color-bg-subtle)",
+                                                    border: "1px solid var(--color-border)",
+                                                    background: "var(--color-bg-subtle)",
                                                     "font-family":
                                                       "ui-monospace, SFMono-Regular, Menlo, monospace",
                                                     "font-size": "12px",
@@ -344,7 +348,7 @@ export function KeyboardHelp(): JSX.Element {
               <kbd>Esc</kbd> to close
             </span>
           </div>
-        </div>
+        </dialog>
       </div>
     </Show>
   );

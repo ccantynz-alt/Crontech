@@ -1,7 +1,7 @@
-import { describe, test, expect, beforeAll } from "bun:test";
-import { eq } from "drizzle-orm";
+import { beforeAll, describe, expect, test } from "bun:test";
 import { db } from "@back-to-the-future/db";
 import { tenants, users } from "@back-to-the-future/db/schema";
+import { eq } from "drizzle-orm";
 
 // ── Helpers ──────────────────────────────────────────────────────────
 
@@ -78,25 +78,18 @@ describe("Tenant provisioning", () => {
     });
 
     // Update to active (simulating provision step 5)
-    await db
-      .update(tenants)
-      .set({ status: "active" })
-      .where(eq(tenants.id, id));
+    await db.update(tenants).set({ status: "active" }).where(eq(tenants.id, id));
 
-    const rows = await db
-      .select()
-      .from(tenants)
-      .where(eq(tenants.slug, slug))
-      .limit(1);
+    const rows = await db.select().from(tenants).where(eq(tenants.slug, slug)).limit(1);
 
     const tenant = rows[0];
     expect(tenant).toBeDefined();
-    expect(tenant!.name).toBe("Test Tenant");
-    expect(tenant!.slug).toBe(slug);
-    expect(tenant!.plan).toBe("free");
-    expect(tenant!.ownerEmail).toBe("test@example.com");
-    expect(tenant!.customDomain).toBe("custom.example.com");
-    expect(tenant!.status).toBe("active");
+    expect(tenant?.name).toBe("Test Tenant");
+    expect(tenant?.slug).toBe(slug);
+    expect(tenant?.plan).toBe("free");
+    expect(tenant?.ownerEmail).toBe("test@example.com");
+    expect(tenant?.customDomain).toBe("custom.example.com");
+    expect(tenant?.status).toBe("active");
   });
 
   test("plan validation: only valid plans are accepted by schema", () => {
@@ -149,8 +142,8 @@ describe("Tenant provisioning", () => {
       .limit(1);
 
     expect(rows[0]).toBeDefined();
-    expect(rows[0]!.slug).toBe(slug);
-    expect(rows[0]!.plan).toBe("pro");
+    expect(rows[0]?.slug).toBe(slug);
+    expect(rows[0]?.plan).toBe("pro");
   });
 
   test("getBySlug: returns empty for non-existent slug", async () => {

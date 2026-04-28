@@ -26,26 +26,16 @@
 // Cloudflare response schema validates the upstream, and the return
 // shape is a literal object so tRPC infers it cleanly for the client.
 
-import { z } from "zod";
+import { db as defaultDb, dnsRecords, dnsZones } from "@back-to-the-future/db";
 import { TRPCError } from "@trpc/server";
 import { and, eq } from "drizzle-orm";
-import { router, adminProcedure } from "../init";
-import { db as defaultDb, dnsZones, dnsRecords } from "@back-to-the-future/db";
+import { z } from "zod";
+import { adminProcedure, router } from "../init";
 
 // ── Supported record types ──────────────────────────────────────────
 // The engine's `dns_records.type` enum. Cloudflare records outside
 // this set get counted as "skipped" rather than imported.
-const SUPPORTED_TYPES = [
-  "A",
-  "AAAA",
-  "CNAME",
-  "MX",
-  "TXT",
-  "NS",
-  "SOA",
-  "SRV",
-  "CAA",
-] as const;
+const SUPPORTED_TYPES = ["A", "AAAA", "CNAME", "MX", "TXT", "NS", "SOA", "SRV", "CAA"] as const;
 type SupportedType = (typeof SUPPORTED_TYPES)[number];
 
 function isSupportedType(t: string): t is SupportedType {
@@ -65,9 +55,9 @@ function envDefaults(): {
   secondaryNs: string;
 } {
   return {
-    adminEmail: process.env["DNS_IMPORT_ADMIN_EMAIL"] ?? DEFAULT_ADMIN_EMAIL,
-    primaryNs: process.env["DNS_IMPORT_PRIMARY_NS"] ?? DEFAULT_PRIMARY_NS,
-    secondaryNs: process.env["DNS_IMPORT_SECONDARY_NS"] ?? DEFAULT_SECONDARY_NS,
+    adminEmail: process.env.DNS_IMPORT_ADMIN_EMAIL ?? DEFAULT_ADMIN_EMAIL,
+    primaryNs: process.env.DNS_IMPORT_PRIMARY_NS ?? DEFAULT_PRIMARY_NS,
+    secondaryNs: process.env.DNS_IMPORT_SECONDARY_NS ?? DEFAULT_SECONDARY_NS,
   };
 }
 
@@ -269,18 +259,10 @@ export async function importFromCloudflare(
   const secondaryNs = parsed.secondaryNs ?? defaults.secondaryNs;
 
   // 1. Resolve the Cloudflare zone id.
-  const cloudflareZoneId = await fetchZoneId(
-    fetchImpl,
-    parsed.apiToken,
-    parsed.zoneName,
-  );
+  const cloudflareZoneId = await fetchZoneId(fetchImpl, parsed.apiToken, parsed.zoneName);
 
   // 2. List all records on that zone.
-  const cfRecords = await fetchZoneRecords(
-    fetchImpl,
-    parsed.apiToken,
-    cloudflareZoneId,
-  );
+  const cfRecords = await fetchZoneRecords(fetchImpl, parsed.apiToken, cloudflareZoneId);
 
   // 3. Find-or-create the local zone row. We key on zone name because
   //    that's what users reason about; the row's id is a fresh UUID.

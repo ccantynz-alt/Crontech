@@ -30,10 +30,7 @@ export class VideoProcessor {
   private framesProcessed: number;
   private _destroyed: boolean;
 
-  private constructor(
-    backend: ProcessorBackend,
-    device: GPUDevice | null,
-  ) {
+  private constructor(backend: ProcessorBackend, device: GPUDevice | null) {
     this.backend = backend;
     this.device = device;
     this.canvas = new OffscreenCanvas(1, 1);
@@ -160,7 +157,7 @@ export class VideoProcessor {
   }
 
   /** Export a processed frame as a Blob */
-  async exportFrame(frame: ImageData, format: string = "image/png"): Promise<Blob> {
+  async exportFrame(frame: ImageData, format = "image/png"): Promise<Blob> {
     this.canvas.width = frame.width;
     this.canvas.height = frame.height;
     this.ctx2d?.putImageData(frame, 0, 0);
@@ -174,7 +171,7 @@ export class VideoProcessor {
     end: number,
     effects: readonly AppliedEffect[],
     onProgress: (pct: number) => void,
-    fps: number = 30,
+    fps = 30,
   ): Promise<Blob[]> {
     const blobs: Blob[] = [];
     const totalFrames = Math.ceil((end - start) * fps);
@@ -183,9 +180,7 @@ export class VideoProcessor {
     for (let i = 0; i < totalFrames; i++) {
       const time = start + i * frameDuration;
       const frame = await this.extractFrame(video, time);
-      const processed = effects.length > 0
-        ? await this.applyEffects(frame, effects)
-        : frame;
+      const processed = effects.length > 0 ? await this.applyEffects(frame, effects) : frame;
       const blob = await this.exportFrame(processed);
       blobs.push(blob);
       onProgress(((i + 1) / totalFrames) * 100);
@@ -349,11 +344,7 @@ export class VideoProcessor {
     if (!definition) return frame;
 
     // Clone the image data so we do not mutate the original
-    const clone = new ImageData(
-      new Uint8ClampedArray(frame.data),
-      frame.width,
-      frame.height,
-    );
+    const clone = new ImageData(new Uint8ClampedArray(frame.data), frame.width, frame.height);
     definition.apply(clone, effect.params);
     return clone;
   }

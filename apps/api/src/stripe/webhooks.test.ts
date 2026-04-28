@@ -17,17 +17,17 @@
 // apps/api/test/setup.ts), so subscription/payment persistence is
 // exercised end-to-end against the real Drizzle schema.
 
-import { describe, test, expect, beforeEach, afterEach, mock } from "bun:test";
-import type Stripe from "stripe";
-import { eq } from "drizzle-orm";
+import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
 import {
-  db,
-  users,
-  subscriptions,
-  payments,
   billingAccounts,
   billingEvents,
+  db,
+  payments,
+  subscriptions,
+  users,
 } from "@back-to-the-future/db";
+import { eq } from "drizzle-orm";
+import type Stripe from "stripe";
 
 // ── Stripe SDK Boundary Mock ──────────────────────────────────────
 //
@@ -47,10 +47,8 @@ await mock.module("./client", () => ({
         customer: mockSubscription.customer ?? "cus_test_default",
         status: mockSubscription.status ?? "active",
         cancel_at_period_end: mockSubscription.cancel_at_period_end ?? false,
-        current_period_start:
-          mockSubscription.current_period_start ?? 1_700_000_000,
-        current_period_end:
-          mockSubscription.current_period_end ?? 1_702_592_000,
+        current_period_start: mockSubscription.current_period_start ?? 1_700_000_000,
+        current_period_end: mockSubscription.current_period_end ?? 1_702_592_000,
         items: mockSubscription.items ?? {
           data: [{ price: { id: "price_test_pro" } }],
         },
@@ -60,12 +58,8 @@ await mock.module("./client", () => ({
   // Preserve the BLK-010 exports so downstream imports (e.g. billing router
   // loading in a later test file) don't see the module missing its API.
   isStripeEnabled: () =>
-    process.env["STRIPE_ENABLED"] === "true" ||
-    process.env["STRIPE_ENABLED"] === "1",
-  createPortalSession: async (
-    _stripeCustomerId: string,
-    _returnUrl: string,
-  ): Promise<string> => {
+    process.env.STRIPE_ENABLED === "true" || process.env.STRIPE_ENABLED === "1",
+  createPortalSession: async (_stripeCustomerId: string, _returnUrl: string): Promise<string> => {
     throw new Error("createPortalSession mock should not be hit in this test");
   },
 }));
@@ -81,7 +75,7 @@ async function createTestUser(): Promise<string> {
   const id = crypto.randomUUID();
   await db.insert(users).values({
     id,
-    email: `stripe-test-${Date.now()}-${crypto.randomUUID().replace(/-/g, '').slice(0, 6)}@example.com`,
+    email: `stripe-test-${Date.now()}-${crypto.randomUUID().replace(/-/g, "").slice(0, 6)}@example.com`,
     displayName: "Stripe Test User",
   });
   return id;
@@ -101,7 +95,7 @@ async function cleanupUser(userId: string): Promise<void> {
 function buildEvent<T>(
   type: Stripe.Event.Type,
   data: T,
-  eventId = `evt_test_${Date.now()}_${crypto.randomUUID().replace(/-/g, '').slice(0, 6)}`,
+  eventId = `evt_test_${Date.now()}_${crypto.randomUUID().replace(/-/g, "").slice(0, 6)}`,
 ): Stripe.Event {
   return {
     id: eventId,
@@ -140,16 +134,13 @@ describe("Stripe webhook: checkout.session.completed", () => {
   });
 
   test("creates a subscription row tied to client_reference_id (payment intent / checkout)", async () => {
-    const event = buildEvent<Partial<Stripe.Checkout.Session>>(
-      "checkout.session.completed",
-      {
-        id: "cs_test_create_sub",
-        subscription: "sub_test_new_1",
-        customer: "cus_test_123",
-        client_reference_id: userId,
-        metadata: {},
-      },
-    );
+    const event = buildEvent<Partial<Stripe.Checkout.Session>>("checkout.session.completed", {
+      id: "cs_test_create_sub",
+      subscription: "sub_test_new_1",
+      customer: "cus_test_123",
+      client_reference_id: userId,
+      metadata: {},
+    });
 
     await handleWebhookEvent(event);
 
@@ -157,24 +148,21 @@ describe("Stripe webhook: checkout.session.completed", () => {
       where: eq(subscriptions.stripeSubscriptionId, "sub_test_new_1"),
     });
     expect(row).toBeDefined();
-    expect(row!.userId).toBe(userId);
-    expect(row!.stripeCustomerId).toBe("cus_test_123");
-    expect(row!.stripePriceId).toBe("price_test_pro");
-    expect(row!.status).toBe("active");
-    expect(row!.cancelAtPeriodEnd).toBe(false);
+    expect(row?.userId).toBe(userId);
+    expect(row?.stripeCustomerId).toBe("cus_test_123");
+    expect(row?.stripePriceId).toBe("price_test_pro");
+    expect(row?.status).toBe("active");
+    expect(row?.cancelAtPeriodEnd).toBe(false);
   });
 
   test("falls back to metadata.userId when client_reference_id is missing", async () => {
-    const event = buildEvent<Partial<Stripe.Checkout.Session>>(
-      "checkout.session.completed",
-      {
-        id: "cs_test_metadata_userid",
-        subscription: "sub_test_new_2",
-        customer: "cus_test_123",
-        client_reference_id: null,
-        metadata: { userId },
-      },
-    );
+    const event = buildEvent<Partial<Stripe.Checkout.Session>>("checkout.session.completed", {
+      id: "cs_test_metadata_userid",
+      subscription: "sub_test_new_2",
+      customer: "cus_test_123",
+      client_reference_id: null,
+      metadata: { userId },
+    });
 
     await handleWebhookEvent(event);
 
@@ -182,7 +170,7 @@ describe("Stripe webhook: checkout.session.completed", () => {
       where: eq(subscriptions.stripeSubscriptionId, "sub_test_new_2"),
     });
     expect(row).toBeDefined();
-    expect(row!.userId).toBe(userId);
+    expect(row?.userId).toBe(userId);
   });
 
   test("is idempotent: the same event delivered twice leaves one row (on-conflict-do-update)", async () => {
@@ -249,8 +237,8 @@ describe("Stripe webhook: customer.subscription.updated", () => {
       where: eq(subscriptions.stripeSubscriptionId, "sub_test_to_update"),
     });
     expect(row).toBeDefined();
-    expect(row!.status).toBe("past_due");
-    expect(row!.cancelAtPeriodEnd).toBe(true);
+    expect(row?.status).toBe("past_due");
+    expect(row?.cancelAtPeriodEnd).toBe(true);
   });
 });
 
@@ -292,15 +280,15 @@ describe("Stripe webhook: invoice.payment_succeeded", () => {
       where: eq(payments.stripePaymentIntentId, "pi_test_pay_ok_1"),
     });
     expect(pay).toBeDefined();
-    expect(pay!.userId).toBe(userId);
-    expect(pay!.amount).toBe(2900);
-    expect(pay!.currency).toBe("usd");
-    expect(pay!.status).toBe("succeeded");
+    expect(pay?.userId).toBe(userId);
+    expect(pay?.amount).toBe(2900);
+    expect(pay?.currency).toBe("usd");
+    expect(pay?.status).toBe("succeeded");
 
     const sub = await db.query.subscriptions.findFirst({
       where: eq(subscriptions.stripeSubscriptionId, "sub_test_pay_ok"),
     });
-    expect(sub!.status).toBe("active");
+    expect(sub?.status).toBe("active");
   });
 
   test("is idempotent: duplicate invoice.payment_succeeded does not create a second payment row", async () => {
@@ -312,11 +300,7 @@ describe("Stripe webhook: invoice.payment_succeeded", () => {
       currency: "usd",
     } as unknown as Stripe.Invoice;
 
-    const event = buildEvent(
-      "invoice.payment_succeeded",
-      invoice,
-      "evt_pay_dup_fixed",
-    );
+    const event = buildEvent("invoice.payment_succeeded", invoice, "evt_pay_dup_fixed");
     await handleWebhookEvent(event);
     await handleWebhookEvent(event);
 
@@ -365,7 +349,7 @@ describe("Stripe webhook: invoice.payment_failed", () => {
       where: eq(subscriptions.stripeSubscriptionId, "sub_test_pay_fail"),
     });
     expect(sub).toBeDefined();
-    expect(sub!.status).toBe("past_due");
+    expect(sub?.status).toBe("past_due");
   });
 });
 
@@ -394,10 +378,10 @@ describe("BLK-010: billing_events idempotency gate", () => {
       where: eq(billingEvents.stripeEventId, "evt_blk010_customer_created_once"),
     });
     expect(row).toBeDefined();
-    expect(row!.eventType).toBe("customer.created");
-    expect(row!.userId).toBe(userId);
-    expect(row!.payloadJson).toContain("cus_blk010_new");
-    expect(row!.processedAt).not.toBeNull();
+    expect(row?.eventType).toBe("customer.created");
+    expect(row?.userId).toBe(userId);
+    expect(row?.payloadJson).toContain("cus_blk010_new");
+    expect(row?.processedAt).not.toBeNull();
   });
 
   test("second delivery of same event.id is rejected — still exactly one billing_events row", async () => {
@@ -427,7 +411,7 @@ describe("BLK-010: billing_events idempotency gate", () => {
       where: eq(billingAccounts.userId, userId),
     });
     expect(account).toBeDefined();
-    expect(account!.stripeCustomerId).toBe("cus_blk010_acct");
+    expect(account?.stripeCustomerId).toBe("cus_blk010_acct");
   });
 });
 
@@ -458,8 +442,8 @@ describe("BLK-010: invoice.* and payment_intent.* are logged as events", () => {
       where: eq(billingEvents.stripeEventId, "evt_blk010_invoice_created"),
     });
     expect(row).toBeDefined();
-    expect(row!.eventType).toBe("invoice.created");
-    expect(row!.processedAt).not.toBeNull();
+    expect(row?.eventType).toBe("invoice.created");
+    expect(row?.processedAt).not.toBeNull();
   });
 
   test("payment_intent.succeeded is accepted and logged", async () => {
@@ -478,6 +462,6 @@ describe("BLK-010: invoice.* and payment_intent.* are logged as events", () => {
       where: eq(billingEvents.stripeEventId, "evt_blk010_pi_ok"),
     });
     expect(row).toBeDefined();
-    expect(row!.eventType).toBe("payment_intent.succeeded");
+    expect(row?.eventType).toBe("payment_intent.succeeded");
   });
 });

@@ -12,7 +12,7 @@
 // Each toast carries its own `aria-label` describing the pending action
 // and the time remaining.
 
-import { createSignal, For, onCleanup, Show } from "solid-js";
+import { For, Show, createSignal, onCleanup } from "solid-js";
 import type { JSX } from "solid-js";
 
 export interface UndoToastDescriptor {
@@ -118,7 +118,7 @@ export function UndoToastContainer(): JSX.Element {
   });
 
   return (
-    <div
+    <output
       style={{
         position: "fixed",
         bottom: "20px",
@@ -130,7 +130,6 @@ export function UndoToastContainer(): JSX.Element {
         "max-width": "360px",
         "pointer-events": "none",
       }}
-      role="status"
       aria-live="polite"
       data-testid="undo-toast-container"
     >
@@ -198,7 +197,7 @@ export function UndoToastContainer(): JSX.Element {
           );
         }}
       </For>
-    </div>
+    </output>
   );
 }
 
@@ -227,7 +226,7 @@ function CountdownRing(props: CountdownRingProps): JSX.Element {
       }}
       aria-hidden="true"
     >
-      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} aria-hidden="true">
         <circle
           cx={size / 2}
           cy={size / 2}
@@ -247,7 +246,7 @@ function CountdownRing(props: CountdownRingProps): JSX.Element {
           stroke-dasharray={String(circumference)}
           stroke-dashoffset={String(dashOffset())}
           style={{
-            transform: `rotate(-90deg)`,
+            transform: "rotate(-90deg)",
             "transform-origin": "center",
             transition: props.reduced ? "none" : "stroke-dashoffset 100ms linear",
           }}

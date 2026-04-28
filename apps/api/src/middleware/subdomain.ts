@@ -12,10 +12,10 @@
  * query per request.
  */
 
-import { createMiddleware } from "hono/factory";
-import { eq } from "drizzle-orm";
 import { db } from "@back-to-the-future/db";
 import { tenants } from "@back-to-the-future/db/schema";
+import { eq } from "drizzle-orm";
+import { createMiddleware } from "hono/factory";
 
 // ── Hono env type for tenant context ─────────────────────────────────
 
@@ -136,8 +136,7 @@ const RESERVED_SYSTEM_SUBDOMAINS = new Set([
 // ── Middleware ────────────────────────────────────────────────────────
 
 export const subdomainRouter = createMiddleware<TenantEnv>(
-  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: multi-tenant routing requires branching
-  async (c, next): Promise<Response | void> => {
+  async (c, next): Promise<Response | undefined> => {
     const host = (c.req.header("host") ?? "").replace(/:\d+$/, ""); // strip port
 
     // Skip IP addresses (v4 simple check)

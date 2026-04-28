@@ -1,9 +1,9 @@
-import { describe, test, expect } from "bun:test";
-import { Hono } from "hono";
-import { withAudit } from "./audit";
-import { db, auditLogs } from "@back-to-the-future/db";
+import { describe, expect, test } from "bun:test";
+import { auditLogs, db } from "@back-to-the-future/db";
 import { desc } from "drizzle-orm";
+import { Hono } from "hono";
 import type { AuthEnv } from "../auth/middleware";
+import { withAudit } from "./audit";
 
 // Build a minimal test app with the audit middleware
 function createTestApp() {
@@ -34,18 +34,14 @@ describe("Audit Middleware (Hono)", () => {
     // Give the async audit write a moment to complete
     await new Promise((resolve) => setTimeout(resolve, 100));
 
-    const logs = await db
-      .select()
-      .from(auditLogs)
-      .orderBy(desc(auditLogs.timestamp))
-      .limit(5);
+    const logs = await db.select().from(auditLogs).orderBy(desc(auditLogs.timestamp)).limit(5);
 
     const auditEntry = logs.find(
       (l) => l.resourceType === "test.read" && l.actorId === "test-user-audit",
     );
     expect(auditEntry).toBeDefined();
-    expect(auditEntry!.result).toBe("success");
-    expect(auditEntry!.action).toBe("READ");
+    expect(auditEntry?.result).toBe("success");
+    expect(auditEntry?.action).toBe("READ");
   });
 
   test("withAudit logs POST as CREATE action", async () => {
@@ -55,18 +51,13 @@ describe("Audit Middleware (Hono)", () => {
 
     await new Promise((resolve) => setTimeout(resolve, 100));
 
-    const logs = await db
-      .select()
-      .from(auditLogs)
-      .orderBy(desc(auditLogs.timestamp))
-      .limit(5);
+    const logs = await db.select().from(auditLogs).orderBy(desc(auditLogs.timestamp)).limit(5);
 
     const auditEntry = logs.find(
-      (l) =>
-        l.resourceType === "test.create" && l.actorId === "test-user-audit",
+      (l) => l.resourceType === "test.create" && l.actorId === "test-user-audit",
     );
     expect(auditEntry).toBeDefined();
-    expect(auditEntry!.action).toBe("CREATE");
+    expect(auditEntry?.action).toBe("CREATE");
   });
 
   test("withAudit logs DELETE as DELETE action", async () => {
@@ -78,18 +69,13 @@ describe("Audit Middleware (Hono)", () => {
 
     await new Promise((resolve) => setTimeout(resolve, 100));
 
-    const logs = await db
-      .select()
-      .from(auditLogs)
-      .orderBy(desc(auditLogs.timestamp))
-      .limit(5);
+    const logs = await db.select().from(auditLogs).orderBy(desc(auditLogs.timestamp)).limit(5);
 
     const auditEntry = logs.find(
-      (l) =>
-        l.resourceType === "test.delete" && l.actorId === "test-user-audit",
+      (l) => l.resourceType === "test.delete" && l.actorId === "test-user-audit",
     );
     expect(auditEntry).toBeDefined();
-    expect(auditEntry!.action).toBe("DELETE");
+    expect(auditEntry?.action).toBe("DELETE");
   });
 
   test("withAudit logs failure result for 5xx responses", async () => {
@@ -99,18 +85,13 @@ describe("Audit Middleware (Hono)", () => {
 
     await new Promise((resolve) => setTimeout(resolve, 100));
 
-    const logs = await db
-      .select()
-      .from(auditLogs)
-      .orderBy(desc(auditLogs.timestamp))
-      .limit(5);
+    const logs = await db.select().from(auditLogs).orderBy(desc(auditLogs.timestamp)).limit(5);
 
     const auditEntry = logs.find(
-      (l) =>
-        l.resourceType === "test.fail" && l.actorId === "test-user-audit",
+      (l) => l.resourceType === "test.fail" && l.actorId === "test-user-audit",
     );
     expect(auditEntry).toBeDefined();
-    expect(auditEntry!.result).toBe("failure");
+    expect(auditEntry?.result).toBe("failure");
   });
 
   test("withAudit includes timing data in detail", async () => {
@@ -119,20 +100,15 @@ describe("Audit Middleware (Hono)", () => {
 
     await new Promise((resolve) => setTimeout(resolve, 100));
 
-    const logs = await db
-      .select()
-      .from(auditLogs)
-      .orderBy(desc(auditLogs.timestamp))
-      .limit(5);
+    const logs = await db.select().from(auditLogs).orderBy(desc(auditLogs.timestamp)).limit(5);
 
     const auditEntry = logs.find(
-      (l) =>
-        l.resourceType === "test.read" && l.actorId === "test-user-audit",
+      (l) => l.resourceType === "test.read" && l.actorId === "test-user-audit",
     );
     expect(auditEntry).toBeDefined();
-    expect(auditEntry!.detail).toBeDefined();
+    expect(auditEntry?.detail).toBeDefined();
 
-    const detail = JSON.parse(auditEntry!.detail!) as {
+    const detail = JSON.parse(auditEntry?.detail ?? "") as {
       method: string;
       status: number;
       durationMs: number;

@@ -21,17 +21,17 @@
  */
 
 import { Hono } from "hono";
+import { timingSafeEqual } from "../webhooks/gluecron-push";
 import {
-  checkPostgres,
-  checkHttpHealth,
-  checkCaddyCert,
-  checkDiskFree,
-  type PostgresCheckResult,
-  type HttpCheckResult,
   type CertCheckResult,
   type DiskCheckResult,
+  type HttpCheckResult,
+  type PostgresCheckResult,
+  checkCaddyCert,
+  checkDiskFree,
+  checkHttpHealth,
+  checkPostgres,
 } from "./checks";
-import { timingSafeEqual } from "../webhooks/gluecron-push";
 
 // ── Config ──────────────────────────────────────────────────────────
 
@@ -79,7 +79,7 @@ export interface EmpireHealthResponse {
 function extractBearer(header: string | undefined): string | null {
   if (!header) return null;
   const match = /^Bearer\s+(.+)$/i.exec(header.trim());
-  return match ? match[1]!.trim() : null;
+  return match ? match[1]?.trim() : null;
 }
 
 /**
@@ -88,22 +88,16 @@ function extractBearer(header: string | undefined): string | null {
  * integration tests can exercise the logic without going through an HTTP
  * round trip.
  */
-export async function runEmpireHealthCheck(
-  deps: EmpireHealthDeps = {},
-): Promise<{
+export async function runEmpireHealthCheck(deps: EmpireHealthDeps = {}): Promise<{
   body: EmpireHealthResponse;
   status: 200 | 503;
 }> {
-  const gluecronUrl =
-    process.env["GLUECRON_URL"] ?? "https://gluecron.crontech.ai";
-  const gatetestUrl =
-    process.env["GATETEST_URL"] ?? "https://gatetest.ai";
+  const gluecronUrl = process.env.GLUECRON_URL ?? "https://gluecron.crontech.ai";
+  const gatetestUrl = process.env.GATETEST_URL ?? "https://gatetest.ai";
 
   const postgresFn = deps.checkPostgres ?? (() => checkPostgres());
-  const gluecronFn =
-    deps.checkGluecron ?? (() => checkHttpHealth(gluecronUrl));
-  const gatetestFn =
-    deps.checkGatetest ?? (() => checkHttpHealth(gatetestUrl));
+  const gluecronFn = deps.checkGluecron ?? (() => checkHttpHealth(gluecronUrl));
+  const gatetestFn = deps.checkGatetest ?? (() => checkHttpHealth(gatetestUrl));
   const certFn = deps.checkCert ?? (() => checkCaddyCert());
   const diskFn = deps.checkDisk ?? (() => checkDiskFree());
 
@@ -119,9 +113,7 @@ export async function runEmpireHealthCheck(
   ]);
 
   const pgR: PostgresCheckResult =
-    pg.status === "fulfilled"
-      ? pg.value
-      : { ok: false, latency_ms: 0, error: String(pg.reason) };
+    pg.status === "fulfilled" ? pg.value : { ok: false, latency_ms: 0, error: String(pg.reason) };
   const gcR: HttpCheckResult =
     gc.status === "fulfilled"
       ? gc.value
@@ -131,22 +123,13 @@ export async function runEmpireHealthCheck(
       ? gt.value
       : { ok: false, url: gatetestUrl, latency_ms: 0, error: String(gt.reason) };
   const certR: CertCheckResult =
-    cert.status === "fulfilled"
-      ? cert.value
-      : { ok: false, error: String(cert.reason) };
+    cert.status === "fulfilled" ? cert.value : { ok: false, error: String(cert.reason) };
   const diskR: DiskCheckResult =
-    disk.status === "fulfilled"
-      ? disk.value
-      : { ok: false, error: String(disk.reason) };
+    disk.status === "fulfilled" ? disk.value : { ok: false, error: String(disk.reason) };
 
   const certWarn =
-    certR.ok &&
-    typeof certR.days_left === "number" &&
-    certR.days_left < CERT_WARN_DAYS;
-  const diskWarn =
-    diskR.ok &&
-    typeof diskR.value === "number" &&
-    diskR.value < DISK_WARN_PCT;
+    certR.ok && typeof certR.days_left === "number" && certR.days_left < CERT_WARN_DAYS;
+  const diskWarn = diskR.ok && typeof diskR.value === "number" && diskR.value < DISK_WARN_PCT;
 
   const components: EmpireHealthResponse["components"] = {
     postgres: pgR,
@@ -165,9 +148,7 @@ export async function runEmpireHealthCheck(
   };
 
   const allOk = Object.values(componentOk).every(Boolean);
-  const criticalDown = Object.entries(componentOk).some(
-    ([name, ok]) => !ok && CRITICAL.has(name),
-  );
+  const criticalDown = Object.entries(componentOk).some(([name, ok]) => !ok && CRITICAL.has(name));
 
   const now = deps.now ?? ((): Date => new Date());
   const body: EmpireHealthResponse = {
@@ -185,8 +166,7 @@ export async function runEmpireHealthCheck(
  * touching the real network or filesystem.
  */
 export function createEmpireHealthApp(deps: EmpireHealthDeps = {}): Hono {
-  const getToken =
-    deps.getToken ?? ((): string | undefined => process.env["HEALTH_CHECK_TOKEN"]);
+  const getToken = deps.getToken ?? ((): string | undefined => process.env.HEALTH_CHECK_TOKEN);
   const app = new Hono();
 
   app.get("/healthz/empire", async (c) => {

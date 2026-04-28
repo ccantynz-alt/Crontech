@@ -2,14 +2,14 @@
 // Verifies that routeAICall automatically fails over from the primary
 // provider to the fallback when a retryable error occurs.
 
-import { describe, test, expect } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import {
-  readProviderEnv,
-  getModelForTier,
-  getFallbackModel,
-  isRetryableError,
-  routeAICall,
   type AIProviderEnv,
+  getFallbackModel,
+  getModelForTier,
+  isRetryableError,
+  readProviderEnv,
+  routeAICall,
 } from "./providers";
 
 /** Extract modelId from a LanguageModel (exists on both v2 and v3 spec). */

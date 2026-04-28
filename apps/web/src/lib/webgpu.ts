@@ -72,14 +72,14 @@ export async function getDeviceCapabilities(): Promise<DeviceCapabilities> {
   // Detect memory
   const deviceMemoryGB =
     typeof navigator !== "undefined" && "deviceMemory" in navigator
-      ? (navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? 4
+      ? ((navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? 4)
       : 4;
 
   return {
     hasWebGPU: gpu.supported,
     vramMB: gpu.estimatedVRAMMB,
     hardwareConcurrency:
-      typeof navigator !== "undefined" ? navigator.hardwareConcurrency ?? 4 : 4,
+      typeof navigator !== "undefined" ? (navigator.hardwareConcurrency ?? 4) : 4,
     deviceMemoryGB,
     connectionType,
   };

@@ -3,18 +3,14 @@
 // Fetches projects, env vars, and domains from external platforms,
 // then creates them locally in the Crontech DB. Tokens are NEVER stored.
 
-import { z } from "zod";
+import { createCipheriv, createHash, randomBytes } from "node:crypto";
+import { projectDomains, projectEnvVars, projects } from "@back-to-the-future/db";
 import { TRPCError } from "@trpc/server";
-import { createCipheriv, randomBytes, createHash } from "node:crypto";
-import { router, protectedProcedure } from "../init";
-import {
-  projects,
-  projectDomains,
-  projectEnvVars,
-} from "@back-to-the-future/db";
+import { z } from "zod";
+import { protectedProcedure, router } from "../init";
 
 function encryptEnvValue(plaintext: string): string {
-  const secret = process.env["SESSION_SECRET"] ?? "crontech-default-key-change-me";
+  const secret = process.env.SESSION_SECRET ?? "crontech-default-key-change-me";
   const key = createHash("sha256").update(secret).digest();
   const iv = randomBytes(12);
   const cipher = createCipheriv("aes-256-gcm", key, iv);
@@ -193,7 +189,14 @@ async function githubFetch<T>(path: string, token: string): Promise<T> {
 }
 
 const DB_FRAMEWORKS = [
-  "solidstart", "nextjs", "remix", "astro", "hono", "static", "docker", "other",
+  "solidstart",
+  "nextjs",
+  "remix",
+  "astro",
+  "hono",
+  "static",
+  "docker",
+  "other",
 ] as const;
 type DbFramework = (typeof DB_FRAMEWORKS)[number];
 
@@ -206,9 +209,7 @@ function mapFramework(raw: string | null | undefined): DbFramework | null {
   return "other";
 }
 
-function mapVercelTarget(
-  targets: string[] | undefined,
-): "production" | "preview" | "development" {
+function mapVercelTarget(targets: string[] | undefined): "production" | "preview" | "development" {
   if (!targets || targets.length === 0) return "production";
   if (targets.includes("production")) return "production";
   if (targets.includes("preview")) return "preview";
@@ -220,261 +221,242 @@ function mapVercelTarget(
 
 export const importRouter = router({
   /** List Vercel projects for the given API token. */
-  listVercelProjects: protectedProcedure
-    .input(PlatformToken)
-    .mutation(async ({ input }) => {
-      const data = await vercelFetch<{ projects: unknown[] }>(
-        "/v9/projects?limit=100",
-        input.token,
-      );
+  listVercelProjects: protectedProcedure.input(PlatformToken).mutation(async ({ input }) => {
+    const data = await vercelFetch<{ projects: unknown[] }>("/v9/projects?limit=100", input.token);
 
-      const parsed = z.array(VercelProjectSchema).safeParse(data.projects);
-      if (!parsed.success) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to parse Vercel projects response.",
-        });
-      }
+    const parsed = z.array(VercelProjectSchema).safeParse(data.projects);
+    if (!parsed.success) {
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to parse Vercel projects response.",
+      });
+    }
 
-      return parsed.data.map((p) => ({
-        id: p.id,
-        name: p.name,
-        framework: p.framework ?? null,
-      }));
-    }),
+    return parsed.data.map((p) => ({
+      id: p.id,
+      name: p.name,
+      framework: p.framework ?? null,
+    }));
+  }),
 
   /** List Netlify sites for the given API token. */
-  listNetlifyProjects: protectedProcedure
-    .input(PlatformToken)
-    .mutation(async ({ input }) => {
-      const data = await netlifyFetch<unknown[]>(
-        "/sites?per_page=100",
-        input.token,
-      );
+  listNetlifyProjects: protectedProcedure.input(PlatformToken).mutation(async ({ input }) => {
+    const data = await netlifyFetch<unknown[]>("/sites?per_page=100", input.token);
 
-      const parsed = z.array(NetlifySiteSchema).safeParse(data);
-      if (!parsed.success) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to parse Netlify sites response.",
-        });
-      }
+    const parsed = z.array(NetlifySiteSchema).safeParse(data);
+    if (!parsed.success) {
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to parse Netlify sites response.",
+      });
+    }
 
-      return parsed.data.map((s) => ({
-        id: s.id,
-        name: s.name,
-        framework: s.published_deploy?.framework ?? null,
-      }));
-    }),
+    return parsed.data.map((s) => ({
+      id: s.id,
+      name: s.name,
+      framework: s.published_deploy?.framework ?? null,
+    }));
+  }),
 
   /** Import a project from Vercel: project + env vars + domains. */
-  importFromVercel: protectedProcedure
-    .input(VercelImportInput)
-    .mutation(async ({ ctx, input }) => {
-      const projectData = await vercelFetch<Record<string, unknown>>(
-        `/v9/projects/${input.projectId}`,
+  importFromVercel: protectedProcedure.input(VercelImportInput).mutation(async ({ ctx, input }) => {
+    const projectData = await vercelFetch<Record<string, unknown>>(
+      `/v9/projects/${input.projectId}`,
+      input.token,
+    );
+
+    const parsed = VercelProjectSchema.safeParse(projectData);
+    if (!parsed.success) {
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to parse Vercel project details.",
+      });
+    }
+    const vercelProject = parsed.data;
+
+    // Fetch env vars — try decrypted first; fall back if token lacks scope.
+    let envVars: Array<z.infer<typeof VercelEnvVarSchema>> = [];
+    try {
+      const envData = await vercelFetch<{ envs: unknown[] }>(
+        `/v9/projects/${input.projectId}/env?decrypt=1`,
         input.token,
       );
-
-      const parsed = VercelProjectSchema.safeParse(projectData);
-      if (!parsed.success) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to parse Vercel project details.",
-        });
-      }
-      const vercelProject = parsed.data;
-
-      // Fetch env vars — try decrypted first; fall back if token lacks scope.
-      let envVars: Array<z.infer<typeof VercelEnvVarSchema>> = [];
+      const envParsed = z.array(VercelEnvVarSchema).safeParse(envData.envs);
+      if (envParsed.success) envVars = envParsed.data;
+    } catch {
+      // Token lacks decrypt scope — list without values so the project still imports.
       try {
         const envData = await vercelFetch<{ envs: unknown[] }>(
-          `/v9/projects/${input.projectId}/env?decrypt=1`,
+          `/v9/projects/${input.projectId}/env`,
           input.token,
         );
         const envParsed = z.array(VercelEnvVarSchema).safeParse(envData.envs);
         if (envParsed.success) envVars = envParsed.data;
       } catch {
-        // Token lacks decrypt scope — list without values so the project still imports.
-        try {
-          const envData = await vercelFetch<{ envs: unknown[] }>(
-            `/v9/projects/${input.projectId}/env`,
-            input.token,
-          );
-          const envParsed = z.array(VercelEnvVarSchema).safeParse(envData.envs);
-          if (envParsed.success) envVars = envParsed.data;
-        } catch {
-          // Continue without env vars
-        }
+        // Continue without env vars
       }
+    }
 
-      // Fetch domains
-      const domainData = await vercelFetch<{ domains: unknown[] }>(
-        `/v9/projects/${input.projectId}/domains`,
-        input.token,
-      );
-      const domainParsed = z.array(VercelDomainSchema).safeParse(domainData.domains);
-      const domains = domainParsed.success ? domainParsed.data : [];
+    // Fetch domains
+    const domainData = await vercelFetch<{ domains: unknown[] }>(
+      `/v9/projects/${input.projectId}/domains`,
+      input.token,
+    );
+    const domainParsed = z.array(VercelDomainSchema).safeParse(domainData.domains);
+    const domains = domainParsed.success ? domainParsed.data : [];
 
-      // Create project in Crontech DB
-      const projectId = generateId();
-      const now = new Date();
+    // Create project in Crontech DB
+    const projectId = generateId();
+    const now = new Date();
 
-      await ctx.db.insert(projects).values({
-        id: projectId,
-        userId: ctx.userId,
-        name: vercelProject.name,
-        slug: slugify(vercelProject.name),
-        description: `Imported from Vercel (${vercelProject.id})`,
-        framework: mapFramework(vercelProject.framework),
-        status: "active",
-        createdAt: now,
-        updatedAt: now,
-      });
+    await ctx.db.insert(projects).values({
+      id: projectId,
+      userId: ctx.userId,
+      name: vercelProject.name,
+      slug: slugify(vercelProject.name),
+      description: `Imported from Vercel (${vercelProject.id})`,
+      framework: mapFramework(vercelProject.framework),
+      status: "active",
+      createdAt: now,
+      updatedAt: now,
+    });
 
-      const envInserts = envVars
-        .filter(
-          (e): e is typeof e & { value: string } =>
-            e.value !== undefined && e.value !== "",
-        )
-        .map((e) => ({
-          id: generateId(),
-          projectId,
-          key: e.key,
-          encryptedValue: encryptEnvValue(e.value),
-          environment: mapVercelTarget(e.target),
-          createdAt: now,
-          updatedAt: now,
-        }));
-
-      if (envInserts.length > 0) {
-        await ctx.db.insert(projectEnvVars).values(envInserts);
-      }
-
-      // Insert domains
-      const domainInserts = domains.map((d, i) => ({
+    const envInserts = envVars
+      .filter((e): e is typeof e & { value: string } => e.value !== undefined && e.value !== "")
+      .map((e) => ({
         id: generateId(),
         projectId,
-        domain: d.name,
-        isPrimary: i === 0,
-        dnsVerified: d.verified ?? false,
-        createdAt: now,
-      }));
-
-      if (domainInserts.length > 0) {
-        await ctx.db.insert(projectDomains).values(domainInserts);
-      }
-
-      return {
-        projectId,
-        name: vercelProject.name,
-        envVarsImported: envInserts.length,
-        domainsImported: domainInserts.length,
-        framework: vercelProject.framework ?? null,
-      };
-    }),
-
-  /** List GitHub repositories for the given Personal Access Token. */
-  listGithubRepos: protectedProcedure
-    .input(PlatformToken)
-    .mutation(async ({ input }) => {
-      const data = await githubFetch<unknown[]>(
-        "/user/repos?sort=updated&per_page=100&type=all",
-        input.token,
-      );
-
-      const parsed = z.array(GithubRepoSchema).safeParse(data);
-      if (!parsed.success) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to parse GitHub repositories response.",
-        });
-      }
-
-      return parsed.data.map((r) => ({
-        id: String(r.id),
-        name: r.full_name,
-        framework: null as string | null,
-      }));
-    }),
-
-  /** Import a project from GitHub: creates a Crontech project linked to the repo. */
-  importFromGithub: protectedProcedure
-    .input(GithubImportInput)
-    .mutation(async ({ ctx, input }) => {
-      const repoData = await githubFetch<Record<string, unknown>>(
-        `/repos/${input.repoFullName}`,
-        input.token,
-      );
-
-      const parsed = GithubRepoSchema.safeParse(repoData);
-      if (!parsed.success) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to parse GitHub repository details.",
-        });
-      }
-      const repo = parsed.data;
-
-      const projectId = generateId();
-      const now = new Date();
-
-      // Derive a friendly project name from the repo name (not full_name)
-      const projectName = repo.name;
-
-      await ctx.db.insert(projects).values({
-        id: projectId,
-        userId: ctx.userId,
-        name: projectName,
-        slug: slugify(projectName),
-        description: `Imported from GitHub (${repo.full_name})`,
-        framework: mapFramework(repo.language),
-        status: "active",
+        key: e.key,
+        encryptedValue: encryptEnvValue(e.value),
+        environment: mapVercelTarget(e.target),
         createdAt: now,
         updatedAt: now,
+      }));
+
+    if (envInserts.length > 0) {
+      await ctx.db.insert(projectEnvVars).values(envInserts);
+    }
+
+    // Insert domains
+    const domainInserts = domains.map((d, i) => ({
+      id: generateId(),
+      projectId,
+      domain: d.name,
+      isPrimary: i === 0,
+      dnsVerified: d.verified ?? false,
+      createdAt: now,
+    }));
+
+    if (domainInserts.length > 0) {
+      await ctx.db.insert(projectDomains).values(domainInserts);
+    }
+
+    return {
+      projectId,
+      name: vercelProject.name,
+      envVarsImported: envInserts.length,
+      domainsImported: domainInserts.length,
+      framework: vercelProject.framework ?? null,
+    };
+  }),
+
+  /** List GitHub repositories for the given Personal Access Token. */
+  listGithubRepos: protectedProcedure.input(PlatformToken).mutation(async ({ input }) => {
+    const data = await githubFetch<unknown[]>(
+      "/user/repos?sort=updated&per_page=100&type=all",
+      input.token,
+    );
+
+    const parsed = z.array(GithubRepoSchema).safeParse(data);
+    if (!parsed.success) {
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to parse GitHub repositories response.",
       });
+    }
 
-      // Add the GitHub Pages / homepage as a domain if present
-      const domainInserts: Array<{
-        id: string;
-        projectId: string;
-        domain: string;
-        isPrimary: boolean;
-        dnsVerified: boolean;
-        createdAt: Date;
-      }> = [];
+    return parsed.data.map((r) => ({
+      id: String(r.id),
+      name: r.full_name,
+      framework: null as string | null,
+    }));
+  }),
 
-      if (repo.homepage) {
-        try {
-          const url = new URL(repo.homepage);
-          const hostname = url.hostname;
-          if (hostname) {
-            domainInserts.push({
-              id: generateId(),
-              projectId,
-              domain: hostname,
-              isPrimary: true,
-              dnsVerified: false,
-              createdAt: now,
-            });
-          }
-        } catch {
-          // homepage is not a valid URL — skip
+  /** Import a project from GitHub: creates a Crontech project linked to the repo. */
+  importFromGithub: protectedProcedure.input(GithubImportInput).mutation(async ({ ctx, input }) => {
+    const repoData = await githubFetch<Record<string, unknown>>(
+      `/repos/${input.repoFullName}`,
+      input.token,
+    );
+
+    const parsed = GithubRepoSchema.safeParse(repoData);
+    if (!parsed.success) {
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to parse GitHub repository details.",
+      });
+    }
+    const repo = parsed.data;
+
+    const projectId = generateId();
+    const now = new Date();
+
+    // Derive a friendly project name from the repo name (not full_name)
+    const projectName = repo.name;
+
+    await ctx.db.insert(projects).values({
+      id: projectId,
+      userId: ctx.userId,
+      name: projectName,
+      slug: slugify(projectName),
+      description: `Imported from GitHub (${repo.full_name})`,
+      framework: mapFramework(repo.language),
+      status: "active",
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    // Add the GitHub Pages / homepage as a domain if present
+    const domainInserts: Array<{
+      id: string;
+      projectId: string;
+      domain: string;
+      isPrimary: boolean;
+      dnsVerified: boolean;
+      createdAt: Date;
+    }> = [];
+
+    if (repo.homepage) {
+      try {
+        const url = new URL(repo.homepage);
+        const hostname = url.hostname;
+        if (hostname) {
+          domainInserts.push({
+            id: generateId(),
+            projectId,
+            domain: hostname,
+            isPrimary: true,
+            dnsVerified: false,
+            createdAt: now,
+          });
         }
+      } catch {
+        // homepage is not a valid URL — skip
       }
+    }
 
-      if (domainInserts.length > 0) {
-        await ctx.db.insert(projectDomains).values(domainInserts);
-      }
+    if (domainInserts.length > 0) {
+      await ctx.db.insert(projectDomains).values(domainInserts);
+    }
 
-      return {
-        projectId,
-        name: projectName,
-        envVarsImported: 0,
-        domainsImported: domainInserts.length,
-        framework: repo.language ?? null,
-      };
-    }),
+    return {
+      projectId,
+      name: projectName,
+      envVarsImported: 0,
+      domainsImported: domainInserts.length,
+      framework: repo.language ?? null,
+    };
+  }),
 
   /** Import a project from Netlify: project + domains. */
   importFromNetlify: protectedProcedure

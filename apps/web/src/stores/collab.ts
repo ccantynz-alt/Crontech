@@ -1,17 +1,17 @@
 // ── Collaboration Store ──────────────────────────────────────────────
 // SolidJS signal-based store for Yjs CRDT collaboration state.
 
-import { createSignal, createComponent, createContext, useContext, onCleanup } from "solid-js";
+import { createComponent, createContext, createSignal, onCleanup, useContext } from "solid-js";
 import type { ParentComponent } from "solid-js";
 import {
-  createCollabRoom,
-  getConnectedUsers,
-  getCursorPositions,
-  getSharedText,
-  getSharedMap,
   type CollabRoom,
   type CollabUser,
   type CursorPosition,
+  createCollabRoom,
+  getConnectedUsers,
+  getCursorPositions,
+  getSharedMap,
+  getSharedText,
 } from "../collab/yjs-provider";
 
 // ── Store Types ──────────────────────────────────────────────────────
@@ -97,7 +97,7 @@ export const CollabProvider: ParentComponent = (props) => {
     setCursors([]);
   }
 
-  function getText(field: string = "content"): string {
+  function getText(field = "content"): string {
     const currentRoom = room();
     if (!currentRoom) return "";
     return getSharedText(currentRoom.doc, field).toString();
@@ -128,11 +128,21 @@ export const CollabProvider: ParentComponent = (props) => {
   onCleanup(leaveRoom);
 
   const state: CollabState = {
-    get connected() { return connected(); },
-    get roomId() { return roomId(); },
-    get users() { return users(); },
-    get cursors() { return cursors(); },
-    get room() { return room(); },
+    get connected() {
+      return connected();
+    },
+    get roomId() {
+      return roomId();
+    },
+    get users() {
+      return users();
+    },
+    get cursors() {
+      return cursors();
+    },
+    get room() {
+      return room();
+    },
   };
 
   const actions: CollabActions = {

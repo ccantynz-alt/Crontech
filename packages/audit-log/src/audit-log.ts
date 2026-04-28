@@ -15,9 +15,9 @@ import { computeEntryHash, sealEntry, verifyChain } from "./hash-chain";
 import type { WormStorage } from "./storage";
 import type { TimestampAuthority } from "./timestamp";
 import {
-  AuditEntryInputSchema,
   type AuditEntry,
   type AuditEntryInput,
+  AuditEntryInputSchema,
   type VerifyResult,
 } from "./types";
 
@@ -133,5 +133,4 @@ export class AuditLog {
     void _ignored;
     return computeEntryHash(rest) === storedHash;
   }
-
 }

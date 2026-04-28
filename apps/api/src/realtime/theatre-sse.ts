@@ -2,11 +2,11 @@
 // single run in real time, so the /ops UI shows Vercel-style live logs
 // without resorting to a WebSocket.
 
+import { db } from "@back-to-the-future/db";
+import { getRun, tailLogs } from "@back-to-the-future/theatre";
 import { Hono } from "hono";
 import { streamSSE } from "hono/streaming";
 import { z } from "zod";
-import { db } from "@back-to-the-future/db";
-import { getRun, tailLogs } from "@back-to-the-future/theatre";
 
 const theatreSseApp = new Hono();
 
@@ -78,11 +78,7 @@ theatreSseApp.get("/theatre/runs/:runId/stream", async (c) => {
         }
 
         // Stop when the run is in a terminal state and we've drained logs.
-        if (
-          run.status === "succeeded" ||
-          run.status === "failed" ||
-          run.status === "cancelled"
-        ) {
+        if (run.status === "succeeded" || run.status === "failed" || run.status === "cancelled") {
           await stream.writeSSE({
             event: "end",
             data: JSON.stringify({ status: run.status }),

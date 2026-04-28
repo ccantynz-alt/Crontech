@@ -22,21 +22,16 @@
 // `useUrlState<string>("filter", "")` everywhere — the natural
 // `useUrlState("filter", "")` form just works.
 
-import { createSignal, onCleanup, type Accessor } from "solid-js";
+import { type Accessor, createSignal, onCleanup } from "solid-js";
 
 // ── Types ───────────────────────────────────────────────────────────
 
 /** Every value type the URL hook accepts. */
 export type Primitive = string | number | boolean;
 
-export type UrlStateSetter<T extends Primitive> = (
-  value: T | ((prev: T) => T),
-) => void;
+export type UrlStateSetter<T extends Primitive> = (value: T | ((prev: T) => T)) => void;
 
-export type UrlStateReturn<T extends Primitive> = [
-  Accessor<T>,
-  UrlStateSetter<T>,
-];
+export type UrlStateReturn<T extends Primitive> = [Accessor<T>, UrlStateSetter<T>];
 
 /**
  * Widen a literal default to its base primitive so callers don't need
@@ -82,8 +77,7 @@ export function useUrlState<T extends Primitive>(
   }
 
   const set: UrlStateSetter<W> = (next) => {
-    const resolved =
-      typeof next === "function" ? (next as (p: W) => W)(value()) : next;
+    const resolved = typeof next === "function" ? (next as (p: W) => W)(value()) : next;
     setValue(() => resolved);
     writeToLocation(key, resolved, defaultValue);
   };
@@ -128,11 +122,7 @@ function readFromLocation(key: string, defaultValue: Primitive): Primitive {
   return decode(raw, defaultValue);
 }
 
-function writeToLocation(
-  key: string,
-  value: Primitive,
-  defaultValue: Primitive,
-): void {
+function writeToLocation(key: string, value: Primitive, defaultValue: Primitive): void {
   if (typeof window === "undefined") return;
   const url = new URL(window.location.href);
   if (value === defaultValue) {

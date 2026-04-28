@@ -19,8 +19,8 @@
 // The helper is framework-agnostic apart from emitting events to the
 // `UndoToast` component's pub/sub bus — see `components/UndoToast.tsx`.
 
-import { enqueueUndo, dismissUndo } from "../components/UndoToast";
 import { showToast } from "../components/Toast";
+import { dismissUndo, enqueueUndo } from "../components/UndoToast";
 
 export interface OptimisticMutationOptions<TArg> {
   /** Mutate the local store/UI immediately. Required. */
@@ -40,10 +40,7 @@ export interface OptimisticMutationOptions<TArg> {
   errorMessage?: string | ((arg: TArg, err: unknown) => string);
 }
 
-export interface OptimisticMutationResult<TArg> {
-  /** Trigger the optimistic flow. Returns once `apply` has run. */
-  (arg: TArg): Promise<void>;
-}
+export type OptimisticMutationResult<TArg> = (arg: TArg) => Promise<void>;
 
 /**
  * Build a function that wraps a destructive UI action in an optimistic

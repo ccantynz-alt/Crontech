@@ -24,10 +24,10 @@
  *   500  unexpected failure
  */
 
+import { db as defaultDb, deployments, projects } from "@back-to-the-future/db";
+import { eq, or } from "drizzle-orm";
 import { Hono } from "hono";
 import { z } from "zod";
-import { eq, or } from "drizzle-orm";
-import { db as defaultDb, deployments, projects } from "@back-to-the-future/db";
 import { enqueueBuild } from "../automation/build-runner";
 import { emitDataChange } from "../realtime/live-updates";
 
@@ -116,11 +116,7 @@ export async function verifyGithubSignature(
     false,
     ["sign"],
   );
-  const signed = await crypto.subtle.sign(
-    "HMAC",
-    key,
-    encoder.encode(rawBody),
-  );
+  const signed = await crypto.subtle.sign("HMAC", key, encoder.encode(rawBody));
   const expected = Array.from(new Uint8Array(signed))
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
@@ -160,8 +156,7 @@ export function refToBranch(ref: string): string | null {
 
 export function createGithubWebhookApp(deps: GithubWebhookDeps = {}): Hono {
   const db = deps.db ?? defaultDb;
-  const getSecret =
-    deps.getSecret ?? ((): string | undefined => process.env["GITHUB_WEBHOOK_SECRET"]);
+  const getSecret = deps.getSecret ?? ((): string | undefined => process.env.GITHUB_WEBHOOK_SECRET);
   const enqueue = deps.enqueue ?? enqueueBuild;
 
   const app = new Hono();
@@ -178,23 +173,18 @@ export function createGithubWebhookApp(deps: GithubWebhookDeps = {}): Hono {
     // ── 2. Verify signature ───────────────────────────────────────────
     const secret = getSecret();
     if (!secret) {
-      console.warn(
-        "[github-webhook] GITHUB_WEBHOOK_SECRET not set — rejecting request",
-      );
+      console.warn("[github-webhook] GITHUB_WEBHOOK_SECRET not set — rejecting request");
       return c.json({ ok: false, error: "webhook secret not configured" }, 401);
     }
     const sigHeader =
-      c.req.header("x-hub-signature-256") ??
-      c.req.header("X-Hub-Signature-256") ??
-      null;
+      c.req.header("x-hub-signature-256") ?? c.req.header("X-Hub-Signature-256") ?? null;
     const verified = await verifyGithubSignature(secret, sigHeader, rawBody);
     if (!verified) {
       return c.json({ ok: false, error: "invalid signature" }, 401);
     }
 
     // ── 3. Parse event type ──────────────────────────────────────────
-    const event =
-      c.req.header("x-github-event") ?? c.req.header("X-GitHub-Event") ?? "";
+    const event = c.req.header("x-github-event") ?? c.req.header("X-GitHub-Event") ?? "";
     if (event === "ping") {
       return c.json({ ok: true, event: "ping" });
     }
@@ -319,9 +309,7 @@ export function createGithubWebhookApp(deps: GithubWebhookDeps = {}): Hono {
       enqueue(deploymentId);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-      console.warn(
-        `[github-webhook] enqueueBuild failed for ${deploymentId}: ${message}`,
-      );
+      console.warn(`[github-webhook] enqueueBuild failed for ${deploymentId}: ${message}`);
     }
 
     emitDataChange(["projects", "deployments"], "webhook deployment queued");

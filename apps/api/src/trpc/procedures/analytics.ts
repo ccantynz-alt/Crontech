@@ -9,24 +9,14 @@
 //   - deployments       (activeDeployments, avgBuildTime)
 //   - conversations     (monthlyAiCost — AI chat spend in cents)
 
+import { analyticsEvents, conversations, deployments, projects } from "@back-to-the-future/db";
+import { and, desc, eq, gte, sql } from "drizzle-orm";
 import { z } from "zod";
-import { eq, desc, sql, and, gte } from "drizzle-orm";
-import { router, publicProcedure, protectedProcedure } from "../init";
-import {
-  analyticsEvents,
-  projects,
-  deployments,
-  conversations,
-} from "@back-to-the-future/db";
+import { protectedProcedure, publicProcedure, router } from "../init";
 
 const AnalyticsEventInput = z.object({
   event: z.string().min(1),
-  category: z.enum([
-    "page_view",
-    "feature_usage",
-    "ai_generation",
-    "time_on_page",
-  ]),
+  category: z.enum(["page_view", "feature_usage", "ai_generation", "time_on_page"]),
   properties: z.record(z.string(), z.unknown()).optional(),
   timestamp: z.string().datetime(),
   sessionId: z.string().optional(),
@@ -59,31 +49,25 @@ export interface UsageStats {
 }
 
 export const analyticsRouter = router({
-  track: publicProcedure
-    .input(BatchTrackInput)
-    .mutation(async ({ ctx, input }) => {
-      const userId = ctx.userId ?? null;
+  track: publicProcedure.input(BatchTrackInput).mutation(async ({ ctx, input }) => {
+    const userId = ctx.userId ?? null;
 
-      const rows = input.events.map((evt) => ({
-        id: crypto.randomUUID(),
-        userId,
-        sessionId: evt.sessionId ?? null,
-        event: evt.event,
-        category: evt.category as
-          | "page_view"
-          | "feature_usage"
-          | "ai_generation"
-          | "time_on_page",
-        properties: evt.properties ? JSON.stringify(evt.properties) : null,
-        timestamp: new Date(evt.timestamp),
-      }));
+    const rows = input.events.map((evt) => ({
+      id: crypto.randomUUID(),
+      userId,
+      sessionId: evt.sessionId ?? null,
+      event: evt.event,
+      category: evt.category as "page_view" | "feature_usage" | "ai_generation" | "time_on_page",
+      properties: evt.properties ? JSON.stringify(evt.properties) : null,
+      timestamp: new Date(evt.timestamp),
+    }));
 
-      if (rows.length > 0) {
-        await ctx.db.insert(analyticsEvents).values(rows);
-      }
+    if (rows.length > 0) {
+      await ctx.db.insert(analyticsEvents).values(rows);
+    }
 
-      return { recorded: rows.length };
-    }),
+    return { recorded: rows.length };
+  }),
 
   getUsageStats: protectedProcedure
     .input(UsageStatsInput)
@@ -144,12 +128,7 @@ export const analyticsRouter = router({
       const [activeDeploymentsRow] = await ctx.db
         .select({ count: sql<number>`count(*)` })
         .from(deployments)
-        .where(
-          and(
-            eq(deployments.userId, userId),
-            eq(deployments.status, "live"),
-          ),
-        );
+        .where(and(eq(deployments.userId, userId), eq(deployments.status, "live")));
 
       // Average build duration (seconds) across successful deploys in window
       const [avgBuildRow] = await ctx.db
@@ -172,12 +151,7 @@ export const analyticsRouter = router({
           sum: sql<number | null>`sum(${conversations.totalCost})`,
         })
         .from(conversations)
-        .where(
-          and(
-            eq(conversations.userId, userId),
-            gte(conversations.updatedAt, since),
-          ),
-        );
+        .where(and(eq(conversations.userId, userId), gte(conversations.updatedAt, since)));
 
       return {
         pageViews: Number(pageViewsRow?.count ?? 0),

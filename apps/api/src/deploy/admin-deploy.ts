@@ -11,8 +11,8 @@
 import { Hono } from "hono";
 import { requireAdmin } from "../middleware/require-admin";
 
-const AGENT_URL = `http://127.0.0.1:${process.env["DEPLOY_AGENT_PORT"] ?? 9091}`;
-const AGENT_SECRET = process.env["DEPLOY_AGENT_SECRET"] ?? "";
+const AGENT_URL = `http://127.0.0.1:${process.env.DEPLOY_AGENT_PORT ?? 9091}`;
+const AGENT_SECRET = process.env.DEPLOY_AGENT_SECRET ?? "";
 
 function agentHeaders(): HeadersInit {
   return { Authorization: `Bearer ${AGENT_SECRET}` };
@@ -30,7 +30,7 @@ adminDeployApp.get("/admin/deploy/status", requireAdmin, async (c) => {
       headers: agentHeaders(),
       signal: AbortSignal.timeout(5_000),
     });
-    const body = await res.json() as Record<string, unknown>;
+    const body = (await res.json()) as Record<string, unknown>;
     return c.json(body, res.status as 200 | 503);
   } catch {
     return c.json({ ok: false, error: "deploy agent unreachable" }, 503);
@@ -104,7 +104,7 @@ adminDeployApp.get("/admin/env-vars", requireAdmin, async (c) => {
       headers: agentHeaders(),
       signal: AbortSignal.timeout(5_000),
     });
-    const body = await res.json() as Record<string, unknown>;
+    const body = (await res.json()) as Record<string, unknown>;
     return c.json(body, res.status as 200 | 503);
   } catch {
     return c.json({ ok: false, error: "deploy agent unreachable" }, 503);
@@ -118,7 +118,7 @@ adminDeployApp.put("/admin/env-vars", requireAdmin, async (c) => {
   }
   let body: { key?: string; value?: string };
   try {
-    body = await c.req.json() as { key?: string; value?: string };
+    body = (await c.req.json()) as { key?: string; value?: string };
   } catch {
     return c.json({ ok: false, error: "invalid JSON body" }, 400);
   }
@@ -132,7 +132,7 @@ adminDeployApp.put("/admin/env-vars", requireAdmin, async (c) => {
       body: JSON.stringify({ key: body.key, value: body.value }),
       signal: AbortSignal.timeout(5_000),
     });
-    const resBody = await res.json() as Record<string, unknown>;
+    const resBody = (await res.json()) as Record<string, unknown>;
     return c.json(resBody, res.status as 200 | 400 | 503);
   } catch {
     return c.json({ ok: false, error: "deploy agent unreachable" }, 503);
@@ -154,7 +154,7 @@ adminDeployApp.delete("/admin/env-vars/:key", requireAdmin, async (c) => {
       headers: agentHeaders(),
       signal: AbortSignal.timeout(5_000),
     });
-    const resBody = await res.json() as Record<string, unknown>;
+    const resBody = (await res.json()) as Record<string, unknown>;
     return c.json(resBody, res.status as 200 | 404 | 503);
   } catch {
     return c.json({ ok: false, error: "deploy agent unreachable" }, 503);
@@ -178,7 +178,7 @@ adminDeployApp.get("/admin/git/log", requireAdmin, async (c) => {
       headers: agentHeaders(),
       signal: AbortSignal.timeout(8_000),
     });
-    const body = await res.json() as Record<string, unknown>;
+    const body = (await res.json()) as Record<string, unknown>;
     return c.json(body, res.status as 200 | 500 | 503);
   } catch {
     return c.json({ ok: false, error: "deploy agent unreachable" }, 503);
@@ -195,7 +195,7 @@ adminDeployApp.get("/admin/git/drift", requireAdmin, async (c) => {
       headers: agentHeaders(),
       signal: AbortSignal.timeout(8_000),
     });
-    const body = await res.json() as Record<string, unknown>;
+    const body = (await res.json()) as Record<string, unknown>;
     return c.json(body, res.status as 200 | 500 | 503);
   } catch {
     return c.json({ ok: false, error: "deploy agent unreachable" }, 503);
@@ -212,7 +212,7 @@ adminDeployApp.get("/admin/diagnose", requireAdmin, async (c) => {
       headers: agentHeaders(),
       signal: AbortSignal.timeout(8_000),
     });
-    const body = await res.json() as Record<string, unknown>;
+    const body = (await res.json()) as Record<string, unknown>;
     return c.json(body, res.status as 200 | 500 | 503);
   } catch {
     return c.json({ ok: false, error: "deploy agent unreachable" }, 503);

@@ -12,18 +12,13 @@
 //   5. Secret column heuristic matches the locked regex:
 //      /password|secret|token|api_key|private_key/i.
 
-import { describe, test, expect, afterEach } from "bun:test";
+import { afterEach, describe, expect, test } from "bun:test";
+import { db, scopedDb, sessions, users } from "@back-to-the-future/db";
 import { eq } from "drizzle-orm";
-import { db, users, sessions, scopedDb } from "@back-to-the-future/db";
-import { appRouter } from "../router";
 import { createSession } from "../../auth/session";
-import {
-  __dbInspectorInternals,
-  isSecretColumn,
-  maskRow,
-  SECRET_COLUMN_RE,
-} from "./db-inspector";
 import type { TRPCContext } from "../context";
+import { appRouter } from "../router";
+import { SECRET_COLUMN_RE, __dbInspectorInternals, isSecretColumn, maskRow } from "./db-inspector";
 
 function ctxFor(userId: string, sessionToken: string): TRPCContext {
   return {
@@ -39,7 +34,7 @@ async function createUser(role: "admin" | "viewer"): Promise<string> {
   const id = crypto.randomUUID();
   await db.insert(users).values({
     id,
-    email: `dbi-${role}-${Date.now()}-${crypto.randomUUID().replace(/-/g, '').slice(0, 6)}@example.com`,
+    email: `dbi-${role}-${Date.now()}-${crypto.randomUUID().replace(/-/g, "").slice(0, 6)}@example.com`,
     displayName: `DB Inspector Test ${role}`,
     role,
   });

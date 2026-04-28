@@ -1,25 +1,22 @@
-import { z } from "zod";
-import { log } from "../../log";
-import { and, eq, gte, sql } from "drizzle-orm";
-import { TRPCError } from "@trpc/server";
 import { db } from "@back-to-the-future/db";
 import {
+  billingAccounts,
+  buildMinutesUsage,
+  deployments,
   plans,
   subscriptions,
-  buildMinutesUsage,
-  billingAccounts,
-  deployments,
 } from "@back-to-the-future/db/schema";
-import { router, publicProcedure, protectedProcedure, adminProcedure } from "../init";
+import { TRPCError } from "@trpc/server";
+import { and, eq, gte, sql } from "drizzle-orm";
+import { z } from "zod";
+import { currentBillingMonth } from "../../billing/usage-meter";
+import { reportAllPendingUsage, reportUsageForUser } from "../../billing/usage-reporter";
+import { sendEmail } from "../../email/client";
+import { log } from "../../log";
+import { auditMiddleware } from "../../middleware/audit";
 import { createCheckoutSession, createPortalSession } from "../../stripe/checkout";
 import { createPortalSession as createPortalSessionUrl } from "../../stripe/client";
-import { auditMiddleware } from "../../middleware/audit";
-import { sendEmail } from "../../email/client";
-import {
-  reportUsageForUser,
-  reportAllPendingUsage,
-} from "../../billing/usage-reporter";
-import { currentBillingMonth } from "../../billing/usage-meter";
+import { adminProcedure, protectedProcedure, publicProcedure, router } from "../init";
 
 // ── Pre-launch guard ────────────────────────────────────────────────
 // Authorised by Craig on 16 Apr 2026. Stripe activation is ENV-DRIVEN.
@@ -33,7 +30,7 @@ import { currentBillingMonth } from "../../billing/usage-meter";
 // HANDLERS are intentionally left untouched — they must still parse any
 // late-firing Stripe webhook defensively, independent of this flag.
 function isBillingEnabled(): boolean {
-  return process.env["STRIPE_ENABLED"] === "true";
+  return process.env.STRIPE_ENABLED === "true";
 }
 
 function assertBillingEnabled(): void {
@@ -60,20 +57,33 @@ const hardcodedPlans = [
     id: "pro",
     name: "Pro",
     description: "For professionals and teams",
-    stripePriceId: process.env["STRIPE_PRICE_PRO_MONTHLY"] ?? "",
+    stripePriceId: process.env.STRIPE_PRICE_PRO_MONTHLY ?? "",
     price: 2900,
     interval: "monthly" as const,
-    features: JSON.stringify(["Unlimited projects", "Advanced AI builder", "Video editor", "Real-time collaboration", "Priority support"]),
+    features: JSON.stringify([
+      "Unlimited projects",
+      "Advanced AI builder",
+      "Video editor",
+      "Real-time collaboration",
+      "Priority support",
+    ]),
     isActive: true,
   },
   {
     id: "enterprise",
     name: "Enterprise",
     description: "Custom solutions for large organizations",
-    stripePriceId: process.env["STRIPE_PRICE_ENTERPRISE_MONTHLY"] ?? "",
+    stripePriceId: process.env.STRIPE_PRICE_ENTERPRISE_MONTHLY ?? "",
     price: 9900,
     interval: "monthly" as const,
-    features: JSON.stringify(["Everything in Pro", "Custom AI agents", "Sentinel intelligence", "SSO / SAML", "Dedicated support", "SLA guarantee"]),
+    features: JSON.stringify([
+      "Everything in Pro",
+      "Custom AI agents",
+      "Sentinel intelligence",
+      "SSO / SAML",
+      "Dedicated support",
+      "SLA guarantee",
+    ]),
     isActive: true,
   },
 ];
@@ -96,7 +106,7 @@ export const billingRouter = router({
   joinWaitlist: publicProcedure
     .input(z.object({ email: z.string().email() }))
     .mutation(async ({ input }) => {
-      const supportEmail = process.env["SUPPORT_EMAIL"] ?? "support@crontech.ai";
+      const supportEmail = process.env.SUPPORT_EMAIL ?? "support@crontech.ai";
       try {
         await sendEmail(
           supportEmail,
@@ -122,7 +132,10 @@ export const billingRouter = router({
         return dbPlans;
       }
     } catch (err: unknown) {
-      console.warn("[billing] Failed to query plans from DB, using fallback:", err instanceof Error ? err.message : String(err));
+      console.warn(
+        "[billing] Failed to query plans from DB, using fallback:",
+        err instanceof Error ? err.message : String(err),
+      );
     }
     // Fallback to hardcoded plans if DB is empty or unavailable
     return hardcodedPlans.filter((p) => p.isActive);
@@ -152,7 +165,10 @@ export const billingRouter = router({
         };
       }
     } catch (err: unknown) {
-      console.warn("[billing] Failed to query subscription from DB:", err instanceof Error ? err.message : String(err));
+      console.warn(
+        "[billing] Failed to query subscription from DB:",
+        err instanceof Error ? err.message : String(err),
+      );
     }
 
     // No subscription found -- user is on the free plan
@@ -206,7 +222,10 @@ export const billingRouter = router({
       z
         .object({
           userId: z.string().optional(),
-          month: z.string().regex(/^\d{4}-\d{2}$/).optional(),
+          month: z
+            .string()
+            .regex(/^\d{4}-\d{2}$/)
+            .optional(),
         })
         .default({}),
     )
@@ -250,9 +269,7 @@ export const billingRouter = router({
       .from(deployments)
       .where(eq(deployments.userId, ctx.userId));
 
-    const buildMinutesThisMonth = Number(
-      minutesRows[0]?.totalMinutes ?? 0,
-    );
+    const buildMinutesThisMonth = Number(minutesRows[0]?.totalMinutes ?? 0);
     const deploymentCount = Number(deploymentRows[0]?.count ?? 0);
 
     return {
@@ -281,15 +298,11 @@ export const billingRouter = router({
       if (!stripeCustomerId) {
         throw new TRPCError({
           code: "PRECONDITION_FAILED",
-          message:
-            "No Stripe Customer on file for this account. Complete checkout first.",
+          message: "No Stripe Customer on file for this account. Complete checkout first.",
         });
       }
 
-      const url = await createPortalSessionUrl(
-        stripeCustomerId,
-        input.returnUrl,
-      );
+      const url = await createPortalSessionUrl(stripeCustomerId, input.returnUrl);
       return { url };
     }),
 });

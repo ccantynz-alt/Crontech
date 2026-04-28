@@ -1,7 +1,7 @@
-import type { JSX } from "solid-js";
-import { Show, For, Suspense, createSignal, createEffect, lazy, onCleanup } from "solid-js";
-import { A, useLocation } from "@solidjs/router";
 import { Button } from "@back-to-the-future/ui";
+import { A, useLocation } from "@solidjs/router";
+import type { JSX } from "solid-js";
+import { For, Show, Suspense, createEffect, createSignal, lazy, onCleanup } from "solid-js";
 import { useAuth, useTheme } from "../stores";
 import { UndoToastContainer } from "./UndoToast";
 
@@ -97,13 +97,13 @@ function UserMenu(): JSX.Element {
     document.removeEventListener("click", handleClickOutside);
   });
 
-  const userInitial = (): string =>
-    auth.currentUser()?.displayName?.charAt(0).toUpperCase() ?? "?";
+  const userInitial = (): string => auth.currentUser()?.displayName?.charAt(0).toUpperCase() ?? "?";
 
   const roleBadge = (): { bg: string; text: string } => {
     const role = auth.currentUser()?.role;
     if (role === "admin") return { bg: "var(--color-danger-bg)", text: "var(--color-danger-text)" };
-    if (role === "editor") return { bg: "var(--color-primary-light)", text: "var(--color-primary-text)" };
+    if (role === "editor")
+      return { bg: "var(--color-primary-light)", text: "var(--color-primary-text)" };
     return { bg: "var(--color-success-bg)", text: "var(--color-success-text)" };
   };
 
@@ -129,10 +129,7 @@ function UserMenu(): JSX.Element {
             animation: "dropdown-enter 0.15s ease",
           }}
         >
-          <div
-            class="px-4 py-3"
-            style={{ "border-bottom": "1px solid var(--color-border)" }}
-          >
+          <div class="px-4 py-3" style={{ "border-bottom": "1px solid var(--color-border)" }}>
             <div class="flex items-center gap-3">
               <span
                 class="flex items-center justify-center w-10 h-10 rounded-full text-sm font-semibold shrink-0"
@@ -141,16 +138,10 @@ function UserMenu(): JSX.Element {
                 {userInitial()}
               </span>
               <div class="min-w-0 flex-1">
-                <p
-                  class="text-sm font-semibold truncate"
-                  style={{ color: "var(--color-text)" }}
-                >
+                <p class="text-sm font-semibold truncate" style={{ color: "var(--color-text)" }}>
                   {auth.currentUser()?.displayName}
                 </p>
-                <p
-                  class="text-xs truncate mt-0.5"
-                  style={{ color: "var(--color-text-muted)" }}
-                >
+                <p class="text-xs truncate mt-0.5" style={{ color: "var(--color-text-muted)" }}>
                   {auth.currentUser()?.email}
                 </p>
                 <Show when={auth.currentUser()?.role}>
@@ -312,7 +303,9 @@ function Sidebar(props: SidebarProps): JSX.Element {
                 "justify-content": props.collapsed ? "center" : "flex-start",
                 padding: props.collapsed ? "0.625rem 0" : "0.5rem 0.75rem",
                 background: isActive(item.href) ? "var(--color-primary-light)" : "transparent",
-                color: isActive(item.href) ? "var(--color-primary-text)" : "var(--color-text-secondary)",
+                color: isActive(item.href)
+                  ? "var(--color-primary-text)"
+                  : "var(--color-text-secondary)",
               }}
               onMouseEnter={(e) => {
                 if (!isActive(item.href)) {
@@ -346,9 +339,7 @@ function Sidebar(props: SidebarProps): JSX.Element {
               </span>
 
               <Show when={!props.collapsed}>
-                <span class="text-sm font-medium truncate">
-                  {item.label}
-                </span>
+                <span class="text-sm font-medium truncate">{item.label}</span>
               </Show>
             </A>
           )}
@@ -356,10 +347,7 @@ function Sidebar(props: SidebarProps): JSX.Element {
       </nav>
 
       <Show when={!props.collapsed}>
-        <div
-          class="px-3 py-2.5"
-          style={{ "border-top": "1px solid var(--color-border)" }}
-        >
+        <div class="px-3 py-2.5" style={{ "border-top": "1px solid var(--color-border)" }}>
           <p
             class="text-[10px] uppercase tracking-[0.15em] font-medium"
             style={{ color: "var(--color-text-faint)" }}
@@ -400,15 +388,9 @@ export function Layout(props: LayoutProps): JSX.Element {
       >
         <div class="flex items-center justify-between h-14 px-4 md:px-6">
           <div class="flex items-center gap-8">
-            <A
-              href="/"
-              class="flex items-center gap-2 cursor-pointer"
-            >
+            <A href="/" class="flex items-center gap-2 cursor-pointer">
               <span class="text-lg">{"\u26A1"}</span>
-              <span
-                class="text-lg font-bold tracking-tight"
-                style={{ color: "var(--color-text)" }}
-              >
+              <span class="text-lg font-bold tracking-tight" style={{ color: "var(--color-text)" }}>
                 Crontech
               </span>
             </A>
@@ -456,9 +438,7 @@ export function Layout(props: LayoutProps): JSX.Element {
             onToggle={() => setSidebarCollapsed(!sidebarCollapsed())}
           />
         </Show>
-        <main class="flex-1 min-w-0 w-full">
-          {props.children}
-        </main>
+        <main class="flex-1 min-w-0 w-full">{props.children}</main>
       </div>
 
       {/* ── Footer ────────────────────────────────────────────── */}
@@ -472,10 +452,7 @@ export function Layout(props: LayoutProps): JSX.Element {
           <div class="flex items-center gap-4">
             <div class="flex items-center gap-1.5">
               <span class="text-sm">{"\u26A1"}</span>
-              <span
-                class="text-sm font-bold tracking-tight"
-                style={{ color: "var(--color-text)" }}
-              >
+              <span class="text-sm font-bold tracking-tight" style={{ color: "var(--color-text)" }}>
                 Crontech
               </span>
             </div>
@@ -488,13 +465,15 @@ export function Layout(props: LayoutProps): JSX.Element {
           </div>
 
           <nav class="flex items-center gap-1">
-            <For each={[
-              { href: "/legal/terms", label: "Terms" },
-              { href: "/legal/privacy", label: "Privacy" },
-              { href: "/legal/dmca", label: "DMCA" },
-              { href: "/legal/cookies", label: "Cookies" },
-              { href: "/legal/acceptable-use", label: "Acceptable Use" },
-            ]}>
+            <For
+              each={[
+                { href: "/legal/terms", label: "Terms" },
+                { href: "/legal/privacy", label: "Privacy" },
+                { href: "/legal/dmca", label: "DMCA" },
+                { href: "/legal/cookies", label: "Cookies" },
+                { href: "/legal/acceptable-use", label: "Acceptable Use" },
+              ]}
+            >
               {(link) => (
                 <A
                   href={link.href}

@@ -4,30 +4,26 @@
 // Streaming is handled by the Hono route (/api/chat/stream) since
 // tRPC is not ideal for long-lived SSE connections.
 
-import { z } from "zod";
+import { ANTHROPIC_MODELS, estimateCost } from "@back-to-the-future/ai-core";
+import { chatMessages, conversations, userProviderKeys } from "@back-to-the-future/db";
 import { TRPCError } from "@trpc/server";
 import { and, desc, eq, gte, sql } from "drizzle-orm";
-import { router, protectedProcedure, adminProcedure } from "../init";
-import {
-  conversations,
-  chatMessages,
-  userProviderKeys,
-} from "@back-to-the-future/db";
-import { ANTHROPIC_MODELS, estimateCost } from "@back-to-the-future/ai-core";
+import { z } from "zod";
 import { emitDataChange } from "../../realtime/live-updates";
+import { adminProcedure, protectedProcedure, router } from "../init";
 
 // ── IDs ────────────────────────────────────────────────────────────────
 
 function newId(prefix: string): string {
-  return `${prefix}_${Date.now().toString(36)}_${crypto.randomUUID().replace(/-/g, '').slice(0, 8)}`;
+  return `${prefix}_${Date.now().toString(36)}_${crypto.randomUUID().replace(/-/g, "").slice(0, 8)}`;
 }
 
 // ── Encryption helpers (AES-256-GCM) ──────────────────────────────────
 
-import { createCipheriv, createDecipheriv, randomBytes, createHash } from "node:crypto";
+import { createCipheriv, createDecipheriv, createHash, randomBytes } from "node:crypto";
 
 function getEncryptionKey(): Buffer {
-  const secret = process.env["SESSION_SECRET"] ?? "crontech-default-key-change-me";
+  const secret = process.env.SESSION_SECRET ?? "crontech-default-key-change-me";
   return createHash("sha256").update(secret).digest();
 }
 
@@ -100,9 +96,11 @@ export const chatRouter = router({
   /** List all conversations for the current user, newest first. */
   listConversations: protectedProcedure
     .input(
-      z.object({
-        includeArchived: z.boolean().default(false),
-      }).optional(),
+      z
+        .object({
+          includeArchived: z.boolean().default(false),
+        })
+        .optional(),
     )
     .query(async ({ ctx, input }) => {
       const conditions = [eq(conversations.userId, ctx.userId)];
@@ -123,12 +121,7 @@ export const chatRouter = router({
       const rows = await ctx.db
         .select()
         .from(conversations)
-        .where(
-          and(
-            eq(conversations.id, input.id),
-            eq(conversations.userId, ctx.userId),
-          ),
-        )
+        .where(and(eq(conversations.id, input.id), eq(conversations.userId, ctx.userId)))
         .limit(1);
       const conv = rows[0];
       if (!conv) {
@@ -151,27 +144,19 @@ export const chatRouter = router({
       const rows = await ctx.db
         .select()
         .from(conversations)
-        .where(
-          and(
-            eq(conversations.id, input.id),
-            eq(conversations.userId, ctx.userId),
-          ),
-        )
+        .where(and(eq(conversations.id, input.id), eq(conversations.userId, ctx.userId)))
         .limit(1);
       if (rows.length === 0) {
         throw new TRPCError({ code: "NOT_FOUND", message: "Conversation not found." });
       }
 
       const updates: Record<string, unknown> = { updatedAt: new Date() };
-      if (input.title !== undefined) updates["title"] = input.title;
-      if (input.model !== undefined) updates["model"] = input.model;
-      if (input.systemPrompt !== undefined) updates["systemPrompt"] = input.systemPrompt;
-      if (input.archived !== undefined) updates["archived"] = input.archived;
+      if (input.title !== undefined) updates.title = input.title;
+      if (input.model !== undefined) updates.model = input.model;
+      if (input.systemPrompt !== undefined) updates.systemPrompt = input.systemPrompt;
+      if (input.archived !== undefined) updates.archived = input.archived;
 
-      await ctx.db
-        .update(conversations)
-        .set(updates)
-        .where(eq(conversations.id, input.id));
+      await ctx.db.update(conversations).set(updates).where(eq(conversations.id, input.id));
 
       return { success: true };
     }),
@@ -183,12 +168,7 @@ export const chatRouter = router({
       const rows = await ctx.db
         .select()
         .from(conversations)
-        .where(
-          and(
-            eq(conversations.id, input.id),
-            eq(conversations.userId, ctx.userId),
-          ),
-        )
+        .where(and(eq(conversations.id, input.id), eq(conversations.userId, ctx.userId)))
         .limit(1);
       if (rows.length === 0) {
         throw new TRPCError({ code: "NOT_FOUND", message: "Conversation not found." });
@@ -216,10 +196,7 @@ export const chatRouter = router({
         .select()
         .from(conversations)
         .where(
-          and(
-            eq(conversations.id, input.conversationId),
-            eq(conversations.userId, ctx.userId),
-          ),
+          and(eq(conversations.id, input.conversationId), eq(conversations.userId, ctx.userId)),
         )
         .limit(1);
       if (convRows.length === 0) {
@@ -243,11 +220,7 @@ export const chatRouter = router({
       // precision — matches the estimateCost() return contract.
       const tokenDelta = (input.inputTokens ?? 0) + (input.outputTokens ?? 0);
       const costDelta = input.model
-        ? estimateCost(
-            input.model,
-            input.inputTokens ?? 0,
-            input.outputTokens ?? 0,
-          )
+        ? estimateCost(input.model, input.inputTokens ?? 0, input.outputTokens ?? 0)
         : 0;
 
       if (tokenDelta > 0 || costDelta > 0) {
@@ -284,9 +257,7 @@ export const chatRouter = router({
    */
   getUsageStats: protectedProcedure.query(async ({ ctx }) => {
     const now = new Date();
-    const monthStart = new Date(
-      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0, 0),
-    );
+    const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0, 0));
 
     // All conversations for this user
     const allConvs = await ctx.db
@@ -312,12 +283,7 @@ export const chatRouter = router({
       })
       .from(chatMessages)
       .innerJoin(conversations, eq(chatMessages.conversationId, conversations.id))
-      .where(
-        and(
-          eq(conversations.userId, ctx.userId),
-          gte(chatMessages.createdAt, monthStart),
-        ),
-      );
+      .where(and(eq(conversations.userId, ctx.userId), gte(chatMessages.createdAt, monthStart)));
 
     let monthTokens = 0;
     let monthCostMicro = 0;
@@ -330,14 +296,8 @@ export const chatRouter = router({
       }
     }
 
-    const lifetimeCostMicro = allConvs.reduce(
-      (acc, c) => acc + (c.totalCost ?? 0),
-      0,
-    );
-    const lifetimeTokens = allConvs.reduce(
-      (acc, c) => acc + (c.totalTokens ?? 0),
-      0,
-    );
+    const lifetimeCostMicro = allConvs.reduce((acc, c) => acc + (c.totalCost ?? 0), 0);
+    const lifetimeTokens = allConvs.reduce((acc, c) => acc + (c.totalTokens ?? 0), 0);
 
     return {
       conversationCount: allConvs.length,
@@ -354,37 +314,32 @@ export const chatRouter = router({
   // ── Provider Key Management (Admin Only) ─────────────────────────
 
   /** Save or update an API provider key. Admin only. */
-  saveProviderKey: adminProcedure
-    .input(SaveProviderKeyInput)
-    .mutation(async ({ ctx, input }) => {
-      const encrypted = aesEncrypt(input.apiKey);
-      const prefix = `${input.apiKey.slice(0, 7)}...${input.apiKey.slice(-4)}`;
+  saveProviderKey: adminProcedure.input(SaveProviderKeyInput).mutation(async ({ ctx, input }) => {
+    const encrypted = aesEncrypt(input.apiKey);
+    const prefix = `${input.apiKey.slice(0, 7)}...${input.apiKey.slice(-4)}`;
 
-      // Deactivate existing keys for this provider
-      await ctx.db
-        .update(userProviderKeys)
-        .set({ isActive: false })
-        .where(
-          and(
-            eq(userProviderKeys.userId, ctx.userId),
-            eq(userProviderKeys.provider, input.provider),
-          ),
-        );
+    // Deactivate existing keys for this provider
+    await ctx.db
+      .update(userProviderKeys)
+      .set({ isActive: false })
+      .where(
+        and(eq(userProviderKeys.userId, ctx.userId), eq(userProviderKeys.provider, input.provider)),
+      );
 
-      const id = newId("pk");
-      await ctx.db.insert(userProviderKeys).values({
-        id,
-        userId: ctx.userId,
-        provider: input.provider,
-        encryptedKey: encrypted,
-        keyPrefix: prefix,
-        isActive: true,
-        createdAt: new Date(),
-      });
+    const id = newId("pk");
+    await ctx.db.insert(userProviderKeys).values({
+      id,
+      userId: ctx.userId,
+      provider: input.provider,
+      encryptedKey: encrypted,
+      keyPrefix: prefix,
+      isActive: true,
+      createdAt: new Date(),
+    });
 
-      emitDataChange("provider-keys", `${input.provider} key saved`);
-      return { id, prefix };
-    }),
+    emitDataChange("provider-keys", `${input.provider} key saved`);
+    return { id, prefix };
+  }),
 
   /** Get the active provider key info (prefix only, never the full key). Admin only. */
   getProviderKey: adminProcedure

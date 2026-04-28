@@ -73,17 +73,13 @@ describe("admin/sms — dynamic mount check (best-effort)", () => {
 // The static source checks above catch divergence, and these
 // executable checks keep the formatting logic pinned on every run.
 
-function referenceFormatMicrodollars(
-  amount: number | null | undefined,
-): string {
+function referenceFormatMicrodollars(amount: number | null | undefined): string {
   if (amount === null || amount === undefined) return "$0.00";
   if (!Number.isFinite(amount) || amount < 0) return "$0.00";
   return `$${(amount / 1_000_000).toFixed(2)}`;
 }
 
-function referenceSmsStatusVariant(
-  status: string,
-): "success" | "warning" | "error" | "default" {
+function referenceSmsStatusVariant(status: string): "success" | "warning" | "error" | "default" {
   if (status === "delivered" || status === "received") return "success";
   if (status === "sent" || status === "queued") return "warning";
   if (status === "failed") return "error";

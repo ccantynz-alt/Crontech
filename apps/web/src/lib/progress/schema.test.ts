@@ -4,21 +4,21 @@
 // a status/priority/tag is caught in CI instead of silently breaking
 // /admin/progress at runtime.
 
-import { describe, test, expect } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 import {
-  parseProgressTracker,
-  countByStatus,
-  totalEntries,
-  filterTracker,
-  commitUrl,
+  type ProgressEntry,
   type ProgressFilters,
   type ProgressPriority,
   type ProgressStatus,
   type ProgressTracker,
-  type ProgressEntry,
+  commitUrl,
+  countByStatus,
+  filterTracker,
+  parseProgressTracker,
+  totalEntries,
 } from "./schema";
 
 const WEB_ROOT = resolve(import.meta.dir, "../../..");
@@ -220,11 +220,7 @@ describe("countByStatus + totalEntries", () => {
         title: "c1",
         subtitle: "s",
         icon: "i",
-        entries: [
-          mk("a", "completed"),
-          mk("b", "completed"),
-          mk("c", "pending"),
-        ],
+        entries: [mk("a", "completed"), mk("b", "completed"), mk("c", "pending")],
       },
       {
         id: "c2",
@@ -421,10 +417,7 @@ describe("filterTracker", () => {
   });
 
   test("priority filter prunes non-matching entries", () => {
-    const out = filterTracker(
-      base,
-      filters({ priorities: new Set<ProgressPriority>(["p0"]) }),
-    );
+    const out = filterTracker(base, filters({ priorities: new Set<ProgressPriority>(["p0"]) }));
     expect(totalEntries(out)).toBe(1);
     expect(out.categories[0]?.entries[0]?.id).toBe("alpha");
   });
@@ -442,10 +435,7 @@ describe("filterTracker", () => {
   });
 
   test("empty category is omitted from the result", () => {
-    const out = filterTracker(
-      base,
-      filters({ statuses: new Set<ProgressStatus>(["completed"]) }),
-    );
+    const out = filterTracker(base, filters({ statuses: new Set<ProgressStatus>(["completed"]) }));
     expect(out.categories).toHaveLength(1);
     expect(out.categories[0]?.id).toBe("c1");
   });

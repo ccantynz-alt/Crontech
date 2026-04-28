@@ -1,9 +1,9 @@
-import { describe, test, expect } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import {
-  describeComponentCatalog,
   buildGenerativeUIPrompt,
-  validateComponentTree,
+  describeComponentCatalog,
   processGenerativeUIOutput,
+  validateComponentTree,
 } from "./renderer";
 
 describe("Generative UI", () => {
@@ -74,9 +74,7 @@ describe("Generative UI", () => {
     });
 
     test("rejects invalid components", () => {
-      const result = validateComponentTree([
-        { component: "FakeComponent", props: {} },
-      ]);
+      const result = validateComponentTree([{ component: "FakeComponent", props: {} }]);
       expect(result.success).toBe(false);
     });
 
@@ -91,9 +89,7 @@ describe("Generative UI", () => {
   describe("processGenerativeUIOutput", () => {
     test("processes valid JSON array", () => {
       const result = processGenerativeUIOutput(
-        JSON.stringify([
-          { component: "Text", props: { content: "Hello" } },
-        ]),
+        JSON.stringify([{ component: "Text", props: { content: "Hello" } }]),
       );
       expect(result.success).toBe(true);
       expect(result.tree).toHaveLength(1);
@@ -123,9 +119,7 @@ describe("Generative UI", () => {
     });
 
     test("handles valid JSON but invalid components", () => {
-      const result = processGenerativeUIOutput(
-        JSON.stringify([{ component: "Fake", props: {} }]),
-      );
+      const result = processGenerativeUIOutput(JSON.stringify([{ component: "Fake", props: {} }]));
       expect(result.success).toBe(false);
     });
 

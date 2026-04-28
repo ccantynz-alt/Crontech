@@ -1,6 +1,6 @@
-import { createSignal, createResource, Show, For, onCleanup } from "solid-js";
+import { Badge, Button, Stack, Text } from "@back-to-the-future/ui";
+import { For, Show, createResource, createSignal, onCleanup } from "solid-js";
 import type { JSX } from "solid-js";
-import { Button, Text, Badge, Stack } from "@back-to-the-future/ui";
 import { trpc } from "../lib/trpc";
 
 // ── Types ────────────────────────────────────────────────────────────
@@ -26,7 +26,9 @@ function typeLabel(type: string | null | undefined): string {
   return labels[type ?? ""] ?? "System";
 }
 
-function typeBadgeVariant(type: string | null | undefined): "default" | "success" | "warning" | "error" {
+function typeBadgeVariant(
+  type: string | null | undefined,
+): "default" | "success" | "warning" | "error" {
   const variants: Record<string, "default" | "success" | "warning" | "error"> = {
     system: "default",
     billing: "warning",
@@ -54,8 +56,8 @@ function formatTimeAgo(date: Date | string): string {
 
 export function NotificationCenter(): JSX.Element {
   const [open, setOpen] = createSignal(false);
-  const [unread, { refetch }] = createResource(
-    () => trpc.notifications.getUnread.query().catch(() => [] as Notification[]),
+  const [unread, { refetch }] = createResource(() =>
+    trpc.notifications.getUnread.query().catch(() => [] as Notification[]),
   );
 
   // Poll for new notifications every 60s
@@ -162,6 +164,7 @@ export function NotificationCenter(): JSX.Element {
             "margin-top": "8px",
           }}
           onClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => e.stopPropagation()}
         >
           {/* Header */}
           <div
@@ -173,7 +176,9 @@ export function NotificationCenter(): JSX.Element {
               "justify-content": "space-between",
             }}
           >
-            <Text variant="body" weight="semibold">Notifications</Text>
+            <Text variant="body" weight="semibold">
+              Notifications
+            </Text>
             <Show when={unreadCount() > 0}>
               <Button variant="outline" size="sm" onClick={handleMarkAllRead}>
                 Mark all read
@@ -186,30 +191,30 @@ export function NotificationCenter(): JSX.Element {
             when={unreadCount() > 0}
             fallback={
               <div style={{ padding: "24px 16px", "text-align": "center" }}>
-                <Text variant="body" class="text-muted">No unread notifications.</Text>
+                <Text variant="body" class="text-muted">
+                  No unread notifications.
+                </Text>
               </div>
             }
           >
             <div>
               <For each={unread() ?? []}>
                 {(notif) => (
-                  <div
+                  <button
+                    type="button"
                     style={{
                       padding: "12px 16px",
                       "border-bottom": "1px solid var(--color-border)",
                       cursor: "pointer",
                       transition: "background 0.15s ease",
+                      display: "block",
+                      width: "100%",
+                      background: "none",
+                      border: "none",
+                      "text-align": "left",
                     }}
                     onClick={() => handleMarkRead(notif.id)}
-                    role="button"
-                    tabIndex={0}
                     aria-label={`Mark notification "${notif.title}" as read`}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault();
-                        handleMarkRead(notif.id);
-                      }
-                    }}
                   >
                     <Stack direction="vertical" gap="xs">
                       <Stack direction="horizontal" gap="sm" align="center">
@@ -220,10 +225,14 @@ export function NotificationCenter(): JSX.Element {
                           {formatTimeAgo(notif.createdAt)}
                         </Text>
                       </Stack>
-                      <Text variant="body" weight="semibold">{notif.title}</Text>
-                      <Text variant="caption" class="text-muted">{notif.message}</Text>
+                      <Text variant="body" weight="semibold">
+                        {notif.title}
+                      </Text>
+                      <Text variant="caption" class="text-muted">
+                        {notif.message}
+                      </Text>
                     </Stack>
-                  </div>
+                  </button>
                 )}
               </For>
             </div>

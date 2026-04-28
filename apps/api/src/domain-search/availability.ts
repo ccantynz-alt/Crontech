@@ -132,12 +132,7 @@ async function withTimeout<T>(
  * domain is AVAILABLE. Anything else (timeout, SERVFAIL, REFUSED) is
  * reported as UNKNOWN so we don't lie to the user.
  */
-const NOT_FOUND_CODES = new Set([
-  "ENOTFOUND",
-  "ENODATA",
-  "NXDOMAIN",
-  "NOTFOUND",
-]);
+const NOT_FOUND_CODES = new Set(["ENOTFOUND", "ENODATA", "NXDOMAIN", "NOTFOUND"]);
 
 interface DnsLikeError {
   code?: unknown;

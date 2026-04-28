@@ -3,12 +3,8 @@
 // AI agents discover components, their schemas, and compose UI through MCP.
 // MCP is now the universal standard (97M+ monthly SDK downloads).
 
+import { ComponentCatalog, type ComponentName, ComponentSchema } from "@back-to-the-future/schemas";
 import { z } from "zod";
-import {
-  ComponentCatalog,
-  ComponentSchema,
-  type ComponentName,
-} from "@back-to-the-future/schemas";
 
 // ── MCP Tool Definitions ────────────────────────────────────────────
 // These follow the MCP tool schema format for maximum compatibility.
@@ -62,7 +58,10 @@ export function listComponents(): {
 export function getComponentSchema(componentName: string): {
   name: string;
   schema: Record<string, unknown>;
-  props: Record<string, { type: string; required: boolean; default?: unknown; description?: string }>;
+  props: Record<
+    string,
+    { type: string; required: boolean; default?: unknown; description?: string }
+  >;
   hasChildren: boolean;
   example: Record<string, unknown>;
 } | null {
@@ -75,7 +74,10 @@ export function getComponentSchema(componentName: string): {
   const hasChildren = "children" in shape;
 
   // Extract prop details
-  const props: Record<string, { type: string; required: boolean; default?: unknown; description?: string }> = {};
+  const props: Record<
+    string,
+    { type: string; required: boolean; default?: unknown; description?: string }
+  > = {};
   for (const [propName, propSchema] of Object.entries(propsShape)) {
     const zodSchema = propSchema as z.ZodType;
     const description = zodSchema.description;
@@ -84,7 +86,8 @@ export function getComponentSchema(componentName: string): {
     let defaultValue: unknown;
 
     // Extract type info from Zod schema (Zod v4 internals are typed loosely)
-    const def = (zodSchema as unknown as { _def?: { defaultValue?: unknown; innerType?: unknown } })._def;
+    const def = (zodSchema as unknown as { _def?: { defaultValue?: unknown; innerType?: unknown } })
+      ._def;
     if (zodSchema instanceof z.ZodDefault) {
       const dv = def?.defaultValue;
       defaultValue = typeof dv === "function" ? (dv as () => unknown)() : dv;
@@ -108,7 +111,10 @@ export function getComponentSchema(componentName: string): {
 
   return {
     name: componentName,
-    schema: { type: "object", properties: { component: componentName, props: Object.keys(propsShape) } },
+    schema: {
+      type: "object",
+      properties: { component: componentName, props: Object.keys(propsShape) },
+    },
     props,
     hasChildren,
     example,
@@ -196,7 +202,8 @@ export function getMCPTools(): MCPTool[] {
         properties: {
           config: {
             type: "object",
-            description: "The component configuration to validate (must have 'component' and 'props' fields)",
+            description:
+              "The component configuration to validate (must have 'component' and 'props' fields)",
           },
         },
         required: ["config"],
@@ -259,10 +266,7 @@ export function getMCPResources(): MCPResource[] {
 /**
  * Handle an MCP tool call. Routes to the appropriate handler.
  */
-export function handleMCPToolCall(
-  toolName: string,
-  args: Record<string, unknown>,
-): unknown {
+export function handleMCPToolCall(toolName: string, args: Record<string, unknown>): unknown {
   switch (toolName) {
     case "btf_list_components":
       return listComponents();
@@ -291,9 +295,7 @@ export function handleMCPResourceRead(uri: string): unknown {
   if (match) {
     const name = match[1];
     // Find component by lowercase name
-    const componentName = Object.keys(ComponentCatalog).find(
-      (k) => k.toLowerCase() === name,
-    );
+    const componentName = Object.keys(ComponentCatalog).find((k) => k.toLowerCase() === name);
     if (componentName) {
       return getComponentSchema(componentName);
     }
@@ -331,18 +333,66 @@ function getZodTypeName(schema: z.ZodType): string {
 
 function generateExample(componentName: ComponentName): Record<string, unknown> {
   const defaults: Record<ComponentName, Record<string, unknown>> = {
-    Button: { component: "Button", props: { variant: "primary", size: "md", disabled: false, loading: false, label: "Click me" } },
-    Input: { component: "Input", props: { type: "text", placeholder: "Enter text...", name: "field", required: false, disabled: false } },
-    Card: { component: "Card", props: { title: "Card Title", padding: "md" }, children: [{ component: "Text", props: { content: "Card content", variant: "body", weight: "normal", align: "left" } }] },
-    Stack: { component: "Stack", props: { direction: "vertical", gap: "md", align: "stretch", justify: "start" }, children: [] },
-    Text: { component: "Text", props: { content: "Hello World", variant: "body", weight: "normal", align: "left" } },
+    Button: {
+      component: "Button",
+      props: { variant: "primary", size: "md", disabled: false, loading: false, label: "Click me" },
+    },
+    Input: {
+      component: "Input",
+      props: {
+        type: "text",
+        placeholder: "Enter text...",
+        name: "field",
+        required: false,
+        disabled: false,
+      },
+    },
+    Card: {
+      component: "Card",
+      props: { title: "Card Title", padding: "md" },
+      children: [
+        {
+          component: "Text",
+          props: { content: "Card content", variant: "body", weight: "normal", align: "left" },
+        },
+      ],
+    },
+    Stack: {
+      component: "Stack",
+      props: { direction: "vertical", gap: "md", align: "stretch", justify: "start" },
+      children: [],
+    },
+    Text: {
+      component: "Text",
+      props: { content: "Hello World", variant: "body", weight: "normal", align: "left" },
+    },
     Modal: { component: "Modal", props: { title: "Modal Title", size: "md", open: false } },
     Badge: { component: "Badge", props: { variant: "success", size: "md", label: "New" } },
     Alert: { component: "Alert", props: { variant: "info", title: "Information" } },
     Avatar: { component: "Avatar", props: { initials: "JD", size: "md" } },
-    Tabs: { component: "Tabs", props: { items: [{ id: "tab-1", label: "Tab 1" }, { id: "tab-2", label: "Tab 2" }] } },
-    Select: { component: "Select", props: { options: [{ value: "1", label: "Option 1" }, { value: "2", label: "Option 2" }], placeholder: "Choose..." } },
-    Textarea: { component: "Textarea", props: { placeholder: "Write something...", rows: 3, resize: "vertical" } },
+    Tabs: {
+      component: "Tabs",
+      props: {
+        items: [
+          { id: "tab-1", label: "Tab 1" },
+          { id: "tab-2", label: "Tab 2" },
+        ],
+      },
+    },
+    Select: {
+      component: "Select",
+      props: {
+        options: [
+          { value: "1", label: "Option 1" },
+          { value: "2", label: "Option 2" },
+        ],
+        placeholder: "Choose...",
+      },
+    },
+    Textarea: {
+      component: "Textarea",
+      props: { placeholder: "Write something...", rows: 3, resize: "vertical" },
+    },
     Spinner: { component: "Spinner", props: { size: "md" } },
     Tooltip: { component: "Tooltip", props: { content: "Helpful tip", position: "top" } },
     Separator: { component: "Separator", props: { orientation: "horizontal" } },

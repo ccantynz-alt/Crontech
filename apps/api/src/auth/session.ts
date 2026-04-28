@@ -1,5 +1,5 @@
-import { eq, and, gt } from "drizzle-orm";
-import { sessions, db as _dbTypeRef } from "@back-to-the-future/db";
+import { type db as _dbTypeRef, sessions } from "@back-to-the-future/db";
+import { and, eq, gt } from "drizzle-orm";
 
 // Use the actual db instance type for compatibility with both createClient and db export
 type Database = typeof _dbTypeRef;
@@ -17,10 +17,7 @@ function generateId(): string {
   return crypto.randomUUID();
 }
 
-export async function createSession(
-  userId: string,
-  database: Database,
-): Promise<string> {
+export async function createSession(userId: string, database: Database): Promise<string> {
   const token = generateToken();
   const id = generateId();
   const expiresAt = new Date(Date.now() + SESSION_DURATION_MS);
@@ -35,10 +32,7 @@ export async function createSession(
   return token;
 }
 
-export async function validateSession(
-  token: string,
-  database: Database,
-): Promise<string | null> {
+export async function validateSession(token: string, database: Database): Promise<string | null> {
   const now = new Date();
 
   const result = await database
@@ -55,9 +49,6 @@ export async function validateSession(
   return session.userId;
 }
 
-export async function deleteSession(
-  token: string,
-  database: Database,
-): Promise<void> {
+export async function deleteSession(token: string, database: Database): Promise<void> {
   await database.delete(sessions).where(eq(sessions.token, token));
 }

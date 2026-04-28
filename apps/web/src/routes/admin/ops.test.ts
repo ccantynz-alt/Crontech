@@ -134,30 +134,20 @@ describe("admin/ops — formatDriftLabel contract", () => {
   });
 
   test("describes a behind state with correct pluralisation", () => {
-    expect(
-      referenceFormatDriftLabel({ ...ZERO_DRIFT, behind: 1 }),
-    ).toBe("1 commit behind");
-    expect(
-      referenceFormatDriftLabel({ ...ZERO_DRIFT, behind: 12 }),
-    ).toBe("12 commits behind");
+    expect(referenceFormatDriftLabel({ ...ZERO_DRIFT, behind: 1 })).toBe("1 commit behind");
+    expect(referenceFormatDriftLabel({ ...ZERO_DRIFT, behind: 12 })).toBe("12 commits behind");
   });
 
   test("describes an ahead state with correct pluralisation", () => {
-    expect(
-      referenceFormatDriftLabel({ ...ZERO_DRIFT, ahead: 1 }),
-    ).toBe("1 commit ahead");
-    expect(
-      referenceFormatDriftLabel({ ...ZERO_DRIFT, ahead: 5 }),
-    ).toBe("5 commits ahead");
+    expect(referenceFormatDriftLabel({ ...ZERO_DRIFT, ahead: 1 })).toBe("1 commit ahead");
+    expect(referenceFormatDriftLabel({ ...ZERO_DRIFT, ahead: 5 })).toBe("5 commits ahead");
   });
 
   test("appends 'dirty tree' when working tree is dirty", () => {
-    expect(
-      referenceFormatDriftLabel({ ...ZERO_DRIFT, dirty: true }),
-    ).toBe("dirty tree");
-    expect(
-      referenceFormatDriftLabel({ ...ZERO_DRIFT, behind: 3, dirty: true }),
-    ).toBe("3 commits behind, dirty tree");
+    expect(referenceFormatDriftLabel({ ...ZERO_DRIFT, dirty: true })).toBe("dirty tree");
+    expect(referenceFormatDriftLabel({ ...ZERO_DRIFT, behind: 3, dirty: true })).toBe(
+      "3 commits behind, dirty tree",
+    );
   });
 
   test("combines behind + ahead + dirty in a single label", () => {
@@ -181,21 +171,15 @@ describe("admin/ops — driftColor contract", () => {
   });
 
   test("returns warning token when behind", () => {
-    expect(
-      referenceDriftColor({ ...ZERO_DRIFT, behind: 1 }),
-    ).toBe("var(--color-warning)");
+    expect(referenceDriftColor({ ...ZERO_DRIFT, behind: 1 })).toBe("var(--color-warning)");
   });
 
   test("returns warning token when ahead", () => {
-    expect(
-      referenceDriftColor({ ...ZERO_DRIFT, ahead: 1 }),
-    ).toBe("var(--color-warning)");
+    expect(referenceDriftColor({ ...ZERO_DRIFT, ahead: 1 })).toBe("var(--color-warning)");
   });
 
   test("returns warning token when dirty", () => {
-    expect(
-      referenceDriftColor({ ...ZERO_DRIFT, dirty: true }),
-    ).toBe("var(--color-warning)");
+    expect(referenceDriftColor({ ...ZERO_DRIFT, dirty: true })).toBe("var(--color-warning)");
   });
 });
 

@@ -1,7 +1,7 @@
+import { Badge, Button, Card, Stack, Text } from "@back-to-the-future/ui";
+import { A } from "@solidjs/router";
 import { For } from "solid-js";
 import type { JSX } from "solid-js";
-import { A } from "@solidjs/router";
-import { Button, Card, Stack, Text, Badge } from "@back-to-the-future/ui";
 import { SEOHead } from "../components/SEOHead";
 
 // ── Data ──────────────────────────────────────────────────────────────
@@ -65,12 +65,18 @@ const unifiedServices: ServiceItem[] = [
   { name: "Video Processing", description: "WebGPU-accelerated encoding in the browser" },
   { name: "Generative UI", description: "AI composes validated component trees from schemas" },
   { name: "Vector Search", description: "Semantic search on every piece of data, automatically" },
-  { name: "RAG Pipelines", description: "Retrieval-augmented generation as a first-class primitive" },
+  {
+    name: "RAG Pipelines",
+    description: "Retrieval-augmented generation as a first-class primitive",
+  },
   { name: "Payments & Billing", description: "Stripe integration with subscription management" },
   { name: "API Gateway", description: "tRPC for internal, REST and GraphQL for external" },
   { name: "Webhooks", description: "Event-driven notifications with cryptographic signing" },
   { name: "Feature Flags", description: "Progressive delivery with AI-powered rollout decisions" },
-  { name: "Observability", description: "OpenTelemetry traces, Grafana dashboards, full LGTM stack" },
+  {
+    name: "Observability",
+    description: "OpenTelemetry traces, Grafana dashboards, full LGTM stack",
+  },
   { name: "CI/CD Pipeline", description: "Automated builds, tests, and deploys on every commit" },
   { name: "Competitive Intelligence", description: "Sentinel monitors competitors 24/7" },
   { name: "Multi-Agent Orchestration", description: "LangGraph workflows for complex AI tasks" },
@@ -147,10 +153,15 @@ export default function AboutPage(): JSX.Element {
           <Text variant="h1" weight="bold" align="center" class="heading hero-gradient">
             One platform. Every layer.
           </Text>
-          <Text variant="body" align="center" class="about-subtitle text-muted" style={{ "font-size": "1.25rem" }}>
-            Crontech replaces the patchwork of hosting, database, auth, AI, real-time,
-            payments, and a dozen other services with a single, unified, AI-native
-            developer platform. Built on the bleeding edge. Ready to ship.
+          <Text
+            variant="body"
+            align="center"
+            class="about-subtitle text-muted"
+            style={{ "font-size": "1.25rem" }}
+          >
+            Crontech replaces the patchwork of hosting, database, auth, AI, real-time, payments, and
+            a dozen other services with a single, unified, AI-native developer platform. Built on
+            the bleeding edge. Ready to ship.
           </Text>
         </Stack>
 
@@ -173,21 +184,20 @@ export default function AboutPage(): JSX.Element {
               Our mission
             </Text>
             <Text variant="body" style={{ "font-size": "1.125rem", "line-height": "1.75" }}>
-              The entire industry is fragmented. Backend frameworks over here, frontend
-              frameworks over there, AI bolted on as an afterthought, edge computing
-              treated as a deployment target instead of a compute primitive. We reject
-              all of that.
+              The entire industry is fragmented. Backend frameworks over here, frontend frameworks
+              over there, AI bolted on as an afterthought, edge computing treated as a deployment
+              target instead of a compute primitive. We reject all of that.
             </Text>
             <Text variant="body" style={{ "font-size": "1.125rem", "line-height": "1.75" }}>
-              Crontech unifies everything into a single, cohesive platform purpose-built
-              for AI website builders and AI video builders. One dashboard. One bill. One
-              runtime that spans client GPU, edge, and cloud. The developer specifies
-              intent \u2014 the platform handles infrastructure.
+              Crontech unifies everything into a single, cohesive platform purpose-built for AI
+              website builders and AI video builders. One dashboard. One bill. One runtime that
+              spans client GPU, edge, and cloud. The developer specifies intent \u2014 the platform
+              handles infrastructure.
             </Text>
             <Text variant="body" style={{ "font-size": "1.125rem", "line-height": "1.75" }}>
-              We are building in a category that does not exist yet. No one has ever
-              combined the most advanced backend service with the most advanced frontend
-              service into a single, unified, AI-native platform. This is the first.
+              We are building in a category that does not exist yet. No one has ever combined the
+              most advanced backend service with the most advanced frontend service into a single,
+              unified, AI-native platform. This is the first.
             </Text>
           </Stack>
         </Card>
@@ -203,9 +213,7 @@ export default function AboutPage(): JSX.Element {
             </Text>
           </Stack>
           <div class="grid-3">
-            <For each={principles}>
-              {(p) => <PrincipleCard principle={p} />}
-            </For>
+            <For each={principles}>{(p) => <PrincipleCard principle={p} />}</For>
           </div>
         </Stack>
 
@@ -219,8 +227,8 @@ export default function AboutPage(): JSX.Element {
               22 services. One platform.
             </Text>
             <Text variant="body" class="text-muted" align="center" style={{ "max-width": "640px" }}>
-              Stop stitching together a dozen vendors. Crontech provides everything your
-              application needs in a single, type-safe, AI-native runtime.
+              Stop stitching together a dozen vendors. Crontech provides everything your application
+              needs in a single, type-safe, AI-native runtime.
             </Text>
           </Stack>
           <div class="grid-4">
@@ -247,43 +255,56 @@ export default function AboutPage(): JSX.Element {
             <Text variant="h2" weight="bold">
               Three-tier compute. One runtime.
             </Text>
-            <Text variant="body" class="text-muted" style={{ "font-size": "1.0625rem", "line-height": "1.75" }}>
-              AI workloads automatically flow between three compute tiers. No
-              configuration. No manual routing. The platform decides where each
-              computation runs based on model size, device capability, and latency
-              requirements.
+            <Text
+              variant="body"
+              class="text-muted"
+              style={{ "font-size": "1.0625rem", "line-height": "1.75" }}
+            >
+              AI workloads automatically flow between three compute tiers. No configuration. No
+              manual routing. The platform decides where each computation runs based on model size,
+              device capability, and latency requirements.
             </Text>
             <div class="grid-3">
               <Card padding="md">
                 <Stack direction="vertical" gap="sm">
-                  <Badge variant="success" size="sm">$0 / token</Badge>
-                  <Text variant="h4" weight="semibold">Client GPU</Text>
+                  <Badge variant="success" size="sm">
+                    $0 / token
+                  </Badge>
+                  <Text variant="h4" weight="semibold">
+                    Client GPU
+                  </Text>
                   <Text variant="body" class="text-muted">
-                    WebGPU-accelerated inference runs models directly in the browser.
-                    Sub-10ms latency. Zero server cost. Handles summarization,
-                    classification, embeddings, and small completions.
+                    WebGPU-accelerated inference runs models directly in the browser. Sub-10ms
+                    latency. Zero server cost. Handles summarization, classification, embeddings,
+                    and small completions.
                   </Text>
                 </Stack>
               </Card>
               <Card padding="md">
                 <Stack direction="vertical" gap="sm">
-                  <Badge variant="info" size="sm">Sub-50ms global</Badge>
-                  <Text variant="h4" weight="semibold">Edge</Text>
+                  <Badge variant="info" size="sm">
+                    Sub-50ms global
+                  </Badge>
+                  <Text variant="h4" weight="semibold">
+                    Edge
+                  </Text>
                   <Text variant="body" class="text-muted">
-                    Cloudflare Workers AI for lightweight inference across 330+ cities.
-                    Always warm. No cold starts. Handles mid-range tasks that exceed
-                    client GPU capacity.
+                    Cloudflare Workers AI for lightweight inference across 330+ cities. Always warm.
+                    No cold starts. Handles mid-range tasks that exceed client GPU capacity.
                   </Text>
                 </Stack>
               </Card>
               <Card padding="md">
                 <Stack direction="vertical" gap="sm">
-                  <Badge variant="default" size="sm">H100 power</Badge>
-                  <Text variant="h4" weight="semibold">Cloud</Text>
+                  <Badge variant="default" size="sm">
+                    H100 power
+                  </Badge>
+                  <Text variant="h4" weight="semibold">
+                    Cloud
+                  </Text>
                   <Text variant="body" class="text-muted">
-                    Modal.com with H100 GPUs on demand. Scale to zero, scale to
-                    thousands. Heavy inference, fine-tuning, training, and video
-                    processing.
+                    Modal.com with H100 GPUs on demand. Scale to zero, scale to thousands. Heavy
+                    inference, fine-tuning, training, and video processing.
                   </Text>
                 </Stack>
               </Card>
@@ -298,8 +319,7 @@ export default function AboutPage(): JSX.Element {
               Built on the bleeding edge
             </Text>
             <Text variant="body" class="text-muted" align="center">
-              Every tool earns its place through performance, capability, and strategic
-              value.
+              Every tool earns its place through performance, capability, and strategic value.
             </Text>
           </Stack>
           <div class="grid-3">
@@ -307,7 +327,9 @@ export default function AboutPage(): JSX.Element {
               {(layer) => (
                 <Card padding="md">
                   <Stack direction="vertical" gap="sm">
-                    <Text variant="h4" weight="semibold">{layer.label}</Text>
+                    <Text variant="h4" weight="semibold">
+                      {layer.label}
+                    </Text>
                     <Stack direction="vertical" gap="xs">
                       <For each={layer.techs}>
                         {(tech) => (
@@ -331,8 +353,8 @@ export default function AboutPage(): JSX.Element {
               The future does not wait. Neither should you.
             </Text>
             <Text variant="body" class="text-muted" align="center" style={{ "max-width": "520px" }}>
-              Join the teams building two years ahead of the market. Free to start. No
-              credit card required.
+              Join the teams building two years ahead of the market. Free to start. No credit card
+              required.
             </Text>
             <Stack direction="horizontal" gap="sm" justify="center">
               <A href="/register">

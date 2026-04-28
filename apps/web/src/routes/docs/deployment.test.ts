@@ -61,8 +61,7 @@ describe("docs/deployment — four-article series", () => {
     // Match the landing-page regression guard: competitor brand names
     // must not appear in any deployment article. Names are assembled
     // from char codes so this test's source is itself clean.
-    const fromCodes = (...codes: number[]): string =>
-      String.fromCharCode(...codes);
+    const fromCodes = (...codes: number[]): string => String.fromCharCode(...codes);
     const banned = [
       ` ${fromCodes(118, 101, 114, 99, 101, 108)} `, // vercel
       ` ${fromCodes(110, 101, 116, 108, 105, 102, 121)} `, // netlify
@@ -70,10 +69,7 @@ describe("docs/deployment — four-article series", () => {
       ` ${fromCodes(114, 101, 110, 100, 101, 114)} `, // render
     ];
     for (const { file } of ARTICLES) {
-      const src = readFileSync(
-        resolve(DEPLOYMENT_DIR, file),
-        "utf-8",
-      ).toLowerCase();
+      const src = readFileSync(resolve(DEPLOYMENT_DIR, file), "utf-8").toLowerCase();
       for (const name of banned) {
         expect(src).not.toContain(name);
       }
@@ -81,10 +77,7 @@ describe("docs/deployment — four-article series", () => {
   });
 
   test("how-a-deploy-runs describes the real sandbox primitives", () => {
-    const src = readFileSync(
-      resolve(DEPLOYMENT_DIR, "how-a-deploy-runs.tsx"),
-      "utf-8",
-    );
+    const src = readFileSync(resolve(DEPLOYMENT_DIR, "how-a-deploy-runs.tsx"), "utf-8");
     // The article must be honest about the real sandbox posture — if
     // a future session waters down the security claims, the suite
     // catches it.
@@ -94,10 +87,7 @@ describe("docs/deployment — four-article series", () => {
   });
 
   test("custom-domains cross-links to the Getting Started article", () => {
-    const src = readFileSync(
-      resolve(DEPLOYMENT_DIR, "custom-domains.tsx"),
-      "utf-8",
-    );
+    const src = readFileSync(resolve(DEPLOYMENT_DIR, "custom-domains.tsx"), "utf-8");
     expect(src).toContain("/docs/getting-started/custom-domain");
   });
 });

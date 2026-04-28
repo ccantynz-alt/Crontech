@@ -10,9 +10,9 @@
 // Polite copy. No competitor names. Zero HTML — SolidJS JSX only.
 // Mirrors the /sms + /database structural pattern.
 
-import { createSignal, For, Show, type JSX } from "solid-js";
-import { SEOHead } from "../components/SEOHead";
+import { For, type JSX, Show, createSignal } from "solid-js";
 import { Icon, type IconName } from "../components/Icon";
+import { SEOHead } from "../components/SEOHead";
 
 // ── Feature bullets ────────────────────────────────────────────────
 
@@ -65,12 +65,14 @@ const CAPABILITIES: ReadonlyArray<CapabilityRow> = [
   {
     capability: "Timeline scrubbing + effects pipeline",
     status: "shipping",
-    detail: "Compute shader library under services/edge-workers is live; the editor surface is the final piece.",
+    detail:
+      "Compute shader library under services/edge-workers is live; the editor surface is the final piece.",
   },
   {
     capability: "AI assistant (scenes, subtitles, colour)",
     status: "shipping",
-    detail: "Three-tier compute router is shipped. Video-specific prompts + tools land with the editor.",
+    detail:
+      "Three-tier compute router is shipped. Video-specific prompts + tools land with the editor.",
   },
 ];
 
@@ -107,8 +109,7 @@ export default function VideoPage(): JSX.Element {
   const [email, setEmail] = createSignal("");
   const [submitted, setSubmitted] = createSignal(false);
   const [error, setError] = createSignal<string | null>(null);
-  const gpuAvailable =
-    typeof navigator !== "undefined" && "gpu" in navigator;
+  const gpuAvailable = typeof navigator !== "undefined" && "gpu" in navigator;
 
   function onSubmit(ev: SubmitEvent): void {
     ev.preventDefault();
@@ -170,21 +171,14 @@ export default function VideoPage(): JSX.Element {
               class="mx-auto mt-6 max-w-2xl text-base leading-relaxed sm:text-lg"
               style={{ color: "rgba(255,255,255,0.65)" }}
             >
-              Pixel work on the user's GPU, CRDT sync on our edge network,
-              an AI assistant that lives inside the timeline. The underlying
-              pipeline is already live — the editor surface is the last
-              piece of the puzzle. Drop your email below and we'll email you
+              Pixel work on the user's GPU, CRDT sync on our edge network, an AI assistant that
+              lives inside the timeline. The underlying pipeline is already live — the editor
+              surface is the last piece of the puzzle. Drop your email below and we'll email you
               when it opens.
             </p>
-            <p
-              class="mx-auto mt-4 text-xs"
-              style={{ color: "rgba(255,255,255,0.45)" }}
-            >
+            <p class="mx-auto mt-4 text-xs" style={{ color: "rgba(255,255,255,0.45)" }}>
               WebGPU on this device:{" "}
-              <span
-                class="font-semibold"
-                style={{ color: gpuAvailable ? "#86efac" : "#fbbf24" }}
-              >
+              <span class="font-semibold" style={{ color: gpuAvailable ? "#86efac" : "#fbbf24" }}>
                 {gpuAvailable ? "available" : "falls back to canvas"}
               </span>
             </p>
@@ -193,26 +187,24 @@ export default function VideoPage(): JSX.Element {
 
         {/* ── Description ─────────────────────────────────────── */}
         <section class="mx-auto max-w-3xl px-6 pb-12">
-          <div class="space-y-5 text-base leading-[1.8]" style={{ color: "rgba(255,255,255,0.72)" }}>
+          <div
+            class="space-y-5 text-base leading-[1.8]"
+            style={{ color: "rgba(255,255,255,0.72)" }}
+          >
             <p>
-              Crontech Video is a browser-native editor with one goal — keep
-              the pixels on the client, keep the state on the edge, and
-              spend nothing per frame when physics allows. WebGPU handles
-              effects and transitions. Yjs CRDTs handle multi-user state.
-              The AI assistant participates as a peer in the session rather
-              than a chatbot bolted on to the side.
+              Crontech Video is a browser-native editor with one goal — keep the pixels on the
+              client, keep the state on the edge, and spend nothing per frame when physics allows.
+              WebGPU handles effects and transitions. Yjs CRDTs handle multi-user state. The AI
+              assistant participates as a peer in the session rather than a chatbot bolted on to the
+              side.
             </p>
             <p>
-              We're not showing a fake room with imaginary collaborators on
-              this page, because that's not honest. The editor surface is in
-              the last stretch of build; the plumbing beneath it — the
-              compute-router, the CRDT transport, the sandboxed build
-              pipeline — is already running.
+              We're not showing a fake room with imaginary collaborators on this page, because
+              that's not honest. The editor surface is in the last stretch of build; the plumbing
+              beneath it — the compute-router, the CRDT transport, the sandboxed build pipeline — is
+              already running.
             </p>
-            <p>
-              Join the waitlist and you'll be in the first cohort when the
-              editor opens.
-            </p>
+            <p>Join the waitlist and you'll be in the first cohort when the editor opens.</p>
           </div>
         </section>
 
@@ -264,26 +256,16 @@ export default function VideoPage(): JSX.Element {
               </button>
             </div>
             <Show when={error()}>
-              <p
-                class="mt-3 text-xs"
-                style={{ color: "#fca5a5" }}
-                role="alert"
-              >
+              <p class="mt-3 text-xs" style={{ color: "#fca5a5" }} role="alert">
                 {error()}
               </p>
             </Show>
             <Show when={submitted() && !error()}>
-              <p
-                class="mt-3 text-xs"
-                style={{ color: "#86efac" }}
-              >
+              <p class="mt-3 text-xs" style={{ color: "#86efac" }}>
                 Thanks — we'll email you the moment the editor is live.
               </p>
             </Show>
-            <p
-              class="mt-4 text-[11px] leading-relaxed"
-              style={{ color: "rgba(255,255,255,0.45)" }}
-            >
+            <p class="mt-4 text-[11px] leading-relaxed" style={{ color: "rgba(255,255,255,0.45)" }}>
               One email, only when it's live. No marketing list.
             </p>
           </form>
@@ -333,16 +315,10 @@ export default function VideoPage(): JSX.Element {
 
         {/* ── Capability table ─────────────────────────────────── */}
         <section class="mx-auto max-w-4xl px-6 pb-16">
-          <h2
-            class="text-2xl font-semibold tracking-tight"
-            style={{ color: "#f0f0f5" }}
-          >
+          <h2 class="text-2xl font-semibold tracking-tight" style={{ color: "#f0f0f5" }}>
             What's ready, what's shipping
           </h2>
-          <p
-            class="mt-2 text-sm"
-            style={{ color: "rgba(255,255,255,0.55)" }}
-          >
+          <p class="mt-2 text-sm" style={{ color: "rgba(255,255,255,0.55)" }}>
             Honest status. No theatre.
           </p>
           <div
@@ -378,13 +354,8 @@ export default function VideoPage(): JSX.Element {
               <tbody>
                 <For each={CAPABILITIES}>
                   {(row) => (
-                    <tr
-                      style={{ "border-top": "1px solid rgba(255,255,255,0.06)" }}
-                    >
-                      <td
-                        class="px-5 py-3 font-semibold"
-                        style={{ color: "#f0f0f5" }}
-                      >
+                    <tr style={{ "border-top": "1px solid rgba(255,255,255,0.06)" }}>
+                      <td class="px-5 py-3 font-semibold" style={{ color: "#f0f0f5" }}>
                         {row.capability}
                       </td>
                       <td class="px-5 py-3">
@@ -407,10 +378,7 @@ export default function VideoPage(): JSX.Element {
                           {row.status === "ready" ? "Ready" : "Shipping"}
                         </span>
                       </td>
-                      <td
-                        class="px-5 py-3"
-                        style={{ color: "rgba(255,255,255,0.55)" }}
-                      >
+                      <td class="px-5 py-3" style={{ color: "rgba(255,255,255,0.55)" }}>
                         {row.detail}
                       </td>
                     </tr>
@@ -423,16 +391,10 @@ export default function VideoPage(): JSX.Element {
 
         {/* ── Preview snippet ─────────────────────────────────── */}
         <section class="mx-auto max-w-4xl px-6 pb-24">
-          <h2
-            class="text-2xl font-semibold tracking-tight"
-            style={{ color: "#f0f0f5" }}
-          >
+          <h2 class="text-2xl font-semibold tracking-tight" style={{ color: "#f0f0f5" }}>
             A glimpse of the editor API
           </h2>
-          <p
-            class="mt-2 text-sm"
-            style={{ color: "rgba(255,255,255,0.55)" }}
-          >
+          <p class="mt-2 text-sm" style={{ color: "rgba(255,255,255,0.55)" }}>
             Final shape may settle a hair before GA — but this is the plan.
           </p>
           <pre
@@ -441,8 +403,7 @@ export default function VideoPage(): JSX.Element {
               background: "rgba(8, 8, 14, 0.75)",
               border: "1px solid rgba(255,255,255,0.08)",
               color: "#e5e7eb",
-              "font-family":
-                "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+              "font-family": "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
             }}
           >
             <code>{VIDEO_SNIPPET}</code>

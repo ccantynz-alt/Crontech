@@ -12,14 +12,14 @@
 // pin DATABASE_URL to the absolute path that test-setup provisions
 // before importing `./client` (which reads DATABASE_URL eagerly).
 import { resolve as resolvePath } from "node:path";
-process.env["DATABASE_URL"] = `file:${resolvePath(import.meta.dir, "..", "local.db")}`;
+process.env.DATABASE_URL = `file:${resolvePath(import.meta.dir, "..", "local.db")}`;
 import "./test-setup";
 
+import { describe, expect, test } from "bun:test";
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { describe, expect, test } from "bun:test";
-import { sql } from "drizzle-orm";
+import type { sql } from "drizzle-orm";
 import { db } from "./client";
 import {
   DEFAULT_MIGRATIONS_FOLDER,
@@ -28,7 +28,7 @@ import {
   readFilesystemMigrations,
 } from "./migration-status";
 
-import { lintMigrationFile, type LintFinding } from "./migration-lint";
+import { type LintFinding, lintMigrationFile } from "./migration-lint";
 
 // ── Filesystem reader ───────────────────────────────────────────────
 
@@ -63,7 +63,7 @@ describe("readFilesystemMigrations", () => {
 describe("readAppliedMigrations", () => {
   test("returns zero rows when __drizzle_migrations is absent", async () => {
     const stub = {
-      all: async <T,>(query: ReturnType<typeof sql>): Promise<T[]> => {
+      all: async <T>(query: ReturnType<typeof sql>): Promise<T[]> => {
         // Return an empty probe result for the sqlite_master lookup.
         // If the production code calls past the probe when it should
         // have short-circuited, the test fails loudly.
@@ -107,7 +107,7 @@ describe("getMigrationStatus", () => {
   test("flags DB rows with no filesystem match as driftInDatabase", async () => {
     const ghostHash = "0".repeat(64);
     const stub = {
-      all: async <T,>(query: ReturnType<typeof sql>): Promise<T[]> => {
+      all: async <T>(query: ReturnType<typeof sql>): Promise<T[]> => {
         const text = JSON.stringify(query);
         if (text.includes("sqlite_master")) {
           return [{ name: "__drizzle_migrations" }] as T[];
@@ -116,9 +116,7 @@ describe("getMigrationStatus", () => {
       },
     };
     const status = await getMigrationStatus(stub);
-    expect(status.driftInDatabase).toEqual([
-      { hash: ghostHash, appliedAt: 1_700_000_000_000 },
-    ]);
+    expect(status.driftInDatabase).toEqual([{ hash: ghostHash, appliedAt: 1_700_000_000_000 }]);
     expect(status.applied).toEqual([]);
     // Every filesystem migration is unapplied from the ghost DB's POV.
     expect(status.pending.length).toBe(status.driftOnFilesystem.length);
@@ -128,7 +126,7 @@ describe("getMigrationStatus", () => {
 
   test("reports pending migrations when the DB is empty", async () => {
     const stub = {
-      all: async <T,>(): Promise<T[]> => [] as T[],
+      all: async <T>(): Promise<T[]> => [] as T[],
     };
     const status = await getMigrationStatus(stub);
     expect(status.applied).toEqual([]);
@@ -160,25 +158,23 @@ CREATE INDEX IF NOT EXISTS foo_idx ON foo (id);
 CREATE INDEX IF NOT EXISTS foo_idx ON foo (id);
 `;
     const out = findings(bad);
-    expect(out.some((f) => f.rule === "missing-breakpoint" && f.severity === "error")).toBe(
-      true,
-    );
+    expect(out.some((f) => f.rule === "missing-breakpoint" && f.severity === "error")).toBe(true);
   });
 
   test("flags CREATE TABLE without IF NOT EXISTS", () => {
-    const bad = `CREATE TABLE foo (id text PRIMARY KEY);`;
+    const bad = "CREATE TABLE foo (id text PRIMARY KEY);";
     const out = findings(bad);
     expect(out.some((f) => f.rule === "missing-if-not-exists-table")).toBe(true);
   });
 
   test("flags CREATE INDEX without IF NOT EXISTS", () => {
-    const bad = `CREATE INDEX foo_idx ON foo (id);`;
+    const bad = "CREATE INDEX foo_idx ON foo (id);";
     const out = findings(bad);
     expect(out.some((f) => f.rule === "missing-if-not-exists-index")).toBe(true);
   });
 
   test("warns on destructive DROP TABLE without blocking", () => {
-    const risky = `DROP TABLE foo;`;
+    const risky = "DROP TABLE foo;";
     const out = findings(risky);
     const destructive = out.filter((f) => f.rule === "destructive-op");
     expect(destructive.length).toBeGreaterThan(0);

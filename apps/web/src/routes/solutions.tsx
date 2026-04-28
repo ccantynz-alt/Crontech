@@ -29,40 +29,35 @@ const verticals: Vertical[] = [
     emoji: "🍽️",
     eyebrow: "Hospitality",
     title: "Restaurant & bookings",
-    valueProp:
-      "Menu, bookings, online orders — one link you can share on Instagram.",
+    valueProp: "Menu, bookings, online orders — one link you can share on Instagram.",
     href: "/builder?template=restaurant",
   },
   {
     emoji: "✍️",
     eyebrow: "Creator",
     title: "Creator & newsletter",
-    valueProp:
-      "Publish, grow an audience, monetise. AI writes the welcome sequence.",
+    valueProp: "Publish, grow an audience, monetise. AI writes the welcome sequence.",
     href: "/builder?template=creator",
   },
   {
     emoji: "🏢",
     eyebrow: "Agency",
     title: "Agency & consultancy",
-    valueProp:
-      "White-label client sites with recurring infra revenue per site you manage.",
+    valueProp: "White-label client sites with recurring infra revenue per site you manage.",
     href: "/builder?template=agency",
   },
   {
     emoji: "🏡",
     eyebrow: "Real estate",
     title: "Listings & leads",
-    valueProp:
-      "Listings, viewings, lead capture. AI drafts the listing copy.",
+    valueProp: "Listings, viewings, lead capture. AI drafts the listing copy.",
     href: "/builder?template=real-estate",
   },
   {
     emoji: "🚀",
     eyebrow: "SaaS",
     title: "SaaS founder",
-    valueProp:
-      "Frontend, backend, database, auth, billing — one deploy. Ship in days, not weeks.",
+    valueProp: "Frontend, backend, database, auth, billing — one deploy. Ship in days, not weeks.",
     href: "/builder?template=saas",
   },
   {
@@ -85,16 +80,14 @@ const verticals: Vertical[] = [
     emoji: "🔧",
     eyebrow: "Local service",
     title: "Trades, fitness, legal, medical",
-    valueProp:
-      "Bookings, reviews, payments. Looks professional day one.",
+    valueProp: "Bookings, reviews, payments. Looks professional day one.",
     href: "/builder?template=local",
   },
   {
     emoji: "🤖",
     eyebrow: "AI app",
     title: "AI app builder",
-    valueProp:
-      "No code? No problem. Describe the app. Claude ships it.",
+    valueProp: "No code? No problem. Describe the app. Claude ships it.",
     href: "/builder?template=ai-app",
   },
 ];
@@ -143,8 +136,7 @@ function VerticalTile(props: Vertical): JSX.Element {
           <div
             class="flex h-11 w-11 items-center justify-center rounded-xl text-[1.25rem]"
             style={{
-              background:
-                "linear-gradient(135deg, rgba(99,102,241,0.12), rgba(139,92,246,0.12))",
+              background: "linear-gradient(135deg, rgba(99,102,241,0.12), rgba(139,92,246,0.12))",
               border: "1px solid rgba(99,102,241,0.2)",
             }}
             aria-hidden="true"
@@ -160,16 +152,10 @@ function VerticalTile(props: Vertical): JSX.Element {
         </div>
 
         <div class="flex flex-col gap-2.5">
-          <h3
-            class="text-[1.125rem] font-bold tracking-tight"
-            style={{ color: "#0f172a" }}
-          >
+          <h3 class="text-[1.125rem] font-bold tracking-tight" style={{ color: "#0f172a" }}>
             {props.title}
           </h3>
-          <p
-            class="text-[0.9375rem] leading-[1.65]"
-            style={{ color: "#475569" }}
-          >
+          <p class="text-[0.9375rem] leading-[1.65]" style={{ color: "#475569" }}>
             {props.valueProp}
           </p>
         </div>
@@ -212,17 +198,15 @@ export default function Solutions(): JSX.Element {
                 class="max-w-4xl text-[2.75rem] font-extrabold leading-[1.05] tracking-[-0.035em] sm:text-[3.5rem] lg:text-[4.5rem]"
                 style={{ color: "#f8fafc" }}
               >
-                One platform.{" "}
-                <span class="landing-gradient-text">Every business.</span>
+                One platform. <span class="landing-gradient-text">Every business.</span>
               </h1>
 
               <p
                 class="mt-8 max-w-3xl text-[1.125rem] leading-[1.7] sm:text-[1.1875rem] lg:text-xl"
                 style={{ color: "rgba(248,250,252,0.78)" }}
               >
-                From online stores to nonprofits, Crontech powers the internet
-                part so you can focus on your customers. AI-native,
-                Claude-powered, built to scale with you.
+                From online stores to nonprofits, Crontech powers the internet part so you can focus
+                on your customers. AI-native, Claude-powered, built to scale with you.
               </p>
 
               <div class="mt-12 flex flex-col items-center gap-4 sm:flex-row">
@@ -246,10 +230,7 @@ export default function Solutions(): JSX.Element {
           <div class="mx-auto max-w-[1120px] px-6 lg:px-8">
             <div class="mb-16 flex flex-col items-center text-center">
               <div class="landing-section-label">
-                <div
-                  class="h-1.5 w-1.5 rounded-full"
-                  style={{ background: "#6366f1" }}
-                />
+                <div class="h-1.5 w-1.5 rounded-full" style={{ background: "#6366f1" }} />
                 Pick your starting line
               </div>
               <h2
@@ -258,13 +239,10 @@ export default function Solutions(): JSX.Element {
               >
                 Ten ways to start. One platform underneath.
               </h2>
-              <p
-                class="mt-5 max-w-2xl text-[1.0625rem] leading-[1.7]"
-                style={{ color: "#64748b" }}
-              >
-                Every tile is a real starter project with hosting, payments,
-                auth, and AI wired in. Pick the one that looks most like your
-                business and the AI Builder takes it from there.
+              <p class="mt-5 max-w-2xl text-[1.0625rem] leading-[1.7]" style={{ color: "#64748b" }}>
+                Every tile is a real starter project with hosting, payments, auth, and AI wired in.
+                Pick the one that looks most like your business and the AI Builder takes it from
+                there.
               </p>
             </div>
 
@@ -289,22 +267,18 @@ export default function Solutions(): JSX.Element {
           <div class="mx-auto max-w-[1120px] px-6 lg:px-8">
             <div class="max-w-3xl">
               <div class="landing-section-label">
-                <div
-                  class="h-1.5 w-1.5 rounded-full"
-                  style={{ background: "#8b5cf6" }}
-                />
+                <div class="h-1.5 w-1.5 rounded-full" style={{ background: "#8b5cf6" }} />
                 Why we're building this
               </div>
               <p
                 class="mt-6 text-[1.0625rem] leading-[1.8] sm:text-[1.125rem]"
                 style={{ color: "#334155" }}
               >
-                We&apos;re building Crontech to make it cheap and fast for
-                anyone to start a business, employ people, and serve customers.
-                The internet should be open to everyone &mdash; not gated by
-                whether you can afford a dev team or figure out how ten
-                different SaaS tools fit together. If you&apos;ve got an idea
-                and a customer, the platform should get out of your way.
+                We&apos;re building Crontech to make it cheap and fast for anyone to start a
+                business, employ people, and serve customers. The internet should be open to
+                everyone &mdash; not gated by whether you can afford a dev team or figure out how
+                ten different SaaS tools fit together. If you&apos;ve got an idea and a customer,
+                the platform should get out of your way.
               </p>
             </div>
           </div>
@@ -321,8 +295,7 @@ export default function Solutions(): JSX.Element {
               <div
                 class="absolute top-0 left-0 right-0 h-[2px]"
                 style={{
-                  background:
-                    "linear-gradient(90deg, #6366f1, #8b5cf6, #a78bfa)",
+                  background: "linear-gradient(90deg, #6366f1, #8b5cf6, #a78bfa)",
                 }}
                 aria-hidden="true"
               />
@@ -340,13 +313,10 @@ export default function Solutions(): JSX.Element {
                   >
                     Tell us your idea. Claude will build a starter for you.
                   </h3>
-                  <p
-                    class="max-w-2xl text-[0.9375rem] leading-[1.7]"
-                    style={{ color: "#475569" }}
-                  >
-                    Describe what you want to build in plain English. The AI
-                    Builder picks the right stack, wires the integrations, and
-                    hands you a running project you can edit or ship as-is.
+                  <p class="max-w-2xl text-[0.9375rem] leading-[1.7]" style={{ color: "#475569" }}>
+                    Describe what you want to build in plain English. The AI Builder picks the right
+                    stack, wires the integrations, and hands you a running project you can edit or
+                    ship as-is.
                   </p>
                 </div>
                 <span
@@ -365,10 +335,7 @@ export default function Solutions(): JSX.Element {
           <div class="mx-auto max-w-[1120px] px-6 lg:px-8">
             <div class="mb-14 flex flex-col items-center text-center">
               <div class="landing-section-label">
-                <div
-                  class="h-1.5 w-1.5 rounded-full"
-                  style={{ background: "#818cf8" }}
-                />
+                <div class="h-1.5 w-1.5 rounded-full" style={{ background: "#818cf8" }} />
                 Common questions
               </div>
               <h2
@@ -389,10 +356,7 @@ export default function Solutions(): JSX.Element {
                     >
                       {faq.question}
                     </h3>
-                    <p
-                      class="mt-3 text-[0.9375rem] leading-[1.7]"
-                      style={{ color: "#475569" }}
-                    >
+                    <p class="mt-3 text-[0.9375rem] leading-[1.7]" style={{ color: "#475569" }}>
                       {faq.answer}
                     </p>
                   </div>
@@ -409,8 +373,7 @@ export default function Solutions(): JSX.Element {
               class="text-[2rem] font-bold tracking-tight sm:text-[2.5rem] lg:text-[3rem]"
               style={{ color: "#f8fafc" }}
             >
-              Whatever you&apos;re{" "}
-              <span class="landing-gradient-text">shipping</span>, start here.
+              Whatever you&apos;re <span class="landing-gradient-text">shipping</span>, start here.
             </h2>
             <p
               class="mt-6 text-[1.0625rem] leading-[1.7] sm:text-lg"

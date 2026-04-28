@@ -3,8 +3,7 @@ import { normalizeTranscript, parseJsonlLines } from "./parse";
 
 describe("parseJsonlLines", () => {
   it("parses one object per line", () => {
-    const raw =
-      '{"a":1}\n{"b":2}\n{"c":3}';
+    const raw = '{"a":1}\n{"b":2}\n{"c":3}';
     expect(parseJsonlLines(raw)).toHaveLength(3);
   });
 

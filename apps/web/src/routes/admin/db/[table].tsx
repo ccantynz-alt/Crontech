@@ -11,27 +11,13 @@
 // Page size is fixed at 50 on this route (server caps at 100).
 // Zero HTML — SolidJS JSX + shared UI primitives only.
 
+import { Alert, Badge, Button, Card, Spinner, Stack, Text } from "@back-to-the-future/ui";
 import { Title } from "@solidjs/meta";
-import {
-  createResource,
-  createSignal,
-  For,
-  Show,
-  type JSX,
-} from "solid-js";
-import { A, useParams, useSearchParams, useNavigate } from "@solidjs/router";
-import {
-  Button,
-  Card,
-  Stack,
-  Text,
-  Badge,
-  Spinner,
-  Alert,
-} from "@back-to-the-future/ui";
+import { A, useNavigate, useParams, useSearchParams } from "@solidjs/router";
+import { For, type JSX, Show, createResource, createSignal } from "solid-js";
 import { AdminRoute } from "../../../components/AdminRoute";
-import { useAuth } from "../../../stores";
 import { trpc } from "../../../lib/trpc";
+import { useAuth } from "../../../stores";
 
 // ── Types ───────────────────────────────────────────────────────────
 
@@ -112,11 +98,7 @@ function AdminGuard(props: { children: JSX.Element }): JSX.Element {
             <Text variant="body" class="text-muted">
               The database inspector is reserved for administrators.
             </Text>
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={() => navigate("/dashboard")}
-            >
+            <Button variant="primary" size="sm" onClick={() => navigate("/dashboard")}>
               Back to Dashboard
             </Button>
           </Stack>
@@ -178,10 +160,7 @@ export default function AdminDbTableDetailPage(): JSX.Element {
       <Stack direction="vertical" gap="lg" class="page-padded">
         {/* Breadcrumb */}
         <Stack direction="horizontal" gap="xs" align="center">
-          <A
-            href="/admin"
-            style={{ "text-decoration": "none", color: "inherit" }}
-          >
+          <A href="/admin" style={{ "text-decoration": "none", color: "inherit" }}>
             <Text variant="caption" class="text-muted">
               Admin
             </Text>
@@ -189,10 +168,7 @@ export default function AdminDbTableDetailPage(): JSX.Element {
           <Text variant="caption" class="text-muted">
             /
           </Text>
-          <A
-            href="/admin/db"
-            style={{ "text-decoration": "none", color: "inherit" }}
-          >
+          <A href="/admin/db" style={{ "text-decoration": "none", color: "inherit" }}>
             <Text variant="caption" class="text-muted">
               Database Inspector
             </Text>
@@ -216,9 +192,8 @@ export default function AdminDbTableDetailPage(): JSX.Element {
             </Badge>
           </Stack>
           <Text variant="body" class="text-muted">
-            Read-only. Pagination capped at {PAGE_SIZE} rows per page and 500
-            rows in total per call. Secret-looking columns are masked on
-            display.
+            Read-only. Pagination capped at {PAGE_SIZE} rows per page and 500 rows in total per
+            call. Secret-looking columns are masked on display.
           </Text>
         </Stack>
 
@@ -247,15 +222,8 @@ export default function AdminDbTableDetailPage(): JSX.Element {
                   <Stack direction="vertical" gap="xs">
                     <For each={resolved().columns}>
                       {(col) => (
-                        <Stack
-                          direction="horizontal"
-                          gap="md"
-                          align="center"
-                        >
-                          <Text
-                            variant="body"
-                            weight={col.isPrimaryKey ? "semibold" : "normal"}
-                          >
+                        <Stack direction="horizontal" gap="md" align="center">
+                          <Text variant="body" weight={col.isPrimaryKey ? "semibold" : "normal"}>
                             {col.name}
                           </Text>
                           <Badge variant="default" size="sm">
@@ -293,12 +261,7 @@ export default function AdminDbTableDetailPage(): JSX.Element {
         {/* Rows */}
         <Card padding="md">
           <Stack direction="vertical" gap="sm">
-            <Stack
-              direction="horizontal"
-              gap="md"
-              align="center"
-              justify="between"
-            >
+            <Stack direction="horizontal" gap="md" align="center" justify="between">
               <Text variant="h3" weight="semibold">
                 Rows
               </Text>
@@ -313,8 +276,8 @@ export default function AdminDbTableDetailPage(): JSX.Element {
 
             <Show when={pageData()?.maskedColumns?.length}>
               <Alert variant="warning">
-                Masked {pageData()?.maskedColumns?.length ?? 0} secret-looking
-                column(s): {pageData()?.maskedColumns?.join(", ")}
+                Masked {pageData()?.maskedColumns?.length ?? 0} secret-looking column(s):{" "}
+                {pageData()?.maskedColumns?.join(", ")}
               </Alert>
             </Show>
 
@@ -354,21 +317,14 @@ export default function AdminDbTableDetailPage(): JSX.Element {
                                 <Stack direction="vertical" gap="xs">
                                   <For each={Object.entries(row)}>
                                     {([key, value]) => (
-                                      <Stack
-                                        direction="horizontal"
-                                        gap="md"
-                                        align="start"
-                                      >
+                                      <Stack direction="horizontal" gap="md" align="start">
                                         <div
                                           style={{
                                             "min-width": "10rem",
                                             color: "var(--color-text-muted)",
                                           }}
                                         >
-                                          <Text
-                                            variant="caption"
-                                            weight="semibold"
-                                          >
+                                          <Text variant="caption" weight="semibold">
                                             {key}
                                           </Text>
                                         </div>
@@ -378,9 +334,7 @@ export default function AdminDbTableDetailPage(): JSX.Element {
                                             "word-break": "break-all",
                                           }}
                                         >
-                                          <Text variant="caption">
-                                            {formatCell(value)}
-                                          </Text>
+                                          <Text variant="caption">{formatCell(value)}</Text>
                                         </div>
                                       </Stack>
                                     )}
@@ -399,12 +353,7 @@ export default function AdminDbTableDetailPage(): JSX.Element {
 
             {/* Pagination */}
             <Stack direction="horizontal" gap="sm" align="center">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={goPrev}
-                disabled={page() <= 1}
-              >
+              <Button variant="outline" size="sm" onClick={goPrev} disabled={page() <= 1}>
                 Prev
               </Button>
               <Button
@@ -414,10 +363,7 @@ export default function AdminDbTableDetailPage(): JSX.Element {
                 disabled={
                   !pageData() ||
                   page() >=
-                    totalPages(
-                      pageData()?.totalRows ?? 0,
-                      pageData()?.pageSize ?? PAGE_SIZE,
-                    )
+                    totalPages(pageData()?.totalRows ?? 0, pageData()?.pageSize ?? PAGE_SIZE)
                 }
               >
                 Next

@@ -7,10 +7,10 @@
 // Runtime compatibility: the `openai` package targets both Node/Bun and
 // Cloudflare Workers (fetch-based transport, no Node-only APIs).
 
-import { Hono } from "hono";
-import { z } from "zod";
-import OpenAI from "openai";
 import { readProviderEnv } from "@back-to-the-future/ai-core";
+import { Hono } from "hono";
+import OpenAI from "openai";
+import { z } from "zod";
 
 const EmbedInputSchema = z.object({
   text: z.string().min(1).max(32000),

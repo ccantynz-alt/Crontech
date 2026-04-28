@@ -26,13 +26,10 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import * as Y from "yjs";
 
-import { summarizePresence, getInitials } from "../../components/CollabPresence";
-import {
-  createAIParticipant,
-  joinAsParticipant,
-} from "../../collab/ai-participant";
+import { createAIParticipant, joinAsParticipant } from "../../collab/ai-participant";
 import type { CollabRoom, CollabUser } from "../../collab/yjs-provider";
 import { projectRoomId } from "../../collab/yjs-provider";
+import { getInitials, summarizePresence } from "../../components/CollabPresence";
 
 // ── Test Helpers ────────────────────────────────────────────────────
 
@@ -193,7 +190,7 @@ describe("projects/[id] — default AI agent registers in the room", () => {
     const participant = createAIParticipant({ agent, room });
     const localState = awareness.getLocalState();
     expect(localState).not.toBeNull();
-    const user = (localState as Record<string, unknown>)["user"] as CollabUser;
+    const user = (localState as Record<string, unknown>).user as CollabUser;
     expect(user.id).toBe("builder-agent");
     expect(user.name).toBe("Builder Agent");
     expect(user.isAI).toBe(true);

@@ -1,7 +1,7 @@
-import { createSignal, Show } from "solid-js";
-import type { JSX } from "solid-js";
 import { Button } from "@back-to-the-future/ui";
-import { DeploymentLogs, type DeploymentLogLine } from "./DeploymentLogs";
+import { Show, createSignal } from "solid-js";
+import type { JSX } from "solid-js";
+import { type DeploymentLogLine, DeploymentLogs } from "./DeploymentLogs";
 
 // ── Types ────────────────────────────────────────────────────────────
 //
@@ -10,12 +10,7 @@ import { DeploymentLogs, type DeploymentLogLine } from "./DeploymentLogs";
 // deployment list and passes each one in. Expanding the card reveals
 // the inline `DeploymentLogs` viewer.
 
-export type DeploymentStatus =
-  | "queued"
-  | "building"
-  | "deploying"
-  | "live"
-  | "failed";
+export type DeploymentStatus = "queued" | "building" | "deploying" | "live" | "failed";
 
 export interface Deployment {
   readonly id: string;
@@ -125,18 +120,17 @@ export function DeploymentStatusBadge(props: {
     const style = s();
     return style.pulse
       ? `0 0 0 0 ${style.dotColor}66, 0 0 10px ${style.dotColor}aa`
-      : `0 0 0 0 transparent`;
+      : "0 0 0 0 transparent";
   };
 
   return (
-    <span
+    <output
       class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-widest"
       style={{
         color: s().color,
         background: s().background,
         border: `1px solid ${s().border}`,
       }}
-      role="status"
       aria-label={`Status: ${s().label}`}
     >
       <span
@@ -149,7 +143,7 @@ export function DeploymentStatusBadge(props: {
         aria-hidden="true"
       />
       {s().label}
-    </span>
+    </output>
   );
 }
 
@@ -250,22 +244,13 @@ export function DeploymentCard(props: DeploymentCardProps): JSX.Element {
           <div class="flex min-w-0 flex-1 flex-col gap-2">
             <div class="flex flex-wrap items-center gap-2">
               <DeploymentStatusBadge status={props.deployment.status} />
-              <span
-                class="text-xs font-medium"
-                style={{ color: "var(--color-text-muted)" }}
-              >
+              <span class="text-xs font-medium" style={{ color: "var(--color-text-muted)" }}>
                 {props.deployment.projectName}
               </span>
-              <span
-                class="text-xs"
-                style={{ color: "var(--color-text-faint)" }}
-              >
+              <span class="text-xs" style={{ color: "var(--color-text-faint)" }}>
                 ·
               </span>
-              <span
-                class="text-xs font-mono"
-                style={{ color: "var(--color-text-muted)" }}
-              >
+              <span class="text-xs font-mono" style={{ color: "var(--color-text-muted)" }}>
                 {props.deployment.branch}
               </span>
             </div>
@@ -280,9 +265,7 @@ export function DeploymentCard(props: DeploymentCardProps): JSX.Element {
               class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs"
               style={{ color: "var(--color-text-faint)" }}
             >
-              <span class="font-mono">
-                {shortSha(props.deployment.commitSha)}
-              </span>
+              <span class="font-mono">{shortSha(props.deployment.commitSha)}</span>
               <span>·</span>
               <span>{props.deployment.author.name}</span>
               <span>·</span>
@@ -322,10 +305,7 @@ export function DeploymentCard(props: DeploymentCardProps): JSX.Element {
 
       {/* Expanded log viewer */}
       <Show when={expanded()}>
-        <div
-          id={`deployment-logs-${props.deployment.id}`}
-          class="px-5 pb-5"
-        >
+        <div id={`deployment-logs-${props.deployment.id}`} class="px-5 pb-5">
           <DeploymentLogs
             deploymentId={props.deployment.id}
             lines={props.deployment.logs}
@@ -334,9 +314,7 @@ export function DeploymentCard(props: DeploymentCardProps): JSX.Element {
           />
           <Show when={props.deployment.liveUrl}>
             <div class="mt-3 flex items-center justify-between text-xs">
-              <span style={{ color: "var(--color-text-faint)" }}>
-                Deployed URL
-              </span>
+              <span style={{ color: "var(--color-text-faint)" }}>Deployed URL</span>
               <a
                 href={props.deployment.liveUrl}
                 target="_blank"

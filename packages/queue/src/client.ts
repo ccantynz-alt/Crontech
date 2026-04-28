@@ -9,7 +9,7 @@
  * Failed jobs after max retries go to `crontech:dlq`.
  */
 
-import { Queue, Worker, type Job, type Processor } from "bullmq";
+import { type Job, type Processor, Queue, Worker } from "bullmq";
 
 // ── Configuration ─────────────────────────────────────────────────────
 
@@ -17,11 +17,7 @@ const QUEUE_NAME = "crontech:jobs";
 const DLQ_NAME = "crontech:dlq";
 
 function getRedisUrl(): string {
-  return (
-    process.env["REDIS_URL"] ??
-    process.env["UPSTASH_REDIS_URL"] ??
-    "redis://localhost:6379"
-  );
+  return process.env.REDIS_URL ?? process.env.UPSTASH_REDIS_URL ?? "redis://localhost:6379";
 }
 
 function getRedisConnectionOpts(): { url: string } {
@@ -74,10 +70,7 @@ export function getDLQ(): Queue {
  * @param processor - the function called for each job
  * @param concurrency - max concurrent jobs (default 5)
  */
-export function startWorker(
-  processor: Processor,
-  concurrency = 5,
-): Worker {
+export function startWorker(processor: Processor, concurrency = 5): Worker {
   if (_worker) return _worker;
 
   _worker = new Worker(QUEUE_NAME, processor, {

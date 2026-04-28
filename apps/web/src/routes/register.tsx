@@ -1,7 +1,7 @@
+import { Button, Card, Input, Stack, Text } from "@back-to-the-future/ui";
 import { Title } from "@solidjs/meta";
 import { A, useNavigate, useSearchParams } from "@solidjs/router";
-import { Show, createSignal, createMemo, onMount } from "solid-js";
-import { Button, Card, Input, Stack, Text } from "@back-to-the-future/ui";
+import { Show, createMemo, createSignal, onMount } from "solid-js";
 import { useAuth } from "../stores";
 
 type Mode = "choose" | "guest" | "email-passkey" | "email-password" | "creating";
@@ -124,13 +124,9 @@ export default function RegisterPage(): ReturnType<typeof Stack> {
     }
   });
 
-  const passwordStrength = createMemo((): PasswordStrengthInfo =>
-    getPasswordStrength(password()),
-  );
+  const passwordStrength = createMemo((): PasswordStrengthInfo => getPasswordStrength(password()));
 
-  const passwordIssues = createMemo((): string[] =>
-    validatePasswordRequirements(password()),
-  );
+  const passwordIssues = createMemo((): string[] => validatePasswordRequirements(password()));
 
   const passwordsMatch = createMemo((): boolean => {
     if (!confirmPassword()) return true;
@@ -276,7 +272,8 @@ export default function RegisterPage(): ReturnType<typeof Stack> {
               style={{
                 width: "100%",
                 "border-radius": "12px",
-                border: "1px solid color-mix(in oklab, var(--color-primary-light) 25%, transparent)",
+                border:
+                  "1px solid color-mix(in oklab, var(--color-primary-light) 25%, transparent)",
                 background:
                   "linear-gradient(135deg, color-mix(in oklab, var(--color-primary-light) 8%, transparent), color-mix(in oklab, var(--color-primary) 5%, transparent))",
                 padding: "14px 16px",
@@ -318,6 +315,7 @@ export default function RegisterPage(): ReturnType<typeof Stack> {
                     viewBox="0 0 18 18"
                     fill="none"
                     xmlns="http://www.w3.org/2000/svg"
+                    aria-hidden="true"
                   >
                     <path
                       d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"
@@ -375,19 +373,11 @@ export default function RegisterPage(): ReturnType<typeof Stack> {
                 Instant demo account, sample projects pre-loaded.
               </Text>
 
-              <Button
-                variant="secondary"
-                size="lg"
-                onClick={() => setMode("email-password")}
-              >
+              <Button variant="secondary" size="lg" onClick={() => setMode("email-password")}>
                 Continue with Email
               </Button>
 
-              <Button
-                variant="ghost"
-                size="md"
-                onClick={() => setMode("email-passkey")}
-              >
+              <Button variant="ghost" size="md" onClick={() => setMode("email-passkey")}>
                 Use a Passkey instead
               </Button>
             </Stack>
@@ -452,6 +442,7 @@ export default function RegisterPage(): ReturnType<typeof Stack> {
                   >
                     {[0, 1, 2, 3].map((i) => (
                       <div
+                        key={i}
                         style={{
                           flex: "1",
                           height: "4px",
@@ -465,10 +456,7 @@ export default function RegisterPage(): ReturnType<typeof Stack> {
                       />
                     ))}
                   </div>
-                  <Text
-                    variant="caption"
-                    style={{ color: passwordStrength().color }}
-                  >
+                  <Text variant="caption" style={{ color: passwordStrength().color }}>
                     {passwordStrength().label}
                   </Text>
 
@@ -477,6 +465,7 @@ export default function RegisterPage(): ReturnType<typeof Stack> {
                     <div style={{ "margin-top": "4px" }}>
                       {passwordIssues().map((issue) => (
                         <Text
+                          key={issue}
                           variant="caption"
                           class="text-muted"
                           style={{ display: "block", "font-size": "12px" }}
@@ -512,11 +501,7 @@ export default function RegisterPage(): ReturnType<typeof Stack> {
               >
                 Create my account
               </Button>
-              <Button
-                variant="ghost"
-                size="md"
-                onClick={() => setMode("choose")}
-              >
+              <Button variant="ghost" size="md" onClick={() => setMode("choose")}>
                 Back
               </Button>
             </Stack>
@@ -549,11 +534,7 @@ export default function RegisterPage(): ReturnType<typeof Stack> {
               >
                 Create account with Passkey
               </Button>
-              <Button
-                variant="ghost"
-                size="md"
-                onClick={() => setMode("choose")}
-              >
+              <Button variant="ghost" size="md" onClick={() => setMode("choose")}>
                 Back
               </Button>
               <Text variant="caption" align="center" class="text-muted">

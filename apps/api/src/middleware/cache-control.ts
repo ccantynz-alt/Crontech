@@ -28,7 +28,11 @@ export function cacheControl(): MiddlewareHandler {
       c.header("Pragma", "no-cache");
     } else if (path.startsWith("/api/ai") || path.startsWith("/api/chat")) {
       c.header("Cache-Control", "no-cache, no-store");
-    } else if (path.startsWith("/api/realtime") || path.startsWith("/api/ws") || path.startsWith("/api/yjs")) {
+    } else if (
+      path.startsWith("/api/realtime") ||
+      path.startsWith("/api/ws") ||
+      path.startsWith("/api/yjs")
+    ) {
       c.header("Cache-Control", "no-cache, no-store");
     } else if (path === "/api/health" || path === "/api/health/full") {
       c.header("Cache-Control", "public, max-age=5");

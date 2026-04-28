@@ -87,7 +87,7 @@ describe("isPlausibleEmail", () => {
   });
 
   test("rejects absurdly long inputs", () => {
-    const long = "a".repeat(250) + "@example.com";
+    const long = `${"a".repeat(250)}@example.com`;
     expect(isPlausibleEmail(long)).toBe(false);
   });
 });

@@ -1,4 +1,4 @@
-import { Title, Meta, Link } from "@solidjs/meta";
+import { Link, Meta, Title } from "@solidjs/meta";
 import type { JSX } from "solid-js";
 
 const SITE_NAME = import.meta.env.VITE_SITE_NAME ?? "Crontech";
@@ -17,9 +17,7 @@ interface SEOHeadProps {
 
 export function SEOHead(props: SEOHeadProps): JSX.Element {
   const fullTitle = (): string =>
-    props.title === SITE_NAME
-      ? props.title
-      : `${props.title} - ${SITE_NAME}`;
+    props.title === SITE_NAME ? props.title : `${props.title} - ${SITE_NAME}`;
   const canonicalUrl = (): string => `${BASE_URL}${props.path}`;
   const ogImage = (): string => props.ogImage ?? DEFAULT_OG_IMAGE;
   const ogType = (): string => props.ogType ?? "website";

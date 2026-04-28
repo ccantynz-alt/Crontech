@@ -1,6 +1,6 @@
+import { Card, Separator, Stack, Text } from "@back-to-the-future/ui";
 import { For } from "solid-js";
 import type { JSX } from "solid-js";
-import { Stack, Text, Card, Separator } from "@back-to-the-future/ui";
 import { SEOHead } from "../../components/SEOHead";
 
 interface Section {
@@ -12,9 +12,9 @@ const sections: Section[] = [
   {
     title: "1. Early Access / Beta Status",
     content: [
-      "The Crontech platform (\"Service\") is currently in an early access / beta phase. By accessing or using the Service during this period, you acknowledge and agree that the Service is under active development and is not yet a generally available, production-stable release.",
-      "\"Beta\" and \"Early Access\" refer to any version of the Service that has not been designated as a general availability (GA) release by Crontech Technologies, Inc. (\"Crontech,\" \"we,\" \"us,\" or \"our\"). This includes, but is not limited to, features labeled as \"Beta,\" \"Preview,\" \"Experimental,\" \"Alpha,\" or \"Early Access\" within the Service interface.",
-      "This Beta & Early Access Disclaimer (\"Beta Terms\") supplements and is incorporated into the main Terms of Service (/legal/terms). In the event of a conflict between these Beta Terms and the main Terms of Service, these Beta Terms shall control with respect to beta and early access features. All other provisions of the Terms of Service remain in full force and effect.",
+      'The Crontech platform ("Service") is currently in an early access / beta phase. By accessing or using the Service during this period, you acknowledge and agree that the Service is under active development and is not yet a generally available, production-stable release.',
+      '"Beta" and "Early Access" refer to any version of the Service that has not been designated as a general availability (GA) release by Crontech Technologies, Inc. ("Crontech," "we," "us," or "our"). This includes, but is not limited to, features labeled as "Beta," "Preview," "Experimental," "Alpha," or "Early Access" within the Service interface.',
+      'This Beta & Early Access Disclaimer ("Beta Terms") supplements and is incorporated into the main Terms of Service (/legal/terms). In the event of a conflict between these Beta Terms and the main Terms of Service, these Beta Terms shall control with respect to beta and early access features. All other provisions of the Terms of Service remain in full force and effect.',
     ],
   },
   {
@@ -28,7 +28,7 @@ const sections: Section[] = [
   {
     title: "3. AI Features Disclaimer",
     content: [
-      "All artificial intelligence features within the Service \u2014 including but not limited to AI code generation, AI website building, AI video processing, AI content creation, AI-assisted collaboration, client-side inference via WebGPU, edge inference, and cloud inference \u2014 are provided on an \"AS-IS\" and \"AS-AVAILABLE\" basis with no warranty of accuracy, completeness, reliability, or fitness for any particular purpose.",
+      'All artificial intelligence features within the Service \u2014 including but not limited to AI code generation, AI website building, AI video processing, AI content creation, AI-assisted collaboration, client-side inference via WebGPU, edge inference, and cloud inference \u2014 are provided on an "AS-IS" and "AS-AVAILABLE" basis with no warranty of accuracy, completeness, reliability, or fitness for any particular purpose.',
       "AI-generated output may contain errors, inaccuracies, biases, hallucinations, or content that is factually incorrect, misleading, or inappropriate. AI models are probabilistic systems and do not guarantee deterministic or correct results. The same input may produce different outputs at different times.",
       "AI-generated content is NOT a substitute for professional advice of any kind. Specifically, AI output from the Service does not constitute and should not be relied upon as: legal advice, medical advice, financial or investment advice, engineering or safety-critical advice, tax or accounting advice, or any other form of licensed professional counsel.",
       "You are solely responsible for reviewing, verifying, and validating all AI-generated content before using it for any purpose. Crontech expressly disclaims all liability for any decisions made or actions taken based on AI-generated output.",
@@ -87,7 +87,7 @@ const sections: Section[] = [
   {
     title: "10. Feedback and Contributions",
     content: [
-      "During the beta period, we may invite you to provide feedback, bug reports, feature requests, or other suggestions regarding the Service (\"Feedback\"). Any Feedback you provide is voluntary and non-confidential.",
+      'During the beta period, we may invite you to provide feedback, bug reports, feature requests, or other suggestions regarding the Service ("Feedback"). Any Feedback you provide is voluntary and non-confidential.',
       "By providing Feedback, you grant Crontech a worldwide, perpetual, irrevocable, royalty-free, fully sublicensable license to use, reproduce, modify, distribute, and display the Feedback for any purpose, including to improve the Service, without any obligation to you.",
       "We value your input and encourage you to report issues through the in-Service feedback tools, our support channels, or by contacting beta@crontech.dev.",
     ],
@@ -142,7 +142,11 @@ export default function BetaDisclaimerPage(): JSX.Element {
         <div class="mx-auto max-w-4xl px-6 py-16 sm:px-8 lg:py-24">
           <Stack direction="vertical" gap="lg">
             <Stack direction="vertical" gap="sm">
-              <Text variant="h1" weight="bold" class="bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+              <Text
+                variant="h1"
+                weight="bold"
+                class="bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent"
+              >
                 Beta & Early Access Disclaimer
               </Text>
               <Text variant="caption" style={{ color: "var(--color-text-faint)" }}>
@@ -159,7 +163,11 @@ export default function BetaDisclaimerPage(): JSX.Element {
                     </Text>
                     <For each={section.content}>
                       {(paragraph) => (
-                        <Text variant="body" class="leading-relaxed" style={{ color: "var(--color-text-muted)" }}>
+                        <Text
+                          variant="body"
+                          class="leading-relaxed"
+                          style={{ color: "var(--color-text-muted)" }}
+                        >
                           {paragraph}
                         </Text>
                       )}

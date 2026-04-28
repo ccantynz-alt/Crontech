@@ -1,4 +1,4 @@
-import { describe, test, expect } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import { Hono } from "hono";
 import { rateLimiter } from "./rate-limiter";
 
@@ -12,11 +12,7 @@ function createTestApp(opts: { windowMs?: number; max?: number } = {}): Hono {
   return app;
 }
 
-async function makeRequest(
-  app: Hono,
-  path: string,
-  ip: string = "192.168.1.1",
-): Promise<Response> {
+async function makeRequest(app: Hono, path: string, ip = "192.168.1.1"): Promise<Response> {
   return app.request(path, {
     headers: { "x-forwarded-for": ip },
   });

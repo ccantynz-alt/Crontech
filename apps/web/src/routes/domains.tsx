@@ -8,15 +8,9 @@
 // copy, even though the problem we solve is that most of them mix
 // taken + available domains together.
 
-import {
-  createResource,
-  createSignal,
-  For,
-  Show,
-  type JSX,
-} from "solid-js";
-import { A } from "@solidjs/router";
 import { Badge, Button } from "@back-to-the-future/ui";
+import { A } from "@solidjs/router";
+import { For, type JSX, Show, createResource, createSignal } from "solid-js";
 import { SEOHead } from "../components/SEOHead";
 import { trpc } from "../lib/trpc";
 
@@ -144,9 +138,7 @@ const POPULAR_TLDS = [
 export default function DomainsPage(): JSX.Element {
   const [query, setQuery] = createSignal("");
   const [submitted, setSubmitted] = createSignal<string>("");
-  const [selectedTlds, setSelectedTlds] = createSignal<ReadonlyArray<string>>(
-    POPULAR_TLDS,
-  );
+  const [selectedTlds, setSelectedTlds] = createSignal<ReadonlyArray<string>>(POPULAR_TLDS);
   const [includeTrademark, setIncludeTrademark] = createSignal(true);
   const [includeAi, setIncludeAi] = createSignal(true);
 
@@ -167,9 +159,7 @@ export default function DomainsPage(): JSX.Element {
 
   function toggleTld(tld: string): void {
     const current = selectedTlds();
-    const next = current.includes(tld)
-      ? current.filter((t) => t !== tld)
-      : [...current, tld];
+    const next = current.includes(tld) ? current.filter((t) => t !== tld) : [...current, tld];
     setSelectedTlds(next.length === 0 ? POPULAR_TLDS : next);
   }
 
@@ -194,15 +184,12 @@ export default function DomainsPage(): JSX.Element {
             class="mt-4 text-center text-base sm:text-lg"
             style={{ color: "var(--color-text-muted)" }}
           >
-            Real-time availability across the top 20 TLDs. Only available names.
-            AI-generated alternatives. Trademark risk flagged.
+            Real-time availability across the top 20 TLDs. Only available names. AI-generated
+            alternatives. Trademark risk flagged.
           </p>
 
           <form class="mt-10" onSubmit={onSubmit}>
-            <label
-              for="domain-search-input"
-              class="sr-only"
-            >
+            <label for="domain-search-input" class="sr-only">
               Search for a domain
             </label>
             <div
@@ -239,12 +226,8 @@ export default function DomainsPage(): JSX.Element {
                       onClick={() => toggleTld(tld)}
                       class="rounded-full px-3 py-1 text-xs font-medium transition"
                       style={{
-                        background: active()
-                          ? "var(--color-primary)"
-                          : "var(--color-bg-subtle)",
-                        color: active()
-                          ? "var(--color-primary-fg)"
-                          : "var(--color-text-muted)",
+                        background: active() ? "var(--color-primary)" : "var(--color-bg-subtle)",
+                        color: active() ? "var(--color-primary-fg)" : "var(--color-text-muted)",
                         border: "1px solid var(--color-border)",
                       }}
                     >
@@ -270,9 +253,7 @@ export default function DomainsPage(): JSX.Element {
                 <input
                   type="checkbox"
                   checked={includeTrademark()}
-                  onChange={(e) =>
-                    setIncludeTrademark(e.currentTarget.checked)
-                  }
+                  onChange={(e) => setIncludeTrademark(e.currentTarget.checked)}
                 />
                 Trademark risk check
               </label>
@@ -306,8 +287,7 @@ export default function DomainsPage(): JSX.Element {
                     {/* Trademark warnings */}
                     <Show
                       when={
-                        data.trademarkWarnings !== undefined &&
-                        data.trademarkWarnings.length > 0
+                        data.trademarkWarnings !== undefined && data.trademarkWarnings.length > 0
                       }
                     >
                       <div
@@ -328,12 +308,9 @@ export default function DomainsPage(): JSX.Element {
                             {data.trademarkWarnings?.length ?? 0} flagged
                           </Badge>
                         </div>
-                        <p
-                          class="mt-2 text-xs"
-                          style={{ color: "var(--color-text-muted)" }}
-                        >
-                          This is an informational pre-screen, not legal advice.
-                          Consult counsel before filing.
+                        <p class="mt-2 text-xs" style={{ color: "var(--color-text-muted)" }}>
+                          This is an informational pre-screen, not legal advice. Consult counsel
+                          before filing.
                         </p>
                         <div class="mt-4 space-y-3">
                           <For each={data.trademarkWarnings}>
@@ -395,18 +372,12 @@ export default function DomainsPage(): JSX.Element {
                     {/* Available domains */}
                     <div class="mb-8">
                       <div class="mb-3 flex items-center justify-between">
-                        <h2
-                          class="text-lg font-semibold"
-                          style={{ color: "var(--color-text)" }}
-                        >
+                        <h2 class="text-lg font-semibold" style={{ color: "var(--color-text)" }}>
                           Available ({data.available.length})
                         </h2>
-                        <span
-                          class="text-xs"
-                          style={{ color: "var(--color-text-faint)" }}
-                        >
-                          Checked {data.tldsChecked.length} TLDs ·{" "}
-                          {data.takenCount} taken · {data.unknownCount} unknown
+                        <span class="text-xs" style={{ color: "var(--color-text-faint)" }}>
+                          Checked {data.tldsChecked.length} TLDs · {data.takenCount} taken ·{" "}
+                          {data.unknownCount} unknown
                         </span>
                       </div>
                       <Show
@@ -420,9 +391,8 @@ export default function DomainsPage(): JSX.Element {
                               color: "var(--color-text-muted)",
                             }}
                           >
-                            No available names on the selected TLDs. Try
-                            toggling more extensions above or see the
-                            suggestions below.
+                            No available names on the selected TLDs. Try toggling more extensions
+                            above or see the suggestions below.
                           </div>
                         }
                       >
@@ -480,12 +450,7 @@ export default function DomainsPage(): JSX.Element {
                     </div>
 
                     {/* AI suggestions */}
-                    <Show
-                      when={
-                        data.suggestions !== undefined &&
-                        data.suggestions.length > 0
-                      }
-                    >
+                    <Show when={data.suggestions !== undefined && data.suggestions.length > 0}>
                       <div class="mb-8">
                         <h2
                           class="mb-3 text-lg font-semibold"
@@ -563,9 +528,8 @@ export default function DomainsPage(): JSX.Element {
                 color: "var(--color-text-muted)",
               }}
             >
-              Start typing a name above. We'll check every popular TLD in
-              parallel and only show you names that are actually free to
-              register.
+              Start typing a name above. We'll check every popular TLD in parallel and only show you
+              names that are actually free to register.
             </div>
           </Show>
         </section>

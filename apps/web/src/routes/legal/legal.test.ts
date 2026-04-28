@@ -52,9 +52,7 @@ describe("legal routes — smoke", () => {
         // This catches the regression where a legal page loses its
         // header during a refactor.
         const hasTitle =
-          /<h1[\s>]/.test(src) ||
-          /<Title>/.test(src) ||
-          /SEOHead[\s\S]*title=/.test(src);
+          /<h1[\s>]/.test(src) || /<Title>/.test(src) || /SEOHead[\s\S]*title=/.test(src);
         expect(hasTitle).toBe(true);
       });
     });
@@ -66,8 +64,7 @@ describe("legal routes — smoke", () => {
     // defamation risk and attorney objection.
     for (const page of LEGAL_PAGES) {
       const src = readFileSync(resolve(DIR, page), "utf-8").toLowerCase();
-      const fromCodes = (...codes: number[]): string =>
-        String.fromCharCode(...codes);
+      const fromCodes = (...codes: number[]): string => String.fromCharCode(...codes);
       const banned = [
         ` ${fromCodes(118, 101, 114, 99, 101, 108)} `, // vercel
         ` ${fromCodes(110, 101, 116, 108, 105, 102, 121)} `, // netlify

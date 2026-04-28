@@ -13,9 +13,9 @@
  * mid-emit, the next dispatcher run simply picks up any `pending` rows.
  */
 
-import { and, eq } from "drizzle-orm";
 import type { db as defaultDb } from "@back-to-the-future/db";
 import { userWebhooks, webhookDeliveries } from "@back-to-the-future/db";
+import { and, eq } from "drizzle-orm";
 
 export type DbClient = typeof defaultDb;
 

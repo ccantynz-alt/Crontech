@@ -1,13 +1,13 @@
-import { describe, test, expect } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import {
-  listComponents,
   getComponentSchema,
+  getMCPResources,
+  getMCPTools,
+  handleMCPResourceRead,
+  handleMCPToolCall,
+  listComponents,
   validateComponent,
   validateComponentTree,
-  getMCPTools,
-  getMCPResources,
-  handleMCPToolCall,
-  handleMCPResourceRead,
 } from "./component-server";
 
 describe("MCP Component Server", () => {
@@ -31,16 +31,16 @@ describe("MCP Component Server", () => {
       const result = listComponents();
       const button = result.components.find((c) => c.name === "Button");
       expect(button).toBeDefined();
-      expect(button!.props).toContain("variant");
-      expect(button!.props).toContain("label");
-      expect(button!.hasChildren).toBe(false);
+      expect(button?.props).toContain("variant");
+      expect(button?.props).toContain("label");
+      expect(button?.hasChildren).toBe(false);
     });
 
     test("Card accepts children", () => {
       const result = listComponents();
       const card = result.components.find((c) => c.name === "Card");
       expect(card).toBeDefined();
-      expect(card!.hasChildren).toBe(true);
+      expect(card?.hasChildren).toBe(true);
     });
   });
 
@@ -52,18 +52,18 @@ describe("MCP Component Server", () => {
     test("returns schema for Button", () => {
       const result = getComponentSchema("Button");
       expect(result).toBeDefined();
-      expect(result!.name).toBe("Button");
-      expect(result!.props.variant).toBeDefined();
-      expect(result!.props.label).toBeDefined();
-      expect(result!.example.component).toBe("Button");
+      expect(result?.name).toBe("Button");
+      expect(result?.props.variant).toBeDefined();
+      expect(result?.props.label).toBeDefined();
+      expect(result?.example.component).toBe("Button");
     });
 
     test("returns schema for Stack with children", () => {
       const result = getComponentSchema("Stack");
       expect(result).toBeDefined();
-      expect(result!.hasChildren).toBe(true);
-      expect(result!.props.direction).toBeDefined();
-      expect(result!.props.gap).toBeDefined();
+      expect(result?.hasChildren).toBe(true);
+      expect(result?.props.direction).toBeDefined();
+      expect(result?.props.gap).toBeDefined();
     });
   });
 
@@ -98,7 +98,10 @@ describe("MCP Component Server", () => {
   describe("validateComponentTree", () => {
     test("valid tree passes", () => {
       const tree = [
-        { component: "Text", props: { content: "Hello", variant: "h1", weight: "bold", align: "left" } },
+        {
+          component: "Text",
+          props: { content: "Hello", variant: "h1", weight: "bold", align: "left" },
+        },
         { component: "Button", props: { label: "Click", variant: "primary" } },
       ];
       const result = validateComponentTree(tree);
@@ -146,7 +149,9 @@ describe("MCP Component Server", () => {
     });
 
     test("btf_get_component_schema returns schema", () => {
-      const result = handleMCPToolCall("btf_get_component_schema", { componentName: "Input" }) as { name: string };
+      const result = handleMCPToolCall("btf_get_component_schema", { componentName: "Input" }) as {
+        name: string;
+      };
       expect(result.name).toBe("Input");
     });
 

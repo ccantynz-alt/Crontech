@@ -11,20 +11,12 @@
 // Uses existing tRPC procedures only: projects.addDomain and
 // projects.verifyDomain.
 
-import {
-  createSignal,
-  createMemo,
-  Show,
-  Switch,
-  Match,
-  For,
-  type JSX,
-} from "solid-js";
 import { Badge, Button, Modal, Stack, Text } from "@back-to-the-future/ui";
-import { showToast } from "./Toast";
+import { For, type JSX, Match, Show, Switch, createMemo, createSignal } from "solid-js";
+import { trpc } from "../lib/trpc";
 import { classifyDomain } from "./DomainsPanel";
 import type { DomainType } from "./DomainsPanel";
-import { trpc } from "../lib/trpc";
+import { showToast } from "./Toast";
 
 // ── Public API ─────────────────────────────────────────────────────────
 
@@ -90,17 +82,13 @@ async function copyToClipboard(value: string): Promise<boolean> {
 export function AddDomainModal(props: AddDomainModalProps): JSX.Element {
   const [step, setStep] = createSignal<Step>("input");
   const [domainValue, setDomainValue] = createSignal("");
-  const [validationError, setValidationError] = createSignal<string | null>(
-    null,
-  );
+  const [validationError, setValidationError] = createSignal<string | null>(null);
   const [submitting, setSubmitting] = createSignal(false);
   const [addedDomainId, setAddedDomainId] = createSignal<string | null>(null);
   const [addedDomain, setAddedDomain] = createSignal<string | null>(null);
   const [verifying, setVerifying] = createSignal(false);
   const [verifyResult, setVerifyResult] = createSignal<
-    | { ok: true }
-    | { ok: false; message: string }
-    | null
+    { ok: true } | { ok: false; message: string } | null
   >(null);
 
   function reset(): void {
@@ -148,8 +136,7 @@ export function AddDomainModal(props: AddDomainModalProps): JSX.Element {
       setStep("configure");
       showToast(`${result.domain} added. Configure DNS to verify.`, "info");
     } catch (e) {
-      const message =
-        e instanceof Error ? e.message : "Failed to add domain.";
+      const message = e instanceof Error ? e.message : "Failed to add domain.";
       setValidationError(message);
       showToast(message, "error");
     } finally {
@@ -181,8 +168,7 @@ export function AddDomainModal(props: AddDomainModalProps): JSX.Element {
         setVerifyResult({ ok: false, message });
       }
     } catch (e) {
-      const message =
-        e instanceof Error ? e.message : "Verification failed.";
+      const message = e instanceof Error ? e.message : "Verification failed.";
       setVerifyResult({ ok: false, message });
     } finally {
       setVerifying(false);
@@ -232,11 +218,7 @@ export function AddDomainModal(props: AddDomainModalProps): JSX.Element {
                 style={{ color: "var(--color-text)" }}
               />
               <Show when={validationError()}>
-                <Text
-                  variant="caption"
-                  class="mt-1 block"
-                  style={{ color: "var(--color-danger)" }}
-                >
+                <Text variant="caption" class="mt-1 block" style={{ color: "var(--color-danger)" }}>
                   {validationError()}
                 </Text>
               </Show>
@@ -245,22 +227,13 @@ export function AddDomainModal(props: AddDomainModalProps): JSX.Element {
                 class="mt-2 block"
                 style={{ color: "var(--color-text-faint)" }}
               >
-                Use an apex domain (example.com) or a subdomain
-                (app.example.com). IDN domains should be entered in punycode.
+                Use an apex domain (example.com) or a subdomain (app.example.com). IDN domains
+                should be entered in punycode.
               </Text>
             </div>
 
-            <Stack
-              direction="horizontal"
-              gap="sm"
-              justify="end"
-              class="pt-2"
-            >
-              <Button
-                variant="outline"
-                size="md"
-                onClick={() => handleClose()}
-              >
+            <Stack direction="horizontal" gap="sm" justify="end" class="pt-2">
+              <Button variant="outline" size="md" onClick={() => handleClose()}>
                 Cancel
               </Button>
               <Button
@@ -278,20 +251,11 @@ export function AddDomainModal(props: AddDomainModalProps): JSX.Element {
         {/* Step 2 — Configure DNS + Verify */}
         <Match when={step() === "configure"}>
           <Stack direction="vertical" gap="md">
-            <div
-              class="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-subtle)] px-3 py-2"
-            >
-              <Text
-                variant="caption"
-                style={{ color: "var(--color-text-faint)" }}
-              >
+            <div class="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-subtle)] px-3 py-2">
+              <Text variant="caption" style={{ color: "var(--color-text-faint)" }}>
                 Domain
               </Text>
-              <Text
-                variant="body"
-                class="font-mono text-sm"
-                style={{ color: "var(--color-text)" }}
-              >
+              <Text variant="body" class="font-mono text-sm" style={{ color: "var(--color-text)" }}>
                 {addedDomain()}
               </Text>
             </div>
@@ -323,9 +287,7 @@ export function AddDomainModal(props: AddDomainModalProps): JSX.Element {
               </div>
               <For each={instructions()}>
                 {(row) => (
-                  <div
-                    class="grid grid-cols-12 items-center gap-2 border-b border-[var(--color-border)] px-3 py-3 last:border-b-0"
-                  >
+                  <div class="grid grid-cols-12 items-center gap-2 border-b border-[var(--color-border)] px-3 py-3 last:border-b-0">
                     <div class="col-span-2">
                       <Badge variant="info" size="sm">
                         {row.type}
@@ -377,18 +339,11 @@ export function AddDomainModal(props: AddDomainModalProps): JSX.Element {
             </Show>
 
             <Stack direction="horizontal" gap="sm" justify="between">
-              <Text
-                variant="caption"
-                style={{ color: "var(--color-text-faint)" }}
-              >
+              <Text variant="caption" style={{ color: "var(--color-text-faint)" }}>
                 DNS propagation can take up to 48 hours.
               </Text>
               <Stack direction="horizontal" gap="sm">
-                <Button
-                  variant="outline"
-                  size="md"
-                  onClick={() => handleClose()}
-                >
+                <Button variant="outline" size="md" onClick={() => handleClose()}>
                   Close
                 </Button>
                 <Button

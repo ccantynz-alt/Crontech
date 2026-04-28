@@ -6,11 +6,11 @@
 
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import {
-  getPlatformSiblings,
   PLATFORM_SIBLING_CACHE_TTL_MS,
   PLATFORM_SIBLING_DEFAULTS,
   PLATFORM_SIBLING_ENV_KEYS,
   PLATFORM_SIBLING_FETCH_TIMEOUT_MS,
+  getPlatformSiblings,
   resetPlatformSiblingsCache,
   resolveSiblingUrl,
 } from "./platform-siblings";
@@ -20,9 +20,9 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-  delete process.env.CRONTECH_STATUS_URL;
-  delete process.env.GLUECRON_STATUS_URL;
-  delete process.env.GATETEST_STATUS_URL;
+  process.env.CRONTECH_STATUS_URL = undefined;
+  process.env.GLUECRON_STATUS_URL = undefined;
+  process.env.GATETEST_STATUS_URL = undefined;
   resetPlatformSiblingsCache();
 });
 
@@ -30,15 +30,9 @@ afterEach(() => {
 
 describe("platform-siblings — defaults", () => {
   test("ships real domains for each sibling", () => {
-    expect(PLATFORM_SIBLING_DEFAULTS.crontech).toBe(
-      "https://crontech.ai/api/platform-status",
-    );
-    expect(PLATFORM_SIBLING_DEFAULTS.gluecron).toBe(
-      "https://gluecron.com/api/platform-status",
-    );
-    expect(PLATFORM_SIBLING_DEFAULTS.gatetest).toBe(
-      "https://gatetest.io/api/platform-status",
-    );
+    expect(PLATFORM_SIBLING_DEFAULTS.crontech).toBe("https://crontech.ai/api/platform-status");
+    expect(PLATFORM_SIBLING_DEFAULTS.gluecron).toBe("https://gluecron.com/api/platform-status");
+    expect(PLATFORM_SIBLING_DEFAULTS.gatetest).toBe("https://gatetest.io/api/platform-status");
   });
 
   test("ships env keys in the brief's exact spelling", () => {
@@ -55,31 +49,23 @@ describe("platform-siblings — defaults", () => {
 
 describe("platform-siblings — resolveSiblingUrl", () => {
   test("falls back to the default when the env var is unset", () => {
-    expect(resolveSiblingUrl("crontech")).toBe(
-      PLATFORM_SIBLING_DEFAULTS.crontech,
-    );
+    expect(resolveSiblingUrl("crontech")).toBe(PLATFORM_SIBLING_DEFAULTS.crontech);
   });
 
   test("falls back to the default when the env var is whitespace", () => {
     process.env.GLUECRON_STATUS_URL = "   ";
-    expect(resolveSiblingUrl("gluecron")).toBe(
-      PLATFORM_SIBLING_DEFAULTS.gluecron,
-    );
+    expect(resolveSiblingUrl("gluecron")).toBe(PLATFORM_SIBLING_DEFAULTS.gluecron);
   });
 
   test("prefers the env override when provided", () => {
     process.env.GATETEST_STATUS_URL = "https://staging.example/api/platform-status";
-    expect(resolveSiblingUrl("gatetest")).toBe(
-      "https://staging.example/api/platform-status",
-    );
+    expect(resolveSiblingUrl("gatetest")).toBe("https://staging.example/api/platform-status");
   });
 });
 
 // ── Fan-out behaviour ───────────────────────────────────────────────
 
-function makeFetch(
-  handler: (url: string) => Promise<Response> | Response,
-): typeof fetch {
+function makeFetch(handler: (url: string) => Promise<Response> | Response): typeof fetch {
   return ((input: RequestInfo | URL) => {
     const url = typeof input === "string" ? input : input.toString();
     return Promise.resolve(handler(url));
@@ -120,7 +106,8 @@ describe("platform-siblings — getPlatformSiblings happy path", () => {
     const statuses = snapshot.siblings.map((s) => s.status);
     expect(statuses.every((s) => s === "up")).toBe(true);
 
-    const cron = snapshot.siblings.find((s) => s.product === "crontech")!;
+    const cron = snapshot.siblings.find((s) => s.product === "crontech");
+    if (!cron) throw new Error("crontech sibling not found in snapshot");
     expect(cron.version).toBe("1.2.3");
     expect(cron.commit).toBe("abcdef1234");
     expect(cron.lastUpdated).toBe("2026-04-20T12:00:00.000Z");
@@ -128,9 +115,7 @@ describe("platform-siblings — getPlatformSiblings happy path", () => {
   });
 
   test("flags non-2xx responses as down without throwing", async () => {
-    const fetchImpl = makeFetch(() =>
-      new Response("boom", { status: 502 }),
-    );
+    const fetchImpl = makeFetch(() => new Response("boom", { status: 502 }));
     const snapshot = await getPlatformSiblings({ fetchImpl, force: true });
     for (const sibling of snapshot.siblings) {
       expect(sibling.status).toBe("down");

@@ -8,15 +8,10 @@
 // We convert back to a date string with:
 //     strftime('%Y-%m-%d', <col>, 'unixepoch')
 
-import { z } from "zod";
+import { analyticsEvents, chatMessages, conversations, deployments } from "@back-to-the-future/db";
 import { and, eq, gte, sql } from "drizzle-orm";
-import { router, protectedProcedure } from "../init";
-import {
-  analyticsEvents,
-  deployments,
-  conversations,
-  chatMessages,
-} from "@back-to-the-future/db";
+import { z } from "zod";
+import { protectedProcedure, router } from "../init";
 
 const DaysInput = z
   .object({
@@ -102,12 +97,7 @@ export const analyticsChartsRouter = router({
           failed: sql<number>`sum(case when ${deployments.status} = 'failed' then 1 else 0 end)`,
         })
         .from(deployments)
-        .where(
-          and(
-            eq(deployments.userId, userId),
-            gte(deployments.createdAt, since),
-          ),
-        )
+        .where(and(eq(deployments.userId, userId), gte(deployments.createdAt, since)))
         .groupBy(dateExpr)
         .orderBy(dateExpr);
 
@@ -146,16 +136,8 @@ export const analyticsChartsRouter = router({
           tokens: sql<number>`coalesce(sum(coalesce(${chatMessages.inputTokens}, 0) + coalesce(${chatMessages.outputTokens}, 0)), 0)`,
         })
         .from(chatMessages)
-        .innerJoin(
-          conversations,
-          eq(chatMessages.conversationId, conversations.id),
-        )
-        .where(
-          and(
-            eq(conversations.userId, userId),
-            gte(chatMessages.createdAt, since),
-          ),
-        )
+        .innerJoin(conversations, eq(chatMessages.conversationId, conversations.id))
+        .where(and(eq(conversations.userId, userId), gte(chatMessages.createdAt, since)))
         .groupBy(msgDateExpr)
         .orderBy(msgDateExpr);
 
@@ -168,12 +150,7 @@ export const analyticsChartsRouter = router({
           cost: sql<number>`coalesce(sum(${conversations.totalCost}), 0)`,
         })
         .from(conversations)
-        .where(
-          and(
-            eq(conversations.userId, userId),
-            gte(conversations.updatedAt, since),
-          ),
-        )
+        .where(and(eq(conversations.userId, userId), gte(conversations.updatedAt, since)))
         .groupBy(convDateExpr)
         .orderBy(convDateExpr);
 

@@ -7,11 +7,7 @@
 
 import type { JSX } from "solid-js";
 import { SEOHead } from "../../../components/SEOHead";
-import {
-  DocsArticle,
-  Callout,
-  KeyList,
-} from "../../../components/docs/DocsArticle";
+import { Callout, DocsArticle, KeyList } from "../../../components/docs/DocsArticle";
 
 export default function AuthReference(): JSX.Element {
   return (
@@ -37,44 +33,43 @@ export default function AuthReference(): JSX.Element {
       >
         <p>
           Every route under <code>auth.*</code> is implemented in{" "}
-          <code>apps/api/src/trpc/procedures/auth.ts</code>. The router
-          is intentionally narrow: one sub-router per flow (register,
-          login), plus a handful of utilities (CSRF, password strength,
-          current-user probe). There is no "reset password", "email
-          link sign-in", or "magic link" procedure — those are not
-          shipped today. The article lists only what runs.
+          <code>apps/api/src/trpc/procedures/auth.ts</code>. The router is intentionally narrow: one
+          sub-router per flow (register, login), plus a handful of utilities (CSRF, password
+          strength, current-user probe). There is no "reset password", "email link sign-in", or
+          "magic link" procedure — those are not shipped today. The article lists only what runs.
         </p>
 
         <Callout tone="info" title="CSRF tokens are mandatory on mutations">
-          Before any auth mutation, call{" "}
-          <code>auth.csrfToken</code> and include the returned token on
-          the next request. The token is validated against the caller's
-          session and rejected with <code>FORBIDDEN</code> if it's
-          missing, stale, or forged.
+          Before any auth mutation, call <code>auth.csrfToken</code> and include the returned token
+          on the next request. The token is validated against the caller's session and rejected with{" "}
+          <code>FORBIDDEN</code> if it's missing, stale, or forged.
         </Callout>
 
         <h2>CSRF + current user</h2>
 
-        <h3><code>auth.csrfToken</code></h3>
+        <h3>
+          <code>auth.csrfToken</code>
+        </h3>
         <p>
-          Public <em>query</em>. No input. Returns{" "}
-          <code>{`{ token: string }`}</code>. Call this once per page
-          load — the token is safe to keep in memory for the life of
-          the session.
+          Public <em>query</em>. No input. Returns <code>{"{ token: string }"}</code>. Call this
+          once per page load — the token is safe to keep in memory for the life of the session.
         </p>
 
-        <h3><code>auth.me</code></h3>
+        <h3>
+          <code>auth.me</code>
+        </h3>
         <p>
-          Protected <em>query</em>. No input. Returns the current user's{" "}
-          <code>id</code>, <code>email</code>, <code>displayName</code>,{" "}
-          <code>role</code>, and <code>createdAt</code>. Throws{" "}
-          <code>NOT_FOUND</code> if the session's user has been deleted
-          since the cookie was issued.
+          Protected <em>query</em>. No input. Returns the current user's <code>id</code>,{" "}
+          <code>email</code>, <code>displayName</code>, <code>role</code>, and{" "}
+          <code>createdAt</code>. Throws <code>NOT_FOUND</code> if the session's user has been
+          deleted since the cookie was issued.
         </p>
 
         <h2>Passkey registration (two-step WebAuthn)</h2>
 
-        <h3><code>auth.register.start</code></h3>
+        <h3>
+          <code>auth.register.start</code>
+        </h3>
         <p>
           Public <em>mutation</em>. Input:
         </p>
@@ -95,13 +90,14 @@ export default function AuthReference(): JSX.Element {
 })`}</code>
         </pre>
         <p>
-          Returns <code>{`{ options, userId }`}</code>. The{" "}
-          <code>options</code> object is the full SimpleWebAuthn{" "}
-          <code>PublicKeyCredentialCreationOptionsJSON</code> — pass it
-          straight to <code>navigator.credentials.create()</code>.
+          Returns <code>{"{ options, userId }"}</code>. The <code>options</code> object is the full
+          SimpleWebAuthn <code>PublicKeyCredentialCreationOptionsJSON</code> — pass it straight to{" "}
+          <code>navigator.credentials.create()</code>.
         </p>
 
-        <h3><code>auth.register.finish</code></h3>
+        <h3>
+          <code>auth.register.finish</code>
+        </h3>
         <p>
           Public <em>mutation</em>. Input:
         </p>
@@ -122,24 +118,25 @@ export default function AuthReference(): JSX.Element {
 })`}</code>
         </pre>
         <p>
-          Verifies the attestation, stores the credential, creates a
-          session, and returns{" "}
-          <code>{`{ verified: true, token }`}</code>. The token is the
-          session token — set it as an HTTP-only cookie on your
-          response.
+          Verifies the attestation, stores the credential, creates a session, and returns{" "}
+          <code>{"{ verified: true, token }"}</code>. The token is the session token — set it as an
+          HTTP-only cookie on your response.
         </p>
 
         <h2>Passkey login (two-step WebAuthn)</h2>
 
-        <h3><code>auth.login.start</code></h3>
+        <h3>
+          <code>auth.login.start</code>
+        </h3>
         <p>
-          Public <em>mutation</em>. Input is optional — pass{" "}
-          <code>{`{ email }`}</code> to scope the credential list to a
-          specific user, or omit it for a discoverable-credential flow
-          where the browser picks the passkey itself.
+          Public <em>mutation</em>. Input is optional — pass <code>{"{ email }"}</code> to scope the
+          credential list to a specific user, or omit it for a discoverable-credential flow where
+          the browser picks the passkey itself.
         </p>
 
-        <h3><code>auth.login.finish</code></h3>
+        <h3>
+          <code>auth.login.finish</code>
+        </h3>
         <p>
           Public <em>mutation</em>. Input:
         </p>
@@ -160,62 +157,61 @@ export default function AuthReference(): JSX.Element {
 })`}</code>
         </pre>
         <p>
-          Returns{" "}
-          <code>{`{ verified: true, token, userId }`}</code>. Pass{" "}
-          <code>userId: null</code> if you started with a discoverable
-          flow — the server will resolve the user from the credential.
+          Returns <code>{"{ verified: true, token, userId }"}</code>. Pass <code>userId: null</code>{" "}
+          if you started with a discoverable flow — the server will resolve the user from the
+          credential.
         </p>
 
         <h2>Email + password</h2>
 
-        <h3><code>auth.registerWithPassword</code></h3>
+        <h3>
+          <code>auth.registerWithPassword</code>
+        </h3>
         <p>
-          Public <em>mutation</em>. Input is{" "}
-          <code>registerWithPasswordSchema</code> —{" "}
-          <code>email</code>, <code>displayName</code>, and{" "}
-          <code>password</code>. Returns{" "}
-          <code>{`{ userId, token }`}</code>. Auto-provisioning runs
-          fire-and-forget after the response; its failures never block
-          sign-up.
+          Public <em>mutation</em>. Input is <code>registerWithPasswordSchema</code> —{" "}
+          <code>email</code>, <code>displayName</code>, and <code>password</code>. Returns{" "}
+          <code>{"{ userId, token }"}</code>. Auto-provisioning runs fire-and-forget after the
+          response; its failures never block sign-up.
         </p>
 
-        <h3><code>auth.loginWithPassword</code></h3>
+        <h3>
+          <code>auth.loginWithPassword</code>
+        </h3>
         <p>
-          Public <em>mutation</em>. Input is{" "}
-          <code>loginWithPasswordSchema</code> — <code>email</code> and{" "}
-          <code>password</code>. Returns{" "}
-          <code>{`{ userId, token }`}</code>.
+          Public <em>mutation</em>. Input is <code>loginWithPasswordSchema</code> —{" "}
+          <code>email</code> and <code>password</code>. Returns <code>{"{ userId, token }"}</code>.
         </p>
 
-        <h3><code>auth.checkPasswordStrength</code></h3>
+        <h3>
+          <code>auth.checkPasswordStrength</code>
+        </h3>
         <p>
-          Public <em>query</em>. Input{" "}
-          <code>{`{ password: string }`}</code>. Returns the zxcvbn-
-          style score + feedback the sign-up form uses to render its
-          strength meter. Safe to call on every keystroke — it doesn't
-          touch the DB.
+          Public <em>query</em>. Input <code>{"{ password: string }"}</code>. Returns the zxcvbn-
+          style score + feedback the sign-up form uses to render its strength meter. Safe to call on
+          every keystroke — it doesn't touch the DB.
         </p>
 
         <h2>Google OAuth</h2>
 
-        <h3><code>auth.getGoogleAuthUrl</code></h3>
+        <h3>
+          <code>auth.getGoogleAuthUrl</code>
+        </h3>
         <p>
-          Public <em>query</em>. Optional input{" "}
-          <code>{`{ redirectTo?: string }`}</code>. Returns{" "}
-          <code>{`{ url: string }`}</code> — a fully-built Google OAuth
-          consent URL. The callback handler lives outside the tRPC
-          router at <code>/auth/google/callback</code> and exchanges
+          Public <em>query</em>. Optional input <code>{"{ redirectTo?: string }"}</code>. Returns{" "}
+          <code>{"{ url: string }"}</code> — a fully-built Google OAuth consent URL. The callback
+          handler lives outside the tRPC router at <code>/auth/google/callback</code> and exchanges
           the code for a session cookie.
         </p>
 
         <h2>Session teardown</h2>
 
-        <h3><code>auth.logout</code></h3>
+        <h3>
+          <code>auth.logout</code>
+        </h3>
         <p>
-          Protected <em>mutation</em>. No input. Deletes the current
-          session from the DB and returns{" "}
-          <code>{`{ success: true }`}</code>. The client is responsible
-          for clearing the session cookie.
+          Protected <em>mutation</em>. No input. Deletes the current session from the DB and returns{" "}
+          <code>{"{ success: true }"}</code>. The client is responsible for clearing the session
+          cookie.
         </p>
 
         <h2>A minimal client flow</h2>
@@ -250,11 +246,9 @@ const me = await trpc.auth.me.query();`}</code>
         </pre>
 
         <Callout tone="note">
-          Rate limits: every mutation on <code>auth.*</code> goes
-          through the shared tRPC middleware stack, which applies
-          per-IP and per-account throttles. You won't hit them with
-          legitimate traffic; you will hit them with a brute-force
-          loop.
+          Rate limits: every mutation on <code>auth.*</code> goes through the shared tRPC middleware
+          stack, which applies per-IP and per-account throttles. You won't hit them with legitimate
+          traffic; you will hit them with a brute-force loop.
         </Callout>
 
         <h2>What's not here yet</h2>

@@ -6,10 +6,10 @@
 // 4. Fetch user profile from Google
 // 5. Upsert user in database and create session
 
+import { db, users } from "@back-to-the-future/db";
+import { eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { z } from "zod";
-import { eq } from "drizzle-orm";
-import { db, users } from "@back-to-the-future/db";
 import { createSession } from "./session";
 
 // ── Environment Validation ──────────────────────────────────────────
@@ -21,8 +21,8 @@ const googleEnvSchema = z.object({
 
 function getGoogleConfig(): { clientId: string; clientSecret: string } {
   const parsed = googleEnvSchema.safeParse({
-    GOOGLE_CLIENT_ID: process.env["GOOGLE_CLIENT_ID"],
-    GOOGLE_CLIENT_SECRET: process.env["GOOGLE_CLIENT_SECRET"],
+    GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
+    GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
   });
 
   if (!parsed.success) {
@@ -38,13 +38,12 @@ function getGoogleConfig(): { clientId: string; clientSecret: string } {
 }
 
 function getRedirectUri(): string {
-  const base =
-    process.env["API_BASE_URL"] ?? "http://localhost:3001";
+  const base = process.env.API_BASE_URL ?? "http://localhost:3001";
   return `${base}/api/auth/google/callback`;
 }
 
 function getWebAppUrl(): string {
-  return process.env["WEB_APP_URL"] ?? "http://localhost:3000";
+  return process.env.WEB_APP_URL ?? "http://localhost:3000";
 }
 
 // ── Google API Response Schemas ─────────────────────────────────────
@@ -73,10 +72,7 @@ type GoogleUserProfile = z.infer<typeof googleUserProfileSchema>;
 // ── OAuth State Management ──────────────────────────────────────────
 // In-memory state store with TTL to prevent CSRF attacks on OAuth flow.
 
-const oauthStateStore = new Map<
-  string,
-  { createdAt: number; redirectTo: string }
->();
+const oauthStateStore = new Map<string, { createdAt: number; redirectTo: string }>();
 const STATE_TTL_MS = 10 * 60 * 1000; // 10 minutes
 
 function generateOAuthState(redirectTo: string): string {
@@ -93,9 +89,7 @@ function generateOAuthState(redirectTo: string): string {
   return state;
 }
 
-function consumeOAuthState(
-  state: string,
-): { redirectTo: string } | null {
+function consumeOAuthState(state: string): { redirectTo: string } | null {
   const entry = oauthStateStore.get(state);
   if (!entry) return null;
 
@@ -147,15 +141,10 @@ async function exchangeCodeForTokens(
 
 // ── Profile Fetch ───────────────────────────────────────────────────
 
-async function fetchGoogleProfile(
-  accessToken: string,
-): Promise<GoogleUserProfile> {
-  const response = await fetch(
-    "https://www.googleapis.com/oauth2/v2/userinfo",
-    {
-      headers: { Authorization: `Bearer ${accessToken}` },
-    },
-  );
+async function fetchGoogleProfile(accessToken: string): Promise<GoogleUserProfile> {
+  const response = await fetch("https://www.googleapis.com/oauth2/v2/userinfo", {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
 
   if (!response.ok) {
     throw new Error(`Google profile fetch failed: ${response.status}`);
@@ -167,15 +156,9 @@ async function fetchGoogleProfile(
 
 // ── User Upsert ─────────────────────────────────────────────────────
 
-async function upsertGoogleUser(
-  profile: GoogleUserProfile,
-): Promise<string> {
+async function upsertGoogleUser(profile: GoogleUserProfile): Promise<string> {
   // Check if a user with this email already exists
-  const existing = await db
-    .select()
-    .from(users)
-    .where(eq(users.email, profile.email))
-    .limit(1);
+  const existing = await db.select().from(users).where(eq(users.email, profile.email)).limit(1);
 
   const existingUser = existing[0];
   if (existingUser) {
@@ -196,8 +179,7 @@ async function upsertGoogleUser(
   await db.insert(users).values({
     id: userId,
     email: profile.email,
-    displayName:
-      profile.name ?? profile.given_name ?? profile.email.split("@")[0] ?? "User",
+    displayName: profile.name ?? profile.given_name ?? profile.email.split("@")[0] ?? "User",
     authProvider: "google",
     googleId: profile.id,
     avatarUrl: profile.picture ?? null,
@@ -252,9 +234,7 @@ googleOAuthRoutes.get("/google/callback", async (c) => {
   // Handle OAuth errors from Google
   if (error) {
     const errorDesc = c.req.query("error_description") ?? error;
-    return c.redirect(
-      `${webAppUrl}/login?error=${encodeURIComponent(errorDesc)}`,
-    );
+    return c.redirect(`${webAppUrl}/login?error=${encodeURIComponent(errorDesc)}`);
   }
 
   if (!code || !state) {
@@ -285,9 +265,7 @@ googleOAuthRoutes.get("/google/callback", async (c) => {
     const sessionToken = await createSession(userId, db);
 
     // Redirect back to web app with session token
-    const redirectUrl = new URL(
-      `${webAppUrl}${stateData.redirectTo}`,
-    );
+    const redirectUrl = new URL(`${webAppUrl}${stateData.redirectTo}`);
     redirectUrl.searchParams.set("token", sessionToken);
     redirectUrl.searchParams.set("provider", "google");
 

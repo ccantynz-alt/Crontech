@@ -1,17 +1,17 @@
 import { MetaProvider, Title } from "@solidjs/meta";
 import { Router, useLocation, useNavigate } from "@solidjs/router";
 import { FileRoutes } from "@solidjs/start/router";
-import { Suspense, lazy, onMount, createEffect, onCleanup } from "solid-js";
-import { AuthProvider, ThemeProvider, FeatureFlagProvider } from "./stores";
-import { Layout } from "./components/Layout";
+import { Suspense, createEffect, lazy, onCleanup, onMount } from "solid-js";
 import { AppErrorBoundary } from "./components/ErrorBoundary";
+import { KeyboardHelp } from "./components/KeyboardHelp";
+import { Layout } from "./components/Layout";
+import { PreLaunchBanner } from "./components/PreLaunchBanner";
 import { ToastContainer } from "./components/Toast";
 import { VoiceGlobal } from "./components/VoiceGlobal";
-import { PreLaunchBanner } from "./components/PreLaunchBanner";
-import { KeyboardHelp } from "./components/KeyboardHelp";
-import { registerShortcut } from "./lib/keyboard";
 import { initAnalytics, stopAnalytics, trackPageView } from "./lib/analytics";
+import { registerShortcut } from "./lib/keyboard";
 import { connectLiveUpdates, disconnectLiveUpdates } from "./lib/live-updates";
+import { AuthProvider, FeatureFlagProvider, ThemeProvider } from "./stores";
 import "./app.css";
 
 // ── Lazy-loaded overlays (perf: keep out of initial bundle) ──────────

@@ -24,7 +24,8 @@ export const DASHBOARD_TOUR: ReadonlyArray<TourStep> = [
   {
     target: "[data-tour='nav-builder']",
     title: "Composer",
-    content: "Generate SolidJS component trees from a prompt. Runs on the three-tier compute router.",
+    content:
+      "Generate SolidJS component trees from a prompt. Runs on the three-tier compute router.",
     placement: "bottom",
   },
   {

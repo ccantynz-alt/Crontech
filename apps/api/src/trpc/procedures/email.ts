@@ -1,8 +1,8 @@
-import { z } from "zod";
-import { router, protectedProcedure } from "../init";
 import { TRPCError } from "@trpc/server";
+import { z } from "zod";
 import { sendEmail } from "../../email/client";
 import { collaborationInviteEmail } from "../../email/templates";
+import { protectedProcedure, router } from "../init";
 
 export const emailRouter = router({
   sendInvite: protectedProcedure

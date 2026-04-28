@@ -16,14 +16,8 @@
 // gates its page content.
 
 import { Title } from "@solidjs/meta";
-import {
-  createSignal,
-  createResource,
-  For,
-  Show,
-  type JSX,
-} from "solid-js";
 import { A, useNavigate } from "@solidjs/router";
+import { For, type JSX, Show, createResource, createSignal } from "solid-js";
 import { AdminRoute } from "../../components/AdminRoute";
 import { showToast } from "../../components/Toast";
 import { trpc } from "../../lib/trpc";
@@ -105,24 +99,22 @@ export function formatZoneSerial(serial: number | null | undefined): string {
 export function normalizeZoneRow(row: unknown): ZoneRow | null {
   if (!row || typeof row !== "object") return null;
   const r = row as Record<string, unknown>;
-  const id = typeof r["id"] === "string" ? r["id"] : null;
-  const name = typeof r["name"] === "string" ? r["name"] : null;
+  const id = typeof r.id === "string" ? r.id : null;
+  const name = typeof r.name === "string" ? r.name : null;
   if (!id || !name) return null;
   return {
     id,
     name,
-    adminEmail: typeof r["adminEmail"] === "string" ? r["adminEmail"] : "",
-    primaryNs: typeof r["primaryNs"] === "string" ? r["primaryNs"] : "",
-    secondaryNs:
-      typeof r["secondaryNs"] === "string" ? r["secondaryNs"] : null,
-    recordCount:
-      typeof r["recordCount"] === "number" ? r["recordCount"] : 0,
-    serial: typeof r["serial"] === "number" ? r["serial"] : 0,
+    adminEmail: typeof r.adminEmail === "string" ? r.adminEmail : "",
+    primaryNs: typeof r.primaryNs === "string" ? r.primaryNs : "",
+    secondaryNs: typeof r.secondaryNs === "string" ? r.secondaryNs : null,
+    recordCount: typeof r.recordCount === "number" ? r.recordCount : 0,
+    serial: typeof r.serial === "number" ? r.serial : 0,
     createdAt:
-      r["createdAt"] instanceof Date
-        ? r["createdAt"]
-        : typeof r["createdAt"] === "string"
-          ? r["createdAt"]
+      r.createdAt instanceof Date
+        ? r.createdAt
+        : typeof r.createdAt === "string"
+          ? r.createdAt
           : new Date().toISOString(),
   };
 }
@@ -143,9 +135,7 @@ function AdminDnsContent(): JSX.Element {
   const navigate = useNavigate();
   const [showForm, setShowForm] = createSignal(false);
   const [pendingCreate, setPendingCreate] = createSignal(false);
-  const [pendingDeleteId, setPendingDeleteId] = createSignal<string | null>(
-    null,
-  );
+  const [pendingDeleteId, setPendingDeleteId] = createSignal<string | null>(null);
   const [form, setForm] = createSignal<NewZoneForm>({
     zoneName: "",
     adminEmail: "",
@@ -156,9 +146,7 @@ function AdminDnsContent(): JSX.Element {
 
   const [zones, { refetch }] = createResource(async (): Promise<ZoneRow[]> => {
     const rows = (await trpc.dns.listZones.query()) as unknown[];
-    return rows
-      .map((r) => normalizeZoneRow(r))
-      .filter((r): r is ZoneRow => r !== null);
+    return rows.map((r) => normalizeZoneRow(r)).filter((r): r is ZoneRow => r !== null);
   });
 
   const patchForm = (partial: Partial<NewZoneForm>): void => {
@@ -190,9 +178,7 @@ function AdminDnsContent(): JSX.Element {
       return;
     }
     if (secondaryNs && !isValidZoneName(secondaryNs)) {
-      setFormError(
-        "Secondary nameserver is optional, but must be valid if supplied.",
-      );
+      setFormError("Secondary nameserver is optional, but must be valid if supplied.");
       return;
     }
     setFormError(null);
@@ -219,9 +205,7 @@ function AdminDnsContent(): JSX.Element {
 
   const handleDelete = async (zone: ZoneRow): Promise<void> => {
     if (typeof window !== "undefined") {
-      const ok = window.confirm(
-        `Delete zone ${zone.name}? This removes every record it contains.`,
-      );
+      const ok = window.confirm(`Delete zone ${zone.name}? This removes every record it contains.`);
       if (!ok) return;
     }
     setPendingDeleteId(zone.id);
@@ -273,18 +257,11 @@ function AdminDnsContent(): JSX.Element {
           </nav>
           <div class="flex items-end justify-between">
             <div>
-              <h1
-                class="text-3xl font-bold tracking-tight"
-                style={{ color: "var(--color-text)" }}
-              >
+              <h1 class="text-3xl font-bold tracking-tight" style={{ color: "var(--color-text)" }}>
                 Authoritative DNS
               </h1>
-              <p
-                class="mt-1 text-sm"
-                style={{ color: "var(--color-text-faint)" }}
-              >
-                Self-hosted zones powering one-click subdomain creation across
-                the platform.
+              <p class="mt-1 text-sm" style={{ color: "var(--color-text-faint)" }}>
+                Self-hosted zones powering one-click subdomain creation across the platform.
               </p>
             </div>
             <button
@@ -315,19 +292,12 @@ function AdminDnsContent(): JSX.Element {
             }}
           >
             <div class="mb-4">
-              <h2
-                class="text-lg font-semibold"
-                style={{ color: "var(--color-text)" }}
-              >
+              <h2 class="text-lg font-semibold" style={{ color: "var(--color-text)" }}>
                 Add a new zone
               </h2>
-              <p
-                class="mt-1 text-xs"
-                style={{ color: "var(--color-text-faint)" }}
-              >
-                Crontech becomes authoritative for the zone as soon as it is
-                saved. Point the zone's registrar to the nameservers below to
-                go live.
+              <p class="mt-1 text-xs" style={{ color: "var(--color-text-faint)" }}>
+                Crontech becomes authoritative for the zone as soon as it is saved. Point the zone's
+                registrar to the nameservers below to go live.
               </p>
             </div>
             <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -343,9 +313,7 @@ function AdminDnsContent(): JSX.Element {
                   type="text"
                   placeholder="example.com"
                   value={form().zoneName}
-                  onInput={(e) =>
-                    patchForm({ zoneName: e.currentTarget.value })
-                  }
+                  onInput={(e) => patchForm({ zoneName: e.currentTarget.value })}
                   class="rounded-xl px-3 py-2.5 text-sm outline-none transition-colors"
                   style={{
                     background: "var(--color-bg-inset)",
@@ -366,9 +334,7 @@ function AdminDnsContent(): JSX.Element {
                   type="email"
                   placeholder="hostmaster@example.com"
                   value={form().adminEmail}
-                  onInput={(e) =>
-                    patchForm({ adminEmail: e.currentTarget.value })
-                  }
+                  onInput={(e) => patchForm({ adminEmail: e.currentTarget.value })}
                   class="rounded-xl px-3 py-2.5 text-sm outline-none transition-colors"
                   style={{
                     background: "var(--color-bg-inset)",
@@ -389,9 +355,7 @@ function AdminDnsContent(): JSX.Element {
                   type="text"
                   placeholder="ns1.crontech.ai"
                   value={form().primaryNs}
-                  onInput={(e) =>
-                    patchForm({ primaryNs: e.currentTarget.value })
-                  }
+                  onInput={(e) => patchForm({ primaryNs: e.currentTarget.value })}
                   class="rounded-xl px-3 py-2.5 text-sm outline-none transition-colors"
                   style={{
                     background: "var(--color-bg-inset)",
@@ -412,9 +376,7 @@ function AdminDnsContent(): JSX.Element {
                   type="text"
                   placeholder="ns2.crontech.ai"
                   value={form().secondaryNs}
-                  onInput={(e) =>
-                    patchForm({ secondaryNs: e.currentTarget.value })
-                  }
+                  onInput={(e) => patchForm({ secondaryNs: e.currentTarget.value })}
                   class="rounded-xl px-3 py-2.5 text-sm outline-none transition-colors"
                   style={{
                     background: "var(--color-bg-inset)",
@@ -428,11 +390,9 @@ function AdminDnsContent(): JSX.Element {
               <div
                 class="mt-4 rounded-xl px-4 py-3 text-xs"
                 style={{
-                  background:
-                    "color-mix(in oklab, var(--color-danger) 8%, transparent)",
+                  background: "color-mix(in oklab, var(--color-danger) 8%, transparent)",
                   color: "var(--color-danger)",
-                  border:
-                    "1px solid color-mix(in oklab, var(--color-danger) 30%, transparent)",
+                  border: "1px solid color-mix(in oklab, var(--color-danger) 30%, transparent)",
                 }}
               >
                 {formError()}
@@ -522,10 +482,7 @@ function AdminDnsContent(): JSX.Element {
             fallback={
               <div class="flex flex-col items-center gap-2 py-14">
                 <div class="loading-spinner" />
-                <span
-                  class="text-xs"
-                  style={{ color: "var(--color-text-faint)" }}
-                >
+                <span class="text-xs" style={{ color: "var(--color-text-faint)" }}>
                   Loading zones…
                 </span>
               </div>
@@ -536,18 +493,11 @@ function AdminDnsContent(): JSX.Element {
                 when={list().length > 0}
                 fallback={
                   <div class="flex flex-col items-center gap-3 py-14 text-center">
-                    <span
-                      class="text-sm font-semibold"
-                      style={{ color: "var(--color-text)" }}
-                    >
+                    <span class="text-sm font-semibold" style={{ color: "var(--color-text)" }}>
                       No zones yet
                     </span>
-                    <span
-                      class="max-w-sm text-xs"
-                      style={{ color: "var(--color-text-muted)" }}
-                    >
-                      Add your first zone to start serving authoritative DNS
-                      from Crontech.
+                    <span class="max-w-sm text-xs" style={{ color: "var(--color-text-muted)" }}>
+                      Add your first zone to start serving authoritative DNS from Crontech.
                     </span>
                   </div>
                 }
@@ -586,10 +536,7 @@ function AdminDnsContent(): JSX.Element {
                       >
                         {formatZoneSerial(zone.serial)}
                       </span>
-                      <span
-                        class="col-span-2 text-xs"
-                        style={{ color: "var(--color-text-faint)" }}
-                      >
+                      <span class="col-span-2 text-xs" style={{ color: "var(--color-text-faint)" }}>
                         {formatDate(zone.createdAt)}
                       </span>
                       <div class="col-span-2 flex items-center justify-end gap-2">
@@ -611,16 +558,13 @@ function AdminDnsContent(): JSX.Element {
                           disabled={pendingDeleteId() === zone.id}
                           class="rounded-lg px-3 py-1.5 text-xs font-medium transition-all disabled:opacity-50"
                           style={{
-                            background:
-                              "color-mix(in oklab, var(--color-danger) 10%, transparent)",
+                            background: "color-mix(in oklab, var(--color-danger) 10%, transparent)",
                             border:
                               "1px solid color-mix(in oklab, var(--color-danger) 30%, transparent)",
                             color: "var(--color-danger)",
                           }}
                         >
-                          {pendingDeleteId() === zone.id
-                            ? "Deleting…"
-                            : "Delete"}
+                          {pendingDeleteId() === zone.id ? "Deleting…" : "Delete"}
                         </button>
                       </div>
                     </div>

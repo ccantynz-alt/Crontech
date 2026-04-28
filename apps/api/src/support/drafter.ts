@@ -4,7 +4,7 @@
  */
 
 import { z } from "zod";
-import { searchKnowledgeBase, type KnowledgeEntry } from "./knowledge-base";
+import { type KnowledgeEntry, searchKnowledgeBase } from "./knowledge-base";
 
 export interface DraftInputTicket {
   fromEmail: string;
@@ -38,21 +38,13 @@ Always sign off as: "— The Crontech support team".`;
 
 function buildKnowledgeContext(entries: KnowledgeEntry[]): string {
   if (entries.length === 0) return "(no relevant entries found)";
-  return entries
-    .map(
-      (e, i) =>
-        `[${i + 1}] Q: ${e.question}\n    A: ${e.answer}`,
-    )
-    .join("\n\n");
+  return entries.map((e, i) => `[${i + 1}] Q: ${e.question}\n    A: ${e.answer}`).join("\n\n");
 }
 
 function buildThreadContext(thread: DraftThreadMessage[]): string {
   if (thread.length === 0) return "(no prior messages)";
   return thread
-    .map(
-      (m) =>
-        `${m.direction === "inbound" ? "Customer" : "Support"}: ${m.body}`,
-    )
+    .map((m) => `${m.direction === "inbound" ? "Customer" : "Support"}: ${m.body}`)
     .join("\n\n");
 }
 
@@ -68,7 +60,8 @@ function templateDraft(ticket: DraftInputTicket, entries: KnowledgeEntry[]): Dra
     }
   }
   return {
-    draft: `Hi,\n\nThanks for reaching out. A teammate will follow up shortly with a detailed answer.\n\n— The Crontech support team`,
+    draft:
+      "Hi,\n\nThanks for reaching out. A teammate will follow up shortly with a detailed answer.\n\n— The Crontech support team",
     confidence: 30,
     reasoning: "No matching knowledge base entry; generic fallback.",
   };
@@ -80,8 +73,7 @@ export async function draftResponse(
   knowledgeBase: KnowledgeEntry[] | null = null,
 ): Promise<DraftResult> {
   const matches =
-    knowledgeBase ??
-    searchKnowledgeBase(`${ticket.subject}\n${ticket.body}`).map((m) => m.entry);
+    knowledgeBase ?? searchKnowledgeBase(`${ticket.subject}\n${ticket.body}`).map((m) => m.entry);
 
   try {
     const { generateObject } = await import("ai");

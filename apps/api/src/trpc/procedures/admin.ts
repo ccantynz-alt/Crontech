@@ -1,24 +1,20 @@
-import { z } from "zod";
-import { TRPCError } from "@trpc/server";
-import { desc, sql, eq, gte } from "drizzle-orm";
-import { router, adminProcedure } from "../init";
-import {
-  users,
-  subscriptions,
-  payments,
-  analyticsEvents,
-  deployments,
-  sessions,
-  chatMessages,
-  conversations,
-} from "@back-to-the-future/db";
 import { estimateCost } from "@back-to-the-future/ai-core";
 import {
-  getAllFlags,
-  updateFlagPersisted,
-  isFeatureEnabled,
-} from "../../feature-flags";
+  analyticsEvents,
+  chatMessages,
+  conversations,
+  deployments,
+  payments,
+  sessions,
+  subscriptions,
+  users,
+} from "@back-to-the-future/db";
+import { TRPCError } from "@trpc/server";
+import { desc, eq, gte, sql } from "drizzle-orm";
+import { z } from "zod";
+import { getAllFlags, isFeatureEnabled, updateFlagPersisted } from "../../feature-flags";
 import { auditMiddleware } from "../../middleware/audit";
+import { adminProcedure, router } from "../init";
 
 // ── Zod Output Schemas ───────────────────────────────────────────────
 //
@@ -40,9 +36,7 @@ export const adminStatsOutputSchema = z.object({
 
 export const adminRouter = router({
   getStats: adminProcedure.query(async ({ ctx }) => {
-    const totalUsersResult = await ctx.db
-      .select({ count: sql<number>`count(*)` })
-      .from(users);
+    const totalUsersResult = await ctx.db.select({ count: sql<number>`count(*)` }).from(users);
     const totalUsers = totalUsersResult[0]?.count ?? 0;
 
     const activeSubsResult = await ctx.db
@@ -85,77 +79,65 @@ export const adminRouter = router({
    * Zod-validated via `adminStatsOutputSchema` so the shape cannot drift
    * between server and client without a test failure.
    */
-  stats: adminProcedure
-    .output(adminStatsOutputSchema)
-    .query(async ({ ctx }) => {
-      const now = new Date();
-      const monthStart = new Date(
-        Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0, 0),
-      );
-      const last24h = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+  stats: adminProcedure.output(adminStatsOutputSchema).query(async ({ ctx }) => {
+    const now = new Date();
+    const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0, 0));
+    const last24h = new Date(now.getTime() - 24 * 60 * 60 * 1000);
 
-      // Total users
-      const totalUsersRow = await ctx.db
-        .select({ count: sql<number>`count(*)` })
-        .from(users);
-      const totalUsers = Number(totalUsersRow[0]?.count ?? 0);
+    // Total users
+    const totalUsersRow = await ctx.db.select({ count: sql<number>`count(*)` }).from(users);
+    const totalUsers = Number(totalUsersRow[0]?.count ?? 0);
 
-      // Active sessions (created in the last 24h)
-      const activeSessionsRow = await ctx.db
-        .select({ count: sql<number>`count(*)` })
-        .from(sessions)
-        .where(gte(sessions.createdAt, last24h));
-      const activeSessions = Number(activeSessionsRow[0]?.count ?? 0);
+    // Active sessions (created in the last 24h)
+    const activeSessionsRow = await ctx.db
+      .select({ count: sql<number>`count(*)` })
+      .from(sessions)
+      .where(gte(sessions.createdAt, last24h));
+    const activeSessions = Number(activeSessionsRow[0]?.count ?? 0);
 
-      // Total deployments (all time)
-      const totalDeploymentsRow = await ctx.db
-        .select({ count: sql<number>`count(*)` })
-        .from(deployments);
-      const totalDeployments = Number(totalDeploymentsRow[0]?.count ?? 0);
+    // Total deployments (all time)
+    const totalDeploymentsRow = await ctx.db
+      .select({ count: sql<number>`count(*)` })
+      .from(deployments);
+    const totalDeployments = Number(totalDeploymentsRow[0]?.count ?? 0);
 
-      // Deployments created this calendar month (UTC)
-      const deploymentsThisMonthRow = await ctx.db
-        .select({ count: sql<number>`count(*)` })
-        .from(deployments)
-        .where(gte(deployments.createdAt, monthStart));
-      const deploymentsThisMonth = Number(
-        deploymentsThisMonthRow[0]?.count ?? 0,
-      );
+    // Deployments created this calendar month (UTC)
+    const deploymentsThisMonthRow = await ctx.db
+      .select({ count: sql<number>`count(*)` })
+      .from(deployments)
+      .where(gte(deployments.createdAt, monthStart));
+    const deploymentsThisMonth = Number(deploymentsThisMonthRow[0]?.count ?? 0);
 
-      // Claude spend for the current month: sum estimated cost across
-      // chat_messages created >= monthStart. estimateCost returns
-      // microdollars, so divide by 1e6 and round to 2dp.
-      const monthlyMessages = await ctx.db
-        .select({
-          model: chatMessages.model,
-          inputTokens: chatMessages.inputTokens,
-          outputTokens: chatMessages.outputTokens,
-        })
-        .from(chatMessages)
-        .innerJoin(
-          conversations,
-          eq(chatMessages.conversationId, conversations.id),
-        )
-        .where(gte(chatMessages.createdAt, monthStart));
+    // Claude spend for the current month: sum estimated cost across
+    // chat_messages created >= monthStart. estimateCost returns
+    // microdollars, so divide by 1e6 and round to 2dp.
+    const monthlyMessages = await ctx.db
+      .select({
+        model: chatMessages.model,
+        inputTokens: chatMessages.inputTokens,
+        outputTokens: chatMessages.outputTokens,
+      })
+      .from(chatMessages)
+      .innerJoin(conversations, eq(chatMessages.conversationId, conversations.id))
+      .where(gte(chatMessages.createdAt, monthStart));
 
-      let monthCostMicro = 0;
-      for (const row of monthlyMessages) {
-        if (!row.model) continue;
-        const input = row.inputTokens ?? 0;
-        const output = row.outputTokens ?? 0;
-        monthCostMicro += estimateCost(row.model, input, output);
-      }
-      const claudeSpendMonthUsd =
-        Math.round((monthCostMicro / 1_000_000) * 100) / 100;
+    let monthCostMicro = 0;
+    for (const row of monthlyMessages) {
+      if (!row.model) continue;
+      const input = row.inputTokens ?? 0;
+      const output = row.outputTokens ?? 0;
+      monthCostMicro += estimateCost(row.model, input, output);
+    }
+    const claudeSpendMonthUsd = Math.round((monthCostMicro / 1_000_000) * 100) / 100;
 
-      return {
-        totalUsers,
-        activeSessions,
-        totalDeployments,
-        deploymentsThisMonth,
-        claudeSpendMonthUsd,
-      };
-    }),
+    return {
+      totalUsers,
+      activeSessions,
+      totalDeployments,
+      deploymentsThisMonth,
+      claudeSpendMonthUsd,
+    };
+  }),
 
   getRecentUsers: adminProcedure.query(async ({ ctx }) => {
     const items = await ctx.db
@@ -224,9 +206,10 @@ export const adminRouter = router({
     return {
       api: "ok" as const,
       database: dbStatus,
-      sentinel: flagCount > 0 && isFeatureEnabled("sentinel.monitoring")
-        ? ("active" as const)
-        : ("inactive" as const),
+      sentinel:
+        flagCount > 0 && isFeatureEnabled("sentinel.monitoring")
+          ? ("active" as const)
+          : ("inactive" as const),
       websocket: "ok" as const,
       flagsLoaded: flagCount,
       timestamp: new Date().toISOString(),
@@ -264,14 +247,11 @@ export const adminRouter = router({
         });
       }
 
-      await ctx.db
-        .update(users)
-        .set({ role: input.role })
-        .where(eq(users.id, input.userId));
+      await ctx.db.update(users).set({ role: input.role }).where(eq(users.id, input.userId));
 
       return {
         userId: input.userId,
-        previousRole: existing[0]!.role,
+        previousRole: existing[0]?.role,
         newRole: input.role,
       };
     }),

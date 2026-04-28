@@ -81,7 +81,11 @@ export const PAGE_CONTEXT: Record<string, PageContext> = {
   "/dashboard": {
     path: "/dashboard",
     title: "Dashboard",
-    suggestions: ["Create my first website", "How do I invite a teammate?", "Where do I edit videos?"],
+    suggestions: [
+      "Create my first website",
+      "How do I invite a teammate?",
+      "Where do I edit videos?",
+    ],
   },
   "/builder": {
     path: "/builder",
@@ -95,7 +99,11 @@ export const PAGE_CONTEXT: Record<string, PageContext> = {
   "/video": {
     path: "/video",
     title: "Video Editor",
-    suggestions: ["How do I upload a video?", "How do I add captions?", "How do I export my video?"],
+    suggestions: [
+      "How do I upload a video?",
+      "How do I add captions?",
+      "How do I export my video?",
+    ],
   },
   "/billing": {
     path: "/billing",

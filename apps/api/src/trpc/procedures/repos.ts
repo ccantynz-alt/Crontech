@@ -3,17 +3,17 @@
 // API calls through the user's stored PAT so the frontend never
 // touches the raw token.
 
-import { z } from "zod";
+import { userProviderKeys } from "@back-to-the-future/db";
 import { TRPCError } from "@trpc/server";
 import { and, eq } from "drizzle-orm";
-import { router, protectedProcedure } from "../init";
-import { userProviderKeys } from "@back-to-the-future/db";
+import { z } from "zod";
 import { GitHubClient } from "../../github/client";
+import { protectedProcedure, router } from "../init";
 
 // ── Key decryption (shared with chat.ts) ─────────────────────────────
 
 function getEncryptionKey(): string {
-  return process.env["SESSION_SECRET"] ?? "crontech-default-key-change-me";
+  return process.env.SESSION_SECRET ?? "crontech-default-key-change-me";
 }
 
 function xorDecrypt(encoded: string, key: string): string {
@@ -108,11 +108,13 @@ export const reposRouter = router({
   /** List repositories for the authenticated user. */
   list: protectedProcedure
     .input(
-      z.object({
-        sort: z.enum(["updated", "pushed", "full_name"]).default("pushed"),
-        per_page: z.number().int().min(1).max(100).default(30),
-        page: z.number().int().min(1).default(1),
-      }).optional(),
+      z
+        .object({
+          sort: z.enum(["updated", "pushed", "full_name"]).default("pushed"),
+          per_page: z.number().int().min(1).max(100).default(30),
+          page: z.number().int().min(1).default(1),
+        })
+        .optional(),
     )
     .query(async ({ ctx, input }) => {
       const client = await getGitHubClient(ctx.db, ctx.userId);
@@ -124,12 +126,10 @@ export const reposRouter = router({
     }),
 
   /** Get a single repository's details. */
-  get: protectedProcedure
-    .input(RepoIdInput)
-    .query(async ({ ctx, input }) => {
-      const client = await getGitHubClient(ctx.db, ctx.userId);
-      return client.getRepo(input.owner, input.repo);
-    }),
+  get: protectedProcedure.input(RepoIdInput).query(async ({ ctx, input }) => {
+    const client = await getGitHubClient(ctx.db, ctx.userId);
+    return client.getRepo(input.owner, input.repo);
+  }),
 
   /** List branches for a repository. */
   branches: protectedProcedure

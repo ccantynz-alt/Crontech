@@ -1,8 +1,8 @@
-import { z } from "zod";
-import { eq, and } from "drizzle-orm";
-import { TRPCError } from "@trpc/server";
-import { router, protectedProcedure } from "../init";
 import { userWebhooks } from "@back-to-the-future/db";
+import { TRPCError } from "@trpc/server";
+import { and, eq } from "drizzle-orm";
+import { z } from "zod";
+import { protectedProcedure, router } from "../init";
 
 const WEBHOOK_EVENTS = [
   "project.created",
@@ -27,7 +27,9 @@ type WebhookEvent = (typeof WEBHOOK_EVENTS)[number];
 function generateWebhookSecret(): string {
   const bytes = new Uint8Array(32);
   crypto.getRandomValues(bytes);
-  return `whsec_${Array.from(bytes).map((b) => b.toString(16).padStart(2, "0")).join("")}`;
+  return `whsec_${Array.from(bytes)
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("")}`;
 }
 
 /**
@@ -109,12 +111,7 @@ export const webhooksRouter = router({
     .mutation(async ({ ctx, input }) => {
       const result = await ctx.db
         .delete(userWebhooks)
-        .where(
-          and(
-            eq(userWebhooks.id, input.id),
-            eq(userWebhooks.userId, ctx.userId),
-          ),
-        )
+        .where(and(eq(userWebhooks.id, input.id), eq(userWebhooks.userId, ctx.userId)))
         .returning();
 
       if (result.length === 0) {
@@ -136,12 +133,7 @@ export const webhooksRouter = router({
       const results = await ctx.db
         .select()
         .from(userWebhooks)
-        .where(
-          and(
-            eq(userWebhooks.id, input.id),
-            eq(userWebhooks.userId, ctx.userId),
-          ),
-        )
+        .where(and(eq(userWebhooks.id, input.id), eq(userWebhooks.userId, ctx.userId)))
         .limit(1);
 
       const webhook = results[0];

@@ -8,10 +8,10 @@
 import { describe, expect, test } from "bun:test";
 import { estimateCost } from "@back-to-the-future/ai-core";
 import {
-  GatewayUpstreamError,
-  createAiGatewayApp,
   type ChatCompletionResponse,
+  GatewayUpstreamError,
   type ProviderCaller,
+  createAiGatewayApp,
 } from "./index";
 import {
   ANTHROPIC_MODEL,

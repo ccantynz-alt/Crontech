@@ -106,9 +106,7 @@ export async function getPlatformSiblings(options?: {
 
   inflight = (async (): Promise<SiblingsSnapshot> => {
     const products: SiblingProduct[] = ["crontech", "gluecron", "gatetest"];
-    const results = await Promise.all(
-      products.map((product) => fetchOne(product, fetchImpl)),
-    );
+    const results = await Promise.all(products.map((product) => fetchOne(product, fetchImpl)));
     const snapshot: SiblingsSnapshot = {
       fetchedAt: new Date(now()).toISOString(),
       siblings: results,
@@ -124,10 +122,7 @@ export async function getPlatformSiblings(options?: {
   }
 }
 
-async function fetchOne(
-  product: SiblingProduct,
-  fetchImpl: typeof fetch,
-): Promise<SiblingHealth> {
+async function fetchOne(product: SiblingProduct, fetchImpl: typeof fetch): Promise<SiblingHealth> {
   const url = resolveSiblingUrl(product);
   const started = Date.now();
   const controller = new AbortController();
@@ -157,8 +152,7 @@ async function fetchOne(
     const payload = (await res.json().catch(() => null)) as ShapelessPayload | null;
     const version = typeof payload?.version === "string" ? payload.version : null;
     const commit = typeof payload?.commit === "string" ? payload.commit : null;
-    const lastUpdated =
-      typeof payload?.timestamp === "string" ? payload.timestamp : null;
+    const lastUpdated = typeof payload?.timestamp === "string" ? payload.timestamp : null;
     const healthy = payload?.healthy === true;
 
     return {

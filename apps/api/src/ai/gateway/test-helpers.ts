@@ -7,11 +7,7 @@
  * NOT exported from `index.ts` — this is internal test scaffolding.
  */
 
-import type {
-  ProviderCallInput,
-  ProviderCallResult,
-  ProviderCaller,
-} from "./providers";
+import type { ProviderCallInput, ProviderCallResult, ProviderCaller } from "./providers";
 
 // Synthetic test fixture — NOT a real credential. Constructed to avoid
 // secret-detector false positives (no recognised API-key prefix).
@@ -41,9 +37,7 @@ export function recordingCaller(
   return { caller, calls };
 }
 
-export function validBody(
-  overrides: Partial<Record<string, unknown>> = {},
-): string {
+export function validBody(overrides: Partial<Record<string, unknown>> = {}): string {
   return JSON.stringify({
     model: ANTHROPIC_MODEL,
     messages: [
@@ -56,12 +50,9 @@ export function validBody(
   });
 }
 
-export function makeRequest(
-  body: string,
-  opts: { auth?: string; ttl?: number } = {},
-): Request {
+export function makeRequest(body: string, opts: { auth?: string; ttl?: number } = {}): Request {
   const headers: Record<string, string> = { "Content-Type": "application/json" };
-  if (opts.auth !== undefined) headers["Authorization"] = opts.auth;
+  if (opts.auth !== undefined) headers.Authorization = opts.auth;
   if (opts.ttl !== undefined) headers["x-cache-ttl"] = String(opts.ttl);
   return new Request("http://localhost/ai/gateway/v1/chat/completions", {
     method: "POST",
@@ -70,9 +61,7 @@ export function makeRequest(
   });
 }
 
-export const happy = (
-  overrides: Partial<ProviderCallResult> = {},
-): ProviderCallResult => ({
+export const happy = (overrides: Partial<ProviderCallResult> = {}): ProviderCallResult => ({
   content: "hello there",
   promptTokens: 12,
   completionTokens: 7,

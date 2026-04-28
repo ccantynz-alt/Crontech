@@ -9,11 +9,7 @@
 
 import type { JSX } from "solid-js";
 import { SEOHead } from "../../../components/SEOHead";
-import {
-  DocsArticle,
-  Callout,
-  KeyList,
-} from "../../../components/docs/DocsArticle";
+import { Callout, DocsArticle, KeyList } from "../../../components/docs/DocsArticle";
 
 export default function ClientGpuInferenceArticle(): JSX.Element {
   return (
@@ -38,31 +34,24 @@ export default function ClientGpuInferenceArticle(): JSX.Element {
         }}
       >
         <p>
-          The client tier is the cheapest part of the Crontech AI
-          stack. When the{" "}
-          <a href="/docs/ai-sdk/three-tier-compute">
-            three-tier router
-          </a>{" "}
-          returns <code>"client"</code>, the request never leaves the
-          browser — a WebGPU-backed engine runs the model locally,
-          streams the output into the page, and the server only sees
-          whatever the user chooses to persist afterwards.
+          The client tier is the cheapest part of the Crontech AI stack. When the{" "}
+          <a href="/docs/ai-sdk/three-tier-compute">three-tier router</a> returns{" "}
+          <code>"client"</code>, the request never leaves the browser — a WebGPU-backed engine runs
+          the model locally, streams the output into the page, and the server only sees whatever the
+          user chooses to persist afterwards.
         </p>
 
         <Callout tone="info" title="The cost floor">
-          Every client-tier token costs <strong>$0</strong>. There is
-          no per-request server billing, no provider invoice, no
-          token meter. The user's hardware does the work. The platform
-          earns its keep by routing <em>when</em> the client tier is
-          actually capable of the call — for everything else, the
-          router picks edge or cloud.
+          Every client-tier token costs <strong>$0</strong>. There is no per-request server billing,
+          no provider invoice, no token meter. The user's hardware does the work. The platform earns
+          its keep by routing <em>when</em> the client tier is actually capable of the call — for
+          everything else, the router picks edge or cloud.
         </Callout>
 
         <h2>Two engines, one entry point</h2>
 
         <p>
-          Client inference is split across two engines, unified behind{" "}
-          <code>clientInfer()</code> in{" "}
+          Client inference is split across two engines, unified behind <code>clientInfer()</code> in{" "}
           <code>packages/ai-core/src/inference/index.ts</code>:
         </p>
 
@@ -84,11 +73,9 @@ export default function ClientGpuInferenceArticle(): JSX.Element {
         <h2>Probing the device</h2>
 
         <p>
-          Before any model loads,{" "}
-          <code>getClientCapabilities()</code> runs a synchronous
-          probe. It never touches the GPU and never awaits — it's safe
-          to call in a hot path. The result tells the router what the
-          device can handle:
+          Before any model loads, <code>getClientCapabilities()</code> runs a synchronous probe. It
+          never touches the GPU and never awaits — it's safe to call in a hot path. The result tells
+          the router what the device can handle:
         </p>
 
         <pre
@@ -121,21 +108,18 @@ const caps = getClientCapabilities();
 
         <p>
           <code>estimatedVRAMMB</code> is a rough proxy built from{" "}
-          <code>navigator.deviceMemory</code> — dedicated VRAM is not
-          exposed to the web, so the probe reads system memory as a
-          conservative lower bound. <code>maxModelSizeBillion</code> is
-          derived from that (~1.2 GB per billion params at q4
-          quantisation).
+          <code>navigator.deviceMemory</code> — dedicated VRAM is not exposed to the web, so the
+          probe reads system memory as a conservative lower bound. <code>maxModelSizeBillion</code>{" "}
+          is derived from that (~1.2 GB per billion params at q4 quantisation).
         </p>
 
         <h2>WebLLM — chat in the browser</h2>
 
         <p>
-          <code>initializeWebLLM()</code> downloads the selected model,
-          warms the WebGPU shaders, and parks a singleton engine in
-          module scope. Subsequent calls reuse the same engine until{" "}
-          <code>unloadWebLLM()</code> frees it. The available models
-          live in <code>WEBLLM_MODELS</code>:
+          <code>initializeWebLLM()</code> downloads the selected model, warms the WebGPU shaders,
+          and parks a singleton engine in module scope. Subsequent calls reuse the same engine until{" "}
+          <code>unloadWebLLM()</code> frees it. The available models live in{" "}
+          <code>WEBLLM_MODELS</code>:
         </p>
 
         <KeyList
@@ -159,9 +143,8 @@ const caps = getClientCapabilities();
         />
 
         <p>
-          Pick a model explicitly, or let{" "}
-          <code>selectModelForVRAM(vramMB)</code> pick the largest one
-          that fits. The engine exposes two call shapes:
+          Pick a model explicitly, or let <code>selectModelForVRAM(vramMB)</code> pick the largest
+          one that fits. The engine exposes two call shapes:
         </p>
 
         <pre
@@ -203,23 +186,19 @@ for await (const chunk of chatCompletionStream([
         </pre>
 
         <Callout tone="note">
-          The first call to{" "}
-          <code>initializeWebLLM()</code> downloads the model weights
-          (hundreds of MB). Subsequent sessions hit the browser cache
-          and initialise in a second or two. Surface a progress
-          indicator on first load —{" "}
-          <code>ModelLoadProgressCallback</code> fires progress events
-          during the download so you don't need to poll.
+          The first call to <code>initializeWebLLM()</code> downloads the model weights (hundreds of
+          MB). Subsequent sessions hit the browser cache and initialise in a second or two. Surface
+          a progress indicator on first load — <code>ModelLoadProgressCallback</code> fires progress
+          events during the download so you don't need to poll.
         </Callout>
 
         <h2>Transformers.js — pipelines without a GPU</h2>
 
         <p>
-          Lightweight ML tasks run via Transformers.js, which uses
-          ONNX Runtime Web under the hood. These do not need WebGPU —
-          plain WebAssembly is enough, which means embeddings,
-          classification, and summarization work on every modern
-          browser on the market, not just the ones with GPU access.
+          Lightweight ML tasks run via Transformers.js, which uses ONNX Runtime Web under the hood.
+          These do not need WebGPU — plain WebAssembly is enough, which means embeddings,
+          classification, and summarization work on every modern browser on the market, not just the
+          ones with GPU access.
         </p>
 
         <KeyList
@@ -250,9 +229,8 @@ for await (const chunk of chatCompletionStream([
         <h2>The unified entry point</h2>
 
         <p>
-          Most callers don't touch WebLLM or Transformers.js directly
-          — they call <code>clientInfer()</code>, which dispatches on
-          the task:
+          Most callers don't touch WebLLM or Transformers.js directly — they call{" "}
+          <code>clientInfer()</code>, which dispatches on the task:
         </p>
 
         <pre
@@ -296,63 +274,51 @@ if (streamed.task === "chat-stream") {
         </pre>
 
         <p>
-          <code>clientInfer()</code> auto-initialises the engine the
-          first time it sees a chat task, picks the largest WebLLM
-          model that fits VRAM, and keeps the engine warm for the rest
-          of the session. Tasks the device cannot support throw with a
-          clear message listing the tasks it <em>can</em> support — no
-          silent fallback.
+          <code>clientInfer()</code> auto-initialises the engine the first time it sees a chat task,
+          picks the largest WebLLM model that fits VRAM, and keeps the engine warm for the rest of
+          the session. Tasks the device cannot support throw with a clear message listing the tasks
+          it <em>can</em> support — no silent fallback.
         </p>
 
         <h2>Memory discipline</h2>
 
         <p>
-          Large models live in GPU memory for the lifetime of the tab.
-          A single engine is kept alive at a time; switching models
-          unloads the previous one. <code>disposePipeline()</code> and{" "}
-          <code>disposeAllPipelines()</code> release Transformers.js
-          pipelines explicitly — useful before navigating away from a
-          heavy page, or when you know the user is done with client
+          Large models live in GPU memory for the lifetime of the tab. A single engine is kept alive
+          at a time; switching models unloads the previous one. <code>disposePipeline()</code> and{" "}
+          <code>disposeAllPipelines()</code> release Transformers.js pipelines explicitly — useful
+          before navigating away from a heavy page, or when you know the user is done with client
           inference for the session.
         </p>
 
         <Callout tone="warn">
-          Browsers cap total VRAM per tab. If you load a 6 GB Llama
-          model and then try to load a second model, the second load
-          will either fail or evict the first. Either unload
-          explicitly or let <code>clientInfer()</code>'s singleton
-          pattern handle it — do not try to hold multiple WebLLM
-          engines alive simultaneously.
+          Browsers cap total VRAM per tab. If you load a 6 GB Llama model and then try to load a
+          second model, the second load will either fail or evict the first. Either unload
+          explicitly or let <code>clientInfer()</code>'s singleton pattern handle it — do not try to
+          hold multiple WebLLM engines alive simultaneously.
         </Callout>
 
         <h2>WebGPU beyond inference</h2>
 
         <p>
-          The same WebGPU surface powers more than inference. The
-          WebGPU video processor at{" "}
-          <code>apps/web/src/gpu/video/processor.ts</code> runs
-          frame-level effects and transforms on the GPU with a
-          Canvas2D fallback — the{" "}
-          <code>VideoProcessor</code> class detects the same{" "}
-          <code>navigator.gpu</code> capability and picks{" "}
-          <code>"webgpu"</code> vs <code>"canvas2d"</code> at
-          construction time. Client-side inference and client-side
-          video share one GPU stack, not two.
+          The same WebGPU surface powers more than inference. The WebGPU video processor at{" "}
+          <code>apps/web/src/gpu/video/processor.ts</code> runs frame-level effects and transforms
+          on the GPU with a Canvas2D fallback — the <code>VideoProcessor</code> class detects the
+          same <code>navigator.gpu</code> capability and picks <code>"webgpu"</code> vs{" "}
+          <code>"canvas2d"</code> at construction time. Client-side inference and client-side video
+          share one GPU stack, not two.
         </p>
 
         <h2>When the client tier cannot take it</h2>
 
         <p>
-          If <code>getClientCapabilities()</code> reports no supported
-          task, or the selected task isn't in{" "}
-          <code>supportedTasks</code>, callers should fall back to the
-          streaming server path at{" "}
+          If <code>getClientCapabilities()</code> reports no supported task, or the selected task
+          isn't in <code>supportedTasks</code>, callers should fall back to the streaming server
+          path at{" "}
           <a href="/docs/ai-sdk/streaming-completions">
             <code>POST /chat/stream</code>
           </a>
-          . The router already does this automatically — the only time
-          you see a "not supported" error is if you bypass the router
-          and call <code>clientInfer()</code> directly on a device
+          . The router already does this automatically — the only time you see a "not supported"
+          error is if you bypass the router and call <code>clientInfer()</code> directly on a device
           that can't satisfy the task.
         </p>
 
@@ -366,8 +332,7 @@ if (streamed.task === "chat-stream") {
             },
             {
               term: "Streaming completions",
-              description:
-                "The server-side fallback when the client tier can't take the request.",
+              description: "The server-side fallback when the client tier can't take the request.",
             },
             {
               term: "AI & Chat procedures",

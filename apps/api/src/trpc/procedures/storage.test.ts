@@ -8,25 +8,12 @@
  *      are configured.
  */
 
-import {
-  describe,
-  test,
-  expect,
-  beforeEach,
-  afterEach,
-  beforeAll,
-  afterAll,
-} from "bun:test";
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test } from "bun:test";
+import { db, scopedDb, sessions, users } from "@back-to-the-future/db";
 import { eq } from "drizzle-orm";
-import {
-  db,
-  users,
-  sessions,
-  scopedDb,
-} from "@back-to-the-future/db";
-import { appRouter } from "../router";
 import { createSession } from "../../auth/session";
 import type { TRPCContext } from "../context";
+import { appRouter } from "../router";
 
 // ── Context helpers ──────────────────────────────────────────────────
 
@@ -41,9 +28,7 @@ function ctxFor(userId: string, sessionToken: string): TRPCContext {
 }
 
 async function createUser(role: "admin" | "viewer"): Promise<string> {
-  const id = `storage-blk018-${role}-${Date.now()}-${Math.random()
-    .toString(36)
-    .slice(2, 8)}`;
+  const id = `storage-blk018-${role}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   await db.insert(users).values({
     id,
     email: `${id}@example.com`,
@@ -143,11 +128,11 @@ describe("storage.getSignedUploadUrl — BLK-018", () => {
   });
 
   test("admin receives a signed URL when backend is configured", async () => {
-    process.env["OBJECT_STORAGE_ENDPOINT"] = "http://127.0.0.1:9000";
-    process.env["OBJECT_STORAGE_REGION"] = "us-east-1";
-    process.env["OBJECT_STORAGE_BUCKET"] = "crontech-objects";
-    process.env["OBJECT_STORAGE_ACCESS_KEY_ID"] = "minioadmin";
-    process.env["OBJECT_STORAGE_SECRET_ACCESS_KEY"] = "minioadmin-password";
+    process.env.OBJECT_STORAGE_ENDPOINT = "http://127.0.0.1:9000";
+    process.env.OBJECT_STORAGE_REGION = "us-east-1";
+    process.env.OBJECT_STORAGE_BUCKET = "crontech-objects";
+    process.env.OBJECT_STORAGE_ACCESS_KEY_ID = "minioadmin";
+    process.env.OBJECT_STORAGE_SECRET_ACCESS_KEY = "minioadmin-password";
 
     const userId = await createUser("admin");
     allUsers.push(userId);
@@ -168,11 +153,11 @@ describe("storage.getSignedUploadUrl — BLK-018", () => {
   });
 
   test("admin can omit contentType and still get a signed URL", async () => {
-    process.env["OBJECT_STORAGE_ENDPOINT"] = "http://127.0.0.1:9000";
-    process.env["OBJECT_STORAGE_REGION"] = "us-east-1";
-    process.env["OBJECT_STORAGE_BUCKET"] = "crontech-objects";
-    process.env["OBJECT_STORAGE_ACCESS_KEY_ID"] = "minioadmin";
-    process.env["OBJECT_STORAGE_SECRET_ACCESS_KEY"] = "minioadmin-password";
+    process.env.OBJECT_STORAGE_ENDPOINT = "http://127.0.0.1:9000";
+    process.env.OBJECT_STORAGE_REGION = "us-east-1";
+    process.env.OBJECT_STORAGE_BUCKET = "crontech-objects";
+    process.env.OBJECT_STORAGE_ACCESS_KEY_ID = "minioadmin";
+    process.env.OBJECT_STORAGE_SECRET_ACCESS_KEY = "minioadmin-password";
 
     const userId = await createUser("admin");
     allUsers.push(userId);

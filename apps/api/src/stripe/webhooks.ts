@@ -1,22 +1,19 @@
-import Stripe from "stripe";
-import { log } from "../log";
-import { eq } from "drizzle-orm";
 import { db } from "@back-to-the-future/db";
 import {
-  subscriptions,
-  payments,
   billingAccounts,
   billingEvents,
+  payments,
+  subscriptions,
 } from "@back-to-the-future/db/schema";
-import { getStripe } from "./client";
 import { provisionTenantDB } from "@back-to-the-future/db/tenant-manager";
+import { eq } from "drizzle-orm";
+import type Stripe from "stripe";
 import { writeAudit } from "../automation/audit-log";
+import { log } from "../log";
+import { getStripe } from "./client";
 
-export function constructWebhookEvent(
-  rawBody: string,
-  signature: string,
-): Stripe.Event {
-  const secret = process.env["STRIPE_WEBHOOK_SECRET"];
+export function constructWebhookEvent(rawBody: string, signature: string): Stripe.Event {
+  const secret = process.env.STRIPE_WEBHOOK_SECRET;
   if (!secret) throw new Error("STRIPE_WEBHOOK_SECRET is not set");
   return getStripe().webhooks.constructEvent(rawBody, signature, secret);
 }
@@ -48,10 +45,7 @@ function mapStripeStatus(
  * `false` when the stripe_event_id is already present — the UNIQUE constraint
  * rejects replays at the DB layer, so we must never double-process.
  */
-async function recordBillingEvent(
-  event: Stripe.Event,
-  userId?: string | null,
-): Promise<boolean> {
+async function recordBillingEvent(event: Stripe.Event, userId?: string | null): Promise<boolean> {
   try {
     const result = await db
       .insert(billingEvents)
@@ -87,10 +81,7 @@ async function markEventProcessed(stripeEventId: string): Promise<void> {
  * Ensure a billing_accounts row exists for (userId, stripeCustomerId).
  * Called from customer.created and from any handler that learns the mapping.
  */
-async function upsertBillingAccount(
-  userId: string,
-  stripeCustomerId: string,
-): Promise<void> {
+async function upsertBillingAccount(userId: string, stripeCustomerId: string): Promise<void> {
   if (!userId || !stripeCustomerId) return;
   const existing = await db.query.billingAccounts.findFirst({
     where: eq(billingAccounts.stripeCustomerId, stripeCustomerId),
@@ -118,15 +109,11 @@ async function upsertBillingAccount(
 // Event handlers. Each is idempotent — safe to replay if upstream misbehaves.
 // ---------------------------------------------------------------------------
 
-async function handleCheckoutCompleted(
-  session: Stripe.Checkout.Session,
-): Promise<void> {
+async function handleCheckoutCompleted(session: Stripe.Checkout.Session): Promise<void> {
   log.info(`[stripe] Checkout completed: ${session.id}`);
 
   const subscriptionId =
-    typeof session.subscription === "string"
-      ? session.subscription
-      : session.subscription?.id;
+    typeof session.subscription === "string" ? session.subscription : session.subscription?.id;
 
   if (!subscriptionId) {
     console.warn("[stripe] No subscription ID on checkout session");
@@ -136,19 +123,13 @@ async function handleCheckoutCompleted(
   const stripeSub = await getStripe().subscriptions.retrieve(subscriptionId);
 
   const customerId =
-    typeof stripeSub.customer === "string"
-      ? stripeSub.customer
-      : stripeSub.customer.id;
+    typeof stripeSub.customer === "string" ? stripeSub.customer : stripeSub.customer.id;
 
   const userId =
-    session.client_reference_id ??
-    (session.metadata?.["userId"] as string | undefined) ??
-    "";
+    session.client_reference_id ?? (session.metadata?.userId as string | undefined) ?? "";
 
   if (!userId) {
-    console.error(
-      "[stripe] No userId found on checkout session metadata or client_reference_id",
-    );
+    console.error("[stripe] No userId found on checkout session metadata or client_reference_id");
     return;
   }
 
@@ -184,29 +165,21 @@ async function handleCheckoutCompleted(
 
   await upsertBillingAccount(userId, customerId);
 
-  log.info(
-    `[stripe] Subscription ${stripeSub.id} created for user ${userId}`,
-  );
+  log.info(`[stripe] Subscription ${stripeSub.id} created for user ${userId}`);
 
-  const planName = session.metadata?.["plan"] as string | undefined;
+  const planName = session.metadata?.plan as string | undefined;
   if (planName === "pro" || planName === "enterprise") {
     try {
       await provisionTenantDB(userId, planName);
-      log.info(
-        `[stripe] Tenant DB provisioned for user ${userId} (${planName})`,
-      );
+      log.info(`[stripe] Tenant DB provisioned for user ${userId} (${planName})`);
     } catch (err: unknown) {
       const errMsg = err instanceof Error ? err.message : String(err);
-      console.error(
-        `[stripe] Failed to provision tenant DB for user ${userId}: ${errMsg}`,
-      );
+      console.error(`[stripe] Failed to provision tenant DB for user ${userId}: ${errMsg}`);
     }
   }
 }
 
-async function handleSubscriptionCreated(
-  sub: Stripe.Subscription,
-): Promise<void> {
+async function handleSubscriptionCreated(sub: Stripe.Subscription): Promise<void> {
   log.info(`[stripe] Subscription created: ${sub.id}`);
   // Upsert via same path as "updated". The checkout handler is the primary
   // source of the first write; this case is for subscriptions created outside
@@ -214,18 +187,13 @@ async function handleSubscriptionCreated(
   await handleSubscriptionUpdated(sub);
 }
 
-async function handleSubscriptionUpdated(
-  sub: Stripe.Subscription,
-): Promise<void> {
+async function handleSubscriptionUpdated(sub: Stripe.Subscription): Promise<void> {
   log.info(`[stripe] Subscription updated: ${sub.id} -> ${sub.status}`);
 
   const priceId = sub.items.data[0]?.price?.id ?? "";
   const now = new Date();
 
-  const customerId =
-    typeof sub.customer === "string"
-      ? sub.customer
-      : (sub.customer?.id ?? null);
+  const customerId = typeof sub.customer === "string" ? sub.customer : (sub.customer?.id ?? null);
 
   await db
     .update(subscriptions)
@@ -254,9 +222,7 @@ async function handleSubscriptionUpdated(
   }
 }
 
-async function handleSubscriptionDeleted(
-  sub: Stripe.Subscription,
-): Promise<void> {
+async function handleSubscriptionDeleted(sub: Stripe.Subscription): Promise<void> {
   log.info(`[stripe] Subscription deleted: ${sub.id}`);
 
   await db
@@ -269,11 +235,9 @@ async function handleSubscriptionDeleted(
     .where(eq(subscriptions.stripeSubscriptionId, sub.id));
 }
 
-async function handleCustomerCreated(
-  customer: Stripe.Customer,
-): Promise<void> {
+async function handleCustomerCreated(customer: Stripe.Customer): Promise<void> {
   log.info(`[stripe] Customer created: ${customer.id}`);
-  const userId = (customer.metadata?.["userId"] as string | undefined) ?? "";
+  const userId = (customer.metadata?.userId as string | undefined) ?? "";
   if (!userId) {
     console.warn(
       "[stripe] customer.created without userId metadata — skipping billing_accounts row",
@@ -283,9 +247,7 @@ async function handleCustomerCreated(
   await upsertBillingAccount(userId, customer.id);
 }
 
-async function handleInvoicePaymentSucceeded(
-  invoice: Stripe.Invoice,
-): Promise<void> {
+async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice): Promise<void> {
   log.info(`[stripe] Payment succeeded: ${invoice.id}`);
 
   const paymentIntentId =
@@ -299,9 +261,7 @@ async function handleInvoicePaymentSucceeded(
   }
 
   const subscriptionId =
-    typeof invoice.subscription === "string"
-      ? invoice.subscription
-      : invoice.subscription?.id;
+    typeof invoice.subscription === "string" ? invoice.subscription : invoice.subscription?.id;
 
   let userId = "";
   if (subscriptionId) {
@@ -337,15 +297,11 @@ async function handleInvoicePaymentSucceeded(
   }
 }
 
-async function handleInvoicePaymentFailed(
-  invoice: Stripe.Invoice,
-): Promise<void> {
+async function handleInvoicePaymentFailed(invoice: Stripe.Invoice): Promise<void> {
   log.info(`[stripe] Payment failed: ${invoice.id}`);
 
   const subscriptionId =
-    typeof invoice.subscription === "string"
-      ? invoice.subscription
-      : invoice.subscription?.id;
+    typeof invoice.subscription === "string" ? invoice.subscription : invoice.subscription?.id;
 
   if (!subscriptionId) {
     console.warn("[stripe] No subscription on failed invoice");
@@ -378,9 +334,9 @@ async function handlePaymentIntentEvent(
  */
 function extractUserIdFromEvent(event: Stripe.Event): string | null {
   const obj = event.data.object as unknown as Record<string, unknown>;
-  const meta = obj?.["metadata"] as Record<string, string> | undefined;
-  if (meta?.["userId"]) return meta["userId"];
-  const clientRef = obj?.["client_reference_id"] as string | undefined;
+  const meta = obj?.metadata as Record<string, string> | undefined;
+  if (meta?.userId) return meta.userId;
+  const clientRef = obj?.client_reference_id as string | undefined;
   if (clientRef) return clientRef;
   return null;
 }

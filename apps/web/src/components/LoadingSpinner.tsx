@@ -1,5 +1,5 @@
-import type { JSX } from "solid-js";
 import { Spinner, Stack, Text } from "@back-to-the-future/ui";
+import type { JSX } from "solid-js";
 
 interface LoadingSpinnerProps {
   label?: string;
@@ -13,13 +13,13 @@ interface LoadingSpinnerProps {
  */
 export function LoadingSpinner(props: LoadingSpinnerProps): JSX.Element {
   return (
-    <div class={props.fullscreen ? "loading-fullscreen" : "loading-inline"} role="status" aria-live="polite">
+    <output class={props.fullscreen ? "loading-fullscreen" : "loading-inline"} aria-live="polite">
       <Stack direction="vertical" align="center" justify="center" gap="sm">
         <Spinner size={props.size ?? "md"} />
         <Text variant="caption" class="text-muted">
           {props.label ?? "Loading..."}
         </Text>
       </Stack>
-    </div>
+    </output>
   );
 }

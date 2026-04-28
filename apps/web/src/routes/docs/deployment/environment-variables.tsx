@@ -9,11 +9,11 @@
 import type { JSX } from "solid-js";
 import { SEOHead } from "../../../components/SEOHead";
 import {
-  DocsArticle,
-  Steps,
   Callout,
+  DocsArticle,
   KeyList,
   ScreenshotSlot,
+  Steps,
 } from "../../../components/docs/DocsArticle";
 
 export default function EnvironmentVariablesArticle(): JSX.Element {
@@ -39,47 +39,37 @@ export default function EnvironmentVariablesArticle(): JSX.Element {
         }}
       >
         <p>
-          Env vars on Crontech live in one place — the project's{" "}
-          <strong>Settings</strong> page — and are scoped to two
-          environments: <strong>preview</strong> (every PR, every
-          branch deploy) and <strong>production</strong> (the default
-          branch). You can also mark a value as shared across both.
-          Every value is encrypted at rest and masked in the UI once
-          saved.
+          Env vars on Crontech live in one place — the project's <strong>Settings</strong> page —
+          and are scoped to two environments: <strong>preview</strong> (every PR, every branch
+          deploy) and <strong>production</strong> (the default branch). You can also mark a value as
+          shared across both. Every value is encrypted at rest and masked in the UI once saved.
         </p>
 
         <h2>Add a variable</h2>
 
         <Steps>
           <li>
-            Open the project's <a href="/settings">Settings</a> page
-            and scroll to the <strong>Environment variables</strong>{" "}
-            section.
+            Open the project's <a href="/settings">Settings</a> page and scroll to the{" "}
+            <strong>Environment variables</strong> section.
           </li>
           <li>
-            Click <strong>Add variable</strong>, enter a key and
-            value, and pick the scope:{" "}
-            <strong>Production only</strong>,{" "}
-            <strong>Preview only</strong>, or{" "}
+            Click <strong>Add variable</strong>, enter a key and value, and pick the scope:{" "}
+            <strong>Production only</strong>, <strong>Preview only</strong>, or{" "}
             <strong>Production and preview</strong>.
           </li>
           <li>
-            Save. The value is encrypted and the UI replaces it with a
-            mask. Click the reveal icon to confirm what you saved —
-            that view is audit-logged.
+            Save. The value is encrypted and the UI replaces it with a mask. Click the reveal icon
+            to confirm what you saved — that view is audit-logged.
           </li>
         </Steps>
 
         <ScreenshotSlot caption="Environment variables section of the project settings page. Each row shows key, scope pill (Production / Preview / Both), masked value, last-updated timestamp, and an edit button." />
 
         <Callout tone="info">
-          Keys are case-sensitive and restricted to{" "}
-          <code>[A-Z0-9_]</code> by convention (the dashboard will let
-          you break that, but the runtime won't). Keys that look like
-          secrets — anything ending in <code>_KEY</code>,{" "}
-          <code>_SECRET</code>, <code>_TOKEN</code>, or{" "}
-          <code>_PASSWORD</code> — are automatically treated as
-          sensitive.
+          Keys are case-sensitive and restricted to <code>[A-Z0-9_]</code> by convention (the
+          dashboard will let you break that, but the runtime won't). Keys that look like secrets —
+          anything ending in <code>_KEY</code>, <code>_SECRET</code>, <code>_TOKEN</code>, or{" "}
+          <code>_PASSWORD</code> — are automatically treated as sensitive.
         </Callout>
 
         <h2>How values flow through a deploy</h2>
@@ -111,9 +101,8 @@ export default function EnvironmentVariablesArticle(): JSX.Element {
 
         <h2>Variables the platform sets for you</h2>
         <p>
-          A handful of env vars are populated automatically when the
-          deploy wizard provisions resources for you. You don't set
-          these — they appear in the dashboard pre-populated and
+          A handful of env vars are populated automatically when the deploy wizard provisions
+          resources for you. You don't set these — they appear in the dashboard pre-populated and
           update themselves when the underlying resource rotates.
         </p>
 
@@ -175,52 +164,44 @@ export default function EnvironmentVariablesArticle(): JSX.Element {
         />
 
         <Callout tone="warn">
-          Existing live deployments do NOT automatically pick up an
-          edit. The new value lands in the next deploy. If you edited
-          an env var because the old one leaked, rotate and trigger a
+          Existing live deployments do NOT automatically pick up an edit. The new value lands in the
+          next deploy. If you edited an env var because the old one leaked, rotate and trigger a
           deploy in the same workflow — don't rely on the edit alone.
         </Callout>
 
         <h2>Local development</h2>
         <p>
-          The dashboard has an <strong>Export .env</strong> button on
-          the env vars section that downloads a ready-to-use{" "}
-          <code>.env</code> file for the Preview scope. Drop it at the
-          root of your checkout and your local <code>bun run dev</code>{" "}
-          sees the same values the preview deploy does.
+          The dashboard has an <strong>Export .env</strong> button on the env vars section that
+          downloads a ready-to-use <code>.env</code> file for the Preview scope. Drop it at the root
+          of your checkout and your local <code>bun run dev</code> sees the same values the preview
+          deploy does.
         </p>
         <p>
-          Don't commit the exported file. The project's{" "}
-          <code>.gitignore</code> should already cover{" "}
-          <code>.env</code>; the download flow is tagged with the
-          timestamp and the exporting user in the audit log so
-          accidental leaks are traceable.
+          Don't commit the exported file. The project's <code>.gitignore</code> should already cover{" "}
+          <code>.env</code>; the download flow is tagged with the timestamp and the exporting user
+          in the audit log so accidental leaks are traceable.
         </p>
 
         <Callout tone="note">
-          The export only includes Preview-scoped variables by
-          default. Production-scoped secrets never leave the
-          dashboard — they are available at runtime to the production
-          worker and to the sandboxed production build, and nowhere
-          else.
+          The export only includes Preview-scoped variables by default. Production-scoped secrets
+          never leave the dashboard — they are available at runtime to the production worker and to
+          the sandboxed production build, and nowhere else.
         </Callout>
 
         <h2>Auditing changes</h2>
         <p>
-          Every add, edit, reveal, export, and delete writes an entry
-          in the project's audit log with the actor, the IP, and the
-          timestamp. The log is hash-chained so retroactive tampering
-          is detectable. The audit view lives on the project's{" "}
+          Every add, edit, reveal, export, and delete writes an entry in the project's audit log
+          with the actor, the IP, and the timestamp. The log is hash-chained so retroactive
+          tampering is detectable. The audit view lives on the project's{" "}
           <a href="/settings">Settings</a> page under the audit tab.
         </p>
 
         <h2>You've got config.</h2>
         <p>
-          With env vars wired up, every deploy — preview and
-          production — reads the right secrets, the build runner
-          injects them at the right stage, and the platform never
-          logs them in plaintext. The last piece is serving the
-          project on a domain you own — covered in the next article.
+          With env vars wired up, every deploy — preview and production — reads the right secrets,
+          the build runner injects them at the right stage, and the platform never logs them in
+          plaintext. The last piece is serving the project on a domain you own — covered in the next
+          article.
         </p>
       </DocsArticle>
     </>

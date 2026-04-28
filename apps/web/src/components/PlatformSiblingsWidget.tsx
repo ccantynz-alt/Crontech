@@ -1,10 +1,6 @@
-import { createResource, For, Show } from "solid-js";
+import { For, Show, createResource } from "solid-js";
 import type { JSX } from "solid-js";
-import type {
-  SiblingHealth,
-  SiblingsSnapshot,
-  SiblingStatus,
-} from "../lib/platform-siblings";
+import type { SiblingHealth, SiblingStatus, SiblingsSnapshot } from "../lib/platform-siblings";
 
 // ── Platform Siblings Widget ────────────────────────────────────────
 // Cross-product health strip for the admin dashboard. Renders three
@@ -61,9 +57,7 @@ function formatLastUpdated(iso: string | null): string {
 
 async function fetchSnapshot(force = false): Promise<SiblingsSnapshot> {
   const res = await fetch(
-    force
-      ? "/api/admin/platform-siblings?force=1"
-      : "/api/admin/platform-siblings",
+    force ? "/api/admin/platform-siblings?force=1" : "/api/admin/platform-siblings",
     { headers: { accept: "application/json" } },
   );
   if (!res.ok) {
@@ -83,10 +77,7 @@ function SiblingCard(props: { sibling: SiblingHealth }): JSX.Element {
     >
       <div class="flex items-start justify-between gap-3">
         <div class="flex min-w-0 flex-col">
-          <span
-            class="text-sm font-semibold"
-            style={{ color: "var(--color-text)" }}
-          >
+          <span class="text-sm font-semibold" style={{ color: "var(--color-text)" }}>
             {PRODUCT_LABEL[props.sibling.product] ?? props.sibling.product}
           </span>
           <span class="text-[11px]" style={{ color: "var(--color-text-faint)" }}>
@@ -112,19 +103,13 @@ function SiblingCard(props: { sibling: SiblingHealth }): JSX.Element {
 
       <div class="flex items-center justify-between text-[11px]">
         <span style={{ color: "var(--color-text-faint)" }}>Latency</span>
-        <span
-          class="font-mono font-medium"
-          style={{ color: "var(--color-text-secondary)" }}
-        >
+        <span class="font-mono font-medium" style={{ color: "var(--color-text-secondary)" }}>
           {formatLatency(props.sibling.latencyMs)}
         </span>
       </div>
       <div class="flex items-center justify-between text-[11px]">
         <span style={{ color: "var(--color-text-faint)" }}>Last updated</span>
-        <span
-          class="font-mono font-medium"
-          style={{ color: "var(--color-text-secondary)" }}
-        >
+        <span class="font-mono font-medium" style={{ color: "var(--color-text-secondary)" }}>
           {formatLastUpdated(props.sibling.lastUpdated)}
         </span>
       </div>
@@ -132,10 +117,7 @@ function SiblingCard(props: { sibling: SiblingHealth }): JSX.Element {
         {(commit) => (
           <div class="flex items-center justify-between text-[11px]">
             <span style={{ color: "var(--color-text-faint)" }}>Commit</span>
-            <span
-              class="font-mono"
-              style={{ color: "var(--color-text-faint)" }}
-            >
+            <span class="font-mono" style={{ color: "var(--color-text-faint)" }}>
               {commit().slice(0, 8)}
             </span>
           </div>
@@ -146,8 +128,7 @@ function SiblingCard(props: { sibling: SiblingHealth }): JSX.Element {
           <p
             class="rounded-md px-2 py-1 text-[11px]"
             style={{
-              background:
-                "color-mix(in oklab, var(--color-danger) 8%, transparent)",
+              background: "color-mix(in oklab, var(--color-danger) 8%, transparent)",
               color: "var(--color-danger)",
             }}
           >
@@ -172,10 +153,7 @@ export function PlatformSiblingsWidget(): JSX.Element {
     >
       <div class="mb-4 flex items-center justify-between">
         <div class="flex flex-col">
-          <h2
-            class="text-lg font-semibold"
-            style={{ color: "var(--color-text)" }}
-          >
+          <h2 class="text-lg font-semibold" style={{ color: "var(--color-text)" }}>
             Platform Family
           </h2>
           <p class="text-xs" style={{ color: "var(--color-text-faint)" }}>
@@ -215,16 +193,11 @@ export function PlatformSiblingsWidget(): JSX.Element {
         {(data) => (
           <>
             <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
-              <For each={data().siblings}>
-                {(sibling) => <SiblingCard sibling={sibling} />}
-              </For>
+              <For each={data().siblings}>{(sibling) => <SiblingCard sibling={sibling} />}</For>
             </div>
-            <p
-              class="mt-3 text-[10px]"
-              style={{ color: "var(--color-text-faint)" }}
-            >
-              Fan-out snapshot taken{" "}
-              {new Date(data().fetchedAt).toLocaleTimeString()} · cached for 30s
+            <p class="mt-3 text-[10px]" style={{ color: "var(--color-text-faint)" }}>
+              Fan-out snapshot taken {new Date(data().fetchedAt).toLocaleTimeString()} · cached for
+              30s
             </p>
           </>
         )}

@@ -1,4 +1,4 @@
-import { describe, test, expect } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import { createShellState, processCommand } from "./handler";
 
 // ── Terminal handler tests ──────────────────────────────────────────

@@ -2,7 +2,7 @@
 // required tech, each entry has a homepage URL and a logo function.
 
 import { describe, expect, test } from "bun:test";
-import { __STACK_ITEMS_FOR_TEST, StackRow } from "./StackRow";
+import { StackRow, __STACK_ITEMS_FOR_TEST } from "./StackRow";
 
 describe("StackRow", () => {
   test("exports a function component", () => {

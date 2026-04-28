@@ -17,9 +17,9 @@ import { Hono } from "hono";
 import { verifyGithubSignature } from "../github/webhook";
 import { log } from "../log";
 
-const AGENT_URL = `http://127.0.0.1:${process.env["DEPLOY_AGENT_PORT"] ?? 9091}`;
-const AGENT_SECRET = process.env["DEPLOY_AGENT_SECRET"] ?? "";
-const WEBHOOK_SECRET = process.env["GITHUB_WEBHOOK_SECRET"] ?? "";
+const AGENT_URL = `http://127.0.0.1:${process.env.DEPLOY_AGENT_PORT ?? 9091}`;
+const AGENT_SECRET = process.env.DEPLOY_AGENT_SECRET ?? "";
+const WEBHOOK_SECRET = process.env.GITHUB_WEBHOOK_SECRET ?? "";
 const PLATFORM_REPO = "ccantynz-alt/Crontech";
 const PLATFORM_BRANCH = "Main";
 
@@ -44,16 +44,13 @@ platformAutoDeployApp.post("/api/hooks/github/platform", async (c) => {
   }
 
   const sigHeader =
-    c.req.header("x-hub-signature-256") ??
-    c.req.header("X-Hub-Signature-256") ??
-    null;
+    c.req.header("x-hub-signature-256") ?? c.req.header("X-Hub-Signature-256") ?? null;
   const verified = await verifyGithubSignature(WEBHOOK_SECRET, sigHeader, rawBody);
   if (!verified) {
     return c.json({ ok: false, error: "invalid signature" }, 401);
   }
 
-  const event =
-    c.req.header("x-github-event") ?? c.req.header("X-GitHub-Event") ?? "";
+  const event = c.req.header("x-github-event") ?? c.req.header("X-GitHub-Event") ?? "";
   if (event === "ping") {
     return c.json({ ok: true, event: "ping" });
   }

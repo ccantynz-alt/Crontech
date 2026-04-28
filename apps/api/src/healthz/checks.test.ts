@@ -6,12 +6,12 @@
  * network, filesystem, or TLS stack.
  */
 
-import { describe, test, expect } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import {
-  checkPostgres,
-  checkHttpHealth,
   checkCaddyCert,
   checkDiskFree,
+  checkHttpHealth,
+  checkPostgres,
   withTimeout,
 } from "./checks";
 
@@ -24,9 +24,7 @@ describe("withTimeout", () => {
   });
 
   test("rejects with labeled timeout when timer wins", async () => {
-    const slow = new Promise<string>((resolve) =>
-      setTimeout(() => resolve("late"), 200),
-    );
+    const slow = new Promise<string>((resolve) => setTimeout(() => resolve("late"), 200));
     try {
       await withTimeout(slow, 20, "probe");
       throw new Error("expected timeout");
@@ -70,9 +68,10 @@ describe("checkPostgres", () => {
 
   test("returns ok=false with a timeout error when probe hangs", async () => {
     const result = await checkPostgres(
-      () => new Promise<void>(() => {
-        /* hang forever */
-      }),
+      () =>
+        new Promise<void>(() => {
+          /* hang forever */
+        }),
       20,
     );
     expect(result.ok).toBe(false);
@@ -88,11 +87,7 @@ describe("checkHttpHealth", () => {
     const fakeFetch = (async () => {
       return new Response("ok", { status: 200 });
     }) as unknown as typeof fetch;
-    const result = await checkHttpHealth(
-      "https://example.test",
-      1000,
-      fakeFetch,
-    );
+    const result = await checkHttpHealth("https://example.test", 1000, fakeFetch);
     expect(result.ok).toBe(true);
     expect(result.url).toBe("https://example.test/healthz");
     expect(result.status).toBe(200);
@@ -112,11 +107,7 @@ describe("checkHttpHealth", () => {
     const fakeFetch = (async () => {
       return new Response("oops", { status: 503 });
     }) as unknown as typeof fetch;
-    const result = await checkHttpHealth(
-      "https://example.test",
-      1000,
-      fakeFetch,
-    );
+    const result = await checkHttpHealth("https://example.test", 1000, fakeFetch);
     expect(result.ok).toBe(false);
     expect(result.status).toBe(503);
     expect(result.error).toContain("503");
@@ -126,30 +117,19 @@ describe("checkHttpHealth", () => {
     const fakeFetch = (async () => {
       throw new Error("ENOTFOUND");
     }) as unknown as typeof fetch;
-    const result = await checkHttpHealth(
-      "https://nope.test",
-      1000,
-      fakeFetch,
-    );
+    const result = await checkHttpHealth("https://nope.test", 1000, fakeFetch);
     expect(result.ok).toBe(false);
     expect(result.error).toContain("ENOTFOUND");
   });
 
   test("honors the timeout via AbortController", async () => {
-    const fakeFetch = ((
-      _url: string | URL | Request,
-      init?: RequestInit,
-    ) =>
+    const fakeFetch = ((_url: string | URL | Request, init?: RequestInit) =>
       new Promise((_resolve, reject) => {
         init?.signal?.addEventListener("abort", () => {
           reject(new Error("aborted"));
         });
       })) as unknown as typeof fetch;
-    const result = await checkHttpHealth(
-      "https://example.test",
-      10,
-      fakeFetch,
-    );
+    const result = await checkHttpHealth("https://example.test", 10, fakeFetch);
     expect(result.ok).toBe(false);
     expect(result.error).toBeDefined();
   });
@@ -162,13 +142,7 @@ describe("checkCaddyCert", () => {
     const fakeNow = new Date("2026-04-19T00:00:00Z");
     const notAfter = new Date("2026-07-14T00:00:00Z");
     const probe = async (): Promise<Date> => notAfter;
-    const result = await checkCaddyCert(
-      "example.test",
-      443,
-      1000,
-      probe,
-      () => fakeNow,
-    );
+    const result = await checkCaddyCert("example.test", 443, 1000, probe, () => fakeNow);
     expect(result.ok).toBe(true);
     expect(result.expires).toBe("2026-07-14");
     expect(result.days_left).toBe(86);
@@ -178,13 +152,7 @@ describe("checkCaddyCert", () => {
     const fakeNow = new Date("2026-04-19T00:00:00Z");
     const notAfter = new Date("2026-04-01T00:00:00Z");
     const probe = async (): Promise<Date> => notAfter;
-    const result = await checkCaddyCert(
-      "example.test",
-      443,
-      1000,
-      probe,
-      () => fakeNow,
-    );
+    const result = await checkCaddyCert("example.test", 443, 1000, probe, () => fakeNow);
     expect(result.ok).toBe(false);
     expect(result.days_left).toBeLessThanOrEqual(0);
     expect(result.error).toContain("expired");
@@ -194,12 +162,7 @@ describe("checkCaddyCert", () => {
     const probe = async (): Promise<Date> => {
       throw new Error("tls handshake failed");
     };
-    const result = await checkCaddyCert(
-      "example.test",
-      443,
-      1000,
-      probe,
-    );
+    const result = await checkCaddyCert("example.test", 443, 1000, probe);
     expect(result.ok).toBe(false);
     expect(result.error).toBe("tls handshake failed");
   });

@@ -130,10 +130,7 @@ const URGENT_KEYWORDS = [
 ];
 const HIGH_KEYWORDS = ["soon", "blocked", "blocker", "important", "frustrated"];
 
-export function classifyWithRules(
-  subject: string,
-  body: string,
-): Classification {
+export function classifyWithRules(subject: string, body: string): Classification {
   const text = `${subject}\n${body}`.toLowerCase();
   let bestCategory: Category = "other";
   let bestScore = 0;
@@ -152,8 +149,7 @@ export function classifyWithRules(
   let priority: Priority = "medium";
   if (URGENT_KEYWORDS.some((k) => text.includes(k))) priority = "urgent";
   else if (HIGH_KEYWORDS.some((k) => text.includes(k))) priority = "high";
-  else if (bestCategory === "feature" || bestCategory === "spam")
-    priority = "low";
+  else if (bestCategory === "feature" || bestCategory === "spam") priority = "low";
 
   return {
     category: bestCategory,
@@ -162,10 +158,7 @@ export function classifyWithRules(
   };
 }
 
-export async function classifyEmail(
-  subject: string,
-  body: string,
-): Promise<Classification> {
+export async function classifyEmail(subject: string, body: string): Promise<Classification> {
   // Try AI classification first; fall back to rules on any error.
   try {
     const { generateObject } = await import("ai");

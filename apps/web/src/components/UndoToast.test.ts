@@ -6,14 +6,10 @@
 // delay, dismissing cancels the timer, and the source file declares
 // the accessibility + reduced-motion contract the UI relies on.
 
-import { describe, expect, test, beforeEach, afterEach } from "bun:test";
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import {
-  enqueueUndo,
-  dismissUndo,
-  _resetUndoToasts,
-} from "./UndoToast";
+import { _resetUndoToasts, dismissUndo, enqueueUndo } from "./UndoToast";
 
 const SOURCE = resolve(import.meta.dir, "UndoToast.tsx");
 
@@ -120,7 +116,7 @@ describe("Undo toast — source contract", () => {
 
   test("renders an accessible Undo button per toast", () => {
     const src = readFileSync(SOURCE, "utf-8");
-    expect(src).toContain('aria-label={`Undo:');
+    expect(src).toContain("aria-label={`Undo:");
   });
 
   test("anchors to the bottom-right of the viewport", () => {

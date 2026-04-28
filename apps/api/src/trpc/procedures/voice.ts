@@ -13,15 +13,12 @@
 // (single-tool-with-required-schema pattern) plus Zod → JSON-Schema
 // conversion and result validation. Deferred to Phase B.
 
-import { z } from "zod";
-import { generateObject } from "ai";
-import { TRPCError } from "@trpc/server";
-import {
-  getAnthropicModelFromEnv,
-  hasAnthropicProvider,
-} from "@back-to-the-future/ai-core";
+import { getAnthropicModelFromEnv, hasAnthropicProvider } from "@back-to-the-future/ai-core";
 import { startRun } from "@back-to-the-future/theatre";
-import { router, protectedProcedure } from "../init";
+import { TRPCError } from "@trpc/server";
+import { generateObject } from "ai";
+import { z } from "zod";
+import { protectedProcedure, router } from "../init";
 
 // ── Intent schema ─────────────────────────────────────────────────
 // Every voice command must resolve to one of these intents. If the
@@ -42,6 +39,8 @@ const KNOWN_ROUTES = [
   "/billing",
   "/support",
   "/admin",
+  "/admin/gate",
+  "/admin/pulse",
 ] as const;
 
 const IntentSchema = z.discriminatedUnion("kind", [
@@ -90,7 +89,10 @@ Available intents:
 Be strict. Prefer "unknown" with a clear reason over forcing an intent that doesn't fit. Always include a short "reason" field explaining why you chose this intent.
 
 Available routes for navigate:
-/ /dashboard /ops /flywheel /builder /chat /deployments /projects /repos /settings /billing /support /admin`;
+/ /dashboard /ops /flywheel /builder /chat /deployments /projects /repos /settings /billing /support /admin /admin/gate /admin/pulse
+
+- /admin/gate: the Command Gate — live status, vitals, quick-action buttons (iPad command center)
+- /admin/pulse: the Sovereign Pulse — animated orb + real-time platform metrics`;
 
 export const voiceRouter = router({
   /**
@@ -128,43 +130,36 @@ export const voiceRouter = router({
         if (!hasAnthropicProvider()) {
           const intent: VoiceIntent = {
             kind: "unknown",
-            reason:
-              "ANTHROPIC_API_KEY not configured — cannot classify transcript.",
+            reason: "ANTHROPIC_API_KEY not configured — cannot classify transcript.",
           };
-          await run.log(
-            `no anthropic provider; echoing unknown intent`,
-            "stderr",
-          );
+          await run.log("no anthropic provider; echoing unknown intent", "stderr");
           await run.succeed();
           return { intent, transcript: input.transcript, source: "stub" as const };
         }
 
-        const intent = await run.step(
-          "classify transcript",
-          async (step): Promise<VoiceIntent> => {
-            await step.log(`transcript: ${input.transcript}`);
-            const model = getAnthropicModelFromEnv();
-            if (!model) {
-              throw new Error("Anthropic model unavailable.");
-            }
+        const intent = await run.step("classify transcript", async (step): Promise<VoiceIntent> => {
+          await step.log(`transcript: ${input.transcript}`);
+          const model = getAnthropicModelFromEnv();
+          if (!model) {
+            throw new Error("Anthropic model unavailable.");
+          }
 
-            const { object } = await generateObject({
-              model,
-              schema: IntentSchema,
-              system: SYSTEM_PROMPT,
-              prompt: [
-                `Current route: ${input.context?.route ?? "(unknown)"}`,
-                "",
-                "Transcript:",
-                input.transcript,
-              ].join("\n"),
-              temperature: 0.1,
-            });
+          const { object } = await generateObject({
+            model,
+            schema: IntentSchema,
+            system: SYSTEM_PROMPT,
+            prompt: [
+              `Current route: ${input.context?.route ?? "(unknown)"}`,
+              "",
+              "Transcript:",
+              input.transcript,
+            ].join("\n"),
+            temperature: 0.1,
+          });
 
-            await step.log(`→ ${object.kind}: ${object.reason}`);
-            return object;
-          },
-        );
+          await step.log(`→ ${object.kind}: ${object.reason}`);
+          return object;
+        });
 
         await run.succeed();
         return { intent, transcript: input.transcript, source: "ai" as const };
@@ -176,5 +171,64 @@ export const voiceRouter = router({
           message: `Voice dispatch failed: ${message}`,
         });
       }
+    }),
+
+  /**
+   * Optimise text for browser TTS via Web Speech API.
+   *
+   * Takes a raw message (e.g. a metric alert or status update) and returns
+   * a version cleaned up for natural-sounding speech: expands abbreviations,
+   * adds punctuation pauses, removes markdown and emoji. The client then
+   * calls `speechSynthesis.speak(new SpeechSynthesisUtterance(result.text))`.
+   *
+   * When Anthropic is not configured, returns the original text unchanged —
+   * Web Speech still works, just without AI polishing.
+   */
+  tts: protectedProcedure
+    .input(
+      z.object({
+        text: z.string().min(1).max(2_000),
+        /** Voice rate 0.1–2.0. Defaults to 1.0. */
+        rate: z.number().min(0.1).max(2.0).optional(),
+        /** Voice pitch 0.0–2.0. Defaults to 1.0. */
+        pitch: z.number().min(0.0).max(2.0).optional(),
+      }),
+    )
+    .query(async ({ input }) => {
+      let spokenText = input.text;
+
+      if (hasAnthropicProvider()) {
+        const model = getAnthropicModelFromEnv();
+        if (model) {
+          try {
+            const { object } = await generateObject({
+              model,
+              schema: z.object({
+                spokenText: z.string().min(1),
+              }),
+              system: `You convert dashboard text into natural spoken speech for a text-to-speech engine.
+Rules:
+- Remove markdown (**, *, #, backticks, brackets)
+- Remove emoji entirely
+- Expand abbreviations: "ms" → "milliseconds", "req/s" → "requests per second", "uptime" → "up time"
+- Add natural pauses using commas
+- Numbers: "$1234" → "1234 dollars", "95%" → "95 percent"
+- Keep it under 200 words
+- Return only the spoken text, no preamble`,
+              prompt: input.text,
+              temperature: 0.1,
+            });
+            spokenText = object.spokenText;
+          } catch {
+            // Fall through to raw text on AI failure
+          }
+        }
+      }
+
+      return {
+        text: spokenText,
+        rate: input.rate ?? 1.0,
+        pitch: input.pitch ?? 1.0,
+      };
     }),
 });

@@ -1,7 +1,7 @@
+import { Button, Card, Input, Stack, Text } from "@back-to-the-future/ui";
 import { Title } from "@solidjs/meta";
 import { A, useNavigate } from "@solidjs/router";
 import { Show, createSignal, onMount } from "solid-js";
-import { Button, Card, Input, Stack, Text } from "@back-to-the-future/ui";
 import { useAuth } from "../stores";
 
 type AuthMethod = "choose" | "passkey" | "password";
@@ -100,6 +100,7 @@ export default function LoginPage(): ReturnType<typeof Stack> {
                   viewBox="0 0 18 18"
                   fill="none"
                   xmlns="http://www.w3.org/2000/svg"
+                  aria-hidden="true"
                 >
                   <path
                     d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"
@@ -172,11 +173,7 @@ export default function LoginPage(): ReturnType<typeof Stack> {
                 Continue with Email
               </Button>
 
-              <Button
-                variant="ghost"
-                size="md"
-                onClick={() => setMethod("passkey")}
-              >
+              <Button variant="ghost" size="md" onClick={() => setMethod("passkey")}>
                 Sign in with Passkey
               </Button>
             </Stack>
@@ -231,11 +228,7 @@ export default function LoginPage(): ReturnType<typeof Stack> {
                 Sign In
               </Button>
 
-              <Button
-                variant="ghost"
-                size="md"
-                onClick={() => setMethod("choose")}
-              >
+              <Button variant="ghost" size="md" onClick={() => setMethod("choose")}>
                 Back to all options
               </Button>
             </Stack>
@@ -263,11 +256,7 @@ export default function LoginPage(): ReturnType<typeof Stack> {
                 Sign in with Passkey
               </Button>
 
-              <Button
-                variant="ghost"
-                size="md"
-                onClick={() => setMethod("choose")}
-              >
+              <Button variant="ghost" size="md" onClick={() => setMethod("choose")}>
                 Back to all options
               </Button>
             </Stack>
@@ -275,7 +264,9 @@ export default function LoginPage(): ReturnType<typeof Stack> {
 
           <Text variant="caption" class="text-muted">
             Don't have an account?{" "}
-            <A href="/register" class="link">Create one</A>
+            <A href="/register" class="link">
+              Create one
+            </A>
           </Text>
         </Stack>
       </Card>

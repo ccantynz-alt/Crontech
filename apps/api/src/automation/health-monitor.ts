@@ -37,7 +37,9 @@ const history: HealthSnapshot[] = [];
 let monitorTimer: ReturnType<typeof setInterval> | null = null;
 const startedAt = Date.now();
 
-async function timed<T>(fn: () => Promise<T>): Promise<{ value?: T; error?: string; latencyMs: number }> {
+async function timed<T>(
+  fn: () => Promise<T>,
+): Promise<{ value?: T; error?: string; latencyMs: number }> {
   const t0 = performance.now();
   try {
     const value = await fn();
@@ -54,7 +56,8 @@ async function checkDb(): Promise<ServiceCheck> {
   const r = await timed(async () => {
     const { db } = await import("@back-to-the-future/db");
     const dbAny = db as unknown as Record<string, unknown>;
-    if (typeof dbAny.run === "function") await (dbAny.run as (sql: string) => Promise<unknown>)("SELECT 1");
+    if (typeof dbAny.run === "function")
+      await (dbAny.run as (sql: string) => Promise<unknown>)("SELECT 1");
   });
   return {
     name: "database",
@@ -95,14 +98,17 @@ async function checkStripe(): Promise<ServiceCheck> {
 }
 
 async function checkEmail(): Promise<ServiceCheck> {
-  const hasAlecRae = !!(process.env["ALECRAE_API_URL"] && process.env["ALECRAE_API_KEY"]);
+  const hasAlecRae = !!(process.env.ALECRAE_API_URL && process.env.ALECRAE_API_KEY);
   const hasResend = !!process.env.RESEND_API_KEY;
   const provider = hasAlecRae ? "alecrae" : hasResend ? "resend" : "console";
   return {
     name: "email",
     status: hasAlecRae || hasResend ? "ok" : "degraded",
     latencyMs: 0,
-    detail: provider === "console" ? "no email provider configured (console fallback)" : `provider: ${provider}`,
+    detail:
+      provider === "console"
+        ? "no email provider configured (console fallback)"
+        : `provider: ${provider}`,
   };
 }
 
@@ -129,7 +135,9 @@ function checkMemory(): { mb: number; status: ServiceStatus } {
   };
 }
 
-async function settleAll<T>(promises: Promise<T>[]): Promise<Array<{ status: "fulfilled"; value: T } | { status: "rejected"; reason: unknown }>> {
+async function settleAll<T>(
+  promises: Promise<T>[],
+): Promise<Array<{ status: "fulfilled"; value: T } | { status: "rejected"; reason: unknown }>> {
   return Promise.all(
     promises.map((p) =>
       p.then(
@@ -145,7 +153,7 @@ async function alertIfDown(snapshot: HealthSnapshot): Promise<void> {
   if (broken.length === 0) return;
   try {
     const alertsPath = "../../../../services/sentinel/src/alerts/types";
-    const alerts = await import(/* @vite-ignore */ alertsPath) as {
+    const alerts = (await import(/* @vite-ignore */ alertsPath)) as {
       sendSlackAlert: (msg: Record<string, unknown>) => Promise<void>;
       sendDiscordAlert: (msg: Record<string, unknown>) => Promise<void>;
     };

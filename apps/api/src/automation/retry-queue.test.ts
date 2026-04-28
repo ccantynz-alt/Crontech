@@ -3,8 +3,8 @@
 // via a raw string. If someone adds "foo_bar" to one call site and
 // forgets to update the schema, the type guard catches it.
 
-import { describe, test, expect } from "bun:test";
-import { JobTypeSchema, isJobType, type JobType } from "./retry-queue";
+import { describe, expect, test } from "bun:test";
+import { type JobType, JobTypeSchema, isJobType } from "./retry-queue";
 
 describe("JobTypeSchema", () => {
   test("accepts every known job kind", () => {

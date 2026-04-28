@@ -6,9 +6,9 @@
  * All keys are tenant-scoped automatically.
  */
 
-import { PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
+import { GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { getS3Client, getBucketName, scopedKey } from "./client";
+import { getBucketName, getS3Client, scopedKey } from "./client";
 
 const DEFAULT_EXPIRES_IN = 900; // 15 minutes
 

@@ -3,7 +3,7 @@
 // AI agent cursors get a pulsing effect and different icon.
 // Inactive cursors fade out after 5 seconds.
 
-import { For, createSignal, createEffect, onCleanup } from "solid-js";
+import { For, createEffect, createSignal, onCleanup } from "solid-js";
 import type { JSX } from "solid-js";
 import type { AwarenessState } from "../collab/collaborative-doc";
 
@@ -109,6 +109,7 @@ export function CollaborativeCursors(props: CollaborativeCursorsProps): JSX.Elem
                 fill="none"
                 style={{ filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.3))" }}
               >
+                <title>Collaborator cursor</title>
                 <path d="M0 0L16 12L8 12L4 20L0 0Z" fill={cursor.user.color} />
               </svg>
             )}

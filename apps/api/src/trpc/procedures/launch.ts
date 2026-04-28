@@ -9,7 +9,7 @@
 // information (tells an attacker which integrations are wired up).
 
 import { sql } from "drizzle-orm";
-import { router, adminProcedure } from "../init";
+import { adminProcedure, router } from "../init";
 
 // The 12 Phase B secret names the HUD tracks. Kept in lockstep with
 // LaunchChecklist.tsx's Phase B item labels. If a new secret is added

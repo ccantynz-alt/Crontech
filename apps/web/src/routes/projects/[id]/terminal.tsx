@@ -1,11 +1,11 @@
+import { Badge, Button } from "@back-to-the-future/ui";
 import { Title } from "@solidjs/meta";
-import { A, useParams, useNavigate } from "@solidjs/router";
+import { A, useNavigate, useParams } from "@solidjs/router";
 import { Show, createSignal, onMount } from "solid-js";
 import type { JSX } from "solid-js";
-import { Button, Badge } from "@back-to-the-future/ui";
 import { ProtectedRoute } from "../../../components/ProtectedRoute";
-import { Terminal } from "../../../components/Terminal";
 import { SEOHead } from "../../../components/SEOHead";
+import { Terminal } from "../../../components/Terminal";
 import { trpc } from "../../../lib/trpc";
 import { useQuery } from "../../../lib/use-trpc";
 
@@ -94,12 +94,7 @@ function TerminalPage(): JSX.Element {
         >
           {/* Left section */}
           <div class="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate(-1)}
-              aria-label="Go back"
-            >
+            <Button variant="ghost" size="sm" onClick={() => navigate(-1)} aria-label="Go back">
               <span class="mr-1">&larr;</span>
               Back
             </Button>
@@ -107,7 +102,9 @@ function TerminalPage(): JSX.Element {
             <div class="h-5 w-px bg-[var(--color-border)]" />
 
             <div class="flex items-center gap-2">
-              <span class="text-sm font-semibold" style={{ color: "var(--color-text)" }}>{project().name}</span>
+              <span class="text-sm font-semibold" style={{ color: "var(--color-text)" }}>
+                {project().name}
+              </span>
               <Show when={project().framework}>
                 <Badge variant="default">{project().framework}</Badge>
               </Show>
@@ -125,18 +122,47 @@ function TerminalPage(): JSX.Element {
               onClick={toggleFullscreen}
               aria-label={isFullscreen() ? "Exit fullscreen" : "Enter fullscreen"}
             >
-              <Show when={!isFullscreen()} fallback={
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M5 1H1v4M15 1h-4M1 11v4h4M11 15h4v-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                </svg>
-              }>
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M1 6V1h5M10 1h5v5M15 10v5h-5M6 15H1v-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+              <Show
+                when={!isFullscreen()}
+                fallback={
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 16 16"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M5 1H1v4M15 1h-4M1 11v4h4M11 15h4v-4"
+                      stroke="currentColor"
+                      stroke-width="1.5"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                }
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M1 6V1h5M10 1h5v5M15 10v5h-5M6 15H1v-5"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
                 </svg>
               </Show>
             </Button>
 
-            <A href={`/dashboard`}>
+            <A href={"/dashboard"}>
               <Button variant="ghost" size="sm">
                 Dashboard
               </Button>

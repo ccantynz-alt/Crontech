@@ -24,7 +24,11 @@ let lastReport: HealingReport | null = null;
 // ── Recovery primitives ──────────────────────────────────────────────
 
 async function tryDbReconnect(): Promise<HealingAction> {
-  const action: HealingAction = { pattern: "db_connection_lost", attempted: false, recovered: false };
+  const action: HealingAction = {
+    pattern: "db_connection_lost",
+    attempted: false,
+    recovered: false,
+  };
   try {
     const { db } = await import("@back-to-the-future/db");
     action.attempted = true;
@@ -43,10 +47,15 @@ async function tryDbReconnect(): Promise<HealingAction> {
 }
 
 async function cleanStaleWebSockets(): Promise<HealingAction> {
-  const action: HealingAction = { pattern: "stale_websocket_sessions", attempted: true, recovered: true };
+  const action: HealingAction = {
+    pattern: "stale_websocket_sessions",
+    attempted: true,
+    recovered: true,
+  };
   try {
     const mod = await import("../realtime");
-    const cleanup = (mod as unknown as { cleanupStaleSessions?: () => number }).cleanupStaleSessions;
+    const cleanup = (mod as unknown as { cleanupStaleSessions?: () => number })
+      .cleanupStaleSessions;
     if (typeof cleanup === "function") {
       const removed = cleanup();
       action.detail = `removed ${removed} stale sessions`;
@@ -61,7 +70,11 @@ async function cleanStaleWebSockets(): Promise<HealingAction> {
 }
 
 async function retryStripeDeadLetters(): Promise<HealingAction> {
-  const action: HealingAction = { pattern: "stripe_webhook_failures", attempted: true, recovered: true };
+  const action: HealingAction = {
+    pattern: "stripe_webhook_failures",
+    attempted: true,
+    recovered: true,
+  };
   try {
     const mod = await import("../stripe/webhooks");
     const retry = (mod as unknown as { retryDeadLetters?: () => Promise<number> }).retryDeadLetters;

@@ -25,12 +25,7 @@ export interface RawTurn {
 // Role we persist. We collapse Claude's richer taxonomy (tool_use vs
 // tool_result, system hook events, etc.) down to these buckets because
 // retrieval-for-context does not need per-event granularity.
-export type TurnRole =
-  | "user"
-  | "assistant"
-  | "system"
-  | "tool_use"
-  | "tool_result";
+export type TurnRole = "user" | "assistant" | "system" | "tool_use" | "tool_result";
 
 export interface NormalizedTurn {
   readonly id: string;

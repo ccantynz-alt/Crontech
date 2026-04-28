@@ -268,15 +268,11 @@ defineFlag("sentinel.monitoring", {
 
 // ── Startup: load from DB + polling ─────────────────────────────────
 
-loadFlagsFromDB().catch((err) =>
-  console.warn("[feature-flags] Initial DB load failed:", err),
-);
+loadFlagsFromDB().catch((err) => console.warn("[feature-flags] Initial DB load failed:", err));
 
 // Refresh from DB every 60 seconds
 const _pollInterval = setInterval(() => {
-  loadFlagsFromDB().catch((err) =>
-    console.warn("[feature-flags] Poll refresh failed:", err),
-  );
+  loadFlagsFromDB().catch((err) => console.warn("[feature-flags] Poll refresh failed:", err));
 }, 60_000);
 
 // Don't keep process alive for tests

@@ -28,11 +28,7 @@ import { rateLimiter as memoryRateLimiter } from "./rate-limiter";
 // to avoid adding a top-level dev dep. This surface is exactly what we use.
 export interface KvNamespaceLike {
   get(key: string, options?: { type?: "text" | "json" }): Promise<string | null>;
-  put(
-    key: string,
-    value: string,
-    options?: { expirationTtl?: number },
-  ): Promise<void>;
+  put(key: string, value: string, options?: { expirationTtl?: number }): Promise<void>;
 }
 
 interface BucketState {
@@ -58,9 +54,8 @@ export function createKvRateLimiter(opts: KvRateLimiterOptions): MiddlewareHandl
   const kv = opts.kv;
   const fallback = opts.fallback ?? memoryRateLimiter({ windowMs, max });
 
-  return async (c, next): Promise<Response | void> => {
-    const ip =
-      c.req.header("x-forwarded-for") ?? c.req.header("x-real-ip") ?? "unknown";
+  return async (c, next): Promise<Response | undefined> => {
+    const ip = c.req.header("x-forwarded-for") ?? c.req.header("x-real-ip") ?? "unknown";
     const key = `rate:${ip}:${c.req.path}`;
     const now = Date.now();
 

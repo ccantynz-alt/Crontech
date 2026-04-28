@@ -25,8 +25,8 @@ const BRAND_BORDER = "#1f2937";
 const BRAND_TEXT = "#ffffff";
 const BRAND_MUTED = "#9ca3af";
 const BRAND_SUBTLE = "#6b7280";
-const BRAND_NAME = process.env["SITE_NAME"] ?? "Crontech";
-const PUBLIC_URL = process.env["PUBLIC_URL"] ?? "http://localhost:3000";
+const BRAND_NAME = process.env.SITE_NAME ?? "Crontech";
+const PUBLIC_URL = process.env.PUBLIC_URL ?? "http://localhost:3000";
 const FOOTER_TEXT = `&copy; ${new Date().getFullYear()} ${BRAND_NAME}. All rights reserved.`;
 
 // ── Email Type Registry ──────────────────────────────────────────────
@@ -76,13 +76,13 @@ export function decodeUnsubscribeToken(
   token: string,
 ): { userId: string; emailType: UnsubscribableEmailType } | null {
   try {
-    const payload = JSON.parse(
-      Buffer.from(token, "base64url").toString("utf-8"),
-    ) as { userId?: string; emailType?: string };
+    const payload = JSON.parse(Buffer.from(token, "base64url").toString("utf-8")) as {
+      userId?: string;
+      emailType?: string;
+    };
     if (
       typeof payload.userId === "string" &&
-      (payload.emailType === "weeklyDigest" ||
-        payload.emailType === "collaborationInvite")
+      (payload.emailType === "weeklyDigest" || payload.emailType === "collaborationInvite")
     ) {
       return {
         userId: payload.userId,
@@ -130,8 +130,7 @@ interface LayoutOptions {
 }
 
 function layout({ title, previewText, body, unsubscribeUrl }: LayoutOptions): string {
-  const unsubHref =
-    unsubscribeUrl ?? `${PUBLIC_URL}/account/notifications`;
+  const unsubHref = unsubscribeUrl ?? `${PUBLIC_URL}/account/notifications`;
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -250,7 +249,7 @@ export function welcomeEmail(params: WelcomeEmailParams): RenderedEmail {
   ${paragraph(
     `Your ${BRAND_NAME} workspace is fully provisioned. Your tenant database, default project, and sample blueprint are already live — no setup required.`,
   )}
-  ${paragraph(`Here is what you can do in the next five minutes:`)}
+  ${paragraph("Here is what you can do in the next five minutes:")}
   <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin:0 0 8px;">
     ${bullet(`<strong style="color:${BRAND_TEXT};">Ship a project</strong> — generate a full component tree with the AI Composer`)}
     ${bullet(`<strong style="color:${BRAND_TEXT};">Deploy to the edge</strong> — push to 330+ cities in under 8 seconds`)}
@@ -259,7 +258,7 @@ export function welcomeEmail(params: WelcomeEmailParams): RenderedEmail {
   </table>
   ${button("Open your dashboard", dashboard)}
   ${hairline()}
-  ${paragraph(`Need help getting started? Reply to this email — a real engineer reads every message. If you did not create this account, you can safely ignore it.`)}`;
+  ${paragraph("Need help getting started? Reply to this email — a real engineer reads every message. If you did not create this account, you can safely ignore it.")}`;
 
   const html = layout({
     title: subject,
@@ -269,20 +268,20 @@ export function welcomeEmail(params: WelcomeEmailParams): RenderedEmail {
 
   const text = [
     `Welcome to ${BRAND_NAME}, ${params.userName}.`,
-    ``,
-    `Your workspace is fully provisioned. Your tenant database, default project, and sample blueprint are already live.`,
-    ``,
-    `Next steps:`,
-    `  - Ship a project: generate a full component tree with the AI Composer`,
-    `  - Deploy to the edge: push to 330+ cities in under 8 seconds`,
-    `  - Collaborate in real time with your team and AI agents`,
-    `  - Run inference locally with WebGPU at $0/token`,
-    ``,
+    "",
+    "Your workspace is fully provisioned. Your tenant database, default project, and sample blueprint are already live.",
+    "",
+    "Next steps:",
+    "  - Ship a project: generate a full component tree with the AI Composer",
+    "  - Deploy to the edge: push to 330+ cities in under 8 seconds",
+    "  - Collaborate in real time with your team and AI agents",
+    "  - Run inference locally with WebGPU at $0/token",
+    "",
     `Open your dashboard: ${dashboard}`,
-    ``,
-    `Need help? Reply to this email — a real engineer reads every message.`,
-    `If you did not create this account, you can safely ignore it.`,
-    ``,
+    "",
+    "Need help? Reply to this email — a real engineer reads every message.",
+    "If you did not create this account, you can safely ignore it.",
+    "",
     `— The ${BRAND_NAME} team`,
   ].join("\n");
 
@@ -302,7 +301,7 @@ export interface ProjectCreatedEmailParams {
 export function projectCreatedEmail(params: ProjectCreatedEmailParams): RenderedEmail {
   const name = escapeHtml(params.userName);
   const project = escapeHtml(params.projectName);
-  const subject = `Your first project is live`;
+  const subject = "Your first project is live";
   const previewText = `${params.projectName} is wired up. Edge routes, tenant storage, and AI hooks are all online.`;
 
   const body = `${heading(`${project} is live.`)}
@@ -316,7 +315,7 @@ export function projectCreatedEmail(params: ProjectCreatedEmailParams): Rendered
       ${statCard("Status", `<span style="color:#22c55e;">&#9679;</span> &nbsp;Active`)}
     </tr>
   </table>
-  ${paragraph(`Every layer is already wired up:`)}
+  ${paragraph("Every layer is already wired up:")}
   <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin:0 0 8px;">
     ${bullet(`<strong style="color:${BRAND_TEXT};">Edge routes</strong> — Hono running in 330+ cities`)}
     ${bullet(`<strong style="color:${BRAND_TEXT};">Tenant storage</strong> — Turso + Qdrant vector search ready`)}
@@ -335,22 +334,22 @@ export function projectCreatedEmail(params: ProjectCreatedEmailParams): Rendered
 
   const text = [
     `${params.projectName} is live.`,
-    ``,
+    "",
     `Nice work, ${params.userName}. Your project is provisioned and ready to build on.`,
-    ``,
+    "",
     `Project: ${params.projectName}`,
-    `Status: Active`,
-    ``,
-    `Every layer is already wired up:`,
-    `  - Edge routes: Hono running in 330+ cities`,
-    `  - Tenant storage: Turso + Qdrant vector search ready`,
-    `  - AI hooks: client GPU, edge, and cloud tiers connected`,
-    `  - Observability: OpenTelemetry streaming to Grafana`,
-    ``,
+    "Status: Active",
+    "",
+    "Every layer is already wired up:",
+    "  - Edge routes: Hono running in 330+ cities",
+    "  - Tenant storage: Turso + Qdrant vector search ready",
+    "  - AI hooks: client GPU, edge, and cloud tiers connected",
+    "  - Observability: OpenTelemetry streaming to Grafana",
+    "",
     `Open project: ${params.projectUrl}`,
-    ``,
-    `When you are ready to ship, run \`crontech deploy\`.`,
-    ``,
+    "",
+    "When you are ready to ship, run `crontech deploy`.",
+    "",
     `— The ${BRAND_NAME} team`,
   ].join("\n");
 
@@ -377,10 +376,8 @@ export function deploySuccessEmail(params: DeploySuccessEmailParams): RenderedEm
   const commit = params.commitSha ? escapeHtml(params.commitSha.slice(0, 7)) : "—";
   const region = escapeHtml(params.region ?? "Global edge");
   const duration =
-    typeof params.durationMs === "number"
-      ? `${(params.durationMs / 1000).toFixed(2)}s`
-      : "—";
-  const subject = `Your project is live`;
+    typeof params.durationMs === "number" ? `${(params.durationMs / 1000).toFixed(2)}s` : "—";
+  const subject = "Your project is live";
   const previewText = `${params.projectName} shipped to the edge. ${params.region ?? "Global"} in ${duration}.`;
 
   const body = `${heading(`You shipped, ${name}.`)}
@@ -415,22 +412,22 @@ export function deploySuccessEmail(params: DeploySuccessEmailParams): RenderedEm
 
   const text = [
     `You shipped, ${params.userName}.`,
-    ``,
+    "",
     `${params.projectName} is now live on the ${BRAND_NAME} edge network.`,
-    ``,
+    "",
     `Live URL:   ${deployUrl}`,
     `Commit:     ${commit}`,
     `Region:     ${params.region ?? "Global edge"}`,
     `Build time: ${duration}`,
-    ``,
+    "",
     `View live site: ${deployUrl}`,
-    ``,
-    `Zero cold starts. Sub-50ms TTFB worldwide. No provisioning.`,
+    "",
+    "Zero cold starts. Sub-50ms TTFB worldwide. No provisioning.",
     `That is the ${BRAND_NAME} guarantee — and your users are already feeling it.`,
-    ``,
+    "",
     `Dashboard: ${PUBLIC_URL}/dashboard`,
     `Deploy docs: ${PUBLIC_URL}/docs/deploys`,
-    ``,
+    "",
     `— The ${BRAND_NAME} team`,
   ].join("\n");
 
@@ -441,7 +438,7 @@ export function deploySuccessEmail(params: DeploySuccessEmailParams): RenderedEm
 
 export function passwordResetEmail(resetLink: string): string {
   const body = `${heading("Reset your credentials")}
-  ${paragraph(`We received a request to reset your account credentials. Click the button below to proceed.`)}
+  ${paragraph("We received a request to reset your account credentials. Click the button below to proceed.")}
   ${button("Reset credentials", resetLink)}
   ${paragraph(`<span style="color:${BRAND_MUTED};font-size:13px;">This link expires in 1 hour.</span>`)}
   ${paragraph(`<span style="color:${BRAND_MUTED};font-size:13px;">If you did not request this, please ignore this email. Your account is secure.</span>`)}`;
@@ -452,13 +449,9 @@ export function passwordResetEmail(resetLink: string): string {
   });
 }
 
-export function billingReceiptEmail(
-  amount: string,
-  planName: string,
-  date: string,
-): string {
+export function billingReceiptEmail(amount: string, planName: string, date: string): string {
   const body = `${heading("Payment receipt")}
-  ${paragraph(`Thank you for your payment. Here are the details:`)}
+  ${paragraph("Thank you for your payment. Here are the details:")}
   <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin:16px 0 8px;">
     <tr>
       ${statCard("Plan", escapeHtml(planName))}
@@ -489,16 +482,12 @@ export function collaborationInviteEmail(
   joinLink: string,
   userId?: string,
 ): EmailWithHeaders {
-  const token = userId
-    ? generateUnsubscribeToken(userId, "collaborationInvite")
-    : null;
-  const unsubscribeUrl = token
-    ? `${PUBLIC_URL}/api/unsubscribe?token=${token}`
-    : undefined;
+  const token = userId ? generateUnsubscribeToken(userId, "collaborationInvite") : null;
+  const unsubscribeUrl = token ? `${PUBLIC_URL}/api/unsubscribe?token=${token}` : undefined;
 
   const body = `${heading("You have been invited to collaborate")}
   ${paragraph(`<strong style="color:${BRAND_TEXT};">${escapeHtml(inviterName)}</strong> has invited you to join the room <strong style="color:${BRAND_TEXT};">${escapeHtml(roomName)}</strong> on ${BRAND_NAME}.`)}
-  ${paragraph(`Collaborate in real-time with team members and AI agents using CRDT-powered editing.`)}
+  ${paragraph("Collaborate in real-time with team members and AI agents using CRDT-powered editing.")}
   ${button("Join room", joinLink)}
   ${paragraph(`<span style="color:${BRAND_MUTED};font-size:13px;">If you did not expect this invite, you can ignore this email.</span>`)}`;
 
@@ -509,9 +498,7 @@ export function collaborationInviteEmail(
     ...(unsubscribeUrl !== undefined ? { unsubscribeUrl } : {}),
   });
 
-  const headers = userId
-    ? buildUnsubscribeHeaders(userId, "collaborationInvite")
-    : {};
+  const headers = userId ? buildUnsubscribeHeaders(userId, "collaborationInvite") : {};
 
   return { html, headers };
 }
@@ -523,16 +510,9 @@ interface WeeklyDigestStats {
   videoEdits: number;
 }
 
-export function weeklyDigestEmail(
-  stats: WeeklyDigestStats,
-  userId?: string,
-): EmailWithHeaders {
-  const token = userId
-    ? generateUnsubscribeToken(userId, "weeklyDigest")
-    : null;
-  const unsubscribeUrl = token
-    ? `${PUBLIC_URL}/api/unsubscribe?token=${token}`
-    : undefined;
+export function weeklyDigestEmail(stats: WeeklyDigestStats, userId?: string): EmailWithHeaders {
+  const token = userId ? generateUnsubscribeToken(userId, "weeklyDigest") : null;
+  const unsubscribeUrl = token ? `${PUBLIC_URL}/api/unsubscribe?token=${token}` : undefined;
 
   const body = `${heading("Your weekly summary")}
   ${paragraph(`Here is what you accomplished this week on ${BRAND_NAME}:`)}
@@ -558,9 +538,7 @@ export function weeklyDigestEmail(
     ...(unsubscribeUrl !== undefined ? { unsubscribeUrl } : {}),
   });
 
-  const headers = userId
-    ? buildUnsubscribeHeaders(userId, "weeklyDigest")
-    : {};
+  const headers = userId ? buildUnsubscribeHeaders(userId, "weeklyDigest") : {};
 
   return { html, headers };
 }

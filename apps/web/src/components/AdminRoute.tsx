@@ -1,6 +1,6 @@
+import { useNavigate } from "@solidjs/router";
 import type { JSX } from "solid-js";
 import { Show } from "solid-js";
-import { useNavigate } from "@solidjs/router";
 import { createEffect, onMount } from "solid-js";
 import { useAuth } from "../stores";
 
@@ -42,13 +42,19 @@ export function AdminRoute(props: AdminRouteProps): JSX.Element {
     <div class="flex min-h-[60vh] flex-col items-center justify-center gap-4">
       <div
         class="flex h-16 w-16 items-center justify-center rounded-2xl text-2xl"
-        style={{ background: "color-mix(in oklab, var(--color-danger) 10%, transparent)", color: "var(--color-danger)" }}
+        style={{
+          background: "color-mix(in oklab, var(--color-danger) 10%, transparent)",
+          color: "var(--color-danger)",
+        }}
       >
         &#128274;
       </div>
-      <h2 class="text-xl font-bold" style={{ color: "var(--color-text)" }}>Access Denied</h2>
+      <h2 class="text-xl font-bold" style={{ color: "var(--color-text)" }}>
+        Access Denied
+      </h2>
       <p class="max-w-sm text-center text-sm" style={{ color: "var(--color-text-muted)" }}>
-        This area is restricted to administrators. If you believe this is an error, contact your account administrator.
+        This area is restricted to administrators. If you believe this is an error, contact your
+        account administrator.
       </p>
       <button
         type="button"
@@ -73,11 +79,7 @@ export function AdminRoute(props: AdminRouteProps): JSX.Element {
     >
       <Show
         when={auth.isAuthenticated() && isAdmin()}
-        fallback={
-          <Show when={auth.isAuthenticated()}>
-            {props.fallback ?? defaultFallback}
-          </Show>
-        }
+        fallback={<Show when={auth.isAuthenticated()}>{props.fallback ?? defaultFallback}</Show>}
       >
         {props.children}
       </Show>

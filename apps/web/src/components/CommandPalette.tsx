@@ -1,20 +1,11 @@
-import {
-  For,
-  Show,
-  createEffect,
-  createMemo,
-  createSignal,
-  onCleanup,
-  onMount,
-} from "solid-js";
-import type { JSX } from "solid-js";
 import { useNavigate } from "@solidjs/router";
-import { useAuth, useTheme } from "../stores";
+import { For, Show, createEffect, createMemo, createSignal, onCleanup, onMount } from "solid-js";
+import type { JSX } from "solid-js";
 import {
-  GROUP_LABELS,
   type CommandContext,
   type CommandDescriptor,
   type CommandGroup,
+  GROUP_LABELS,
   findCommand,
   getRecentCommandIds,
   getVisibleCommands,
@@ -22,6 +13,7 @@ import {
   recordCommandUse,
   searchCommands,
 } from "../lib/commands";
+import { useAuth, useTheme } from "../stores";
 
 // ── Command Palette (Cmd+K / Ctrl+K) ───────────────────────────────
 //
@@ -201,6 +193,9 @@ export function CommandPalette(): JSX.Element {
     <Show when={open()}>
       <div
         onClick={() => setOpen(false)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") setOpen(false);
+        }}
         style={{
           position: "fixed",
           inset: "0",
@@ -212,10 +207,12 @@ export function CommandPalette(): JSX.Element {
           "padding-top": "10vh",
         }}
       >
-        <div
+        <dialog
+          open
           onClick={(e) => e.stopPropagation()}
-          role="dialog"
-          aria-modal="true"
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") e.stopPropagation();
+          }}
           aria-label="Command palette"
           style={{
             width: "min(820px, 92vw)",
@@ -439,7 +436,7 @@ export function CommandPalette(): JSX.Element {
             <span>Enter to select</span>
             <span>Esc to close</span>
           </div>
-        </div>
+        </dialog>
       </div>
     </Show>
   );

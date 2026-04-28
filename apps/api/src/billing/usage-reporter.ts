@@ -38,21 +38,12 @@
  */
 
 import { randomUUID } from "node:crypto";
+import { db, subscriptions, usageEvents, usageReports } from "@back-to-the-future/db";
 import { and, eq, sql } from "drizzle-orm";
 import type Stripe from "stripe";
-import {
-  db,
-  subscriptions,
-  usageEvents,
-  usageReports,
-} from "@back-to-the-future/db";
-import { getStripe } from "../stripe/client";
 import { writeAudit } from "../automation/audit-log";
-import {
-  currentBillingMonth,
-  USAGE_EVENT_TYPES,
-  type UsageEventType,
-} from "./usage-meter";
+import { getStripe } from "../stripe/client";
+import { USAGE_EVENT_TYPES, type UsageEventType, currentBillingMonth } from "./usage-meter";
 
 // ── Types ──────────────────────────────────────────────────────────
 
@@ -83,7 +74,7 @@ export interface ReportOutcome {
 // ── Env helpers ────────────────────────────────────────────────────
 
 function isBillingEnabled(): boolean {
-  return process.env["STRIPE_ENABLED"] === "true";
+  return process.env.STRIPE_ENABLED === "true";
 }
 
 /**
@@ -97,9 +88,7 @@ function isBillingEnabled(): boolean {
  * correct posture for a brand-new Stripe account where metered prices
  * haven't been created yet.
  */
-export function priceMapFromEnv(
-  raw: string | undefined,
-): Partial<Record<UsageEventType, string>> {
+export function priceMapFromEnv(raw: string | undefined): Partial<Record<UsageEventType, string>> {
   if (!raw) return {};
   const map: Partial<Record<UsageEventType, string>> = {};
   for (const pair of raw.split(",")) {
@@ -113,7 +102,7 @@ export function priceMapFromEnv(
 }
 
 function priceMapFor(): Partial<Record<UsageEventType, string>> {
-  return priceMapFromEnv(process.env["STRIPE_USAGE_PRICE_MAP"]);
+  return priceMapFromEnv(process.env.STRIPE_USAGE_PRICE_MAP);
 }
 
 // ── Aggregate helpers ──────────────────────────────────────────────
@@ -128,9 +117,7 @@ async function getLocalMonthTotals(
       total: sql<number>`coalesce(sum(${usageEvents.quantity}), 0)`,
     })
     .from(usageEvents)
-    .where(
-      and(eq(usageEvents.userId, userId), eq(usageEvents.billingMonth, month)),
-    )
+    .where(and(eq(usageEvents.userId, userId), eq(usageEvents.billingMonth, month)))
     .groupBy(usageEvents.eventType);
 
   const m = new Map<UsageEventType, number>();
@@ -172,18 +159,14 @@ interface ResolvedSub {
   priceToItemId: Map<string, string>;
 }
 
-async function resolveSubscription(
-  userId: string,
-): Promise<ResolvedSub | null> {
+async function resolveSubscription(userId: string): Promise<ResolvedSub | null> {
   const localSub = await db.query.subscriptions.findFirst({
     where: eq(subscriptions.userId, userId),
     orderBy: (s, { desc }) => [desc(s.createdAt)],
   });
   if (!localSub || localSub.status === "canceled") return null;
 
-  const stripeSub = await getStripe().subscriptions.retrieve(
-    localSub.stripeSubscriptionId,
-  );
+  const stripeSub = await getStripe().subscriptions.retrieve(localSub.stripeSubscriptionId);
 
   const priceToItemId = new Map<string, string>();
   for (const item of stripeSub.items.data as Stripe.SubscriptionItem[]) {
@@ -381,9 +364,7 @@ export async function reportAllPendingUsage(
       // A catastrophic throw from one user's report must not abort the
       // whole batch. Log + continue.
       const reason = err instanceof Error ? err.message : String(err);
-      console.error(
-        `[usage-reporter] Catastrophic failure for user=${sub.userId}: ${reason}`,
-      );
+      console.error(`[usage-reporter] Catastrophic failure for user=${sub.userId}: ${reason}`);
       failed += 1;
       outcomes.push({
         userId: sub.userId,

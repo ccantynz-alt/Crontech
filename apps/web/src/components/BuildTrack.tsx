@@ -26,14 +26,7 @@
 // Position: fixed bottom-left. VoicePill sits bottom-right so the two
 // HUDs do not fight for the same corner.
 
-import {
-  For,
-  Show,
-  createMemo,
-  createSignal,
-  onCleanup,
-  onMount,
-} from "solid-js";
+import { For, Show, createMemo, createSignal, onCleanup, onMount } from "solid-js";
 import type { JSX } from "solid-js";
 import { useAuth } from "../stores";
 
@@ -63,12 +56,22 @@ export interface BlockEntry {
 // Keep this list ordered by block ID. New blocks append at the bottom.
 export const BUILD_TRACK_BLOCKS: readonly BlockEntry[] = [
   { id: "BLK-001", title: "Positioning (locked copy)", status: "shipped" },
-  { id: "BLK-002", title: "Platform stack", status: "set", note: "pending update after CF migration" },
+  {
+    id: "BLK-002",
+    title: "Platform stack",
+    status: "set",
+    note: "pending update after CF migration",
+  },
   { id: "BLK-003", title: "Landing page IA", status: "shipped" },
   { id: "BLK-004", title: "Three-tier compute model", status: "set" },
   { id: "BLK-005", title: "Auth (passkey + OAuth + password)", status: "shipped" },
   { id: "BLK-006", title: "Composer (internal dev tool)", status: "shipped" },
-  { id: "BLK-007", title: "GateTest as PR gate", status: "building", note: "report-only; flip to hard gate after 2 clean PRs" },
+  {
+    id: "BLK-007",
+    title: "GateTest as PR gate",
+    status: "building",
+    note: "report-only; flip to hard gate after 2 clean PRs",
+  },
   { id: "BLK-008", title: "Visual design system (Stripe direction)", status: "building" },
   { id: "BLK-009", title: "Git-push deploy pipeline", status: "planned" },
   { id: "BLK-010", title: "Stripe metered billing", status: "planned" },
@@ -78,10 +81,30 @@ export const BUILD_TRACK_BLOCKS: readonly BlockEntry[] = [
   { id: "BLK-014", title: "Observability (Grafana LGTM)", status: "planned" },
   { id: "BLK-015", title: "Sentinel live service", status: "planned" },
   { id: "BLK-016", title: "Gluecron integration", status: "planned" },
-  { id: "BLK-017", title: "Flywheel (shipped in #88)", status: "undocumented", note: "needs Bible entry" },
-  { id: "BLK-018", title: "Voice dispatcher (shipped in #88)", status: "undocumented", note: "needs Bible entry" },
-  { id: "BLK-019", title: "Build Theatre (shipped in #88)", status: "undocumented", note: "needs Bible entry" },
-  { id: "BLK-020", title: "Crontech Independence (kill Vultr + Vercel SDK)", status: "proposed", note: "Phase A: ~3 working days" },
+  {
+    id: "BLK-017",
+    title: "Flywheel (shipped in #88)",
+    status: "undocumented",
+    note: "needs Bible entry",
+  },
+  {
+    id: "BLK-018",
+    title: "Voice dispatcher (shipped in #88)",
+    status: "undocumented",
+    note: "needs Bible entry",
+  },
+  {
+    id: "BLK-019",
+    title: "Build Theatre (shipped in #88)",
+    status: "undocumented",
+    note: "needs Bible entry",
+  },
+  {
+    id: "BLK-020",
+    title: "Crontech Independence (kill Vultr + Vercel SDK)",
+    status: "proposed",
+    note: "Phase A: ~3 working days",
+  },
   { id: "BLK-021", title: "WebGPU draft model (Zoobicon TTFT <100ms)", status: "proposed" },
   { id: "BLK-022", title: "AI Gateway + BYOK", status: "proposed" },
   { id: "BLK-023", title: "Env-var migration in onboarding", status: "proposed" },
@@ -95,8 +118,7 @@ export const BUILD_TRACK_BLOCKS: readonly BlockEntry[] = [
 // Vite statically replaces `import.meta.env.VITE_*` at build time; the
 // property access itself is safe even on SSR because it's substituted
 // before runtime. If the var is not set, we fall back to "local".
-const BUILD_SHA: string =
-  (import.meta.env.VITE_GIT_SHA as string | undefined) ?? "local";
+const BUILD_SHA: string = (import.meta.env.VITE_GIT_SHA as string | undefined) ?? "local";
 
 function shortSha(sha: string): string {
   if (!sha || sha === "unknown" || sha === "local") return sha;
@@ -115,17 +137,37 @@ interface StatusStyle {
 function statusStyle(status: BlockStatus): StatusStyle {
   switch (status) {
     case "shipped":
-      return { label: "SHIPPED", color: "var(--color-success)", bg: "rgba(16,185,129,0.15)", icon: "✓" };
+      return {
+        label: "SHIPPED",
+        color: "var(--color-success)",
+        bg: "rgba(16,185,129,0.15)",
+        icon: "✓",
+      };
     case "set":
       return { label: "SET", color: "#06b6d4", bg: "rgba(6,182,212,0.15)", icon: "●" };
     case "building":
-      return { label: "BUILDING", color: "var(--color-warning)", bg: "rgba(245,158,11,0.15)", icon: "◐" };
+      return {
+        label: "BUILDING",
+        color: "var(--color-warning)",
+        bg: "rgba(245,158,11,0.15)",
+        icon: "◐",
+      };
     case "planned":
-      return { label: "PLANNED", color: "var(--color-primary)", bg: "rgba(99,102,241,0.15)", icon: "○" };
+      return {
+        label: "PLANNED",
+        color: "var(--color-primary)",
+        bg: "rgba(99,102,241,0.15)",
+        icon: "○",
+      };
     case "paused":
       return { label: "PAUSED", color: "#94a3b8", bg: "rgba(148,163,184,0.15)", icon: "⏸" };
     case "undocumented":
-      return { label: "NEEDS DOC", color: "var(--color-warning)", bg: "rgba(234,179,8,0.15)", icon: "⚠" };
+      return {
+        label: "NEEDS DOC",
+        color: "var(--color-warning)",
+        bg: "rgba(234,179,8,0.15)",
+        icon: "⚠",
+      };
     case "proposed":
       return { label: "PROPOSED", color: "#a78bfa", bg: "rgba(167,139,250,0.15)", icon: "?" };
   }
@@ -371,9 +413,7 @@ export function BuildTrack(): JSX.Element {
                     "box-shadow": `0 0 6px ${driftColor()}`,
                   }}
                 />
-                <span style={{ "font-weight": 600, "font-size": "0.85rem" }}>
-                  Build Track
-                </span>
+                <span style={{ "font-weight": 600, "font-size": "0.85rem" }}>Build Track</span>
                 <span style={{ opacity: 0.55, "font-size": "0.75rem" }}>
                   {counts().shipped}/{counts().total}
                 </span>
@@ -411,10 +451,12 @@ export function BuildTrack(): JSX.Element {
             >
               <div>
                 Bundle:{" "}
-                <span style={{ color: "var(--color-text)", "font-variant-numeric": "tabular-nums" }}>
+                <span
+                  style={{ color: "var(--color-text)", "font-variant-numeric": "tabular-nums" }}
+                >
                   {shortSha(BUILD_SHA)}
                 </span>
-                {"  "}·  Live:{" "}
+                {"  "}· Live:{" "}
                 <span style={{ color: driftColor(), "font-variant-numeric": "tabular-nums" }}>
                   {liveSha() ? shortSha(liveSha() as string) : "probing…"}
                 </span>
@@ -425,9 +467,7 @@ export function BuildTrack(): JSX.Element {
                 </div>
               </Show>
               <Show when={lastCheck()}>
-                <div style={{ opacity: 0.5 }}>
-                  checked {(lastCheck() ?? "").slice(11, 19)}Z
-                </div>
+                <div style={{ opacity: 0.5 }}>checked {(lastCheck() ?? "").slice(11, 19)}Z</div>
               </Show>
             </div>
 
@@ -505,7 +545,13 @@ export function BuildTrack(): JSX.Element {
                           <span style={{ color: "var(--color-text)", flex: 1 }}>{b.title}</span>
                         </div>
                         <Show when={b.note}>
-                          <div style={{ color: "var(--color-text-muted)", "font-size": "0.72rem", "margin-top": "0.1rem" }}>
+                          <div
+                            style={{
+                              color: "var(--color-text-muted)",
+                              "font-size": "0.72rem",
+                              "margin-top": "0.1rem",
+                            }}
+                          >
                             {b.note}
                           </div>
                         </Show>

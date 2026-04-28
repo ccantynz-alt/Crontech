@@ -15,7 +15,7 @@
 //     other gated surface with no duplication.
 //   - Testable in isolation.
 
-import { createSignal, Show } from "solid-js";
+import { Show, createSignal } from "solid-js";
 import type { JSX } from "solid-js";
 import { trpc } from "../lib/trpc";
 import { friendlyError } from "../lib/use-trpc";
@@ -95,9 +95,8 @@ export function PreLaunchBilling(): JSX.Element {
           class="mt-3 text-base leading-relaxed sm:text-lg"
           style={{ color: "var(--color-text-secondary)" }}
         >
-          Join the waitlist for early access. We'll email you the moment paid
-          plans open — alongside the launch-day founder pricing that won't be
-          offered again.
+          Join the waitlist for early access. We'll email you the moment paid plans open — alongside
+          the launch-day founder pricing that won't be offered again.
         </p>
 
         <Show
@@ -123,7 +122,9 @@ export function PreLaunchBilling(): JSX.Element {
             onSubmit={(event) => void handleSubmit(event)}
             noValidate
           >
-            <label class="sr-only" for="prelaunch-billing-email">Email address</label>
+            <label class="sr-only" for="prelaunch-billing-email">
+              Email address
+            </label>
             <input
               id="prelaunch-billing-email"
               type="email"
@@ -160,8 +161,8 @@ export function PreLaunchBilling(): JSX.Element {
         </Show>
 
         <p class="mt-6 text-[11px]" style={{ color: "var(--color-text-faint)" }}>
-          Already subscribed via an earlier invite? Contact support and we'll
-          migrate you the moment billing comes online.
+          Already subscribed via an earlier invite? Contact support and we'll migrate you the moment
+          billing comes online.
         </p>
       </div>
     </div>

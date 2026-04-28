@@ -1,4 +1,4 @@
-import type { JSX } from "solid-js";
+import type { IconTypes } from "solid-icons";
 import {
   FiBarChart2,
   FiBriefcase,
@@ -33,7 +33,7 @@ import {
   FiWifi,
   FiZap,
 } from "solid-icons/fi";
-import type { IconTypes } from "solid-icons";
+import type { JSX } from "solid-js";
 
 // ── Icon Registry ───────────────────────────────────────────────────
 //

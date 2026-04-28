@@ -1,7 +1,7 @@
 // ── BLK-025 Domain Search: Trademark Scanner Unit Tests ─────────────
 
-import { describe, test, expect, beforeEach } from "bun:test";
-import { aboveRisk, scanTrademarkConflicts, type TrademarkConflict } from "./trademark";
+import { beforeEach, describe, expect, test } from "bun:test";
+import { type TrademarkConflict, aboveRisk, scanTrademarkConflicts } from "./trademark";
 
 describe("aboveRisk", () => {
   const rows: TrademarkConflict[] = [
@@ -25,7 +25,7 @@ describe("aboveRisk", () => {
 
 describe("scanTrademarkConflicts", () => {
   beforeEach(() => {
-    process.env["ANTHROPIC_API_KEY"] = "";
+    process.env.ANTHROPIC_API_KEY = "";
   });
 
   test("returns empty list + polite note when no key configured", async () => {

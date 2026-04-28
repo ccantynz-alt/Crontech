@@ -55,8 +55,7 @@ describe("docs/collaboration — three-article series", () => {
   });
 
   test("polite tone — no competitor names in collaboration articles", () => {
-    const fromCodes = (...codes: number[]): string =>
-      String.fromCharCode(...codes);
+    const fromCodes = (...codes: number[]): string => String.fromCharCode(...codes);
     const banned = [
       ` ${fromCodes(118, 101, 114, 99, 101, 108)} `, // vercel
       ` ${fromCodes(110, 101, 116, 108, 105, 102, 121)} `, // netlify
@@ -67,10 +66,7 @@ describe("docs/collaboration — three-article series", () => {
       // guard, use "replaces Render" / "beat Render" framing checks.
     ];
     for (const { file } of ARTICLES) {
-      const src = readFileSync(
-        resolve(COLLAB_DIR, file),
-        "utf-8",
-      ).toLowerCase();
+      const src = readFileSync(resolve(COLLAB_DIR, file), "utf-8").toLowerCase();
       for (const name of banned) {
         expect(src).not.toContain(name);
       }
@@ -78,10 +74,7 @@ describe("docs/collaboration — three-article series", () => {
   });
 
   test("yjs-crdts cites the real apps/api realtime implementation", () => {
-    const src = readFileSync(
-      resolve(COLLAB_DIR, "yjs-crdts.tsx"),
-      "utf-8",
-    );
+    const src = readFileSync(resolve(COLLAB_DIR, "yjs-crdts.tsx"), "utf-8");
     // Must reference the actual file + Yjs primitives used there.
     // If a future session waters this down to generic prose, the
     // suite catches it.
@@ -92,10 +85,7 @@ describe("docs/collaboration — three-article series", () => {
   });
 
   test("presence-and-cursors cites the real room manager and message types", () => {
-    const src = readFileSync(
-      resolve(COLLAB_DIR, "presence-and-cursors.tsx"),
-      "utf-8",
-    );
+    const src = readFileSync(resolve(COLLAB_DIR, "presence-and-cursors.tsx"), "utf-8");
     expect(src).toContain("websocket.ts");
     expect(src).toContain("rooms.ts");
     expect(src).toContain("types.ts");

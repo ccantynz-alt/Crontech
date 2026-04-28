@@ -10,9 +10,8 @@ export function Separator(props: SeparatorProps): JSX.Element {
   const [local, rest] = splitProps(props, ["orientation", "class"]);
 
   return (
-    <div
+    <hr
       class={`separator separator-${local.orientation ?? "horizontal"} ${local.class ?? ""}`}
-      role="separator"
       aria-orientation={local.orientation ?? "horizontal"}
       {...rest}
     />

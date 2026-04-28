@@ -3,7 +3,7 @@
  * Falls back to console when DB is unavailable so automation never crashes.
  */
 import { createHash } from "node:crypto";
-import { db, auditLogs } from "@back-to-the-future/db";
+import { auditLogs, db } from "@back-to-the-future/db";
 
 export interface AuditEntry {
   actorId: string;
@@ -40,6 +40,8 @@ export async function writeAudit(entry: AuditEntry): Promise<void> {
   } catch (err) {
     // Never let audit failures break automation - log to stderr as fallback.
     process.stderr.write(`[audit] DB write failed, falling back to stderr: ${err}\n`);
-    process.stderr.write(`[audit] ${timestamp} ${entry.actorId} ${entry.action} ${entry.resourceType}:${entry.resourceId} ${entry.result}${entry.detail ? " - " + entry.detail : ""}\n`);
+    process.stderr.write(
+      `[audit] ${timestamp} ${entry.actorId} ${entry.action} ${entry.resourceType}:${entry.resourceId} ${entry.result}${entry.detail ? ` - ${entry.detail}` : ""}\n`,
+    );
   }
 }

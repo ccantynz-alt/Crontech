@@ -54,9 +54,7 @@ function renderBlock(block: LegalBlock): JSX.Element {
   if (block.type === "ul") {
     return (
       <ul class="mb-4 ml-6 list-disc space-y-2 leading-[1.7]" style={{ color: "#334155" }}>
-        <For each={block.items}>
-          {(item) => <li>{renderInline(item)}</li>}
-        </For>
+        <For each={block.items}>{(item) => <li>{renderInline(item)}</li>}</For>
       </ul>
     );
   }
@@ -119,10 +117,7 @@ export default function LegalPage(props: LegalPageProps): JSX.Element {
                     {section.heading}
                   </h2>
                 ) : (
-                  <h3
-                    class="mb-3 mt-6 text-[1.125rem] font-semibold"
-                    style={{ color: "#1e293b" }}
-                  >
+                  <h3 class="mb-3 mt-6 text-[1.125rem] font-semibold" style={{ color: "#1e293b" }}>
                     {section.heading}
                   </h3>
                 )}
@@ -132,18 +127,33 @@ export default function LegalPage(props: LegalPageProps): JSX.Element {
           </For>
         </div>
 
-        <div class="mt-16 border-t pt-6 text-sm" style={{ "border-color": "#e2e8f0", color: "#64748b" }}>
+        <div
+          class="mt-16 border-t pt-6 text-sm"
+          style={{ "border-color": "#e2e8f0", color: "#64748b" }}
+        >
           <p>
-            Questions? Email <a href="mailto:legal@crontech.ai" style={{ color: "#6366f1" }}>legal@crontech.ai</a>.
+            Questions? Email{" "}
+            <a href="mailto:legal@crontech.ai" style={{ color: "#6366f1" }}>
+              legal@crontech.ai
+            </a>
+            .
           </p>
           <p class="mt-2">
-            <a href="/" style={{ color: "#6366f1" }}>← Back to Crontech</a>
+            <a href="/" style={{ color: "#6366f1" }}>
+              ← Back to Crontech
+            </a>
             <span class="mx-2">·</span>
-            <a href="/privacy" style={{ color: "#6366f1" }}>Privacy</a>
+            <a href="/privacy" style={{ color: "#6366f1" }}>
+              Privacy
+            </a>
             <span class="mx-2">·</span>
-            <a href="/legal/terms" style={{ color: "#6366f1" }}>Terms</a>
+            <a href="/legal/terms" style={{ color: "#6366f1" }}>
+              Terms
+            </a>
             <span class="mx-2">·</span>
-            <a href="/cookies" style={{ color: "#6366f1" }}>Cookies</a>
+            <a href="/cookies" style={{ color: "#6366f1" }}>
+              Cookies
+            </a>
           </p>
         </div>
       </div>

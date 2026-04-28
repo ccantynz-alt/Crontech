@@ -38,14 +38,15 @@ function sparklinePath(values: number[], width: number, height: number): string 
   }));
 
   // Build smooth bezier path
-  const first = points[0]!;
+  const first = points[0] ?? { x: 0, y: 0 };
   let d = `M${first.x},${first.y}`;
 
+  const zero = { x: 0, y: 0 };
   for (let i = 0; i < points.length - 1; i++) {
-    const p0 = points[Math.max(0, i - 1)]!;
-    const p1 = points[i]!;
-    const p2 = points[i + 1]!;
-    const p3 = points[Math.min(points.length - 1, i + 2)]!;
+    const p0 = points[Math.max(0, i - 1)] ?? zero;
+    const p1 = points[i] ?? zero;
+    const p2 = points[i + 1] ?? zero;
+    const p3 = points[Math.min(points.length - 1, i + 2)] ?? zero;
 
     const tension = 0.3;
     const cp1x = p1.x + (p2.x - p0.x) * tension;
@@ -100,7 +101,6 @@ export function MetricCard(props: MetricCardProps): JSX.Element {
         background: "var(--color-bg-elevated)",
       }}
     >
-
       <div class="relative z-10">
         {/* Header row: label + sparkline */}
         <div class="flex items-start justify-between">
@@ -122,7 +122,10 @@ export function MetricCard(props: MetricCardProps): JSX.Element {
 
             {/* Value row */}
             <div class="mt-2 flex items-baseline gap-2">
-              <span class="text-3xl font-bold tracking-tight" style={{ color: "var(--color-text)" }}>
+              <span
+                class="text-3xl font-bold tracking-tight"
+                style={{ color: "var(--color-text)" }}
+              >
                 {props.value}
               </span>
               <span class="text-sm text-[var(--color-text-muted)]">{props.unit ?? ""}</span>
@@ -131,10 +134,7 @@ export function MetricCard(props: MetricCardProps): JSX.Element {
             {/* Trend row */}
             <div class="mt-1 flex items-center gap-1.5">
               {/* Trend arrow */}
-              <span
-                class="text-xs font-semibold"
-                style={{ color: changeColor() }}
-              >
+              <span class="text-xs font-semibold" style={{ color: changeColor() }}>
                 {trendUp() ? "\u2191" : "\u2193"} {changeText()}
               </span>
               <span class="text-[10px] text-[var(--color-text-faint)]">vs prev period</span>
@@ -149,6 +149,7 @@ export function MetricCard(props: MetricCardProps): JSX.Element {
               viewBox={`0 0 ${sparkWidth} ${sparkHeight}`}
               class="overflow-visible"
             >
+              <title>Metric trend</title>
               <defs>
                 <linearGradient id={sparkGradientId()} x1="0" x2="0" y1="0" y2="1">
                   <stop offset="0%" stop-color={accentColor()} stop-opacity="0.2" />
@@ -156,10 +157,7 @@ export function MetricCard(props: MetricCardProps): JSX.Element {
                 </linearGradient>
               </defs>
               {/* Area fill */}
-              <path
-                d={areaD()}
-                fill={`url(#${sparkGradientId()})`}
-              />
+              <path d={areaD()} fill={`url(#${sparkGradientId()})`} />
               {/* Line */}
               <path
                 d={lineD()}
@@ -174,10 +172,7 @@ export function MetricCard(props: MetricCardProps): JSX.Element {
 
         {/* Status indicator dot */}
         <div class="mt-3 flex items-center gap-2">
-          <div
-            class="h-1.5 w-1.5 rounded-full"
-            style={{ background: accentColor() }}
-          />
+          <div class="h-1.5 w-1.5 rounded-full" style={{ background: accentColor() }} />
           <span class="text-[10px] font-medium uppercase tracking-wider text-[var(--color-text-faint)]">
             {props.status}
           </span>

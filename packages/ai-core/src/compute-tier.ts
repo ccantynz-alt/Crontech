@@ -140,9 +140,7 @@ export type CloudStreamChunk = z.infer<typeof CloudStreamChunkSchema>;
  * the cloud tier. Used by the orchestration layer to translate
  * abstract model requirements into concrete Modal.com model IDs.
  */
-export function selectCloudModel(
-  parametersBillion: number,
-): CloudInferenceRequest["model"] {
+export function selectCloudModel(parametersBillion: number): CloudInferenceRequest["model"] {
   // Models > 30B -> Llama 3.1 70B on dual A100
   if (parametersBillion > 30) {
     return "llama-3.1-70b";
@@ -207,7 +205,8 @@ export function computeTierWithReason(
     const reasons: string[] = [];
     if (!device.hasWebGPU) reasons.push("no WebGPU");
     if (device.vramMB < model.minVRAMMB) reasons.push("insufficient VRAM");
-    if (model.parametersBillion > 2) reasons.push(`model ${model.parametersBillion}B exceeds client 2B limit`);
+    if (model.parametersBillion > 2)
+      reasons.push(`model ${model.parametersBillion}B exceeds client 2B limit`);
     return {
       tier: "edge",
       reason: `Edge selected: ${reasons.length > 0 ? reasons.join(", ") : "model fits edge constraints"}`,
@@ -216,8 +215,10 @@ export function computeTierWithReason(
 
   // Tier 3: Cloud — Modal.com GPU workers
   const reasons: string[] = [];
-  if (model.parametersBillion > 7) reasons.push(`model ${model.parametersBillion}B exceeds edge 7B limit`);
-  if (model.latencyMaxMs < 50) reasons.push(`latency requirement ${model.latencyMaxMs}ms too tight for edge`);
+  if (model.parametersBillion > 7)
+    reasons.push(`model ${model.parametersBillion}B exceeds edge 7B limit`);
+  if (model.latencyMaxMs < 50)
+    reasons.push(`latency requirement ${model.latencyMaxMs}ms too tight for edge`);
   return {
     tier: "cloud",
     reason: `Cloud GPU required: ${reasons.join(", ")}. Routing to Modal.com ${selectCloudModel(model.parametersBillion)}.`,

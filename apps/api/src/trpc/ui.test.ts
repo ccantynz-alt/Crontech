@@ -5,17 +5,12 @@
 // deterministic composition are all exercised end-to-end against
 // the real DB (wiped + remigrated by test/setup.ts preload).
 
-import { describe, test, expect, beforeEach, afterEach } from "bun:test";
-import {
-  db,
-  users,
-  sessions,
-  uiComponents,
-} from "@back-to-the-future/db";
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import { db, sessions, uiComponents, users } from "@back-to-the-future/db";
 import { eq } from "drizzle-orm";
-import { appRouter } from "./router";
 import { createSession } from "../auth/session";
 import type { TRPCContext } from "./context";
+import { appRouter } from "./router";
 
 function createTestContext(overrides: Partial<TRPCContext> = {}): TRPCContext {
   return {
@@ -34,7 +29,7 @@ async function createTestUser(): Promise<string> {
   const id = crypto.randomUUID();
   await db.insert(users).values({
     id,
-    email: `test-ui-${Date.now()}-${crypto.randomUUID().replace(/-/g, '').slice(0, 6)}@example.com`,
+    email: `test-ui-${Date.now()}-${crypto.randomUUID().replace(/-/g, "").slice(0, 6)}@example.com`,
     displayName: "Test UI User",
   });
   return id;
@@ -387,9 +382,7 @@ describe("tRPC cron.ui.*", () => {
       },
     });
     expect(res.valid).toBe(false);
-    const missingIssue = res.issues.find(
-      (i) => i.code === "missing_required_prop",
-    );
+    const missingIssue = res.issues.find((i) => i.code === "missing_required_prop");
     expect(missingIssue?.path).toContain("children[1]");
   });
 

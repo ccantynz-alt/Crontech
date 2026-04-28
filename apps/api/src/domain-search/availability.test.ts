@@ -1,14 +1,14 @@
 // ── BLK-025 Domain Search: Availability Unit Tests ─────────────────
 
-import { describe, test, expect } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import {
+  DEFAULT_TLDS,
+  type DomainResult,
+  type SoaResolver,
   checkAvailability,
   normaliseLabel,
   normaliseTld,
   onlyAvailable,
-  DEFAULT_TLDS,
-  type SoaResolver,
-  type DomainResult,
 } from "./availability";
 
 function resolverFrom(

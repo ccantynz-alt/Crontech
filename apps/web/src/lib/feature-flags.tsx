@@ -2,11 +2,11 @@ import {
   type Accessor,
   type JSX,
   createContext,
-  createSignal,
   createMemo,
+  createSignal,
   onMount,
-  useContext,
   children as resolveChildren,
+  useContext,
 } from "solid-js";
 
 interface FeatureFlagData {
@@ -39,7 +39,14 @@ export function FeatureFlagProvider(props: FeatureFlagProviderProps): JSX.Elemen
       const apiUrl = import.meta.env.VITE_API_URL ?? "http://localhost:3001";
       const res = await fetch(`${apiUrl}/api/flags`);
       if (res.ok) {
-        const data = await res.json() as { flags: Array<{ key: string; enabled: boolean; description?: string; rolloutPercentage: number }> };
+        const data = (await res.json()) as {
+          flags: Array<{
+            key: string;
+            enabled: boolean;
+            description?: string;
+            rolloutPercentage: number;
+          }>;
+        };
         const flagMap = new Map<string, FeatureFlagData>();
         for (const flag of data.flags) {
           flagMap.set(flag.key, {
@@ -74,11 +81,7 @@ export function FeatureFlagProvider(props: FeatureFlagProviderProps): JSX.Elemen
     refresh: fetchFlags,
   };
 
-  return (
-    <FeatureFlagContext.Provider value={state}>
-      {props.children}
-    </FeatureFlagContext.Provider>
-  );
+  return <FeatureFlagContext.Provider value={state}>{props.children}</FeatureFlagContext.Provider>;
 }
 
 export function useFeatureFlags(): FeatureFlagContextState {

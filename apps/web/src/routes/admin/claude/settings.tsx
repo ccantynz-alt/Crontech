@@ -14,23 +14,23 @@
 // + shared UI primitives only. AI-composable: every section is a
 // named component with props explicit at the top.
 
-import { Title } from "@solidjs/meta";
-import { createSignal, createResource, Show, type JSX } from "solid-js";
-import { useNavigate } from "@solidjs/router";
 import {
+  Badge,
   Button,
   Card,
   Input,
   Select,
+  Spinner,
   Stack,
   Text,
   Textarea,
-  Badge,
-  Spinner,
 } from "@back-to-the-future/ui";
+import { Title } from "@solidjs/meta";
+import { useNavigate } from "@solidjs/router";
+import { type JSX, Show, createResource, createSignal } from "solid-js";
 import { AdminRoute } from "../../../components/AdminRoute";
-import { trpc } from "../../../lib/trpc";
 import { showToast } from "../../../components/Toast";
+import { trpc } from "../../../lib/trpc";
 
 // ── Model catalog ─────────────────────────────────────────────────
 // Mirror of `@back-to-the-future/ai-core`'s `ANTHROPIC_MODELS`. The
@@ -116,27 +116,18 @@ export default function AdminClaudeSettingsPage(): JSX.Element {
 
 function Breadcrumb(): JSX.Element {
   const navigate = useNavigate();
-  const linkClass =
-    "text-sm font-medium transition-colors hover:text-[var(--color-text)]";
+  const linkClass = "text-sm font-medium transition-colors hover:text-[var(--color-text)]";
   return (
     <nav
       aria-label="Breadcrumb"
       class="flex items-center gap-2 text-sm"
       style={{ color: "var(--color-text-muted)" }}
     >
-      <button
-        type="button"
-        class={linkClass}
-        onClick={() => navigate("/admin")}
-      >
+      <button type="button" class={linkClass} onClick={() => navigate("/admin")}>
         Admin
       </button>
       <span aria-hidden="true">/</span>
-      <button
-        type="button"
-        class={linkClass}
-        onClick={() => navigate("/admin/claude")}
-      >
+      <button type="button" class={linkClass} onClick={() => navigate("/admin/claude")}>
         Claude
       </button>
       <span aria-hidden="true">/</span>
@@ -183,8 +174,8 @@ function ApiKeyCard(props: ApiKeyCardProps): JSX.Element {
             Anthropic API key
           </Text>
           <Text variant="body" class="text-muted">
-            Paste a personal Anthropic API key. The console uses this key to stream
-            Claude responses on your behalf. The key is stored encrypted at rest.
+            Paste a personal Anthropic API key. The console uses this key to stream Claude responses
+            on your behalf. The key is stored encrypted at rest.
           </Text>
         </Stack>
 
@@ -272,8 +263,8 @@ function ModelPickerCard(props: ModelPickerCardProps): JSX.Element {
             Default model
           </Text>
           <Text variant="body" class="text-muted">
-            The default Claude model used when a new conversation is started.
-            Your choice is remembered in this browser.
+            The default Claude model used when a new conversation is started. Your choice is
+            remembered in this browser.
           </Text>
         </Stack>
         <Select
@@ -304,8 +295,8 @@ function SystemPromptCard(props: SystemPromptCardProps): JSX.Element {
             System prompt preset
           </Text>
           <Text variant="body" class="text-muted">
-            Optional system prompt prepended to new conversations. Use it to set
-            tone, role, or house style. Stored locally in this browser.
+            Optional system prompt prepended to new conversations. Use it to set tone, role, or
+            house style. Stored locally in this browser.
           </Text>
         </Stack>
         <Textarea
@@ -407,8 +398,8 @@ function AdminClaudeSettingsContent(): JSX.Element {
             Claude console settings
           </Text>
           <Text variant="body" class="text-muted">
-            Manage the Anthropic API key, default model, and system prompt used
-            by the admin Claude console.
+            Manage the Anthropic API key, default model, and system prompt used by the admin Claude
+            console.
           </Text>
         </Stack>
 

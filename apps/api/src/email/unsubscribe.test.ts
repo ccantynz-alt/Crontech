@@ -1,11 +1,8 @@
-import { describe, test, expect } from "bun:test";
-import {
-  generateUnsubscribeToken,
-  decodeUnsubscribeToken,
-} from "./templates";
-import { unsubscribeRoutes, isUnsubscribed } from "./unsubscribe";
-import { db, users, emailPreferences } from "@back-to-the-future/db";
+import { describe, expect, test } from "bun:test";
+import { db, emailPreferences, users } from "@back-to-the-future/db";
 import { eq } from "drizzle-orm";
+import { decodeUnsubscribeToken, generateUnsubscribeToken } from "./templates";
+import { isUnsubscribed, unsubscribeRoutes } from "./unsubscribe";
 
 // Helper: create a test user
 async function createTestUser(id: string, email: string): Promise<void> {
@@ -22,7 +19,7 @@ async function createTestUser(id: string, email: string): Promise<void> {
 }
 
 describe("Email Unsubscribe", () => {
-  const testUserId = "unsub-test-user-" + crypto.randomUUID().slice(0, 8);
+  const testUserId = `unsub-test-user-${crypto.randomUUID().slice(0, 8)}`;
   const testEmail = `unsub-${testUserId}@test.com`;
 
   test("generateUnsubscribeToken creates a valid base64url token", () => {
@@ -35,8 +32,8 @@ describe("Email Unsubscribe", () => {
     const token = generateUnsubscribeToken("user-456", "collaborationInvite");
     const decoded = decodeUnsubscribeToken(token);
     expect(decoded).not.toBeNull();
-    expect(decoded!.userId).toBe("user-456");
-    expect(decoded!.emailType).toBe("collaborationInvite");
+    expect(decoded?.userId).toBe("user-456");
+    expect(decoded?.emailType).toBe("collaborationInvite");
   });
 
   test("decodeUnsubscribeToken returns null for invalid token", () => {
@@ -61,10 +58,7 @@ describe("Email Unsubscribe", () => {
 
     const token = generateUnsubscribeToken(testUserId, "weeklyDigest");
 
-    const req = new Request(
-      `http://localhost/unsubscribe?token=${token}`,
-      { method: "POST" },
-    );
+    const req = new Request(`http://localhost/unsubscribe?token=${token}`, { method: "POST" });
     const res = await unsubscribeRoutes.fetch(req);
     expect(res.status).toBe(200);
 
@@ -79,7 +73,7 @@ describe("Email Unsubscribe", () => {
       .where(eq(emailPreferences.userId, testUserId))
       .limit(1);
     expect(prefs[0]).toBeDefined();
-    expect(prefs[0]!.weeklyDigest).toBe(false);
+    expect(prefs[0]?.weeklyDigest).toBe(false);
   });
 
   test("POST /api/unsubscribe rejects missing token", async () => {
@@ -89,7 +83,7 @@ describe("Email Unsubscribe", () => {
   });
 
   test("GET /api/unsubscribe shows confirmation page", async () => {
-    const uid = "unsub-get-test-" + crypto.randomUUID().slice(0, 8);
+    const uid = `unsub-get-test-${crypto.randomUUID().slice(0, 8)}`;
     await createTestUser(uid, `${uid}@test.com`);
 
     const token = generateUnsubscribeToken(uid, "collaborationInvite");

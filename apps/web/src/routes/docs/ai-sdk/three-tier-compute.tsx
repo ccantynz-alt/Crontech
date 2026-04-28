@@ -10,11 +10,7 @@
 
 import type { JSX } from "solid-js";
 import { SEOHead } from "../../../components/SEOHead";
-import {
-  DocsArticle,
-  Callout,
-  KeyList,
-} from "../../../components/docs/DocsArticle";
+import { Callout, DocsArticle, KeyList } from "../../../components/docs/DocsArticle";
 
 export default function ThreeTierComputeArticle(): JSX.Element {
   return (
@@ -39,34 +35,27 @@ export default function ThreeTierComputeArticle(): JSX.Element {
         }}
       >
         <p>
-          The router lives in a single file —{" "}
-          <code>packages/ai-core/src/compute-tier.ts</code> — and exports
-          a pure function named{" "}
-          <code>computeTierRouter</code>. It takes a{" "}
-          <code>DeviceCapabilities</code> object (WebGPU yes/no, VRAM,
-          network class) and a <code>ModelRequirements</code> object
-          (parameters in billions, minimum VRAM, maximum latency) and
-          returns a <code>ComputeTier</code> — one of{" "}
-          <code>"client"</code>, <code>"edge"</code>, or{" "}
-          <code>"cloud"</code>.
+          The router lives in a single file — <code>packages/ai-core/src/compute-tier.ts</code> —
+          and exports a pure function named <code>computeTierRouter</code>. It takes a{" "}
+          <code>DeviceCapabilities</code> object (WebGPU yes/no, VRAM, network class) and a{" "}
+          <code>ModelRequirements</code> object (parameters in billions, minimum VRAM, maximum
+          latency) and returns a <code>ComputeTier</code> — one of <code>"client"</code>,{" "}
+          <code>"edge"</code>, or <code>"cloud"</code>.
         </p>
 
         <Callout tone="info" title="Why three tiers">
-          Each tier is a cost / latency / capability trade-off. Client
-          GPU is free per token and the lowest latency, but is capped at
-          models that fit in the user's VRAM. Edge is cheap and sub-50ms
-          globally but limited to ~7B params. Cloud is the full-power
-          fallback — Modal.com H100s running Llama 3.1 70B or Mixtral
-          8x7B. The router picks the cheapest tier that meets the
-          request.
+          Each tier is a cost / latency / capability trade-off. Client GPU is free per token and the
+          lowest latency, but is capped at models that fit in the user's VRAM. Edge is cheap and
+          sub-50ms globally but limited to ~7B params. Cloud is the full-power fallback — Modal.com
+          H100s running Llama 3.1 70B or Mixtral 8x7B. The router picks the cheapest tier that meets
+          the request.
         </Callout>
 
         <h2>The tier enum</h2>
         <p>
-          <code>ComputeTier</code> is a Zod enum. The source of truth
-          for the three strings is <code>ComputeTierSchema</code>, and{" "}
-          <code>isComputeTier()</code> is the runtime guard you use when
-          pulling a tier hint off a URL param or a telemetry event.
+          <code>ComputeTier</code> is a Zod enum. The source of truth for the three strings is{" "}
+          <code>ComputeTierSchema</code>, and <code>isComputeTier()</code> is the runtime guard you
+          use when pulling a tier hint off a URL param or a telemetry event.
         </p>
         <pre
           class="docs-pre"
@@ -90,8 +79,7 @@ export function isComputeTier(value: unknown): value is ComputeTier {
         <h2>The four routing branches</h2>
 
         <p>
-          <code>computeTierRouter()</code> has four branches, in this
-          order:
+          <code>computeTierRouter()</code> has four branches, in this order:
         </p>
 
         <KeyList
@@ -120,18 +108,16 @@ export function isComputeTier(value: unknown): value is ComputeTier {
         />
 
         <Callout tone="note">
-          The router is pure. It never fetches, never probes, never
-          throws. You pass it two objects, it returns a string. That
-          purity is what lets the same router run identically on the
-          server (picking a tier before the request goes out) and in
-          the browser (picking a tier for a client-initiated call).
+          The router is pure. It never fetches, never probes, never throws. You pass it two objects,
+          it returns a string. That purity is what lets the same router run identically on the
+          server (picking a tier before the request goes out) and in the browser (picking a tier for
+          a client-initiated call).
         </Callout>
 
         <h2>Device capabilities</h2>
 
         <p>
-          The <code>DeviceCapabilities</code> input describes what the
-          runtime can do:
+          The <code>DeviceCapabilities</code> input describes what the runtime can do:
         </p>
 
         <pre
@@ -156,15 +142,12 @@ export function isComputeTier(value: unknown): value is ComputeTier {
         </pre>
 
         <p>
-          On the client,{" "}
-          <code>getClientCapabilities()</code> in{" "}
-          <code>packages/ai-core/src/inference/index.ts</code> fills in
-          a matching{" "}
+          On the client, <code>getClientCapabilities()</code> in{" "}
+          <code>packages/ai-core/src/inference/index.ts</code> fills in a matching{" "}
           <code>ClientCapabilities</code> from <code>navigator.gpu</code>,{" "}
-          <code>navigator.deviceMemory</code>, and a WASM feature-check.
-          On the server the caller constructs the object from whatever
-          signal it has — typically the user-agent hint or a cached
-          capability row from a previous session.
+          <code>navigator.deviceMemory</code>, and a WASM feature-check. On the server the caller
+          constructs the object from whatever signal it has — typically the user-agent hint or a
+          cached capability row from a previous session.
         </p>
 
         <h2>Model requirements</h2>
@@ -189,23 +172,19 @@ export function isComputeTier(value: unknown): value is ComputeTier {
         </pre>
 
         <p>
-          The <code>task</code> hint is what unlocks the WASM fast-path.
-          An embeddings call with a 0.1B model and a 10ms budget routes
-          to the client even on a low-end laptop with no GPU, because
-          Transformers.js can run the pipeline in WASM. A general chat
-          call with no task hint skips that branch and lands on tier 1
-          or below.
+          The <code>task</code> hint is what unlocks the WASM fast-path. An embeddings call with a
+          0.1B model and a 10ms budget routes to the client even on a low-end laptop with no GPU,
+          because Transformers.js can run the pipeline in WASM. A general chat call with no task
+          hint skips that branch and lands on tier 1 or below.
         </p>
 
         <h2>Getting a reason with the decision</h2>
 
         <p>
-          When you need to log or surface <em>why</em> the router picked
-          a tier — for debugging, for observability, for a dashboard
-          badge — use{" "}
-          <code>computeTierWithReason()</code> instead. It returns{" "}
-          <code>{`{ tier, reason }`}</code> with a human-readable
-          explanation of the choice:
+          When you need to log or surface <em>why</em> the router picked a tier — for debugging, for
+          observability, for a dashboard badge — use <code>computeTierWithReason()</code> instead.
+          It returns <code>{"{ tier, reason }"}</code> with a human-readable explanation of the
+          choice:
         </p>
 
         <pre
@@ -228,9 +207,8 @@ export function isComputeTier(value: unknown): value is ComputeTier {
         <h2>From tier to a cloud GPU request</h2>
 
         <p>
-          If the decision is <code>"cloud"</code>, the request needs to
-          be translated into a Modal.com GPU worker call. Two helpers
-          do that work:
+          If the decision is <code>"cloud"</code>, the request needs to be translated into a
+          Modal.com GPU worker call. Two helpers do that work:
         </p>
 
         <KeyList
@@ -250,21 +228,17 @@ export function isComputeTier(value: unknown): value is ComputeTier {
 
         <p>
           The cloud tier's response shape is also schemaed:{" "}
-          <code>CloudInferenceResponseSchema</code> for non-streamed
-          responses (with token usage + latency) and{" "}
-          <code>CloudStreamChunkSchema</code> for streamed deltas. Both
-          carry a literal <code>tier: "cloud"</code> so downstream code
-          can tell where the tokens came from.
+          <code>CloudInferenceResponseSchema</code> for non-streamed responses (with token usage +
+          latency) and <code>CloudStreamChunkSchema</code> for streamed deltas. Both carry a literal{" "}
+          <code>tier: "cloud"</code> so downstream code can tell where the tokens came from.
         </p>
 
         <h2>Fallover in practice</h2>
 
         <p>
-          The router picks the tier. The provider factory —{" "}
-          <code>routeAICall()</code> in{" "}
-          <code>packages/ai-core/src/providers.ts</code> — is what
-          actually handles a provider failure. It runs the call against
-          the primary model, catches the error, classifies it with{" "}
+          The router picks the tier. The provider factory — <code>routeAICall()</code> in{" "}
+          <code>packages/ai-core/src/providers.ts</code> — is what actually handles a provider
+          failure. It runs the call against the primary model, catches the error, classifies it with{" "}
           <code>isRetryableError()</code>, and either:
         </p>
 
@@ -284,27 +258,22 @@ export function isComputeTier(value: unknown): value is ComputeTier {
         />
 
         <Callout tone="note">
-          Fallover is one-hop by design. If the fallback also fails,
-          the error surfaces to the caller. This keeps latency bounded
-          and avoids pathological retry storms during a wide-scope
-          outage.
+          Fallover is one-hop by design. If the fallback also fails, the error surfaces to the
+          caller. This keeps latency bounded and avoids pathological retry storms during a
+          wide-scope outage.
         </Callout>
 
         <h2>Where it gets used</h2>
         <p>
-          The streaming chat endpoint at{" "}
-          <code>POST /chat/stream</code> (<code>apps/api/src/ai/chat-stream.ts</code>)
-          is the most visible consumer. It resolves an Anthropic
-          language model via <code>getAnthropicModel()</code>, then
-          hands it to <code>streamText()</code> from the{" "}
-          <code>ai</code> package.
-          The site builder's{" "}
+          The streaming chat endpoint at <code>POST /chat/stream</code> (
+          <code>apps/api/src/ai/chat-stream.ts</code>) is the most visible consumer. It resolves an
+          Anthropic language model via <code>getAnthropicModel()</code>, then hands it to{" "}
+          <code>streamText()</code> from the <code>ai</code> package. The site builder's{" "}
           <a href="/docs/api-reference/ai-and-chat">
             <code>ai.siteBuilder.generate</code>
           </a>{" "}
-          mutation accepts an optional <code>tier</code> hint and runs
-          the router to decide between client, edge, and cloud before
-          the provider is picked.
+          mutation accepts an optional <code>tier</code> hint and runs the router to decide between
+          client, edge, and cloud before the provider is picked.
         </p>
 
         <h2>Worked example</h2>
@@ -360,8 +329,7 @@ const cloudReq = buildCloudRequest(heavy, "Summarise this document...");
           items={[
             {
               term: "Streaming completions",
-              description:
-                "The server-side consumer that calls the router for every chat request.",
+              description: "The server-side consumer that calls the router for every chat request.",
             },
             {
               term: "Client-GPU inference",

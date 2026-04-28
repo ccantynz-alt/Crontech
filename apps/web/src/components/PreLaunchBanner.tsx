@@ -23,11 +23,11 @@ import type { JSX } from "solid-js";
 
 export function PreLaunchBanner(): JSX.Element {
   return (
-    <div
-      role="status"
+    <output
       aria-live="polite"
       class="sticky top-0 z-[60] w-full backdrop-blur-xl"
       style={{
+        display: "block",
         background: "rgba(10,15,26,0.85)",
         "border-bottom": "1px solid rgba(255,255,255,0.06)",
       }}
@@ -41,10 +41,12 @@ export function PreLaunchBanner(): JSX.Element {
           }}
         />
         <p class="text-[11px] tracking-wide sm:text-xs" style={{ color: "rgba(255,255,255,0.6)" }}>
-          <span class="font-medium" style={{ color: "rgba(255,255,255,0.8)" }}>Early access</span>
+          <span class="font-medium" style={{ color: "rgba(255,255,255,0.8)" }}>
+            Early access
+          </span>
           <span> — Crontech is in final validation before public launch.</span>
         </p>
       </div>
-    </div>
+    </output>
   );
 }

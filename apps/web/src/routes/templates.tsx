@@ -1,13 +1,13 @@
-import { createSignal, For, Show, createMemo } from "solid-js";
-import type { JSX } from "solid-js";
-import { A, useNavigate } from "@solidjs/router";
 import { Badge } from "@back-to-the-future/ui";
+import { A, useNavigate } from "@solidjs/router";
+import { For, Show, createMemo, createSignal } from "solid-js";
+import type { JSX } from "solid-js";
 import { SEOHead } from "../components/SEOHead";
 import {
-  projectTemplates,
-  TEMPLATE_TAG_FILTERS,
   type ProjectTemplate,
+  TEMPLATE_TAG_FILTERS,
   type TemplateTag,
+  projectTemplates,
 } from "../lib/project-templates";
 
 // ── Types ───────────────────────────────────────────────────────────
@@ -201,7 +201,10 @@ function TemplateCard(props: {
         {/* Featured badge */}
         <Show when={props.template.featured}>
           <div class="absolute top-3 right-3">
-            <span class="rounded-full px-2.5 py-1 text-xs font-semibold" style={{ background: "var(--color-bg-muted)", color: "var(--color-text)" }}>
+            <span
+              class="rounded-full px-2.5 py-1 text-xs font-semibold"
+              style={{ background: "var(--color-bg-muted)", color: "var(--color-text)" }}
+            >
               Featured
             </span>
           </div>
@@ -240,7 +243,10 @@ function TemplateCard(props: {
             >
               {props.template.category}
             </span>
-            <span class="rounded-md px-2 py-0.5 text-xs" style={{ background: "var(--color-bg-muted)", color: "var(--color-text-faint)" }}>
+            <span
+              class="rounded-md px-2 py-0.5 text-xs"
+              style={{ background: "var(--color-bg-muted)", color: "var(--color-text-faint)" }}
+            >
               {props.template.difficulty}
             </span>
           </div>
@@ -270,7 +276,7 @@ function TemplateCard(props: {
               color: "var(--color-text-secondary)",
               border: "1px solid var(--color-border)",
             }}
-            onClick={() => props.onUse(props.template.id + "?ai=true")}
+            onClick={() => props.onUse(`${props.template.id}?ai=true`)}
           >
             Customize with AI
           </button>
@@ -307,20 +313,14 @@ function StarterProjectCard(props: {
             "background-size": "20px 20px",
           }}
         />
-        <span
-          class="relative text-5xl drop-shadow-sm"
-          aria-hidden="true"
-        >
+        <span class="relative text-5xl drop-shadow-sm" aria-hidden="true">
           {props.template.icon}
         </span>
       </div>
 
       <div class="flex flex-1 flex-col p-5">
         <div class="flex items-start justify-between gap-2">
-          <span
-            class="text-base font-semibold"
-            style={{ color: "var(--color-text)" }}
-          >
+          <span class="text-base font-semibold" style={{ color: "var(--color-text)" }}>
             {props.template.name}
           </span>
           <span
@@ -333,10 +333,7 @@ function StarterProjectCard(props: {
             {props.template.framework}
           </span>
         </div>
-        <p
-          class="mt-2 text-sm leading-relaxed flex-1"
-          style={{ color: "var(--color-text-muted)" }}
-        >
+        <p class="mt-2 text-sm leading-relaxed flex-1" style={{ color: "var(--color-text-muted)" }}>
           {props.template.description}
         </p>
 
@@ -346,8 +343,7 @@ function StarterProjectCard(props: {
               <span
                 class="rounded-md px-2 py-0.5 text-[11px] font-medium"
                 style={{
-                  background:
-                    "color-mix(in oklab, var(--color-primary) 15%, transparent)",
+                  background: "color-mix(in oklab, var(--color-primary) 15%, transparent)",
                   color: "var(--color-primary)",
                 }}
               >
@@ -358,10 +354,7 @@ function StarterProjectCard(props: {
         </div>
 
         <Show when={props.template.envVarsRequired.length > 0}>
-          <p
-            class="mt-3 text-[11px] font-mono"
-            style={{ color: "var(--color-text-faint)" }}
-          >
+          <p class="mt-3 text-[11px] font-mono" style={{ color: "var(--color-text-faint)" }}>
             Needs: {props.template.envVarsRequired.join(", ")}
           </p>
         </Show>
@@ -388,8 +381,7 @@ export default function TemplatesPage(): JSX.Element {
   const navigate = useNavigate();
   const [search, setSearch] = createSignal("");
   const [activeFilter, setActiveFilter] = createSignal("all");
-  const [starterFilter, setStarterFilter] =
-    createSignal<TemplateTag | "all">("all");
+  const [starterFilter, setStarterFilter] = createSignal<TemplateTag | "all">("all");
 
   const filteredStarters = createMemo((): readonly ProjectTemplate[] => {
     const tag = starterFilter();
@@ -468,9 +460,8 @@ export default function TemplatesPage(): JSX.Element {
                 Ship in minutes.
               </h1>
               <p class="mt-4 max-w-2xl text-lg" style={{ color: "var(--color-text-secondary)" }}>
-                Production-ready designs built on the Crontech stack.
-                Every template is AI-composable, fully responsive, and
-                deploys to the edge in one click.
+                Production-ready designs built on the Crontech stack. Every template is
+                AI-composable, fully responsive, and deploys to the edge in one click.
               </p>
 
               {/* Search */}
@@ -489,6 +480,7 @@ export default function TemplatesPage(): JSX.Element {
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
+                      aria-hidden="true"
                     >
                       <path
                         stroke-linecap="round"
@@ -503,9 +495,7 @@ export default function TemplatesPage(): JSX.Element {
                     placeholder="Search templates..."
                     aria-label="Search templates"
                     value={search()}
-                    onInput={(e) =>
-                      setSearch(e.currentTarget.value)
-                    }
+                    onInput={(e) => setSearch(e.currentTarget.value)}
                     class="w-full bg-transparent py-4 pl-12 pr-4 outline-none text-sm"
                     style={{ color: "var(--color-text)" }}
                   />
@@ -527,12 +517,9 @@ export default function TemplatesPage(): JSX.Element {
             >
               Skip the blank page.
             </h2>
-            <p
-              class="mt-2 max-w-xl text-sm"
-              style={{ color: "var(--color-text-secondary)" }}
-            >
-              Pre-configured projects with framework, runtime, and build
-              command wired up. One click and you are deploying.
+            <p class="mt-2 max-w-xl text-sm" style={{ color: "var(--color-text-secondary)" }}>
+              Pre-configured projects with framework, runtime, and build command wired up. One click
+              and you are deploying.
             </p>
           </div>
 
@@ -543,9 +530,7 @@ export default function TemplatesPage(): JSX.Element {
               class="rounded-full px-4 py-2 text-sm font-medium transition-all duration-200"
               style={{
                 background:
-                  starterFilter() === "all"
-                    ? "var(--color-primary)"
-                    : "var(--color-bg-subtle)",
+                  starterFilter() === "all" ? "var(--color-primary)" : "var(--color-bg-subtle)",
                 color:
                   starterFilter() === "all"
                     ? "var(--color-primary-text)"
@@ -566,9 +551,7 @@ export default function TemplatesPage(): JSX.Element {
                   class="rounded-full px-4 py-2 text-sm font-medium transition-all duration-200"
                   style={{
                     background:
-                      starterFilter() === tag
-                        ? "var(--color-primary)"
-                        : "var(--color-bg-subtle)",
+                      starterFilter() === tag ? "var(--color-primary)" : "var(--color-bg-subtle)",
                     color:
                       starterFilter() === tag
                         ? "var(--color-primary-text)"
@@ -590,10 +573,7 @@ export default function TemplatesPage(): JSX.Element {
             when={filteredStarters().length > 0}
             fallback={
               <div class="flex flex-col items-center justify-center py-10 text-center">
-                <p
-                  class="text-sm"
-                  style={{ color: "var(--color-text-muted)" }}
-                >
+                <p class="text-sm" style={{ color: "var(--color-text-muted)" }}>
                   No starter projects match that filter.
                 </p>
               </div>
@@ -601,12 +581,7 @@ export default function TemplatesPage(): JSX.Element {
           >
             <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
               <For each={filteredStarters()}>
-                {(template) => (
-                  <StarterProjectCard
-                    template={template}
-                    onUse={handleUseStarter}
-                  />
-                )}
+                {(template) => <StarterProjectCard template={template} onUse={handleUseStarter} />}
               </For>
             </div>
           </Show>
@@ -649,9 +624,7 @@ export default function TemplatesPage(): JSX.Element {
             when={filtered().length > 0}
             fallback={
               <div class="flex flex-col items-center justify-center py-20 text-center">
-                <div class="text-4xl mb-4 opacity-30">
-                  {"\uD83D\uDD0D"}
-                </div>
+                <div class="text-4xl mb-4 opacity-30">{"\uD83D\uDD0D"}</div>
                 <p class="text-lg" style={{ color: "var(--color-text-muted)" }}>
                   No templates match your search
                 </p>
@@ -661,7 +634,10 @@ export default function TemplatesPage(): JSX.Element {
                 <button
                   type="button"
                   class="mt-4 rounded-lg px-4 py-2 text-sm transition-colors"
-                  style={{ background: "var(--color-bg-subtle)", color: "var(--color-text-secondary)" }}
+                  style={{
+                    background: "var(--color-bg-subtle)",
+                    color: "var(--color-text-secondary)",
+                  }}
                   onClick={() => {
                     setSearch("");
                     setActiveFilter("all");
@@ -674,12 +650,7 @@ export default function TemplatesPage(): JSX.Element {
           >
             <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
               <For each={filtered()}>
-                {(template) => (
-                  <TemplateCard
-                    template={template}
-                    onUse={handleUseTemplate}
-                  />
-                )}
+                {(template) => <TemplateCard template={template} onUse={handleUseTemplate} />}
               </For>
             </div>
           </Show>
@@ -696,9 +667,8 @@ export default function TemplatesPage(): JSX.Element {
               Need something custom?
             </h2>
             <p class="max-w-lg mx-auto mb-6" style={{ color: "var(--color-text-muted)" }}>
-              Describe what you want in plain English and our AI builder
-              will generate a fully functional project from scratch.
-              No template required.
+              Describe what you want in plain English and our AI builder will generate a fully
+              functional project from scratch. No template required.
             </p>
             <A href="/builder">
               <button

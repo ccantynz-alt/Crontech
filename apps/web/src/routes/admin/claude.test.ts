@@ -108,9 +108,7 @@ describe("admin/claude — dynamic mount check (best-effort)", () => {
 // The static source checks above catch any divergence, and these
 // executable checks keep the badge / CTA logic pinned on every run.
 
-function referenceFormatMonthlySpend(
-  dollars: number | null | undefined,
-): string {
+function referenceFormatMonthlySpend(dollars: number | null | undefined): string {
   if (dollars === null || dollars === undefined) return "$0.00";
   if (!Number.isFinite(dollars) || dollars < 0) return "$0.00";
   return `$${dollars.toFixed(2)}`;
@@ -119,8 +117,8 @@ function referenceFormatMonthlySpend(
 function referenceIsMissingKeyError(payload: unknown): boolean {
   if (!payload || typeof payload !== "object") return false;
   const record = payload as Record<string, unknown>;
-  const error = typeof record["error"] === "string" ? record["error"] : "";
-  const hint = typeof record["hint"] === "string" ? record["hint"] : "";
+  const error = typeof record.error === "string" ? record.error : "";
+  const hint = typeof record.hint === "string" ? record.hint : "";
   const combined = `${error} ${hint}`.toLowerCase();
   if (combined.includes("no anthropic api key")) return true;
   if (combined.includes("provider key")) return true;
@@ -156,9 +154,7 @@ describe("admin/claude — isMissingKeyError contract", () => {
   });
 
   test("flags payloads that merely reference provider keys", () => {
-    expect(referenceIsMissingKeyError({ error: "Missing provider key" })).toBe(
-      true,
-    );
+    expect(referenceIsMissingKeyError({ error: "Missing provider key" })).toBe(true);
   });
 
   test("ignores unrelated errors so the UI does not misroute users", () => {

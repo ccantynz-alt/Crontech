@@ -1,8 +1,8 @@
+import type { ServerWebSocket } from "bun";
 import { Hono } from "hono";
 import { createBunWebSocket } from "hono/bun";
-import type { ServerWebSocket } from "bun";
-import { ClientMessage } from "./types";
 import { roomManager } from "./rooms";
+import { ClientMessage } from "./types";
 
 const { upgradeWebSocket, websocket } = createBunWebSocket<ServerWebSocket>();
 
@@ -87,12 +87,7 @@ function handleClientMessage(ws: WebSocket, message: ClientMessage): void {
       // Track this WS -> userId mapping
       wsUserMap.set(ws, message.userId);
 
-      const result = roomManager.joinRoom(
-        message.roomId,
-        message.userId,
-        ws,
-        message.metadata,
-      );
+      const result = roomManager.joinRoom(message.roomId, message.userId, ws, message.metadata);
 
       if (!result.success) {
         sendError(ws, "room_not_found", result.error ?? "Failed to join room");
@@ -138,12 +133,7 @@ function handleClientMessage(ws: WebSocket, message: ClientMessage): void {
     }
 
     case "presence_update": {
-      roomManager.updatePresence(
-        message.roomId,
-        message.userId,
-        message.status,
-        message.data,
-      );
+      roomManager.updatePresence(message.roomId, message.userId, message.status, message.data);
       break;
     }
 
