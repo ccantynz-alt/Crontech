@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer, real, blob } from "drizzle-orm/sqlite-core";
+import { blob, integer, real, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
 export const users = sqliteTable("users", {
   id: text("id").primaryKey(),
@@ -86,9 +86,7 @@ export const subscriptions = sqliteTable("subscriptions", {
   currentPeriodEnd: integer("current_period_end", {
     mode: "timestamp",
   }).notNull(),
-  cancelAtPeriodEnd: integer("cancel_at_period_end", { mode: "boolean" })
-    .notNull()
-    .default(false),
+  cancelAtPeriodEnd: integer("cancel_at_period_end", { mode: "boolean" }).notNull().default(false),
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .$defaultFn(() => new Date()),
@@ -789,8 +787,12 @@ export const dnsZones = sqliteTable("dns_zones", {
   expireSeconds: integer("expire_seconds").notNull().default(604800),
   minimumTtl: integer("minimum_ttl").notNull().default(300),
   serial: integer("serial").notNull().default(1),
-  createdAt: integer("created_at").notNull().$defaultFn(() => Date.now()),
-  updatedAt: integer("updated_at").notNull().$defaultFn(() => Date.now()),
+  createdAt: integer("created_at")
+    .notNull()
+    .$defaultFn(() => Date.now()),
+  updatedAt: integer("updated_at")
+    .notNull()
+    .$defaultFn(() => Date.now()),
 });
 
 export const dnsRecords = sqliteTable("dns_records", {
@@ -803,8 +805,12 @@ export const dnsRecords = sqliteTable("dns_records", {
   content: text("content").notNull(),
   ttl: integer("ttl").notNull().default(300),
   priority: integer("priority"),
-  createdAt: integer("created_at").notNull().$defaultFn(() => Date.now()),
-  updatedAt: integer("updated_at").notNull().$defaultFn(() => Date.now()),
+  createdAt: integer("created_at")
+    .notNull()
+    .$defaultFn(() => Date.now()),
+  updatedAt: integer("updated_at")
+    .notNull()
+    .$defaultFn(() => Date.now()),
 });
 
 // ── Domain Registrations ────────────────────────────────────────────────
@@ -928,6 +934,17 @@ export const smsWebhookSubscriptions = sqliteTable("sms_webhook_subscriptions", 
   customerWebhookUrl: text("customer_webhook_url").notNull(),
   hmacSecret: text("hmac_secret").notNull(),
   events: text("events").notNull().default('["inbound"]'),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+});
+
+// ── Auth Challenges ─────────────────────────────────────────────────────
+
+export const authChallenges = sqliteTable("auth_challenges", {
+  key: text("key").primaryKey(), // e.g. "reg:userId" or "auth:discoverable:xyz"
+  challenge: text("challenge").notNull(),
+  expiresAt: integer("expires_at", { mode: "timestamp" }).notNull(),
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .$defaultFn(() => new Date()),

@@ -3,32 +3,189 @@
   "dialect": "sqlite",
   "entries": [
     { "idx": 0, "version": "6", "when": 1712300000000, "tag": "0000_initial", "breakpoints": true },
-    { "idx": 1, "version": "6", "when": 1712400000000, "tag": "0001_tenant_projects", "breakpoints": true },
-    { "idx": 2, "version": "6", "when": 1712500000000, "tag": "0002_api_keys_webhooks", "breakpoints": true },
-    { "idx": 3, "version": "6", "when": 1712600000000, "tag": "0003_support_tickets", "breakpoints": true },
-    { "idx": 4, "version": "6", "when": 1712700000000, "tag": "0004_sites_and_versions", "breakpoints": true },
-    { "idx": 5, "version": "6", "when": 1712800000000, "tag": "0005_wave1_hooks", "breakpoints": true },
-    { "idx": 6, "version": "6", "when": 1712900000000, "tag": "0006_wave2_hooks", "breakpoints": true },
-    { "idx": 7, "version": "6", "when": 1713000000000, "tag": "0007_product_registry", "breakpoints": true },
-    { "idx": 8, "version": "6", "when": 1713100000000, "tag": "0008_ui_components", "breakpoints": true },
-    { "idx": 9, "version": "6", "when": 1713200000000, "tag": "0009_webhook_deliveries", "breakpoints": true },
-    { "idx": 10, "version": "6", "when": 1713300000000, "tag": "0010_ai_cache", "breakpoints": true },
-    { "idx": 11, "version": "6", "when": 1713400000000, "tag": "0011_tenants", "breakpoints": true },
-    { "idx": 12, "version": "6", "when": 1713500000000, "tag": "0012_feature_flags_email_prefs", "breakpoints": true },
-    { "idx": 13, "version": "6", "when": 1713600000000, "tag": "0013_chat_and_provider_keys", "breakpoints": true },
-    { "idx": 14, "version": "6", "when": 1713700000000, "tag": "0014_projects_domains_deployments", "breakpoints": true },
-    { "idx": 15, "version": "6", "when": 1713800000000, "tag": "0015_flywheel", "breakpoints": true },
-    { "idx": 16, "version": "6", "when": 1713900000000, "tag": "0016_build_theatre", "breakpoints": true },
-    { "idx": 17, "version": "6", "when": 1714000000000, "tag": "0017_tenant_git_repos", "breakpoints": true },
-    { "idx": 18, "version": "6", "when": 1714100000000, "tag": "0018_blk009_deploy_pipeline", "breakpoints": true },
-    { "idx": 19, "version": "6", "when": 1714200000000, "tag": "0019_usage_events", "breakpoints": true },
-    { "idx": 20, "version": "6", "when": 1714300000000, "tag": "0020_usage_reports", "breakpoints": true },
-    { "idx": 21, "version": "6", "when": 1714400000000, "tag": "0021_dns_zones_and_records", "breakpoints": true },
-    { "idx": 22, "version": "6", "when": 1714500000000, "tag": "0022_domain_registrations", "breakpoints": true },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1712400000000,
+      "tag": "0001_tenant_projects",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1712500000000,
+      "tag": "0002_api_keys_webhooks",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1712600000000,
+      "tag": "0003_support_tickets",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1712700000000,
+      "tag": "0004_sites_and_versions",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1712800000000,
+      "tag": "0005_wave1_hooks",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1712900000000,
+      "tag": "0006_wave2_hooks",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1713000000000,
+      "tag": "0007_product_registry",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1713100000000,
+      "tag": "0008_ui_components",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1713200000000,
+      "tag": "0009_webhook_deliveries",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1713300000000,
+      "tag": "0010_ai_cache",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "6",
+      "when": 1713400000000,
+      "tag": "0011_tenants",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "6",
+      "when": 1713500000000,
+      "tag": "0012_feature_flags_email_prefs",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "6",
+      "when": 1713600000000,
+      "tag": "0013_chat_and_provider_keys",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "6",
+      "when": 1713700000000,
+      "tag": "0014_projects_domains_deployments",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "6",
+      "when": 1713800000000,
+      "tag": "0015_flywheel",
+      "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "6",
+      "when": 1713900000000,
+      "tag": "0016_build_theatre",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "6",
+      "when": 1714000000000,
+      "tag": "0017_tenant_git_repos",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "6",
+      "when": 1714100000000,
+      "tag": "0018_blk009_deploy_pipeline",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "6",
+      "when": 1714200000000,
+      "tag": "0019_usage_events",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "6",
+      "when": 1714300000000,
+      "tag": "0020_usage_reports",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "6",
+      "when": 1714400000000,
+      "tag": "0021_dns_zones_and_records",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "6",
+      "when": 1714500000000,
+      "tag": "0022_domain_registrations",
+      "breakpoints": true
+    },
     { "idx": 23, "version": "6", "when": 1714600000000, "tag": "0023_esim", "breakpoints": true },
     { "idx": 24, "version": "6", "when": 1714700000000, "tag": "0024_sms", "breakpoints": true },
-    { "idx": 25, "version": "6", "when": 1714800000000, "tag": "0025_email_verification", "breakpoints": true },
-    { "idx": 26, "version": "6", "when": 1714900000000, "tag": "0026_project_url_acceleration", "breakpoints": true },
-    { "idx": 27, "version": "6", "when": 1714900000000, "tag": "0027_billing_plumbing", "breakpoints": true }
+    {
+      "idx": 25,
+      "version": "6",
+      "when": 1714800000000,
+      "tag": "0025_email_verification",
+      "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "6",
+      "when": 1714900000000,
+      "tag": "0026_project_url_acceleration",
+      "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "6",
+      "when": 1714900000000,
+      "tag": "0027_billing_plumbing",
+      "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "6",
+      "when": 1745798400000,
+      "tag": "0028_auth_challenges",
+      "breakpoints": true
+    }
   ]
 }

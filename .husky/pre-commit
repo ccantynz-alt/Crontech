@@ -1,2 +1,6 @@
 #!/bin/sh
-bunx biome check --staged --no-errors-on-unmatched
+if command -v bunx >/dev/null 2>&1; then
+  bunx biome check --staged --no-errors-on-unmatched
+else
+  npx --yes @biomejs/biome@1.9.4 check --staged --no-errors-on-unmatched
+fi

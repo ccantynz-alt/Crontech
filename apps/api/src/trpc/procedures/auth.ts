@@ -1,73 +1,66 @@
-import { z } from "zod";
+import { authChallenges, credentials, users } from "@back-to-the-future/db";
 import { TRPCError } from "@trpc/server";
-import { eq } from "drizzle-orm";
-import { router, publicProcedure, protectedProcedure } from "../init";
-import { users, credentials } from "@back-to-the-future/db";
-import {
-  generateRegistrationOpts,
-  verifyRegistration,
-  generateAuthenticationOpts,
-  verifyAuthentication,
-} from "../../auth/webauthn";
-import type {
-  RegistrationResponseJSON,
-  AuthenticationResponseJSON,
-} from "../../auth/webauthn";
-import { createSession, deleteSession } from "../../auth/session";
+import { and, desc, eq, gt, like, lt } from "drizzle-orm";
+import { z } from "zod";
 import { generateCsrfToken, validateCsrfToken } from "../../auth/csrf";
-import {
-  registerWithPassword,
-  loginWithPassword,
-  registerWithPasswordSchema,
-  loginWithPasswordSchema,
-  calculatePasswordStrength,
-} from "../../auth/password";
 import { buildGoogleAuthUrl } from "../../auth/google-oauth";
-import { auditMiddleware } from "../../middleware/audit";
+import {
+  calculatePasswordStrength,
+  loginWithPassword,
+  loginWithPasswordSchema,
+  registerWithPassword,
+  registerWithPasswordSchema,
+} from "../../auth/password";
+import { createSession, deleteSession } from "../../auth/session";
+import {
+  generateAuthenticationOpts,
+  generateRegistrationOpts,
+  verifyAuthentication,
+  verifyRegistration,
+} from "../../auth/webauthn";
+import type { AuthenticationResponseJSON, RegistrationResponseJSON } from "../../auth/webauthn";
 import { autoProvisionUser } from "../../automation/auto-provision";
-
-// In-memory challenge store with TTL cleanup.
-// In production, replace with Redis or a DB-backed store.
-const challengeStore = new Map<
-  string,
-  { challenge: string; expiresAt: number }
->();
+import { auditMiddleware } from "../../middleware/audit";
+import type { TRPCContext } from "../context";
+import { protectedProcedure, publicProcedure, router } from "../init";
 
 const CHALLENGE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
-function storeChallenge(key: string, challenge: string): void {
-  challengeStore.set(key, {
-    challenge,
-    expiresAt: Date.now() + CHALLENGE_TTL_MS,
-  });
+type Db = TRPCContext["db"];
+
+/** Persist a challenge to the DB, pruning expired rows first. */
+async function storeChallenge(db: Db, key: string, challenge: string): Promise<void> {
+  // Prune expired challenges inline — avoids a separate setInterval
+  await db.delete(authChallenges).where(lt(authChallenges.expiresAt, new Date()));
+  await db
+    .insert(authChallenges)
+    .values({
+      key,
+      challenge,
+      expiresAt: new Date(Date.now() + CHALLENGE_TTL_MS),
+      createdAt: new Date(),
+    })
+    .onConflictDoUpdate({
+      target: authChallenges.key,
+      set: {
+        challenge,
+        expiresAt: new Date(Date.now() + CHALLENGE_TTL_MS),
+      },
+    });
 }
 
-function consumeChallenge(key: string): string | null {
-  const entry = challengeStore.get(key);
-  if (!entry) return null;
-
-  challengeStore.delete(key);
-
-  if (Date.now() > entry.expiresAt) return null;
-
-  return entry.challenge;
+/** Fetch and atomically delete a challenge from the DB. Returns null if missing or expired. */
+async function consumeChallenge(db: Db, key: string): Promise<string | null> {
+  const rows = await db
+    .select()
+    .from(authChallenges)
+    .where(and(eq(authChallenges.key, key), gt(authChallenges.expiresAt, new Date())))
+    .limit(1);
+  const row = rows[0];
+  if (!row) return null;
+  await db.delete(authChallenges).where(eq(authChallenges.key, key));
+  return row.challenge;
 }
-
-/** Clean up expired challenges. Exported for testing. */
-export function cleanupExpiredChallenges(): number {
-  const now = Date.now();
-  let cleaned = 0;
-  for (const [key, entry] of challengeStore) {
-    if (now > entry.expiresAt) {
-      challengeStore.delete(key);
-      cleaned++;
-    }
-  }
-  return cleaned;
-}
-
-// Periodic cleanup of expired challenges every 60 seconds
-setInterval(cleanupExpiredChallenges, 60_000);
 
 /** Helper to validate CSRF token on auth mutations. */
 function requireCsrfToken(csrfToken: string | null): void {
@@ -94,9 +87,7 @@ const registrationResponseSchema = z.object({
     publicKey: z.string().optional(),
     authenticatorData: z.string().optional(),
   }),
-  authenticatorAttachment: z
-    .enum(["cross-platform", "platform"])
-    .optional(),
+  authenticatorAttachment: z.enum(["cross-platform", "platform"]).optional(),
   clientExtensionResults: z.record(z.string(), z.unknown()),
   type: z.literal("public-key"),
 });
@@ -110,9 +101,7 @@ const authenticationResponseSchema = z.object({
     signature: z.string(),
     userHandle: z.string().optional(),
   }),
-  authenticatorAttachment: z
-    .enum(["cross-platform", "platform"])
-    .optional(),
+  authenticatorAttachment: z.enum(["cross-platform", "platform"]).optional(),
   clientExtensionResults: z.record(z.string(), z.unknown()),
   type: z.literal("public-key"),
 });
@@ -137,11 +126,7 @@ export const authRouter = router({
         const { email, displayName } = input;
 
         // Check if user already exists
-        const existing = await ctx.db
-          .select()
-          .from(users)
-          .where(eq(users.email, email))
-          .limit(1);
+        const existing = await ctx.db.select().from(users).where(eq(users.email, email)).limit(1);
 
         let user: { id: string; email: string; displayName: string };
 
@@ -175,7 +160,7 @@ export const authRouter = router({
         const options = await generateRegistrationOpts(user, existingCreds);
 
         // Store challenge keyed by user ID
-        storeChallenge(`reg:${user.id}`, options.challenge);
+        await storeChallenge(ctx.db, `reg:${user.id}`, options.challenge);
 
         return {
           options,
@@ -197,12 +182,11 @@ export const authRouter = router({
 
         const { userId, response } = input;
 
-        const expectedChallenge = consumeChallenge(`reg:${userId}`);
+        const expectedChallenge = await consumeChallenge(ctx.db, `reg:${userId}`);
         if (!expectedChallenge) {
           throw new TRPCError({
             code: "BAD_REQUEST",
-            message:
-              "Registration challenge expired or not found. Please restart registration.",
+            message: "Registration challenge expired or not found. Please restart registration.",
           });
         }
 
@@ -321,10 +305,8 @@ export const authRouter = router({
         const options = await generateAuthenticationOpts(allowCredentials);
 
         // Store challenge - use userId if known, otherwise use the challenge itself as key
-        const challengeKey = userId
-          ? `auth:${userId}`
-          : `auth:discoverable:${options.challenge}`;
-        storeChallenge(challengeKey, options.challenge);
+        const challengeKey = userId ? `auth:${userId}` : `auth:discoverable:${options.challenge}`;
+        await storeChallenge(ctx.db, challengeKey, options.challenge);
 
         return {
           options,
@@ -376,22 +358,31 @@ export const authRouter = router({
         }
 
         // Try to consume the challenge
-        let expectedChallenge = consumeChallenge(`auth:${userId}`);
+        let expectedChallenge = await consumeChallenge(ctx.db, `auth:${userId}`);
         if (!expectedChallenge) {
-          // Try discoverable key challenges
-          for (const [key] of challengeStore) {
-            if (key.startsWith("auth:discoverable:")) {
-              expectedChallenge = consumeChallenge(key);
-              if (expectedChallenge) break;
-            }
+          // Try discoverable key challenges — fetch the most recent valid one
+          const discoverableRows = await ctx.db
+            .select()
+            .from(authChallenges)
+            .where(
+              and(
+                like(authChallenges.key, "auth:discoverable:%"),
+                gt(authChallenges.expiresAt, new Date()),
+              ),
+            )
+            .orderBy(desc(authChallenges.createdAt))
+            .limit(1);
+          const discoverableRow = discoverableRows[0];
+          if (discoverableRow) {
+            await ctx.db.delete(authChallenges).where(eq(authChallenges.key, discoverableRow.key));
+            expectedChallenge = discoverableRow.challenge;
           }
         }
 
         if (!expectedChallenge) {
           throw new TRPCError({
             code: "BAD_REQUEST",
-            message:
-              "Authentication challenge expired or not found. Please restart login.",
+            message: "Authentication challenge expired or not found. Please restart login.",
           });
         }
 
