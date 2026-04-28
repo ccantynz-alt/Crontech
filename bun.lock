@@ -278,6 +278,18 @@
         "typescript": "^6.0.2",
       },
     },
+    "services/waf": {
+      "name": "@back-to-the-future/waf",
+      "version": "0.0.1",
+      "dependencies": {
+        "hono": "^4.7.0",
+        "zod": "^4.3.6",
+      },
+      "devDependencies": {
+        "@types/bun": "^1.2.0",
+        "typescript": "^6.0.2",
+      },
+    },
   },
   "packages": {
     "@a2a-js/sdk": ["@a2a-js/sdk@0.2.5", "", { "dependencies": { "@types/cors": "^2.8.17", "@types/express": "^4.17.23", "body-parser": "^2.2.0", "cors": "^2.8.5", "express": "^4.21.2", "uuid": "^11.1.0" } }, "sha512-VTDuRS5V0ATbJ/LkaQlisMnTAeYKXAK6scMguVBstf+KIBQ7HIuKhiXLv+G/hvejkV+THoXzoNifInAkU81P1g=="],
@@ -455,6 +467,8 @@
     "@back-to-the-future/theatre": ["@back-to-the-future/theatre@workspace:packages/theatre"],
 
     "@back-to-the-future/ui": ["@back-to-the-future/ui@workspace:packages/ui"],
+
+    "@back-to-the-future/waf": ["@back-to-the-future/waf@workspace:services/waf"],
 
     "@back-to-the-future/web": ["@back-to-the-future/web@workspace:apps/web"],
 
