@@ -17,8 +17,8 @@
 # Usage:
 #   export DOMAIN="crontech.ai"
 #   export DEPLOY_USER="deploy"
-#   export POSTGRES_CRONTECH_PASSWORD="$(openssl rand -hex 32)"
-#   export POSTGRES_GLUECRON_PASSWORD="$(openssl rand -hex 32)"
+#   export POSTGRES_CRONTECH_PASSWORD="$(openssl rand -hex 32)" # secrets-ok — generated at runtime, usage example
+#   export POSTGRES_GLUECRON_PASSWORD="$(openssl rand -hex 32)" # secrets-ok — generated at runtime, usage example
 #   sudo -E bash scripts/bare-metal-setup.sh
 #
 # Idempotent: safe to re-run. Every step is either a check-then-create or an

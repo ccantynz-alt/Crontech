@@ -466,7 +466,7 @@ function BulkImportForm(props: {
         <textarea
           value={text()}
           onInput={(e) => setText(e.currentTarget.value)}
-          placeholder={"DATABASE_URL=postgres://...\nAPI_KEY=sk-..."}
+          placeholder={"DATABASE_URL=postgres://...\nAPI_KEY=sk-..."} // secrets-ok — placeholder example text, not a real credential
           aria-label="Bulk .env content"
           rows={8}
           spellcheck={false}

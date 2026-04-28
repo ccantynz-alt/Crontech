@@ -4,7 +4,7 @@
 # Target: Ubuntu 22.04 (Vultr). No Docker. Inline configs via heredoc.
 #
 # Usage:
-#   sudo GRAFANA_ADMIN_PASSWORD='somepass' bash scripts/install-observability.sh
+#   sudo GRAFANA_ADMIN_PASSWORD='somepass' bash scripts/install-observability.sh # secrets-ok — usage example with placeholder value
 set -euo pipefail
 
 log() { echo ">>> $*"; }

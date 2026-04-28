@@ -71,10 +71,10 @@ WOODPECKER_HOST_URL="https://${WOODPECKER_HOST_URL}"
 # Generate agent secret if not supplied
 if [[ -z "${WOODPECKER_AGENT_SECRET:-}" ]]; then
   if [[ -f "$SERVER_ENV_FILE" ]] && grep -q '^WOODPECKER_AGENT_SECRET=' "$SERVER_ENV_FILE"; then
-    WOODPECKER_AGENT_SECRET="$(grep '^WOODPECKER_AGENT_SECRET=' "$SERVER_ENV_FILE" | head -n1 | cut -d= -f2-)"
+    WOODPECKER_AGENT_SECRET="$(grep '^WOODPECKER_AGENT_SECRET=' "$SERVER_ENV_FILE" | head -n1 | cut -d= -f2-)" # secrets-ok — read from existing config file
     ok "Reusing existing WOODPECKER_AGENT_SECRET from ${SERVER_ENV_FILE}"
   else
-    WOODPECKER_AGENT_SECRET="$(openssl rand -hex 32)"
+    WOODPECKER_AGENT_SECRET="$(openssl rand -hex 32)" # secrets-ok — generated dynamically
     ok "Generated new WOODPECKER_AGENT_SECRET"
   fi
 fi

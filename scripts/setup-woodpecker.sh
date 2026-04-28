@@ -184,12 +184,12 @@ echo ""
 if [ -f "${WOODPECKER_CONFIG}/server.conf" ] && grep -qP 'WOODPECKER_GITEA_CLIENT=\S+' "${WOODPECKER_CONFIG}/server.conf" 2>/dev/null; then
   log_ok "OAuth2 credentials already configured in ${WOODPECKER_CONFIG}/server.conf"
   GITEA_CLIENT=$(grep 'WOODPECKER_GITEA_CLIENT=' "${WOODPECKER_CONFIG}/server.conf" | cut -d= -f2)
-  GITEA_SECRET=$(grep 'WOODPECKER_GITEA_SECRET=' "${WOODPECKER_CONFIG}/server.conf" | cut -d= -f2)
+  GITEA_SECRET=$(grep 'WOODPECKER_GITEA_SECRET=' "${WOODPECKER_CONFIG}/server.conf" | cut -d= -f2) # secrets-ok — read from config file
 else
   # Try to read from environment or prompt
   if [ -n "${WOODPECKER_GITEA_CLIENT:-}" ] && [ -n "${WOODPECKER_GITEA_SECRET:-}" ]; then
     GITEA_CLIENT="${WOODPECKER_GITEA_CLIENT}"
-    GITEA_SECRET="${WOODPECKER_GITEA_SECRET}"
+    GITEA_SECRET="${WOODPECKER_GITEA_SECRET}" # secrets-ok — read from env var, not hardcoded
     log_ok "Using OAuth2 credentials from environment variables"
   else
     echo -e "  ${DIM}(You can skip this now and edit ${WOODPECKER_CONFIG}/server.conf later)${NC}"
@@ -199,7 +199,7 @@ else
     echo ""
     if [ -z "${GITEA_CLIENT}" ] || [ -z "${GITEA_SECRET}" ]; then
       GITEA_CLIENT="<REPLACE_WITH_GITEA_CLIENT_ID>"
-      GITEA_SECRET="<REPLACE_WITH_GITEA_CLIENT_SECRET>"
+      GITEA_SECRET="<REPLACE_WITH_GITEA_CLIENT_SECRET>" # secrets-ok — placeholder instructing operator to set real value
       log_warn "OAuth2 credentials not set — edit ${WOODPECKER_CONFIG}/server.conf before starting"
     else
       log_ok "OAuth2 credentials recorded"

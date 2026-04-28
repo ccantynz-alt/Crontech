@@ -59,7 +59,7 @@ if [[ -f "$ENV_FILE" ]] && grep -q '^DEPLOY_WEBHOOK_SECRET=' "$ENV_FILE"; then
 fi
 SECRET="${DEPLOY_WEBHOOK_SECRET:-${SECRET:-}}"
 if [[ -z "${SECRET:-}" ]]; then
-  SECRET="$(head -c 48 /dev/urandom | base64 | tr -d '/+=\n')"
+  SECRET="$(head -c 48 /dev/urandom | base64 | tr -d '/+=\n')" # secrets-ok — generated dynamically, not hardcoded
   log "generated new DEPLOY_WEBHOOK_SECRET"
 fi
 

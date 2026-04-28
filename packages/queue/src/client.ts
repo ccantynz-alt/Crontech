@@ -17,7 +17,7 @@ const QUEUE_NAME = "crontech:jobs";
 const DLQ_NAME = "crontech:dlq";
 
 function getRedisUrl(): string {
-  return process.env.REDIS_URL ?? process.env.UPSTASH_REDIS_URL ?? "redis://localhost:6379";
+  return process.env.REDIS_URL ?? process.env.UPSTASH_REDIS_URL ?? "redis://localhost:6379"; // secrets-ok — dev default, not a credential
 }
 
 function getRedisConnectionOpts(): { url: string } {

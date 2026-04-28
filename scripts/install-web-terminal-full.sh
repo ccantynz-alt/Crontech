@@ -55,11 +55,11 @@ printf '%s\n' "$INSTALL_OUT" | redact >&2
 
 # --- 2. resolve plaintext password ---------------------------------------
 log "[2/9] resolving plaintext password"
-PASSWORD=""
+PASSWORD="" # secrets-ok — empty init, value extracted from installer output below
 # Prefer fresh output (password is only in output when freshly generated).
-PASSWORD="$(printf '%s\n' "$INSTALL_OUT" | sed -n 's/^[[:space:]]*Password:[[:space:]]*//p' | head -1 || true)"
+PASSWORD="$(printf '%s\n' "$INSTALL_OUT" | sed -n 's/^[[:space:]]*Password:[[:space:]]*//p' | head -1 || true)" # secrets-ok — read from installer, not hardcoded
 if [[ -z "$PASSWORD" && -s "$AUTH_FILE" ]]; then
-  PASSWORD="$(sed -n 's/^PASSWORD=//p' "$AUTH_FILE" | head -1 || true)"
+  PASSWORD="$(sed -n 's/^PASSWORD=//p' "$AUTH_FILE" | head -1 || true)" # secrets-ok — read from auth file, not hardcoded
 fi
 [[ -n "$PASSWORD" ]] || die "could not determine plaintext password (check $AUTH_FILE)"
 

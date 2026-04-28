@@ -299,7 +299,7 @@ function OnboardContent(): JSX.Element {
       ...a.missing.map((v) => `${v.key}=  # ${v.description}`),
       "",
       "# ── Crontech deploy agent (generate a strong random string) ──",
-      "DEPLOY_AGENT_SECRET=",
+      "DEPLOY_AGENT_SECRET=", // secrets-ok — .env template with empty value, not a real credential
     ];
     const blob = new Blob([lines.join("\n")], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
