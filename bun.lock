@@ -232,6 +232,18 @@
         "wrangler": "^4.14.1",
       },
     },
+    "services/git-webhook": {
+      "name": "@back-to-the-future/git-webhook",
+      "version": "0.0.1",
+      "dependencies": {
+        "hono": "^4.7.11",
+        "zod": "^4",
+      },
+      "devDependencies": {
+        "@types/bun": "^1.2.0",
+        "typescript": "^6",
+      },
+    },
     "services/gpu-workers": {
       "name": "@back-to-the-future/gpu-workers",
       "version": "0.0.1",
@@ -425,6 +437,8 @@
     "@back-to-the-future/edge-workers": ["@back-to-the-future/edge-workers@workspace:services/edge-workers"],
 
     "@back-to-the-future/flywheel": ["@back-to-the-future/flywheel@workspace:packages/flywheel"],
+
+    "@back-to-the-future/git-webhook": ["@back-to-the-future/git-webhook@workspace:services/git-webhook"],
 
     "@back-to-the-future/gpu-workers": ["@back-to-the-future/gpu-workers@workspace:services/gpu-workers"],
 
