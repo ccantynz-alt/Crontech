@@ -165,11 +165,11 @@ export const analyticsChartsRouter = router({
       for (const row of costRows) {
         const existing = byDate.get(row.date);
         if (existing) {
-          existing.cost = Number(row.cost ?? 0);
+          existing.cost = Math.round(Number(row.cost ?? 0) * 10000) / 10000;
         } else {
           byDate.set(row.date, {
             tokens: 0,
-            cost: Number(row.cost ?? 0),
+            cost: Math.round(Number(row.cost ?? 0) * 10000) / 10000,
           });
         }
       }

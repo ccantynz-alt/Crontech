@@ -21,7 +21,6 @@
  */
 
 import type { MiddlewareHandler } from "hono";
-import { rateLimiter as memoryRateLimiter } from "./rate-limiter";
 
 // ── KV binding type ──────────────────────────────────────────────────
 // We declare a minimal local interface rather than depending on @cloudflare/workers-types
@@ -52,7 +51,7 @@ export function createKvRateLimiter(opts: KvRateLimiterOptions): MiddlewareHandl
   const windowMs = opts.windowMs ?? 60_000;
   const max = opts.max ?? 100;
   const kv = opts.kv;
-  const fallback = opts.fallback ?? memoryRateLimiter({ windowMs, max });
+  const fallback = opts.fallback;
 
   return async (c, next): Promise<Response | undefined> => {
     const ip = c.req.header("x-forwarded-for") ?? c.req.header("x-real-ip") ?? "unknown";
@@ -106,7 +105,11 @@ export function createKvRateLimiter(opts: KvRateLimiterOptions): MiddlewareHandl
         "[rate-limiter-kv] KV store unreachable, falling back to memory limiter:",
         err instanceof Error ? err.message : String(err),
       );
-      await fallback(c, next);
+      if (fallback) {
+        await fallback(c, next);
+      } else {
+        await next();
+      }
       return undefined;
     }
   };

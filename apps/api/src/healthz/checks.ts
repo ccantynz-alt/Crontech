@@ -190,8 +190,6 @@ function tlsProbeNotAfter(host: string, port: number, timeoutMs: number): Promis
       port,
       servername: host,
       timeout: timeoutMs,
-      // Allow self-signed / custom CAs — we only care about expiry, not trust.
-      rejectUnauthorized: false,
     });
     const cleanup = (): void => {
       try {
