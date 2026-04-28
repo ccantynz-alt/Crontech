@@ -266,6 +266,18 @@
         "typescript": "^6.0.2",
       },
     },
+    "services/wireguard-mesh": {
+      "name": "@back-to-the-future/wireguard-mesh",
+      "version": "0.0.1",
+      "dependencies": {
+        "hono": "^4.7.0",
+        "zod": "^4.3.6",
+      },
+      "devDependencies": {
+        "@types/bun": "^1.2.0",
+        "typescript": "^6.0.2",
+      },
+    },
   },
   "packages": {
     "@a2a-js/sdk": ["@a2a-js/sdk@0.2.5", "", { "dependencies": { "@types/cors": "^2.8.17", "@types/express": "^4.17.23", "body-parser": "^2.2.0", "cors": "^2.8.5", "express": "^4.21.2", "uuid": "^11.1.0" } }, "sha512-VTDuRS5V0ATbJ/LkaQlisMnTAeYKXAK6scMguVBstf+KIBQ7HIuKhiXLv+G/hvejkV+THoXzoNifInAkU81P1g=="],
@@ -443,6 +455,8 @@
     "@back-to-the-future/ui": ["@back-to-the-future/ui@workspace:packages/ui"],
 
     "@back-to-the-future/web": ["@back-to-the-future/web@workspace:apps/web"],
+
+    "@back-to-the-future/wireguard-mesh": ["@back-to-the-future/wireguard-mesh@workspace:services/wireguard-mesh"],
 
     "@cloudflare/kv-asset-handler": ["@cloudflare/kv-asset-handler@0.4.2", "", {}, "sha512-SIOD2DxrRRwQ+jgzlXCqoEFiKOFqaPjhnNTGKXSRLvp1HiOvapLaFG2kEr9dYQTYe8rKrd9uvDUzmAITeNyaHQ=="],
 
