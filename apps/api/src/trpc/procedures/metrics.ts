@@ -22,21 +22,15 @@
 // that wiring is extended to every code path, many projects will return
 // `points: []` — that's the correct honest behaviour.
 
-import { z } from "zod";
-import { and, eq } from "drizzle-orm";
-import { TRPCError } from "@trpc/server";
 import { projects } from "@back-to-the-future/db";
-import { router, protectedProcedure } from "../init";
+import { TRPCError } from "@trpc/server";
+import { and, eq } from "drizzle-orm";
+import { z } from "zod";
+import { protectedProcedure, router } from "../init";
 
 // ── Input Schemas ────────────────────────────────────────────────────
 
-const metricEnum = z.enum([
-  "cpu",
-  "memory",
-  "bandwidth",
-  "requests",
-  "inflight",
-]);
+const metricEnum = z.enum(["cpu", "memory", "bandwidth", "requests", "inflight"]);
 const rangeEnum = z.enum(["1h", "6h", "24h", "7d", "30d"]);
 
 export type ProjectMetricName = z.infer<typeof metricEnum>;
@@ -186,7 +180,7 @@ async function fetchMimirRange(
 
   try {
     const headers: Record<string, string> = { accept: "application/json" };
-    const tenant = process.env["MIMIR_TENANT_ID"];
+    const tenant = process.env.MIMIR_TENANT_ID;
     if (tenant) headers["X-Scope-OrgID"] = tenant;
 
     const res = await fetch(url.toString(), {
@@ -253,6 +247,27 @@ async function requireOwnedProjectId(
   return row.id;
 }
 
+// ── Pulse snapshot output ────────────────────────────────────────────
+//
+// Used by the Sovereign Pulse admin command center (/admin/pulse).
+// Returns a point-in-time health snapshot for the entire platform:
+//   agentCount      — number of active theatre runs (pending/running)
+//   meshHealthy     — true if all GlueCron regions are reachable
+//   revenueCents    — current calendar-month gross revenue in USD cents
+//   uptimeSeconds   — seconds since the API process started
+//
+// All sub-queries fail gracefully to their zero/false placeholder so
+// the dashboard is never blank due to a down dependency.
+
+const PROCESS_START_MS = Date.now();
+
+export interface PulseSnapshot {
+  agentCount: number;
+  meshHealthy: boolean;
+  revenueCents: number;
+  uptimeSeconds: number;
+}
+
 // ── Router ───────────────────────────────────────────────────────────
 
 export const metricsRouter = router({
@@ -276,7 +291,7 @@ export const metricsRouter = router({
       // via timing or response shape to an unauthorised caller.
       await requireOwnedProjectId(ctx.db, input.projectId, ctx.userId);
 
-      const mimirUrl = process.env["MIMIR_URL"];
+      const mimirUrl = process.env.MIMIR_URL;
       if (!mimirUrl) return null;
 
       const spec = METRIC_SPECS[input.metric];
@@ -286,13 +301,7 @@ export const metricsRouter = router({
       const start = now - rangeSpec.durationSeconds;
       const expr = spec.buildExpr(input.projectId, rangeSpec.window);
 
-      const resp = await fetchMimirRange(
-        mimirUrl,
-        expr,
-        start,
-        now,
-        rangeSpec.stepSeconds,
-      );
+      const resp = await fetchMimirRange(mimirUrl, expr, start, now, rangeSpec.stepSeconds);
       if (!resp) return null;
 
       const points = flattenPoints(resp);
@@ -304,4 +313,54 @@ export const metricsRouter = router({
         points,
       };
     }),
+
+  /**
+   * Platform-wide health snapshot for the Sovereign Pulse dashboard.
+   * Returns placeholder values (0 / false) for any sub-system that is
+   * unavailable — the dashboard always renders, never blank.
+   */
+  pulse: protectedProcedure.query(async ({ ctx }): Promise<PulseSnapshot> => {
+    // ── Agent count: count theatre runs in pending/running state ───────
+    let agentCount = 0;
+    try {
+      const { listRuns } = await import("@back-to-the-future/theatre");
+      const runs = await listRuns(ctx.db, { limit: 200 });
+      agentCount = runs.filter(
+        (r) =>
+          (r as { status?: string }).status === "running" ||
+          (r as { status?: string }).status === "pending",
+      ).length;
+    } catch {
+      agentCount = 0;
+    }
+
+    // ── Mesh health: check GlueCron region orchestrator ────────────────
+    let meshHealthy = false;
+    try {
+      const regionUrl = (process.env.REGION_ORCHESTRATOR_URL ?? "http://localhost:3004").replace(
+        /\/+$/,
+        "",
+      );
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 2_000);
+      try {
+        const res = await fetch(`${regionUrl}/health`, {
+          signal: controller.signal,
+        });
+        meshHealthy = res.ok;
+      } finally {
+        clearTimeout(timer);
+      }
+    } catch {
+      meshHealthy = false;
+    }
+
+    // ── Revenue: placeholder — billing aggregate not yet wired ─────────
+    const revenueCents = 0;
+
+    // ── Uptime: milliseconds since process boot ────────────────────────
+    const uptimeSeconds = Math.floor((Date.now() - PROCESS_START_MS) / 1_000);
+
+    return { agentCount, meshHealthy, revenueCents, uptimeSeconds };
+  }),
 });
