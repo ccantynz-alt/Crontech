@@ -264,5 +264,6 @@ export const subdomainRouter = createMiddleware<TenantEnv>(
     // Unknown host — not a custom domain, just pass through (main app)
     cacheDomainNotFound(host);
     await next();
+    return undefined;
   },
 );

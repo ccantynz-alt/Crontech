@@ -36,4 +36,5 @@ export async function requireAdmin(c: Context, next: Next): Promise<Response | u
   }
 
   await next();
+  return undefined;
 }
