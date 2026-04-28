@@ -446,6 +446,7 @@ function OnboardContent(): JSX.Element {
                 value={rawEnv()}
                 onInput={(e) => setRawEnv(e.currentTarget.value)}
                 placeholder={
+                  // secrets-ok — example placeholder text only, not a real credential
                   "DATABASE_URL=postgres://...\nSTRIPE_SECRET_KEY=sk_live_...\nNEXTAUTH_SECRET=...\n# etc."
                 }
                 rows={12}

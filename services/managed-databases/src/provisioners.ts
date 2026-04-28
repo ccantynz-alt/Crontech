@@ -168,7 +168,7 @@ export class NeonProvisioner implements DbProvisioner {
         ...(req.fromSnapshotId !== undefined ? { from_snapshot: req.fromSnapshotId } : {}),
       },
     })) as NeonBranchResponse;
-    const cs = `postgres://${role}:${res.password}@${res.host}/${database}?sslmode=require`;
+    const cs = `postgres://${role}:${res.password}@${res.host}/${database}?sslmode=require`; // secrets-ok — runtime values from provisioner, not hardcoded
     return {
       connectionString: cs,
       externalRefs: { branch_id: res.branch_id, host: res.host },
@@ -198,7 +198,7 @@ export class NeonProvisioner implements DbProvisioner {
       method: "POST",
       body: { name: `restore-${req.snapshotId}`, from_snapshot: req.snapshotId },
     })) as NeonBranchResponse;
-    const cs = `postgres://${role}:${res.password}@${res.host}/${database}?sslmode=require`;
+    const cs = `postgres://${role}:${res.password}@${res.host}/${database}?sslmode=require`; // secrets-ok — runtime values from provisioner, not hardcoded
     return {
       connectionString: cs,
       externalRefs: { branch_id: res.branch_id, host: res.host },
@@ -214,7 +214,7 @@ export class NeonProvisioner implements DbProvisioner {
       method: "POST",
       body: { rotate: true },
     })) as NeonRotateResponse;
-    const cs = `postgres://${role}:${res.password}@${res.host}/${database}?sslmode=require`;
+    const cs = `postgres://${role}:${res.password}@${res.host}/${database}?sslmode=require`; // secrets-ok — runtime values from provisioner, not hardcoded
     return { connectionString: cs, externalRefs: { host: res.host } };
   }
 
