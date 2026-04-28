@@ -91,13 +91,17 @@ export function shouldFailover(status: number): boolean {
  * Given the primary provider and an optional configured fallback chain,
  * return the de-duplicated ordered list of providers to try.
  *
- * Example:
+ * Examples:
  *   buildFallbackChain("anthropic", ["openai", "groq", "anthropic"])
  *   → ["anthropic", "openai", "groq"]
+ *   buildFallbackChain("anthropic", undefined)
+ *   → ["anthropic", "openai"]    // v0 opposite-vendor default
  *
  * The primary is always first; duplicates are removed; the WebGPU virtual
  * provider is filtered out of automatic fallback (it's a passthrough sink,
- * not a fallback target).
+ * not a fallback target). When no chain is configured, we fall back to the
+ * v0 opposite-vendor single hop so customers without explicit config still
+ * get failover for free.
  */
 export function buildFallbackChain(
   primary: ProviderName,
@@ -105,9 +109,19 @@ export function buildFallbackChain(
 ): ProviderName[] {
   const out: ProviderName[] = [primary];
   const seen = new Set<ProviderName>([primary]);
-  if (!configured) {
+
+  if (configured === undefined || configured.length === 0) {
+    // Default: opposite-vendor single hop (v0-compatible).
+    if (primary !== "webgpu") {
+      const opposite: ProviderName = primary === "anthropic" ? "openai" : "anthropic";
+      if (!seen.has(opposite)) {
+        seen.add(opposite);
+        out.push(opposite);
+      }
+    }
     return out;
   }
+
   for (const p of configured) {
     if (seen.has(p)) {
       continue;
