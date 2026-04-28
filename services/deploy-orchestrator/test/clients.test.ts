@@ -103,12 +103,37 @@ describe("HTTP client wrappers", () => {
     expect(calls[0]?.url).toBe("https://t.test/routes/swap");
   });
 
-  test("secrets-vault client fetches /tenants/:t/projects/:p/bundle", async () => {
+  test("secrets-vault client lists keys then fetches bundle", async () => {
+    const { fetch: f, calls } = fakeFetch((url) => {
+      if (url.endsWith("/secrets")) {
+        return Response.json({ tenantId: "t1", keys: ["DB_URL", "API_KEY"] });
+      }
+      return Response.json({
+        tenantId: "t1",
+        env: { DB_URL: "postgres://...", API_KEY: "sk-..." },
+      });
+    });
+    const client = createSecretsVaultHttpClient({
+      baseUrl: "https://sv.test",
+      authToken: "tok",
+      fetch: f,
+    });
+    const res = await client.fetchBundle({
+      tenantId: "t1",
+      projectId: "p1",
+      sha: "abc",
+    });
+    expect(res.env).toEqual({});
+    expect(res.secrets.DB_URL).toBe("postgres://...");
+    expect(res.secrets.API_KEY).toBe("sk-...");
+    expect(calls[0]?.url).toBe("https://sv.test/tenants/t1/secrets");
+    expect(calls[1]?.url).toBe("https://sv.test/tenants/t1/secrets/bundle");
+    expect(calls[1]?.init?.method).toBe("POST");
+  });
+
+  test("secrets-vault client returns empty bundle when tenant has no keys", async () => {
     const { fetch: f, calls } = fakeFetch(() =>
-      Response.json({
-        env: { K: "V" },
-        secrets: { S: "T" },
-      }),
+      Response.json({ tenantId: "t1", keys: [] }),
     );
     const client = createSecretsVaultHttpClient({
       baseUrl: "https://sv.test",
@@ -120,9 +145,9 @@ describe("HTTP client wrappers", () => {
       projectId: "p1",
       sha: "abc",
     });
-    expect(res.env.K).toBe("V");
-    expect(calls[0]?.url).toContain("/tenants/t1/projects/p1/bundle");
-    expect(calls[0]?.url).toContain("sha=abc");
+    expect(res.env).toEqual({});
+    expect(res.secrets).toEqual({});
+    expect(calls).toHaveLength(1);
   });
 
   test("clients surface non-2xx as errors", async () => {
