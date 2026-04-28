@@ -246,6 +246,14 @@
         "typescript": "^6.0.2",
       },
     },
+    "services/cron-scheduler": {
+      "name": "@back-to-the-future/cron-scheduler",
+      "version": "0.0.1",
+      "devDependencies": {
+        "@types/bun": "^1.2.0",
+        "typescript": "^6.0.2",
+      },
+    },
     "services/deploy-agent": {
       "name": "@back-to-the-future/deploy-agent",
       "version": "0.1.0",
@@ -331,6 +339,18 @@
         "typescript": "^6.0.2",
       },
     },
+    "services/managed-databases": {
+      "name": "@back-to-the-future/managed-databases",
+      "version": "0.0.1",
+      "dependencies": {
+        "hono": "^4.7.0",
+        "zod": "^4.3.6",
+      },
+      "devDependencies": {
+        "@types/bun": "^1.2.0",
+        "typescript": "^6.0.2",
+      },
+    },
     "services/object-storage": {
       "name": "@back-to-the-future/object-storage",
       "version": "0.1.0",
@@ -345,6 +365,18 @@
     },
     "services/orchestrator": {
       "name": "@back-to-the-future/orchestrator",
+      "version": "0.0.1",
+      "dependencies": {
+        "hono": "^4.7.0",
+        "zod": "^4.3.6",
+      },
+      "devDependencies": {
+        "@types/bun": "^1.2.0",
+        "typescript": "^6.0.2",
+      },
+    },
+    "services/persistent-disks": {
+      "name": "@back-to-the-future/persistent-disks",
       "version": "0.0.1",
       "dependencies": {
         "hono": "^4.7.0",
@@ -450,6 +482,18 @@
       },
       "devDependencies": {
         "@types/bun": "^1.2.0",
+        "typescript": "^6.0.2",
+      },
+    },
+    "services/worker-runtime": {
+      "name": "@back-to-the-future/worker-runtime",
+      "version": "0.0.1",
+      "dependencies": {
+        "zod": "^4.3.6",
+      },
+      "devDependencies": {
+        "@types/bun": "^1.2.0",
+        "@types/node": "^22.0.0",
         "typescript": "^6.0.2",
       },
     },
@@ -611,6 +655,8 @@
 
     "@back-to-the-future/config": ["@back-to-the-future/config@workspace:packages/config"],
 
+    "@back-to-the-future/cron-scheduler": ["@back-to-the-future/cron-scheduler@workspace:services/cron-scheduler"],
+
     "@back-to-the-future/db": ["@back-to-the-future/db@workspace:packages/db"],
 
     "@back-to-the-future/deploy-agent": ["@back-to-the-future/deploy-agent@workspace:services/deploy-agent"],
@@ -631,9 +677,13 @@
 
     "@back-to-the-future/image-optimizer": ["@back-to-the-future/image-optimizer@workspace:services/image-optimizer"],
 
+    "@back-to-the-future/managed-databases": ["@back-to-the-future/managed-databases@workspace:services/managed-databases"],
+
     "@back-to-the-future/object-storage": ["@back-to-the-future/object-storage@workspace:services/object-storage"],
 
     "@back-to-the-future/orchestrator": ["@back-to-the-future/orchestrator@workspace:services/orchestrator"],
+
+    "@back-to-the-future/persistent-disks": ["@back-to-the-future/persistent-disks@workspace:services/persistent-disks"],
 
     "@back-to-the-future/preview-deploys": ["@back-to-the-future/preview-deploys@workspace:services/preview-deploys"],
 
@@ -664,6 +714,8 @@
     "@back-to-the-future/web": ["@back-to-the-future/web@workspace:apps/web"],
 
     "@back-to-the-future/wireguard-mesh": ["@back-to-the-future/wireguard-mesh@workspace:services/wireguard-mesh"],
+
+    "@back-to-the-future/worker-runtime": ["@back-to-the-future/worker-runtime@workspace:services/worker-runtime"],
 
     "@cloudflare/kv-asset-handler": ["@cloudflare/kv-asset-handler@0.4.2", "", {}, "sha512-SIOD2DxrRRwQ+jgzlXCqoEFiKOFqaPjhnNTGKXSRLvp1HiOvapLaFG2kEr9dYQTYe8rKrd9uvDUzmAITeNyaHQ=="],
 
