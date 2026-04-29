@@ -10,12 +10,21 @@
 #   systemctl enable --now crontech-sentinel
 #
 # (deploy.yml installs + enables this on every push to Main.)
+#
+# Hardening (Wave B2, 2026-04-27): added explicit PATH, OnFailure notifier,
+# tightened restart limits, and Bun-friendly stop semantics. To enable
+# systemd watchdog later, emit sd_notify WATCHDOG pings and uncomment
+# WatchdogSec=60. Note Sentinel is itself the heartbeat sink — if it goes
+# down, the failure-notify template will fail-open (curl loopback fails),
+# but systemd still restarts Sentinel via Restart=always and the audit's
+# external dead-man's switch remains the last line.
 
 [Unit]
 Description=Crontech Sentinel (competitive intelligence engine)
 Documentation=https://docs.crontech.ai/blocks/blk-015
 After=network-online.target
 Wants=network-online.target
+OnFailure=crontech-failure-notify@%i.service
 
 [Service]
 Type=simple
@@ -26,7 +35,14 @@ WorkingDirectory=/opt/crontech
 ExecStart=/root/.bun/bin/bun run services/sentinel/src/index.ts
 Restart=always
 RestartSec=10
+StartLimitIntervalSec=300
+StartLimitBurst=10
+KillSignal=SIGTERM
+TimeoutStopSec=30s
+KillMode=mixed
+# WatchdogSec=60s  # enable once the Bun runtime emits sd_notify WATCHDOG pings
 
+Environment=PATH=/usr/local/bin:/usr/bin:/bin:/root/.bun/bin
 Environment=APP_DIR=/opt/crontech
 Environment=SENTINEL_PORT=3002
 EnvironmentFile=-/opt/crontech/.env
