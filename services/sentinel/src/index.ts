@@ -61,7 +61,7 @@ function startHealthServer(): void {
 
   Bun.serve({
     port,
-    fetch(req: Request): Response {
+    async fetch(req: Request): Promise<Response> {
       const url = new URL(req.url);
 
       if (url.pathname === "/health" || url.pathname === "/") {
@@ -93,6 +93,13 @@ function startHealthServer(): void {
         return Response.json({ status: "digest_triggered" });
       }
 
+      // Systemd heartbeat ingest. Wave B2 (2026-04-27) — fed by
+      // infra/systemd/crontech-failure-notify@.service plus any
+      // external liveness pinger. See checks/systemd-heartbeat.ts.
+      if (url.pathname === "/v1/events/heartbeat") {
+        return await handleHeartbeatRequest(req);
+      }
+
       return Response.json({ error: "Not found" }, { status: 404 });
     },
   });
@@ -118,6 +125,10 @@ function startScheduler(): void {
 
   // Start health endpoint
   startHealthServer();
+
+  // Wave B2: register the systemd heartbeat check (60s scan loop +
+  // persisted state). Adds the /v1/events/heartbeat ingest above.
+  registerSystemdHeartbeat();
 
   // Run all collectors immediately on start
   void runAllCollectors();
