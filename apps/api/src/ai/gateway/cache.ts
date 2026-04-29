@@ -16,7 +16,12 @@ interface CacheEntry {
 
 /** In-memory map keyed by SHA-256(provider, model, normalized_messages). */
 export class GatewayCache {
+  private readonly maxSize: number;
   private readonly entries = new Map<string, CacheEntry>();
+
+  constructor(maxSize = 1024) {
+    this.maxSize = maxSize;
+  }
 
   get(key: string): ChatCompletionResponse | undefined {
     const hit = this.entries.get(key);
@@ -25,11 +30,33 @@ export class GatewayCache {
       this.entries.delete(key);
       return undefined;
     }
+    // Refresh insertion order for LRU semantics
+    this.entries.delete(key);
+    this.entries.set(key, hit);
     return hit.value;
   }
 
   set(key: string, value: ChatCompletionResponse, ttlMs: number): void {
     if (ttlMs <= 0) return;
+    if (this.entries.has(key)) {
+      this.entries.delete(key);
+    } else if (this.entries.size >= this.maxSize) {
+      // Evict expired entries first
+      const now = Date.now();
+      for (const [k, entry] of this.entries) {
+        if (entry.expiresAt < now) {
+          this.entries.delete(k);
+        }
+        if (this.entries.size < this.maxSize) break;
+      }
+      // If still at capacity, evict the least-recently-used (first) entry
+      if (this.entries.size >= this.maxSize) {
+        const lruKey = this.entries.keys().next().value;
+        if (lruKey !== undefined) {
+          this.entries.delete(lruKey);
+        }
+      }
+    }
     this.entries.set(key, { value, expiresAt: Date.now() + ttlMs });
   }
 
