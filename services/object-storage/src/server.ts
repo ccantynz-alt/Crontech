@@ -21,20 +21,11 @@
 
 import { type Context, Hono } from "hono";
 import { z } from "zod";
-import {
-  type ApiKeyVerifier,
-  AuthError,
-  type AuthIdentity,
-  extractBearerKey,
-} from "./auth";
-import { completeMultipartBodySchema } from "./multipart";
-import {
-  authorize,
-  type BucketPolicyStore,
-  type BucketVisibility,
-} from "./policy";
-import { sign as signUrl, toQueryString, verify as verifySignature } from "./signed-url";
+import { type ApiKeyVerifier, AuthError, type AuthIdentity, extractBearerKey } from "./auth";
 import type { StorageDriver } from "./drivers/types";
+import { completeMultipartBodySchema } from "./multipart";
+import { type BucketPolicyStore, type BucketVisibility, authorize } from "./policy";
+import { sign as signUrl, toQueryString, verify as verifySignature } from "./signed-url";
 
 export interface ServerOptions {
   driver: StorageDriver;
@@ -56,7 +47,11 @@ const signQuerySchema = z.object({
   key: z.string().min(1),
   method: z.enum(["GET", "PUT", "DELETE"]),
   /** Seconds until expiry, capped at 7 days. */
-  ttl: z.coerce.number().int().positive().max(60 * 60 * 24 * 7),
+  ttl: z.coerce
+    .number()
+    .int()
+    .positive()
+    .max(60 * 60 * 24 * 7),
 });
 
 export function createServer(opts: ServerOptions): Hono {
@@ -69,9 +64,7 @@ export function createServer(opts: ServerOptions): Hono {
   // ── Auth helper ──────────────────────────────────────────────────
   // Resolves an identity from a bearer token. Returns `null` for
   // anonymous (unauthenticated) requests.
-  const resolveIdentity = async (
-    headerKey: string | null,
-  ): Promise<AuthIdentity | null> => {
+  const resolveIdentity = async (headerKey: string | null): Promise<AuthIdentity | null> => {
     if (headerKey === null) return null;
     return await opts.verifier(headerKey);
   };
@@ -88,8 +81,7 @@ export function createServer(opts: ServerOptions): Hono {
   ): Promise<{ ok: true } | { ok: false; status: number; body: string }> => {
     const search = new URL(c.req.url).searchParams;
     if (search.has("signed")) {
-      const expectedMethod =
-        verb === "read" ? "GET" : c.req.method === "DELETE" ? "DELETE" : "PUT";
+      const expectedMethod = verb === "read" ? "GET" : c.req.method === "DELETE" ? "DELETE" : "PUT";
       const result = verifySignature(
         search,
         { method: expectedMethod, bucket, key },
@@ -117,7 +109,10 @@ export function createServer(opts: ServerOptions): Hono {
     if (!identity.writableBuckets.has(bucket)) {
       return c.text("access denied", 403);
     }
-    const json = await c.req.json().catch(() => null);
+    const json = await c.req.json().catch((e: unknown) => {
+      console.warn("[object-storage] JSON parse failed:", e);
+      return null;
+    });
     const parsed = policyBodySchema.safeParse(json);
     if (!parsed.success) {
       return c.text(`invalid policy body: ${parsed.error.message}`, 400);
@@ -206,7 +201,10 @@ export function createServer(opts: ServerOptions): Hono {
     }
     const uploadId = url.searchParams.get("uploadId");
     if (uploadId !== null) {
-      const json = await c.req.json().catch(() => null);
+      const json = await c.req.json().catch((e: unknown) => {
+        console.warn("[object-storage] JSON parse failed:", e);
+        return null;
+      });
       const parsed = completeMultipartBodySchema.safeParse(json);
       if (!parsed.success) {
         return c.text(`invalid complete body: ${parsed.error.message}`, 400);
@@ -312,7 +310,12 @@ export function createServer(opts: ServerOptions): Hono {
   return app;
 }
 
-function metaToHeaders(meta: { etag: string; size: number; contentType: string | undefined; lastModified: Date }): Record<string, string> {
+function metaToHeaders(meta: {
+  etag: string;
+  size: number;
+  contentType: string | undefined;
+  lastModified: Date;
+}): Record<string, string> {
   const headers: Record<string, string> = {
     etag: `"${meta.etag}"`,
     "x-amz-meta-sha256-etag": meta.etag,

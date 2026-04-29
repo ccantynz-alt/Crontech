@@ -61,4 +61,4 @@ export function cleanupExpiredCsrfTokens(): number {
 }
 
 // Periodic cleanup every 60 seconds
-setInterval(cleanupExpiredCsrfTokens, 60_000);
+export const _csrfCleanupInterval = setInterval(cleanupExpiredCsrfTokens, 60_000);

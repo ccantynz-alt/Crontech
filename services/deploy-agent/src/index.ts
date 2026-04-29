@@ -20,12 +20,12 @@
  *   GET  /diagnose        → { ok: true, services, checks: [{ name, ok, detail }] }
  */
 
-import { readFileSync, writeFileSync, existsSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 
-const PORT = Number(process.env["DEPLOY_AGENT_PORT"] ?? 9091);
-const SECRET = process.env["DEPLOY_AGENT_SECRET"] ?? "";
-const APP_DIR = process.env["APP_DIR"] ?? "/opt/crontech";
+const PORT = Number(process.env.DEPLOY_AGENT_PORT ?? 9091);
+const SECRET = process.env.DEPLOY_AGENT_SECRET ?? "";
+const APP_DIR = process.env.APP_DIR ?? "/opt/crontech";
 
 if (!SECRET) {
   console.error("[deploy-agent] DEPLOY_AGENT_SECRET env var is required — refusing to start");
@@ -87,8 +87,17 @@ const DEPLOY_STEPS: Array<{ label: string; cmd: string[] }> = [
   { label: "git reset", cmd: ["git", "reset", "--hard", "origin/Main"] },
   { label: "bun install", cmd: ["bun", "install", "--frozen-lockfile"] },
   { label: "bun build", cmd: ["bun", "run", "build"] },
-  { label: "migrate db", cmd: ["bun", "run", "--cwd", "apps/api", "-e",
-    'import("@back-to-the-future/db/migrate").then(m=>m.runMigrations()).then(()=>process.exit(0)).catch(e=>{console.error(e);process.exit(1)})'] },
+  {
+    label: "migrate db",
+    cmd: [
+      "bun",
+      "run",
+      "--cwd",
+      "apps/api",
+      "-e",
+      'import("@back-to-the-future/db/migrate").then(m=>m.runMigrations()).then(()=>process.exit(0)).catch(e=>{console.error(e);process.exit(1)})',
+    ],
+  },
   { label: "restart crontech-api", cmd: ["systemctl", "restart", "crontech-api"] },
   { label: "restart crontech-web", cmd: ["systemctl", "restart", "crontech-web"] },
 ];
@@ -113,7 +122,9 @@ async function runDeploy(writer: WritableStreamDefaultWriter<Uint8Array>): Promi
     }
     await writer.write(encodeEvent({ done: true, ok: true }));
   } finally {
-    writer.close().catch(() => {});
+    writer.close().catch((e: unknown) => {
+      console.warn("[deploy-agent] writer close failed:", e);
+    });
   }
 }
 
@@ -133,10 +144,7 @@ async function getStatus(): Promise<{
     services[svc] = stdout || "unknown";
   }
 
-  const { stdout: sha } = await runCommand(
-    ["git", "rev-parse", "--short", "HEAD"],
-    APP_DIR,
-  );
+  const { stdout: sha } = await runCommand(["git", "rev-parse", "--short", "HEAD"], APP_DIR);
 
   const { stdout: uptime } = await runCommand(["uptime", "-p"], "/");
 
@@ -155,7 +163,9 @@ async function runRestart(writer: WritableStreamDefaultWriter<Uint8Array>): Prom
     }
     await writer.write(encodeEvent({ done: true, ok: true }));
   } finally {
-    writer.close().catch(() => {});
+    writer.close().catch((e: unknown) => {
+      console.warn("[deploy-agent] writer close failed:", e);
+    });
   }
 }
 
@@ -199,10 +209,7 @@ function readEnvMap(): Map<string, string> {
     if (eq <= 0) continue;
     const k = line.slice(0, eq).trim();
     let v = line.slice(eq + 1).trim();
-    if (
-      (v.startsWith('"') && v.endsWith('"')) ||
-      (v.startsWith("'") && v.endsWith("'"))
-    ) {
+    if ((v.startsWith('"') && v.endsWith('"')) || (v.startsWith("'") && v.endsWith("'"))) {
       v = v.slice(1, -1);
     }
     map.set(k, v);
@@ -215,7 +222,7 @@ function writeEnvMap(map: Map<string, string>): void {
     const needsQuotes = /[\s"'\\#]/.test(v);
     return needsQuotes ? `${k}="${v.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"` : `${k}=${v}`;
   });
-  writeFileSync(ENV_FILE_PATH, lines.join("\n") + "\n", "utf8");
+  writeFileSync(ENV_FILE_PATH, `${lines.join("\n")}\n`, "utf8");
 }
 
 function valueHint(v: string): string {
@@ -273,12 +280,7 @@ export function parseDriftCounts(stdout: string): DriftCounts {
 
 async function getGitLog(limit = 20): Promise<GitCommit[]> {
   const { stdout } = await runCommand(
-    [
-      "git",
-      "log",
-      `-${Math.max(1, Math.min(100, limit))}`,
-      "--pretty=format:%h\x1f%s\x1f%ar",
-    ],
+    ["git", "log", `-${Math.max(1, Math.min(100, limit))}`, "--pretty=format:%h\x1f%s\x1f%ar"],
     APP_DIR,
   );
   return parseGitLog(stdout);
@@ -300,10 +302,7 @@ async function getGitDrift(): Promise<{
     await Promise.all([
       runCommand(["git", "rev-parse", "--short", "HEAD"], APP_DIR),
       runCommand(["git", "rev-parse", "--short", "origin/Main"], APP_DIR),
-      runCommand(
-        ["git", "rev-list", "--left-right", "--count", "origin/Main...HEAD"],
-        APP_DIR,
-      ),
+      runCommand(["git", "rev-list", "--left-right", "--count", "origin/Main...HEAD"], APP_DIR),
       runCommand(["git", "status", "--porcelain"], APP_DIR),
     ]);
 
@@ -436,7 +435,7 @@ Bun.serve({
     if (pathname === "/env-vars" && method === "PUT") {
       let body: { key?: string; value?: string };
       try {
-        body = await req.json() as { key?: string; value?: string };
+        body = (await req.json()) as { key?: string; value?: string };
       } catch {
         return json({ ok: false, error: "invalid JSON body" }, 400);
       }

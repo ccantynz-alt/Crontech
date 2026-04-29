@@ -66,7 +66,7 @@ const APPROVAL_TTL_MS = 5 * 60 * 1000; // 5 minutes
 const pendingApprovals = new Map<string, ApprovalRequest>();
 
 // Cleanup expired approvals
-setInterval(() => {
+export const _approvalCleanupInterval = setInterval(() => {
   const now = Date.now();
   for (const [id, request] of pendingApprovals) {
     if (now > request.expiresAt && request.status === "pending") {

@@ -149,7 +149,10 @@ async function fetchOne(product: SiblingProduct, fetchImpl: typeof fetch): Promi
       };
     }
 
-    const payload = (await res.json().catch(() => null)) as ShapelessPayload | null;
+    const payload = (await res.json().catch((e: unknown) => {
+      console.warn("[platform-siblings] JSON parse failed:", e);
+      return null;
+    })) as ShapelessPayload | null;
     const version = typeof payload?.version === "string" ? payload.version : null;
     const commit = typeof payload?.commit === "string" ? payload.commit : null;
     const lastUpdated = typeof payload?.timestamp === "string" ? payload.timestamp : null;

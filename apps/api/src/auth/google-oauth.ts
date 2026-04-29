@@ -101,7 +101,7 @@ function consumeOAuthState(state: string): { redirectTo: string } | null {
 }
 
 // Periodic cleanup of expired states
-setInterval(() => {
+export const _oauthStateCleanupInterval = setInterval(() => {
   const now = Date.now();
   for (const [key, entry] of oauthStateStore) {
     if (now - entry.createdAt > STATE_TTL_MS) {

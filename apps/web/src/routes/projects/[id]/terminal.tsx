@@ -31,9 +31,10 @@ function TerminalPage(): JSX.Element {
   // itself still works, we just show a degraded header.
   const projectQuery = useQuery(
     () =>
-      trpc.projects.getById
-        .query({ projectId: projectId() })
-        .catch(() => null) as Promise<ProjectMeta | null>,
+      trpc.projects.getById.query({ projectId: projectId() }).catch((e: unknown) => {
+        console.warn("[terminal] project fetch failed:", e);
+        return null;
+      }) as Promise<ProjectMeta | null>,
     { key: ["projects"] },
   );
 

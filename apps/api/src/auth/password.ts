@@ -92,7 +92,7 @@ function clearLoginAttempts(email: string): void {
 }
 
 // Periodic cleanup of expired entries
-setInterval(() => {
+export const _loginAttemptCleanupInterval = setInterval(() => {
   const now = Date.now();
   for (const [key, attempt] of loginAttempts) {
     if (

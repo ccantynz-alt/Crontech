@@ -22,7 +22,10 @@ export class TenantQueue<T> {
     const next = previous.then(task, task);
     // Always advance the chain even if `task` rejected so subsequent
     // tasks for the same key still run.
-    const chained = next.catch(() => undefined);
+    const chained = next.catch((e: unknown) => {
+      console.warn("[serial-queue] task rejected, advancing chain:", e);
+      return undefined;
+    });
     this.tails.set(key, chained);
     chained.then(() => {
       // Drop the tail if nothing newer has been queued behind us.
