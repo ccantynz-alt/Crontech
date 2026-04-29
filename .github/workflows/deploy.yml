@@ -59,23 +59,53 @@ jobs:
       # Package every build output into a single tarball.
       # The server extracts this instead of running bun build — cuts
       # server-side deploy time from ~5 min to ~30 sec.
+      #
+      # 2026-04-30 hardening: previous version had `2>/dev/null || true`
+      # appended which swallowed every tar error. If e.g. apps/web/.output/
+      # didn't exist (silent vinxi build skip), tar would fail for that
+      # path, the step would exit 0, the tarball would ship without the
+      # web build, and server-side `tar -xzf` would only overwrite paths
+      # IN the archive — leaving the OLD apps/web/.output untouched.
+      # Net effect: five days of "successful" deploys with zero new web
+      # code reaching production. Now we verify each expected directory
+      # exists before tarring, fail loud if any are missing, and dump
+      # the tarball contents + size for the deploy log.
       - name: Package build artifacts
         run: |
-          tar -czf crontech-dist.tar.gz \
-            apps/api/dist/ \
-            apps/web/.output/ \
-            packages/db/dist/ \
-            packages/ui/dist/ \
-            packages/ai-core/dist/ \
-            packages/audit-log/dist/ \
-            packages/queue/dist/ \
-            packages/schemas/dist/ \
-            packages/storage/dist/ \
-            packages/theatre/dist/ \
-            packages/flywheel/dist/ \
-            services/edge-workers/dist/ \
-            2>/dev/null || true
-          echo "Artifact: $(du -sh crontech-dist.tar.gz | cut -f1)"
+          set -euo pipefail
+          REQUIRED_DIRS=(
+            apps/api/dist
+            apps/web/.output
+            packages/db/dist
+            packages/ui/dist
+            packages/ai-core/dist
+            packages/audit-log/dist
+            packages/queue/dist
+            packages/schemas/dist
+            packages/storage/dist
+            packages/theatre/dist
+            packages/flywheel/dist
+            services/edge-workers/dist
+          )
+          MISSING=()
+          for d in "${REQUIRED_DIRS[@]}"; do
+            if [ ! -d "$d" ]; then
+              MISSING+=("$d")
+            fi
+          done
+          if [ ${#MISSING[@]} -gt 0 ]; then
+            echo "::error::Required build output dirs are missing — the build step did not produce all artifacts:"
+            for d in "${MISSING[@]}"; do echo "::error::  - $d"; done
+            echo "::error::Refusing to ship a partial tarball. Investigate why the upstream 'bun run build' step did not produce these directories."
+            exit 1
+          fi
+          tar -czf crontech-dist.tar.gz "${REQUIRED_DIRS[@]}"
+          echo "Artifact size: $(du -sh crontech-dist.tar.gz | cut -f1)"
+          echo "Top-level paths in artifact:"
+          tar -tzf crontech-dist.tar.gz | awk -F/ '{print $1"/"$2}' | sort -u
+          echo "Verifying apps/web/.output is non-empty inside the artifact:"
+          tar -tzf crontech-dist.tar.gz | grep -c '^apps/web/\.output/' \
+            | xargs -I{} sh -c '[ {} -gt 0 ] && echo "  apps/web/.output entries: {}" || (echo "::error::apps/web/.output is empty in the artifact!" && exit 1)'
 
       - name: Upload build artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
