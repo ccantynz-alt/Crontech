@@ -2,6 +2,7 @@ import { Title } from "@solidjs/meta";
 import { createSignal, createResource, For, Show } from "solid-js";
 import type { JSX } from "solid-js";
 import { useNavigate } from "@solidjs/router";
+import { Box, Container, Stack, Text } from "@back-to-the-future/ui";
 import { AdminRoute } from "../components/AdminRoute";
 import { PlatformSiblingsWidget } from "../components/PlatformSiblingsWidget";
 import { trpc } from "../lib/trpc";
@@ -260,19 +261,19 @@ function AdminPageContent(): JSX.Element {
   };
 
   return (
-    <div class="min-h-screen" style={{ background: "var(--color-bg)" }}>
+    <Box class="min-h-screen" style={{ background: "var(--color-bg)" }}>
       <Title>Admin Panel - Crontech</Title>
 
-      <div class="mx-auto max-w-7xl px-6 py-8">
+      <Container size="full" padding="md" class="max-w-7xl py-8">
         {/* Header */}
-        <div class="mb-8 flex items-end justify-between">
-          <div>
-            <h1 class="text-3xl font-bold tracking-tight" style={{ color: "var(--color-text)" }}>Admin Panel</h1>
-            <p class="mt-1 text-sm" style={{ color: "var(--color-text-faint)" }}>
+        <Stack direction="horizontal" justify="between" align="end" class="mb-8">
+          <Box>
+            <Text variant="h1" class="text-3xl font-bold tracking-tight" style={{ color: "var(--color-text)" }}>Admin Panel</Text>
+            <Text variant="body" class="mt-1 text-sm" style={{ color: "var(--color-text-faint)" }}>
               Live platform data. All numbers below come from the database — nothing is mocked.
-            </p>
-          </div>
-          <div class="flex items-center gap-3">
+            </Text>
+          </Box>
+          <Stack direction="horizontal" gap="sm" align="center">
             <button
               type="button"
               onClick={refreshAll}
@@ -300,11 +301,11 @@ function AdminPageContent(): JSX.Element {
               <span class="text-base">&#128231;</span>
               Support Queue
             </button>
-          </div>
-        </div>
+          </Stack>
+        </Stack>
 
         {/* Stats Row — BLK-013 real tRPC data via trpc.admin.stats */}
-        <div class="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        <Box class="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
           <Show
             when={!stats.error}
             fallback={<StatErrorFallback count={5} />}
@@ -354,30 +355,30 @@ function AdminPageContent(): JSX.Element {
               )}
             </Show>
           </Show>
-        </div>
+        </Box>
 
         {/* Platform Family - cross-product health across Crontech, Gluecron, GateTest */}
-        <div class="mb-6">
+        <Box class="mb-6">
           <PlatformSiblingsWidget />
-        </div>
+        </Box>
 
-        <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <Box class="grid grid-cols-1 gap-6 lg:grid-cols-3">
           {/* Recent Users - takes 2 cols */}
-          <div class="lg:col-span-2">
-            <div
+          <Box class="lg:col-span-2">
+            <Box
               class="rounded-2xl p-6"
               style={{ background: "var(--color-bg-elevated)", border: "1px solid var(--color-border)" }}
             >
-              <div class="mb-5 flex items-center justify-between">
-                <div>
-                  <h2 class="text-lg font-semibold" style={{ color: "var(--color-text)" }}>Recent Users</h2>
-                  <p class="text-xs" style={{ color: "var(--color-text-faint)" }}>
-                    <Show when={users()} fallback={<span>Loading…</span>}>
-                      {(list) => <span>{list().length} shown (latest 20)</span>}
+              <Stack direction="horizontal" justify="between" align="center" class="mb-5">
+                <Box>
+                  <Text variant="h2" class="text-lg font-semibold" style={{ color: "var(--color-text)" }}>Recent Users</Text>
+                  <Text variant="body" class="text-xs" style={{ color: "var(--color-text-faint)" }}>
+                    <Show when={users()} fallback={<Text as="span" variant="caption">Loading…</Text>}>
+                      {(list) => <Text as="span" variant="caption">{list().length} shown (latest 20)</Text>}
                     </Show>
-                  </p>
-                </div>
-                <div class="flex items-center gap-3">
+                  </Text>
+                </Box>
+                <Stack direction="horizontal" gap="sm" align="center">
                   <select
                     value={filterRole()}
                     onChange={(e) => setFilterRole(e.currentTarget.value)}
@@ -389,7 +390,7 @@ function AdminPageContent(): JSX.Element {
                     <option value="editor">Editor</option>
                     <option value="viewer">Viewer</option>
                   </select>
-                  <div class="relative">
+                  <Box class="relative">
                     <input
                       type="text"
                       placeholder="Search users..."
@@ -398,28 +399,28 @@ function AdminPageContent(): JSX.Element {
                       class="w-56 rounded-lg py-2 pl-8 pr-3 text-xs outline-none transition-colors duration-200"
                       style={{ border: "1px solid var(--color-border)", background: "var(--color-bg-muted)", color: "var(--color-text-secondary)" }}
                     />
-                    <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs" style={{ color: "var(--color-text-faint)" }}>&#128270;</span>
-                  </div>
-                </div>
-              </div>
+                    <Text as="span" variant="caption" class="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs" style={{ color: "var(--color-text-faint)" }}>&#128270;</Text>
+                  </Box>
+                </Stack>
+              </Stack>
 
-              <div class="mb-2 flex items-center gap-4 px-4 py-2">
-                <div class="w-9 shrink-0" />
-                <span class="min-w-0 flex-1 text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--color-text-faint)" }}>User</span>
-                <span class="w-24 text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--color-text-faint)" }}>Role</span>
-                <span class="w-32 text-right text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--color-text-faint)" }}>Joined</span>
-              </div>
+              <Stack direction="horizontal" gap="md" align="center" class="mb-2 px-4 py-2">
+                <Box class="w-9 shrink-0" />
+                <Text as="span" variant="caption" class="min-w-0 flex-1 text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--color-text-faint)" }}>User</Text>
+                <Text as="span" variant="caption" class="w-24 text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--color-text-faint)" }}>Role</Text>
+                <Text as="span" variant="caption" class="w-32 text-right text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--color-text-faint)" }}>Joined</Text>
+              </Stack>
 
               <Show
                 when={users()}
                 fallback={
-                  <div class="flex flex-col items-center gap-2 py-12">
-                    <div class="loading-spinner" />
-                    <span class="text-sm" style={{ color: "var(--color-text-faint)" }}>Loading users…</span>
-                  </div>
+                  <Stack direction="vertical" gap="sm" align="center" class="py-12">
+                    <Box class="loading-spinner" />
+                    <Text as="span" variant="caption" class="text-sm" style={{ color: "var(--color-text-faint)" }}>Loading users…</Text>
+                  </Stack>
                 }
               >
-                <div class="flex flex-col gap-2">
+                <Stack direction="vertical" gap="sm">
                   <For each={filteredUsers()}>
                     {(user) => (
                       <UserRow
@@ -431,57 +432,57 @@ function AdminPageContent(): JSX.Element {
                       />
                     )}
                   </For>
-                </div>
+                </Stack>
                 <Show when={filteredUsers().length === 0}>
-                  <div class="flex flex-col items-center gap-2 py-12">
-                    <span class="text-2xl" style={{ color: "var(--color-text-faint)" }}>&#128269;</span>
-                    <span class="text-sm" style={{ color: "var(--color-text-faint)" }}>
+                  <Stack direction="vertical" gap="sm" align="center" class="py-12">
+                    <Text as="span" variant="caption" class="text-2xl" style={{ color: "var(--color-text-faint)" }}>&#128269;</Text>
+                    <Text as="span" variant="caption" class="text-sm" style={{ color: "var(--color-text-faint)" }}>
                       <Show
                         when={(users() ?? []).length > 0}
                         fallback={<>No users in the database yet</>}
                       >
                         No users match your filters
                       </Show>
-                    </span>
-                  </div>
+                    </Text>
+                  </Stack>
                 </Show>
               </Show>
-            </div>
-          </div>
+            </Box>
+          </Box>
 
           {/* System Health - right col */}
-          <div class="flex flex-col gap-6">
-            <div
+          <Stack direction="vertical" gap="lg">
+            <Box
               class="rounded-2xl p-6"
               style={{ background: "var(--color-bg-elevated)", border: "1px solid var(--color-border)" }}
             >
-              <div class="mb-4 flex items-center justify-between">
-                <h2 class="text-lg font-semibold" style={{ color: "var(--color-text)" }}>System Health</h2>
+              <Stack direction="horizontal" justify="between" align="center" class="mb-4">
+                <Text variant="h2" class="text-lg font-semibold" style={{ color: "var(--color-text)" }}>System Health</Text>
                 <Show when={health()}>
                   {(h) => (
                     <Show when={h().database === "ok" && h().api === "ok"}>
-                      <div class="flex items-center gap-2">
-                        <div
+                      <Stack direction="horizontal" gap="sm" align="center">
+                        <Box
                           class="h-2 w-2 rounded-full"
                           style={{ background: "var(--color-success)" }}
                         />
-                        <span class="text-xs font-medium" style={{ color: "var(--color-success)" }}>Operational</span>
-                      </div>
+                        <Text as="span" variant="caption" class="text-xs font-medium" style={{ color: "var(--color-success)" }}>Operational</Text>
+                      </Stack>
                     </Show>
                   )}
                 </Show>
-              </div>
+              </Stack>
               <Show
                 when={health()}
                 fallback={
-                  <div class="flex flex-col items-center gap-2 py-6">
-                    <div class="loading-spinner" />
-                    <span class="text-xs" style={{ color: "var(--color-text-faint)" }}>Checking services…</span>
-                  </div>
+                  <Stack direction="vertical" gap="sm" align="center" class="py-6">
+                    <Box class="loading-spinner" />
+                    <Text as="span" variant="caption" class="text-xs" style={{ color: "var(--color-text-faint)" }}>Checking services…</Text>
+                  </Stack>
                 }
               >
                 {(h) => (
-                  <div class="flex flex-col gap-2">
+                  <Stack direction="vertical" gap="sm">
                     <HealthRow label="API Gateway" status={h().api} />
                     <HealthRow label="Database" status={h().database} />
                     <HealthRow
@@ -490,21 +491,21 @@ function AdminPageContent(): JSX.Element {
                       detail={`${h().flagsLoaded} flags`}
                     />
                     <HealthRow label="WebSocket" status={h().websocket} />
-                    <div class="mt-2 text-[10px]" style={{ color: "var(--color-text-faint)" }}>
+                    <Box class="mt-2 text-[10px]" style={{ color: "var(--color-text-faint)" }}>
                       Last checked {new Date(h().timestamp).toLocaleTimeString()}
-                    </div>
-                  </div>
+                    </Box>
+                  </Stack>
                 )}
               </Show>
-            </div>
+            </Box>
 
             {/* Quick Actions */}
-            <div
+            <Box
               class="rounded-2xl p-6"
               style={{ background: "var(--color-bg-elevated)", border: "1px solid var(--color-border)" }}
             >
-              <h2 class="mb-4 text-lg font-semibold" style={{ color: "var(--color-text)" }}>Quick Actions</h2>
-              <div class="flex flex-col gap-2">
+              <Text variant="h2" class="mb-4 text-lg font-semibold" style={{ color: "var(--color-text)" }}>Quick Actions</Text>
+              <Stack direction="vertical" gap="sm">
                 <button
                   type="button"
                   onClick={() => navigate("/admin/claude")}
@@ -565,12 +566,12 @@ function AdminPageContent(): JSX.Element {
                     <p class="text-[11px]" style={{ color: "var(--color-text-faint)" }}>Public uptime and incidents</p>
                   </div>
                 </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+              </Stack>
+            </Box>
+          </Stack>
+        </Box>
+      </Container>
+    </Box>
   );
 }
 
