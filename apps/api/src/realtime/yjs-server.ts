@@ -6,6 +6,8 @@ const { upgradeWebSocket, websocket: yjsWebsocket } = createBunWebSocket();
 
 // Room -> Y.Doc store
 const docs = new Map<string, Y.Doc>();
+let yjsMessageErrors = 0;
+export const getYjsMessageErrorCount = (): number => yjsMessageErrors;
 
 function getOrCreateDoc(roomId: string): Y.Doc {
   let doc = docs.get(roomId);
@@ -73,6 +75,7 @@ yjsWsApp.get(
           }
         } catch (err) {
           console.error(`[yjs] Error processing message for room ${roomId}:`, err);
+          yjsMessageErrors++;
         }
       },
 

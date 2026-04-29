@@ -59,7 +59,7 @@ function dbRowToFlag(row: {
  * Load all flags from DB into in-memory cache.
  * Called on startup and every 60 seconds.
  */
-export async function loadFlagsFromDB(): Promise<void> {
+export async function loadFlagsFromDB(): Promise<boolean> {
   try {
     const rows = await db.select().from(featureFlagsTable);
     for (const row of rows) {
@@ -67,15 +67,17 @@ export async function loadFlagsFromDB(): Promise<void> {
       flags.set(flag.key, flag);
     }
     dbLoaded = true;
+    return true;
   } catch (err) {
     console.warn("[feature-flags] DB load failed, using in-memory defaults:", err);
+    return false;
   }
 }
 
 /**
  * Write a flag to DB and update in-memory cache.
  */
-async function persistFlag(flag: FeatureFlag): Promise<void> {
+async function persistFlag(flag: FeatureFlag): Promise<boolean> {
   try {
     await db
       .insert(featureFlagsTable)
@@ -100,8 +102,10 @@ async function persistFlag(flag: FeatureFlag): Promise<void> {
           updatedBy: flag.updatedBy ?? null,
         },
       });
+    return true;
   } catch (err) {
     console.warn("[feature-flags] DB persist failed, cache-only:", err);
+    return false;
   }
 }
 

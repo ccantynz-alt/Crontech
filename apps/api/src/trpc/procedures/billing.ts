@@ -107,18 +107,16 @@ export const billingRouter = router({
     .input(z.object({ email: z.string().email() }))
     .mutation(async ({ input }) => {
       const supportEmail = process.env.SUPPORT_EMAIL ?? "support@crontech.ai";
-      try {
-        await sendEmail(
-          supportEmail,
-          "[Crontech] New billing waitlist signup",
-          `<p>A visitor joined the billing waitlist:</p><p><strong>${input.email}</strong></p><p>Source: <code>/billing</code> pre-launch surface.</p>`,
-        );
-      } catch (err: unknown) {
+      void sendEmail(
+        supportEmail,
+        "[Crontech] New billing waitlist signup",
+        `<p>A visitor joined the billing waitlist:</p><p><strong>${input.email}</strong></p><p>Source: <code>/billing</code> pre-launch surface.</p>`,
+      ).catch((err: unknown) => {
         console.warn(
           "[billing] waitlist notify failed:",
           err instanceof Error ? err.message : String(err),
         );
-      }
+      });
       log.info(`[billing] waitlist signup: ${input.email}`);
       return { ok: true as const };
     }),
@@ -136,8 +134,9 @@ export const billingRouter = router({
         "[billing] Failed to query plans from DB, using fallback:",
         err instanceof Error ? err.message : String(err),
       );
+      return hardcodedPlans.filter((p) => p.isActive);
     }
-    // Fallback to hardcoded plans if DB is empty or unavailable
+    // DB returned no active plans — use hardcoded fallback
     return hardcodedPlans.filter((p) => p.isActive);
   }),
 
@@ -169,6 +168,15 @@ export const billingRouter = router({
         "[billing] Failed to query subscription from DB:",
         err instanceof Error ? err.message : String(err),
       );
+      return {
+        status: "free" as const,
+        plan: "Free",
+        userId: ctx.userId,
+        stripeSubscriptionId: null as string | null,
+        stripeCustomerId: null as string | null,
+        currentPeriodEnd: null as number | null,
+        cancelAtPeriodEnd: false,
+      };
     }
 
     // No subscription found -- user is on the free plan

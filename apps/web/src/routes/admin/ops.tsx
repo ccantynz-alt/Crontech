@@ -121,7 +121,8 @@ async function fetchJson<T>(path: string): Promise<T | null> {
     const res = await fetch(path, { headers: authHeaders() });
     if (!res.ok) return null;
     return (await res.json()) as T;
-  } catch {
+  } catch (e: unknown) {
+    console.warn("[ops] fetch failed:", e);
     return null;
   }
 }
