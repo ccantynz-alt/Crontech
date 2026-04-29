@@ -1,6 +1,7 @@
 import { Title } from "@solidjs/meta";
 import { createSignal, For, Show } from "solid-js";
 import type { JSX } from "solid-js";
+import { Box, Container } from "@back-to-the-future/ui";
 
 // ── Types ────────────────────────────────────────────────────────────
 
@@ -138,14 +139,18 @@ function PlanCard(props: { plan: PlanTier; isAnnual: boolean }): JSX.Element {
   const isCustom = (): boolean => props.plan.monthlyPrice === -1;
 
   const handleCtaClick = (): void => {
-    // Pre-launch: every plan routes to the waitlist/contact flow.
-    // Billing is disabled at the tRPC layer (see billing.ts and the
-    // STRIPE_ENABLED env flag) until the attorney package is signed
-    // off and customer onboarding opens post-launch.
+    // Per-plan routing:
+    //   - Free      -> /register?plan=free (self-serve sign-up)
+    //   - Pro       -> /checkout/pro (auth-gated Stripe handoff route)
+    //   - Enterprise-> /support?topic=enterprise (sales-led, not self-serve)
+    // The /checkout/:plan route handles the logged-out redirect itself,
+    // so we can send users there unconditionally.
     if (props.plan.id === "enterprise") {
       window.location.href = "/support?topic=enterprise";
+    } else if (props.plan.id === "pro") {
+      window.location.href = "/checkout/pro";
     } else {
-      window.location.href = "/support?topic=waitlist&plan=" + props.plan.id;
+      window.location.href = "/register?plan=" + props.plan.id;
     }
   };
 
@@ -165,12 +170,29 @@ function PlanCard(props: { plan: PlanTier; isAnnual: boolean }): JSX.Element {
           : "1px solid var(--color-border)",
       }}
     >
-      {/* Popular badge */}
+      {/* Popular badge — uses inline style for top/left/transform so the
+          ribbon ALWAYS sits above the card regardless of Tailwind utility
+          generation. The previous Tailwind-only approach (`absolute -top-3
+          left-1/2 -translate-x-1/2`) silently failed in places where the
+          translate-x-1/2 utility resolved to a `translate` shorthand the
+          browser ignored, dropping the badge into the card body. */}
       <Show when={props.plan.highlighted}>
-        <div class="absolute -top-3 left-1/2 -translate-x-1/2">
+        <div
+          class="z-10"
+          style={{
+            position: "absolute",
+            top: "-14px",
+            left: "50%",
+            transform: "translateX(-50%)",
+          }}
+        >
           <span
-            class="rounded-full px-4 py-1.5 text-[10px] font-bold uppercase tracking-wider"
-            style={{ background: "var(--color-primary)", color: "var(--color-primary-text)" }}
+            class="rounded-full px-4 py-1.5 text-[10px] font-bold uppercase tracking-wider whitespace-nowrap"
+            style={{
+              background: "var(--color-primary)",
+              color: "var(--color-primary-text)",
+              "box-shadow": "0 2px 8px color-mix(in oklab, var(--color-primary) 35%, transparent)",
+            }}
           >
             Most Popular
           </span>
@@ -299,12 +321,12 @@ export default function PricingPage(): JSX.Element {
   const [isAnnual, setIsAnnual] = createSignal(true);
 
   return (
-    <div class="min-h-screen" style={{ background: "var(--color-bg)" }}>
+    <Box class="min-h-screen" style={{ background: "var(--color-bg)" }}>
       <Title>Pricing — Crontech</Title>
 
       {/* Hero */}
-      <div class="relative overflow-hidden">
-        <div class="relative mx-auto max-w-6xl px-6 pt-16 pb-12 text-center">
+      <Box class="relative overflow-hidden">
+        <Container size="full" padding="md" class="relative max-w-6xl pt-16 pb-12 text-center">
           <h1 class="text-4xl font-bold tracking-tight sm:text-5xl" style={{ color: "var(--color-text)" }}>
             Pricing that scales with what you ship
           </h1>
@@ -313,7 +335,7 @@ export default function PricingPage(): JSX.Element {
           </p>
 
           {/* Billing Toggle */}
-          <div class="mt-8 flex items-center justify-center gap-4">
+          <Box class="mt-8 flex items-center justify-center gap-4">
             <span
               class="text-sm font-medium transition-colors"
               style={{ color: !isAnnual() ? "var(--color-text)" : "var(--color-text-muted)" }}
@@ -335,17 +357,22 @@ export default function PricingPage(): JSX.Element {
             >
               Annual
               <span
-                class="ml-1.5 rounded-full px-2 py-0.5 text-[10px] font-semibold"
-                style={{ background: "var(--color-success-bg)", color: "var(--color-success)" }}
+                class="rounded-full px-2 py-0.5 text-[10px] font-semibold"
+                style={{
+                  background: "var(--color-success-bg)",
+                  color: "var(--color-success)",
+                  "margin-left": "8px",
+                  "white-space": "nowrap",
+                }}
               >Save 17%</span>
             </span>
-          </div>
-        </div>
-      </div>
+          </Box>
+        </Container>
+      </Box>
 
       {/* Founding customer banner */}
-      <div class="mx-auto max-w-4xl px-6 pb-10">
-        <div
+      <Container size="full" padding="md" class="max-w-4xl pb-10">
+        <Box
           class="rounded-2xl px-6 py-5 text-center"
           style={{ background: "var(--color-bg-elevated)", border: "1px solid var(--color-border)" }}
         >
@@ -355,22 +382,22 @@ export default function PricingPage(): JSX.Element {
           <p class="mt-2 text-sm" style={{ color: "var(--color-text-secondary)" }}>
             The first wave of paid customers lock in <span class="font-semibold" style={{ color: "var(--color-text)" }}>50% off any plan for life</span> and a direct line to the team building the platform.
           </p>
-        </div>
-      </div>
+        </Box>
+      </Container>
 
       {/* Plan Cards */}
-      <div class="mx-auto max-w-6xl px-6 pb-16">
-        <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
+      <Container size="full" padding="md" class="max-w-6xl pb-16">
+        <Box class="grid grid-cols-1 gap-6 md:grid-cols-3">
           <For each={PLANS}>
             {(plan) => <PlanCard plan={plan} isAnnual={isAnnual()} />}
           </For>
-        </div>
-      </div>
+        </Box>
+      </Container>
 
       {/* Feature Comparison Table */}
-      <div class="mx-auto max-w-5xl px-6 pb-20">
+      <Container size="full" padding="md" class="max-w-5xl pb-20">
         <h2 class="mb-8 text-center text-2xl font-bold" style={{ color: "var(--color-text)" }}>Feature Comparison</h2>
-        <div
+        <Box
           class="overflow-hidden rounded-2xl"
           style={{ background: "var(--color-bg-elevated)", border: "1px solid var(--color-border)" }}
         >
@@ -399,41 +426,49 @@ export default function PricingPage(): JSX.Element {
               </For>
             </tbody>
           </table>
-        </div>
-      </div>
+        </Box>
+      </Container>
 
       {/* FAQ Section */}
-      <div class="mx-auto max-w-3xl px-6 pb-20">
+      <Container size="full" padding="md" class="max-w-3xl pb-20">
         <h2 class="mb-8 text-center text-2xl font-bold" style={{ color: "var(--color-text)" }}>Frequently Asked Questions</h2>
-        <div
+        <Box
           class="rounded-2xl px-6"
           style={{ background: "var(--color-bg-elevated)", border: "1px solid var(--color-border)" }}
         >
           <For each={FAQ_ITEMS}>
             {(item) => <FAQSection item={item} />}
           </For>
-        </div>
-      </div>
+        </Box>
+      </Container>
 
       {/* CTA Banner */}
-      <div class="mx-auto max-w-4xl px-6 pb-20">
-        <div
+      <Container size="full" padding="md" class="max-w-4xl pb-20">
+        <Box
           class="relative overflow-hidden rounded-2xl px-8 py-12 text-center"
           style={{ background: "var(--color-bg-elevated)", border: "1px solid var(--color-border)" }}
         >
-          <div class="relative">
+          <Box class="relative">
             <h3 class="text-2xl font-bold" style={{ color: "var(--color-text)" }}>Ready to build on the next decade's stack?</h3>
             <p class="mt-2 text-sm" style={{ color: "var(--color-text-secondary)" }}>
               Start free with on-device AI inference. Upgrade when you need the edge or the cloud.
             </p>
-            <div class="mt-6 flex items-center justify-center gap-4">
+            <Box class="mt-6 flex items-center justify-center gap-4">
               <button
                 type="button"
                 onClick={() => { window.location.href = "/register?plan=free"; }}
                 class="rounded-xl px-8 py-3 text-sm font-semibold transition-all duration-200 hover:brightness-110"
                 style={{ background: "var(--color-primary)", color: "var(--color-primary-text)" }}
               >
-                Join waitlist
+                Start free
+              </button>
+              <button
+                type="button"
+                onClick={() => { window.location.href = "/checkout/pro"; }}
+                class="rounded-xl px-8 py-3 text-sm font-medium transition-all"
+                style={{ background: "var(--color-bg-muted)", color: "var(--color-text-secondary)", border: "1px solid var(--color-border)" }}
+              >
+                Start Pro
               </button>
               <button
                 type="button"
@@ -443,10 +478,10 @@ export default function PricingPage(): JSX.Element {
               >
                 Talk to the team
               </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+            </Box>
+          </Box>
+        </Box>
+      </Container>
+    </Box>
   );
 }

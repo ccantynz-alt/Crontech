@@ -1,6 +1,6 @@
 import { For } from "solid-js";
 import type { JSX } from "solid-js";
-import { Stack, Text, Card, Separator } from "@back-to-the-future/ui";
+import { Box, Container, Stack, Text, Card, Separator } from "@back-to-the-future/ui";
 import { SEOHead } from "../../components/SEOHead";
 
 interface Section {
@@ -102,7 +102,7 @@ const sections: Section[] = [
       "\u2022 Firefox: Settings > Privacy & Security > Cookies and Site Data",
       "\u2022 Safari: Preferences > Privacy > Manage Website Data",
       "\u2022 Edge: Settings > Cookies and Site Permissions > Manage and Delete Cookies and Site Data",
-      "Important: If you disable or delete essential cookies (ct_session, ct_csrf), you will be signed out of the Service and will need to re-authenticate. Core functionality such as authentication and CSRF protection depends on these cookies and cannot work without them.",
+      "Important: Removing essential cookies (ct_session, ct_csrf) will sign you out and require re-authentication. Core functionality including authentication and cross-site request forgery prevention relies on these cookies.",
     ],
   },
   {
@@ -162,8 +162,8 @@ export default function CookiesPage(): JSX.Element {
         description="Learn how Crontech uses cookies to provide, protect, and improve our service. No third-party advertising. No cross-site tracking. Privacy-first."
         path="/legal/cookies"
       />
-      <div class="min-h-screen bg-[var(--color-bg)] text-[var(--color-text)]">
-        <div class="mx-auto max-w-4xl px-6 py-16 sm:px-8 lg:py-24">
+      <Box class="min-h-screen bg-[var(--color-bg)] text-[var(--color-text)]">
+        <Container size="full" padding="md" class="max-w-4xl py-16 sm:px-8 lg:py-24">
           <Stack direction="vertical" gap="lg">
             <Stack direction="vertical" gap="sm">
               <Text variant="h1" weight="bold" class="bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
@@ -193,8 +193,8 @@ export default function CookiesPage(): JSX.Element {
               )}
             </For>
           </Stack>
-        </div>
-      </div>
+        </Container>
+      </Box>
     </>
   );
 }
