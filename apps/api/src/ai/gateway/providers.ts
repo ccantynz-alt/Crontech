@@ -136,7 +136,7 @@ async function callAnthropic(input: ProviderCallInput): Promise<ProviderCallResu
   });
   if (!res.ok) {
     const text = await res.text();
-    throw new GatewayUpstreamError(res.status, `anthropic ${res.status}: ${text.slice(0, 200)}`);
+    throw new GatewayUpstreamError(res.status, `anthropic ${res.status}: ${text}`);
   }
   const json = (await res.json()) as {
     content?: Array<{ type: string; text?: string }>;
@@ -178,7 +178,7 @@ async function callOpenAI(input: ProviderCallInput): Promise<ProviderCallResult>
   });
   if (!res.ok) {
     const text = await res.text();
-    throw new GatewayUpstreamError(res.status, `openai ${res.status}: ${text.slice(0, 200)}`);
+    throw new GatewayUpstreamError(res.status, `openai ${res.status}: ${text}`);
   }
   const json = (await res.json()) as {
     choices?: Array<{
