@@ -59,16 +59,10 @@
       "quoteStyle": "double",
       "semicolons": "always",
       "trailingCommas": "all"
-    }
+    },
+    "globals": ["Bun"]
   },
   "files": {
-    "ignore": [
-      "node_modules",
-      "dist",
-      ".output",
-      ".vinxi",
-      "bun.lockb",
-      ".turbo"
-    ]
+    "ignore": ["node_modules", "dist", ".output", ".vinxi", "bun.lockb", ".turbo"]
   }
 }

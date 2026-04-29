@@ -23,28 +23,14 @@
 // Polite tone per docs/POSITIONING.md — no competitor names. Zero
 // raw HTML in business logic — SolidJS JSX + shared UI primitives.
 
+import { Alert, Badge, Button, Card, Spinner, Stack, Text } from "@back-to-the-future/ui";
 import { Title } from "@solidjs/meta";
-import {
-  createResource,
-  createSignal,
-  For,
-  Show,
-  type JSX,
-} from "solid-js";
 import { A, useNavigate } from "@solidjs/router";
-import {
-  Button,
-  Card,
-  Stack,
-  Text,
-  Badge,
-  Spinner,
-  Alert,
-} from "@back-to-the-future/ui";
+import { For, type JSX, Show, createResource, createSignal } from "solid-js";
 import { AdminRoute } from "../components/AdminRoute";
 import { SEOHead } from "../components/SEOHead";
-import { useAuth } from "../stores";
 import { trpc } from "../lib/trpc";
+import { useAuth } from "../stores";
 
 // ── Types ───────────────────────────────────────────────────────────
 
@@ -70,9 +56,7 @@ export function formatRowCount(n: number): string {
 }
 
 /** Badge variant for a row-count bucket (visual scanning aid). */
-export function rowCountVariant(
-  n: number,
-): "success" | "warning" | "error" | "default" {
+export function rowCountVariant(n: number): "success" | "warning" | "error" | "default" {
   if (!Number.isFinite(n) || n < 0) return "default";
   if (n === 0) return "default";
   if (n < 100) return "success";
@@ -85,10 +69,7 @@ export function rowCountVariant(
  * into their own SQL console. Always LIMIT 25 — never leaks the full
  * dataset, matches the inspector's read-only / bounded contract.
  */
-export function buildSelectSnippet(
-  table: string,
-  db: "turso" | "neon",
-): string {
+export function buildSelectSnippet(table: string, db: "turso" | "neon"): string {
   const engine = db === "turso" ? "Turso (edge)" : "Neon (serverless PG)";
   return `-- ${engine}\nSELECT * FROM "${table}" LIMIT 25;`;
 }
@@ -110,23 +91,14 @@ function AdminGuard(props: { children: JSX.Element }): JSX.Element {
               Admin only
             </Text>
             <Text variant="body" class="text-muted">
-              The database inspector is reserved for administrators. If you
-              believe this is a mistake, please contact support and we'll
-              sort it out.
+              The database inspector is reserved for administrators. If you believe this is a
+              mistake, please contact support and we'll sort it out.
             </Text>
             <Stack direction="horizontal" gap="sm">
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={() => navigate("/dashboard")}
-              >
+              <Button variant="primary" size="sm" onClick={() => navigate("/dashboard")}>
                 Back to Dashboard
               </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => navigate("/support")}
-              >
+              <Button variant="outline" size="sm" onClick={() => navigate("/support")}>
                 Contact support
               </Button>
             </Stack>
@@ -311,21 +283,15 @@ export default function DatabasePage(): JSX.Element {
               </Badge>
             </Stack>
             <Text variant="body" class="text-muted">
-              Read-only browser for every table on both data tiers. Click a
-              table to view its columns and paginated rows. Secret-looking
-              columns (passwords, tokens, keys) are masked on display. All
-              queries are bounded — no mutations, no schema changes.
+              Read-only browser for every table on both data tiers. Click a table to view its
+              columns and paginated rows. Secret-looking columns (passwords, tokens, keys) are
+              masked on display. All queries are bounded — no mutations, no schema changes.
             </Text>
           </Stack>
 
           {/* ── Connection pills + actions ─────────────────────── */}
           <Card padding="sm">
-            <Stack
-              direction="horizontal"
-              gap="md"
-              align="center"
-              justify="between"
-            >
+            <Stack direction="horizontal" gap="md" align="center" justify="between">
               <Stack direction="horizontal" gap="md" align="center">
                 <ConnectionPill
                   label={`Turso: ${
@@ -349,34 +315,23 @@ export default function DatabasePage(): JSX.Element {
                 />
               </Stack>
               <Stack direction="horizontal" gap="sm" align="center">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleCopySample}
-                >
+                <Button variant="outline" size="sm" onClick={handleCopySample}>
                   Copy sample SQL
                 </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleRefresh}
-                  disabled={refreshing()}
-                >
+                <Button variant="outline" size="sm" onClick={handleRefresh} disabled={refreshing()}>
                   {refreshing() ? "Refreshing…" : "Refresh"}
                 </Button>
               </Stack>
             </Stack>
           </Card>
 
-          <Show when={copyState()}>
-            {(msg) => <Alert variant="success">{msg()}</Alert>}
-          </Show>
+          <Show when={copyState()}>{(msg) => <Alert variant="success">{msg()}</Alert>}</Show>
 
           <Show when={data.error}>
             <Alert variant="error">
-              The inspector couldn't reach the database service. This usually
-              means the API server is still starting or you've lost your
-              session — try refreshing in a moment. Nothing has been changed.
+              The inspector couldn't reach the database service. This usually means the API server
+              is still starting or you've lost your session — try refreshing in a moment. Nothing
+              has been changed.
             </Alert>
           </Show>
 
@@ -422,16 +377,16 @@ export default function DatabasePage(): JSX.Element {
                         Safety rules
                       </Text>
                       <Text variant="caption" class="text-muted">
-                        • Every query is read-only and capped at 100 rows per
-                        page / 500 rows per call.
+                        • Every query is read-only and capped at 100 rows per page / 500 rows per
+                        call.
                       </Text>
                       <Text variant="caption" class="text-muted">
-                        • Passwords, tokens, API keys and private keys are
-                        masked before they ever leave the server.
+                        • Passwords, tokens, API keys and private keys are masked before they ever
+                        leave the server.
                       </Text>
                       <Text variant="caption" class="text-muted">
-                        • Only tables registered in the platform schema can be
-                        browsed — no arbitrary SQL surfaces from this UI.
+                        • Only tables registered in the platform schema can be browsed — no
+                        arbitrary SQL surfaces from this UI.
                       </Text>
                     </Stack>
                   </Card>

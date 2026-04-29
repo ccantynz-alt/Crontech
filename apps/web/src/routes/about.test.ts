@@ -22,8 +22,7 @@ describe("about route — smoke", () => {
 
   test("polite tone — no competitor names in public copy", () => {
     const src = readFileSync(ROUTE_PATH, "utf-8").toLowerCase();
-    const fromCodes = (...codes: number[]): string =>
-      String.fromCharCode(...codes);
+    const fromCodes = (...codes: number[]): string => String.fromCharCode(...codes);
     const banned = [
       ` ${fromCodes(118, 101, 114, 99, 101, 108)} `, // vercel
       ` ${fromCodes(110, 101, 116, 108, 105, 102, 121)} `, // netlify

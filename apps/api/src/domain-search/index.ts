@@ -12,24 +12,24 @@
 // shapes.
 
 import {
-  checkAvailability,
-  normaliseLabel,
-  DEFAULT_TLDS,
-  type CheckAvailabilityOptions,
-  type DomainResult,
-  type SoaResolver,
-} from "./availability";
-import {
-  generateBrandableAlternatives,
   type AiAlternative,
   type GenerateOptions as SuggestionsOptions,
+  generateBrandableAlternatives,
 } from "./ai-suggestions";
 import {
-  scanTrademarkConflicts,
-  aboveRisk,
-  type ScanOptions as TrademarkOptions,
+  type CheckAvailabilityOptions,
+  DEFAULT_TLDS,
+  type DomainResult,
+  type SoaResolver,
+  checkAvailability,
+  normaliseLabel,
+} from "./availability";
+import {
   type TrademarkConflict,
+  type ScanOptions as TrademarkOptions,
   type TrademarkScanResult,
+  aboveRisk,
+  scanTrademarkConflicts,
 } from "./trademark";
 
 export {
@@ -40,14 +40,14 @@ export {
   type DomainResult,
   type SoaResolver,
 } from "./availability";
-export {
-  type AiAlternative,
-  type AiSuggestionResult,
+export type {
+  AiAlternative,
+  AiSuggestionResult,
 } from "./ai-suggestions";
-export {
-  type TrademarkConflict,
-  type TrademarkScanResult,
-  type TrademarkRisk,
+export type {
+  TrademarkConflict,
+  TrademarkScanResult,
+  TrademarkRisk,
 } from "./trademark";
 
 // ── Inputs / Outputs ────────────────────────────────────────────────
@@ -167,7 +167,7 @@ export async function searchDomains(
       unknown: [],
       suggestions: undefined,
       suggestionsNote:
-        "Search query must contain letters, digits, or hyphens (e.g. \"fable\" or \"my-app\").",
+        'Search query must contain letters, digits, or hyphens (e.g. "fable" or "my-app").',
       trademarkWarnings: undefined,
       trademarkNote: undefined,
       cached: false,

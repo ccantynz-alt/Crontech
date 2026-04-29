@@ -19,12 +19,12 @@
 // the tRPC surface and server-side validation.
 
 import { isIP } from "node:net";
-import { z } from "zod";
+import { dnsRecords, dnsZones } from "@back-to-the-future/db";
 import { TRPCError } from "@trpc/server";
 import { and, eq } from "drizzle-orm";
-import { router, adminProcedure } from "../init";
+import { z } from "zod";
 import type { TRPCContext } from "../context";
-import { dnsZones, dnsRecords } from "@back-to-the-future/db";
+import { adminProcedure, router } from "../init";
 
 // ── Types ──────────────────────────────────────────────────────────
 // The DNS-SCHEMA agent adds the underlying tables; we derive the row
@@ -34,22 +34,12 @@ export type DnsZone = typeof dnsZones.$inferSelect;
 export type DnsRecord = typeof dnsRecords.$inferSelect;
 export type RecordType = DnsRecord["type"];
 
-const SUPPORTED_TYPES = [
-  "A",
-  "AAAA",
-  "CNAME",
-  "MX",
-  "TXT",
-  "NS",
-  "SOA",
-  "SRV",
-  "CAA",
-] as const;
+const SUPPORTED_TYPES = ["A", "AAAA", "CNAME", "MX", "TXT", "NS", "SOA", "SRV", "CAA"] as const;
 
 // ── Helpers ────────────────────────────────────────────────────────
 
 function newId(prefix: string): string {
-  return `${prefix}_${Date.now().toString(36)}_${crypto.randomUUID().replace(/-/g, '').slice(0, 8)}`;
+  return `${prefix}_${Date.now().toString(36)}_${crypto.randomUUID().replace(/-/g, "").slice(0, 8)}`;
 }
 
 /** RFC-952/1123 hostname validation. Labels may not be IP addresses. */
@@ -79,8 +69,7 @@ function validateRecordContent(
       if (isIP(content) !== 4) {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message:
-            "A records require a valid IPv4 address in the content field.",
+          message: "A records require a valid IPv4 address in the content field.",
         });
       }
       return;
@@ -89,8 +78,7 @@ function validateRecordContent(
       if (isIP(content) !== 6) {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message:
-            "AAAA records require a valid IPv6 address in the content field.",
+          message: "AAAA records require a valid IPv6 address in the content field.",
         });
       }
       return;
@@ -131,8 +119,7 @@ function validateRecordContent(
       if (content.trim().split(/\s+/).length < 3) {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message:
-            "SRV record content must be formatted as 'weight port target'.",
+          message: "SRV record content must be formatted as 'weight port target'.",
         });
       }
       return;
@@ -186,10 +173,7 @@ function normaliseName(name: string): string {
  * because it bounds mutations per day; a plain counter matches what
  * the DNS engine expects.
  */
-async function bumpZoneSerial(
-  db: TRPCContext["db"],
-  zoneId: string,
-): Promise<void> {
+async function bumpZoneSerial(db: TRPCContext["db"], zoneId: string): Promise<void> {
   const rows = await db
     .select({ serial: dnsZones.serial })
     .from(dnsZones)
@@ -286,10 +270,7 @@ export const dnsRouter = router({
           message: "DNS zone not found.",
         });
       }
-      const records = await ctx.db
-        .select()
-        .from(dnsRecords)
-        .where(eq(dnsRecords.zoneId, input.id));
+      const records = await ctx.db.select().from(dnsRecords).where(eq(dnsRecords.zoneId, input.id));
       return { zone, records };
     }),
 
@@ -298,177 +279,160 @@ export const dnsRouter = router({
    * zone is immediately answerable. Zone names are normalised
    * (trimmed + lowercased) before persistence.
    */
-  createZone: adminProcedure
-    .input(CreateZoneInput)
-    .mutation(async ({ ctx, input }) => {
-      const name = normaliseName(input.name);
-      const primaryNs = normaliseName(input.primaryNs);
-      const secondaryNs = input.secondaryNs
-        ? normaliseName(input.secondaryNs)
-        : null;
+  createZone: adminProcedure.input(CreateZoneInput).mutation(async ({ ctx, input }) => {
+    const name = normaliseName(input.name);
+    const primaryNs = normaliseName(input.primaryNs);
+    const secondaryNs = input.secondaryNs ? normaliseName(input.secondaryNs) : null;
 
-      if (!isHostname(name)) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Zone name must be a valid hostname.",
-        });
-      }
-      if (!isHostname(primaryNs)) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Primary nameserver must be a valid hostname.",
-        });
-      }
-      if (secondaryNs && !isHostname(secondaryNs)) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Secondary nameserver must be a valid hostname.",
-        });
-      }
-
-      const now = Date.now();
-      const zoneId = newId("zone");
-
-      await ctx.db.insert(dnsZones).values({
-        id: zoneId,
-        name,
-        adminEmail: input.adminEmail,
-        primaryNs,
-        secondaryNs,
-        refreshSeconds: input.refreshSeconds ?? 3600,
-        retrySeconds: input.retrySeconds ?? 600,
-        expireSeconds: input.expireSeconds ?? 604800,
-        minimumTtl: input.minimumTtl ?? 300,
-        serial: 1,
-        createdAt: now,
-        updatedAt: now,
+    if (!isHostname(name)) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Zone name must be a valid hostname.",
       });
-
-      // Seed default SOA record. Content is an opaque marker — the DNS
-      // engine rebuilds the authoritative SOA from the zone row each
-      // time it answers. Having a row keeps the record list complete.
-      const soaContent = [
-        primaryNs,
-        input.adminEmail.replace("@", "."),
-        "1",
-        String(input.refreshSeconds ?? 3600),
-        String(input.retrySeconds ?? 600),
-        String(input.expireSeconds ?? 604800),
-        String(input.minimumTtl ?? 300),
-      ].join(" ");
-
-      await ctx.db.insert(dnsRecords).values({
-        id: newId("rec"),
-        zoneId,
-        name,
-        type: "SOA",
-        content: soaContent,
-        ttl: input.minimumTtl ?? 300,
-        priority: null,
-        createdAt: now,
-        updatedAt: now,
+    }
+    if (!isHostname(primaryNs)) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Primary nameserver must be a valid hostname.",
       });
+    }
+    if (secondaryNs && !isHostname(secondaryNs)) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Secondary nameserver must be a valid hostname.",
+      });
+    }
 
-      // Seed NS records (primary + optional secondary).
+    const now = Date.now();
+    const zoneId = newId("zone");
+
+    await ctx.db.insert(dnsZones).values({
+      id: zoneId,
+      name,
+      adminEmail: input.adminEmail,
+      primaryNs,
+      secondaryNs,
+      refreshSeconds: input.refreshSeconds ?? 3600,
+      retrySeconds: input.retrySeconds ?? 600,
+      expireSeconds: input.expireSeconds ?? 604800,
+      minimumTtl: input.minimumTtl ?? 300,
+      serial: 1,
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    // Seed default SOA record. Content is an opaque marker — the DNS
+    // engine rebuilds the authoritative SOA from the zone row each
+    // time it answers. Having a row keeps the record list complete.
+    const soaContent = [
+      primaryNs,
+      input.adminEmail.replace("@", "."),
+      "1",
+      String(input.refreshSeconds ?? 3600),
+      String(input.retrySeconds ?? 600),
+      String(input.expireSeconds ?? 604800),
+      String(input.minimumTtl ?? 300),
+    ].join(" ");
+
+    await ctx.db.insert(dnsRecords).values({
+      id: newId("rec"),
+      zoneId,
+      name,
+      type: "SOA",
+      content: soaContent,
+      ttl: input.minimumTtl ?? 300,
+      priority: null,
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    // Seed NS records (primary + optional secondary).
+    await ctx.db.insert(dnsRecords).values({
+      id: newId("rec"),
+      zoneId,
+      name,
+      type: "NS",
+      content: primaryNs,
+      ttl: 3600,
+      priority: null,
+      createdAt: now,
+      updatedAt: now,
+    });
+    if (secondaryNs) {
       await ctx.db.insert(dnsRecords).values({
         id: newId("rec"),
         zoneId,
         name,
         type: "NS",
-        content: primaryNs,
+        content: secondaryNs,
         ttl: 3600,
         priority: null,
         createdAt: now,
         updatedAt: now,
       });
-      if (secondaryNs) {
-        await ctx.db.insert(dnsRecords).values({
-          id: newId("rec"),
-          zoneId,
-          name,
-          type: "NS",
-          content: secondaryNs,
-          ttl: 3600,
-          priority: null,
-          createdAt: now,
-          updatedAt: now,
-        });
-      }
+    }
 
-      return { id: zoneId, name };
-    }),
+    return { id: zoneId, name };
+  }),
 
   /**
    * Partial zone update. Always bumps the zone serial so downstream
    * secondaries pick up SOA changes.
    */
-  updateZone: adminProcedure
-    .input(UpdateZoneInput)
-    .mutation(async ({ ctx, input }) => {
-      const existing = await ctx.db
-        .select()
-        .from(dnsZones)
-        .where(eq(dnsZones.id, input.id))
-        .limit(1);
-      if (existing.length === 0) {
+  updateZone: adminProcedure.input(UpdateZoneInput).mutation(async ({ ctx, input }) => {
+    const existing = await ctx.db.select().from(dnsZones).where(eq(dnsZones.id, input.id)).limit(1);
+    if (existing.length === 0) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "DNS zone not found.",
+      });
+    }
+
+    const updates: Record<string, unknown> = { updatedAt: Date.now() };
+    if (input.adminEmail !== undefined) updates.adminEmail = input.adminEmail;
+    if (input.primaryNs !== undefined) {
+      const pn = normaliseName(input.primaryNs);
+      if (!isHostname(pn)) {
         throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "DNS zone not found.",
+          code: "BAD_REQUEST",
+          message: "Primary nameserver must be a valid hostname.",
         });
       }
-
-      const updates: Record<string, unknown> = { updatedAt: Date.now() };
-      if (input.adminEmail !== undefined) updates["adminEmail"] = input.adminEmail;
-      if (input.primaryNs !== undefined) {
-        const pn = normaliseName(input.primaryNs);
-        if (!isHostname(pn)) {
+      updates.primaryNs = pn;
+    }
+    if (input.secondaryNs !== undefined) {
+      if (input.secondaryNs === null) {
+        updates.secondaryNs = null;
+      } else {
+        const sn = normaliseName(input.secondaryNs);
+        if (!isHostname(sn)) {
           throw new TRPCError({
             code: "BAD_REQUEST",
-            message: "Primary nameserver must be a valid hostname.",
+            message: "Secondary nameserver must be a valid hostname.",
           });
         }
-        updates["primaryNs"] = pn;
+        updates.secondaryNs = sn;
       }
-      if (input.secondaryNs !== undefined) {
-        if (input.secondaryNs === null) {
-          updates["secondaryNs"] = null;
-        } else {
-          const sn = normaliseName(input.secondaryNs);
-          if (!isHostname(sn)) {
-            throw new TRPCError({
-              code: "BAD_REQUEST",
-              message: "Secondary nameserver must be a valid hostname.",
-            });
-          }
-          updates["secondaryNs"] = sn;
-        }
-      }
-      if (input.refreshSeconds !== undefined) updates["refreshSeconds"] = input.refreshSeconds;
-      if (input.retrySeconds !== undefined) updates["retrySeconds"] = input.retrySeconds;
-      if (input.expireSeconds !== undefined) updates["expireSeconds"] = input.expireSeconds;
-      if (input.minimumTtl !== undefined) updates["minimumTtl"] = input.minimumTtl;
+    }
+    if (input.refreshSeconds !== undefined) updates.refreshSeconds = input.refreshSeconds;
+    if (input.retrySeconds !== undefined) updates.retrySeconds = input.retrySeconds;
+    if (input.expireSeconds !== undefined) updates.expireSeconds = input.expireSeconds;
+    if (input.minimumTtl !== undefined) updates.minimumTtl = input.minimumTtl;
 
-      // Bump serial as part of the same update (one statement, one bump).
-      const currentSerial = existing[0]?.serial ?? 0;
-      updates["serial"] = currentSerial + 1;
+    // Bump serial as part of the same update (one statement, one bump).
+    const currentSerial = existing[0]?.serial ?? 0;
+    updates.serial = currentSerial + 1;
 
-      await ctx.db
-        .update(dnsZones)
-        .set(updates)
-        .where(eq(dnsZones.id, input.id));
+    await ctx.db.update(dnsZones).set(updates).where(eq(dnsZones.id, input.id));
 
-      return { success: true as const, id: input.id };
-    }),
+    return { success: true as const, id: input.id };
+  }),
 
   /** Delete a zone. Records cascade via the FK. */
   deleteZone: adminProcedure
     .input(z.object({ id: z.string().min(1) }))
     .mutation(async ({ ctx, input }) => {
-      const rows = await ctx.db
-        .select()
-        .from(dnsZones)
-        .where(eq(dnsZones.id, input.id))
-        .limit(1);
+      const rows = await ctx.db.select().from(dnsZones).where(eq(dnsZones.id, input.id)).limit(1);
       if (rows.length === 0) {
         throw new TRPCError({
           code: "NOT_FOUND",
@@ -484,82 +448,75 @@ export const dnsRouter = router({
     }),
 
   /** Create a single record in a zone. Bumps zone serial. */
-  createRecord: adminProcedure
-    .input(CreateRecordInput)
-    .mutation(async ({ ctx, input }) => {
-      const zoneRows = await ctx.db
-        .select()
-        .from(dnsZones)
-        .where(eq(dnsZones.id, input.zoneId))
-        .limit(1);
-      if (zoneRows.length === 0) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "DNS zone not found.",
-        });
-      }
-
-      const name = normaliseName(input.name);
-      validateRecordContent(input.type, input.content, input.priority ?? null);
-
-      const id = newId("rec");
-      const now = Date.now();
-      await ctx.db.insert(dnsRecords).values({
-        id,
-        zoneId: input.zoneId,
-        name,
-        type: input.type,
-        content: input.content,
-        ttl: input.ttl ?? 300,
-        priority: input.priority ?? null,
-        createdAt: now,
-        updatedAt: now,
+  createRecord: adminProcedure.input(CreateRecordInput).mutation(async ({ ctx, input }) => {
+    const zoneRows = await ctx.db
+      .select()
+      .from(dnsZones)
+      .where(eq(dnsZones.id, input.zoneId))
+      .limit(1);
+    if (zoneRows.length === 0) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "DNS zone not found.",
       });
+    }
 
-      await bumpZoneSerial(ctx.db, input.zoneId);
-      return { id };
-    }),
+    const name = normaliseName(input.name);
+    validateRecordContent(input.type, input.content, input.priority ?? null);
+
+    const id = newId("rec");
+    const now = Date.now();
+    await ctx.db.insert(dnsRecords).values({
+      id,
+      zoneId: input.zoneId,
+      name,
+      type: input.type,
+      content: input.content,
+      ttl: input.ttl ?? 300,
+      priority: input.priority ?? null,
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    await bumpZoneSerial(ctx.db, input.zoneId);
+    return { id };
+  }),
 
   /** Partial record update. Bumps zone serial. */
-  updateRecord: adminProcedure
-    .input(UpdateRecordInput)
-    .mutation(async ({ ctx, input }) => {
-      const existingRows = await ctx.db
-        .select()
-        .from(dnsRecords)
-        .where(eq(dnsRecords.id, input.id))
-        .limit(1);
-      const existing = existingRows[0];
-      if (!existing) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "DNS record not found.",
-        });
-      }
+  updateRecord: adminProcedure.input(UpdateRecordInput).mutation(async ({ ctx, input }) => {
+    const existingRows = await ctx.db
+      .select()
+      .from(dnsRecords)
+      .where(eq(dnsRecords.id, input.id))
+      .limit(1);
+    const existing = existingRows[0];
+    if (!existing) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "DNS record not found.",
+      });
+    }
 
-      // Re-validate content against (potentially new) type + priority.
-      const nextType: RecordType = input.type ?? existing.type;
-      const nextContent: string = input.content ?? existing.content;
-      const nextPriority: number | null =
-        input.priority === undefined ? existing.priority : input.priority;
+    // Re-validate content against (potentially new) type + priority.
+    const nextType: RecordType = input.type ?? existing.type;
+    const nextContent: string = input.content ?? existing.content;
+    const nextPriority: number | null =
+      input.priority === undefined ? existing.priority : input.priority;
 
-      validateRecordContent(nextType, nextContent, nextPriority);
+    validateRecordContent(nextType, nextContent, nextPriority);
 
-      const updates: Record<string, unknown> = { updatedAt: Date.now() };
-      if (input.name !== undefined) updates["name"] = normaliseName(input.name);
-      if (input.type !== undefined) updates["type"] = input.type;
-      if (input.content !== undefined) updates["content"] = input.content;
-      if (input.ttl !== undefined) updates["ttl"] = input.ttl;
-      if (input.priority !== undefined) updates["priority"] = input.priority;
+    const updates: Record<string, unknown> = { updatedAt: Date.now() };
+    if (input.name !== undefined) updates.name = normaliseName(input.name);
+    if (input.type !== undefined) updates.type = input.type;
+    if (input.content !== undefined) updates.content = input.content;
+    if (input.ttl !== undefined) updates.ttl = input.ttl;
+    if (input.priority !== undefined) updates.priority = input.priority;
 
-      await ctx.db
-        .update(dnsRecords)
-        .set(updates)
-        .where(eq(dnsRecords.id, input.id));
+    await ctx.db.update(dnsRecords).set(updates).where(eq(dnsRecords.id, input.id));
 
-      await bumpZoneSerial(ctx.db, existing.zoneId);
-      return { success: true as const, id: input.id };
-    }),
+    await bumpZoneSerial(ctx.db, existing.zoneId);
+    return { success: true as const, id: input.id };
+  }),
 
   /** Delete a single record. Bumps zone serial. */
   deleteRecord: adminProcedure
@@ -588,48 +545,46 @@ export const dnsRouter = router({
    * is bumped exactly once at the end regardless of batch size so
    * secondaries do not thrash.
    */
-  bulkImport: adminProcedure
-    .input(BulkImportInput)
-    .mutation(async ({ ctx, input }) => {
-      const zoneRows = await ctx.db
-        .select()
-        .from(dnsZones)
-        .where(eq(dnsZones.id, input.zoneId))
-        .limit(1);
-      if (zoneRows.length === 0) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "DNS zone not found.",
-        });
-      }
+  bulkImport: adminProcedure.input(BulkImportInput).mutation(async ({ ctx, input }) => {
+    const zoneRows = await ctx.db
+      .select()
+      .from(dnsZones)
+      .where(eq(dnsZones.id, input.zoneId))
+      .limit(1);
+    if (zoneRows.length === 0) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "DNS zone not found.",
+      });
+    }
 
-      // Validate everything up-front so a single bad row aborts the batch.
-      for (const r of input.records) {
-        validateRecordContent(r.type, r.content, r.priority ?? null);
-      }
+    // Validate everything up-front so a single bad row aborts the batch.
+    for (const r of input.records) {
+      validateRecordContent(r.type, r.content, r.priority ?? null);
+    }
 
-      const now = Date.now();
-      const rows = input.records.map((r) => ({
-        id: newId("rec"),
-        zoneId: input.zoneId,
-        name: normaliseName(r.name),
-        type: r.type,
-        content: r.content,
-        ttl: r.ttl ?? 300,
-        priority: r.priority ?? null,
-        createdAt: now,
-        updatedAt: now,
-      }));
+    const now = Date.now();
+    const rows = input.records.map((r) => ({
+      id: newId("rec"),
+      zoneId: input.zoneId,
+      name: normaliseName(r.name),
+      type: r.type,
+      content: r.content,
+      ttl: r.ttl ?? 300,
+      priority: r.priority ?? null,
+      createdAt: now,
+      updatedAt: now,
+    }));
 
-      // Drizzle batches a values array into a single INSERT — as close
-      // to a transaction as libsql gives us without manual BEGIN/COMMIT.
-      await ctx.db.insert(dnsRecords).values(rows);
-      await bumpZoneSerial(ctx.db, input.zoneId);
+    // Drizzle batches a values array into a single INSERT — as close
+    // to a transaction as libsql gives us without manual BEGIN/COMMIT.
+    await ctx.db.insert(dnsRecords).values(rows);
+    await bumpZoneSerial(ctx.db, input.zoneId);
 
-      // Return only the IDs so callers can correlate without us echoing
-      // the full payload back across the wire.
-      return { inserted: rows.length, ids: rows.map((r) => r.id) };
-    }),
+    // Return only the IDs so callers can correlate without us echoing
+    // the full payload back across the wire.
+    return { inserted: rows.length, ids: rows.map((r) => r.id) };
+  }),
 
   /**
    * List record types supported by the engine. Exposed so the admin UI
@@ -641,10 +596,7 @@ export const dnsRouter = router({
   listRecords: adminProcedure
     .input(z.object({ zoneId: z.string().min(1) }))
     .query(async ({ ctx, input }) => {
-      return ctx.db
-        .select()
-        .from(dnsRecords)
-        .where(eq(dnsRecords.zoneId, input.zoneId));
+      return ctx.db.select().from(dnsRecords).where(eq(dnsRecords.zoneId, input.zoneId));
     }),
 
   /** Fetch a single record by id — convenience accessor for the UI. */

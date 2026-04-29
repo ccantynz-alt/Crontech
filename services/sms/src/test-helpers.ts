@@ -45,12 +45,12 @@ export function createHarness(): Harness {
   const carriers = new CarrierRegistry();
   const twilio = new MockCarrier({
     name: "twilio",
-    inboundSecret: "secret-twilio",
+    inboundSecret: "secret-twilio", // secrets-ok — test fixture, not a real credential
     failOnBodyContains: "FAIL_THIS",
   });
   const bandwidth = new MockCarrier({
     name: "bandwidth",
-    inboundSecret: "secret-bw",
+    inboundSecret: "secret-bw", // secrets-ok — test fixture, not a real credential
   });
   carriers.register(twilio);
   carriers.register(bandwidth);
@@ -79,7 +79,7 @@ export function createHarness(): Harness {
     suppression,
     webhookByNumber,
   });
-  const bearerToken = "test-bearer";
+  const bearerToken = "test-bearer"; // secrets-ok — test fixture, not a real credential
   const rest = new RestApi({ pipeline, store, inbound, bearerToken });
 
   return {

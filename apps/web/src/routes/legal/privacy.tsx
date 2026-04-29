@@ -1,6 +1,6 @@
+import { Card, Separator, Stack, Text } from "@back-to-the-future/ui";
 import { For } from "solid-js";
 import type { JSX } from "solid-js";
-import { Box, Container, Stack, Text, Card, Separator } from "@back-to-the-future/ui";
 import { SEOHead } from "../../components/SEOHead";
 
 interface Section {
@@ -12,12 +12,12 @@ const sections: Section[] = [
   {
     title: "1. Information We Collect",
     content: [
-      "We collect information in the following categories when you use the Crontech platform (\"Service\"):",
+      'We collect information in the following categories when you use the Crontech platform ("Service"):',
       "Account Information. Name, email address, and authentication credentials. Passwords are hashed using Argon2id and never stored in plaintext. Google OAuth provides name, email, and profile picture. Passkey (WebAuthn) private keys never leave your device.",
       "Payment Information. Processed entirely by Stripe, Inc. We never store full card numbers, CVVs, or bank details. We receive only a token, card type, last four digits, and expiration for display.",
       "Usage Data. Pages accessed, feature usage, timestamps, session duration, performance metrics, and error logs. Collected via OpenTelemetry for service improvement.",
       "Device and Technical Data. Browser, OS, screen resolution, IP address, language, time zone, and WebGPU capability. WebGPU data is used solely to determine client-side AI eligibility.",
-      "Content Data. Websites, applications, code, videos, and materials you create (\"Your Content\"). Stored solely to provide the Service; remains your property.",
+      'Content Data. Websites, applications, code, videos, and materials you create ("Your Content"). Stored solely to provide the Service; remains your property.',
       "AI Interaction Data (Server-Side Only). Prompts and inputs for edge/cloud AI features are temporarily processed on our servers. Client-side AI (WebGPU) interactions never leave your device.",
       "Collaboration Data. Cursor positions, edit operations, and presence information during real-time sessions. Transient and not retained after sessions end.",
     ],
@@ -80,7 +80,7 @@ const sections: Section[] = [
       "If you are in the EEA or UK, you have these rights under GDPR/UK GDPR:",
       "Right of Access (Art. 15) \u2014 Obtain confirmation of processing and receive a copy of your data in machine-readable format.",
       "Right to Rectification (Art. 16) \u2014 Request correction of inaccurate or incomplete data.",
-      "Right to Erasure (Art. 17) \u2014 Request deletion (\"right to be forgotten\") when data is no longer necessary, you withdraw consent, or data was unlawfully processed.",
+      'Right to Erasure (Art. 17) \u2014 Request deletion ("right to be forgotten") when data is no longer necessary, you withdraw consent, or data was unlawfully processed.',
       "Right to Data Portability (Art. 20) \u2014 Receive your data in structured, machine-readable format and transmit to another controller.",
       "Right to Restrict Processing (Art. 18) \u2014 Request restriction when accuracy is contested or processing is objected to.",
       "Right to Object (Art. 21) \u2014 Object to processing based on legitimate interests or for direct marketing.",
@@ -140,7 +140,7 @@ const sections: Section[] = [
     title: "12. Changes to This Privacy Policy",
     content: [
       "Material changes: at least 30 days' notice via email and in-Service notice.",
-      "Non-material changes: indicated by updated \"Last Updated\" date.",
+      'Non-material changes: indicated by updated "Last Updated" date.',
       "Continued use after changes constitutes acceptance. If you disagree, discontinue use.",
     ],
   },
@@ -149,8 +149,8 @@ const sections: Section[] = [
     content: [
       "General Privacy: privacy@crontech.dev",
       "Data Protection Officer: dpo@crontech.dev",
-      "CCPA Requests: privacy@crontech.dev (subject: \"CCPA Request\")",
-      "GDPR Requests: dpo@crontech.dev (subject: \"GDPR Request\")",
+      'CCPA Requests: privacy@crontech.dev (subject: "CCPA Request")',
+      'GDPR Requests: dpo@crontech.dev (subject: "GDPR Request")',
       "Crontech Technologies, Inc. \u2014 Contact: privacy@crontech.dev (Physical address available upon written request)",
       "We acknowledge privacy requests within 5 business days and respond within applicable legal timeframes (30 days GDPR, 45 days CCPA).",
     ],
@@ -187,11 +187,15 @@ export default function PrivacyPage(): JSX.Element {
         description="How Crontech collects, uses, and protects your personal data. GDPR, CCPA, and international compliance."
         path="/legal/privacy"
       />
-      <Box class="min-h-screen bg-[var(--color-bg)] text-[var(--color-text)]">
-        <Container size="full" padding="md" class="max-w-4xl py-16 sm:px-8 lg:py-24">
+      <div class="min-h-screen bg-[var(--color-bg)] text-[var(--color-text)]">
+        <div class="mx-auto max-w-4xl px-6 py-16 sm:px-8 lg:py-24">
           <Stack direction="vertical" gap="lg">
             <Stack direction="vertical" gap="sm">
-              <Text variant="h1" weight="bold" class="bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+              <Text
+                variant="h1"
+                weight="bold"
+                class="bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent"
+              >
                 Privacy Policy
               </Text>
               <Text variant="caption" style={{ color: "var(--color-text-faint)" }}>
@@ -208,7 +212,11 @@ export default function PrivacyPage(): JSX.Element {
                     </Text>
                     <For each={section.content}>
                       {(paragraph) => (
-                        <Text variant="body" class="leading-relaxed" style={{ color: "var(--color-text-muted)" }}>
+                        <Text
+                          variant="body"
+                          class="leading-relaxed"
+                          style={{ color: "var(--color-text-muted)" }}
+                        >
                           {paragraph}
                         </Text>
                       )}
@@ -218,8 +226,8 @@ export default function PrivacyPage(): JSX.Element {
               )}
             </For>
           </Stack>
-        </Container>
-      </Box>
+        </div>
+      </div>
     </>
   );
 }

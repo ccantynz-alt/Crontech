@@ -15,7 +15,7 @@ const iso = (): string => new Date().toISOString();
 
 function write(stream: NodeJS.WriteStream, level: string, msg: string): void {
   const line = JSON.stringify({ time: iso(), level, msg });
-  stream.write(line + "\n");
+  stream.write(`${line}\n`);
 }
 
 export const log = {
@@ -23,7 +23,7 @@ export const log = {
   warn: (msg: string): void => write(process.stderr, "warn", msg),
   error: (msg: string): void => write(process.stderr, "error", msg),
   debug: (msg: string): void => {
-    if (process.env["LOG_LEVEL"] === "debug") {
+    if (process.env.LOG_LEVEL === "debug") {
       write(process.stdout, "debug", msg);
     }
   },

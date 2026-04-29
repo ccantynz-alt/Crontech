@@ -1,21 +1,18 @@
-import { z } from "zod";
-import { TRPCError } from "@trpc/server";
-import { eq } from "drizzle-orm";
-import { router, publicProcedure, protectedProcedure, middleware } from "../init";
+import { tenants, users } from "@back-to-the-future/db";
+import { createProjectBranch } from "@back-to-the-future/db/neon-provisioning";
 import {
-  tenants,
-  users,
-} from "@back-to-the-future/db";
-import {
-  provisionTenantDB,
   checkTenantHealth,
   getTenantProjectInfo,
+  provisionTenantDB,
 } from "@back-to-the-future/db/tenant-manager";
-import { createProjectBranch } from "@back-to-the-future/db/neon-provisioning";
-import { fileExists } from "@back-to-the-future/storage/client";
 import { enqueueTenantProvision } from "@back-to-the-future/queue";
-import { auditMiddleware } from "../../middleware/audit";
+import { fileExists } from "@back-to-the-future/storage/client";
+import { TRPCError } from "@trpc/server";
+import { eq } from "drizzle-orm";
+import { z } from "zod";
 import { orchestratorFetch } from "../../deploy/orchestrator-client";
+import { auditMiddleware } from "../../middleware/audit";
+import { middleware, protectedProcedure, publicProcedure, router } from "../init";
 
 // ── Admin Middleware ──────────────────────────────────────────────────
 
@@ -91,7 +88,7 @@ export const tenantRouter = router({
         createdAt: new Date(),
       };
       if (input.customDomain !== undefined) {
-        tenantValues["customDomain"] = input.customDomain;
+        tenantValues.customDomain = input.customDomain;
       }
       await ctx.db.insert(tenants).values(tenantValues as typeof tenants.$inferInsert);
 
@@ -104,8 +101,7 @@ export const tenantRouter = router({
           );
         }
       } catch (err: unknown) {
-        const message =
-          err instanceof Error ? err.message : "Unknown storage error";
+        const message = err instanceof Error ? err.message : "Unknown storage error";
         console.warn(
           `[tenant.provision] R2 storage check failed for tenant ${tenantId}: ${message}`,
         );
@@ -118,18 +114,14 @@ export const tenantRouter = router({
           plan: input.plan,
         });
       } catch (err: unknown) {
-        const message =
-          err instanceof Error ? err.message : "Queue enqueue failed";
+        const message = err instanceof Error ? err.message : "Queue enqueue failed";
         console.warn(
           `[tenant.provision] Failed to enqueue provision job for ${tenantId}: ${message}`,
         );
       }
 
       // 5. Update tenant status to active
-      await ctx.db
-        .update(tenants)
-        .set({ status: "active" })
-        .where(eq(tenants.id, tenantId));
+      await ctx.db.update(tenants).set({ status: "active" }).where(eq(tenants.id, tenantId));
 
       // 6. Return result
       return {
@@ -159,29 +151,27 @@ export const tenantRouter = router({
 
   // ── New: Get tenant by slug (public) ───────────────────────────────
 
-  getBySlug: publicProcedure
-    .input(z.object({ slug: z.string() }))
-    .query(async ({ ctx, input }) => {
-      const rows = await ctx.db
-        .select({
-          id: tenants.id,
-          name: tenants.name,
-          slug: tenants.slug,
-          plan: tenants.plan,
-          status: tenants.status,
-          customDomain: tenants.customDomain,
-        })
-        .from(tenants)
-        .where(eq(tenants.slug, input.slug))
-        .limit(1);
+  getBySlug: publicProcedure.input(z.object({ slug: z.string() })).query(async ({ ctx, input }) => {
+    const rows = await ctx.db
+      .select({
+        id: tenants.id,
+        name: tenants.name,
+        slug: tenants.slug,
+        plan: tenants.plan,
+        status: tenants.status,
+        customDomain: tenants.customDomain,
+      })
+      .from(tenants)
+      .where(eq(tenants.slug, input.slug))
+      .limit(1);
 
-      const tenant = rows[0];
-      if (!tenant) {
-        return null;
-      }
+    const tenant = rows[0];
+    if (!tenant) {
+      return null;
+    }
 
-      return tenant;
-    }),
+    return tenant;
+  }),
 
   // ── Existing: Get project ──────────────────────────────────────────
 
@@ -191,9 +181,7 @@ export const tenantRouter = router({
       return null;
     }
 
-    const maskedUri = project.connectionUri
-      ? `${project.connectionUri.slice(0, 25)}...`
-      : "";
+    const maskedUri = project.connectionUri ? `${project.connectionUri.slice(0, 25)}...` : "";
 
     return {
       id: project.id,
@@ -219,11 +207,7 @@ export const tenantRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       try {
-        const project = await provisionTenantDB(
-          ctx.userId,
-          input.plan,
-          input.region,
-        );
+        const project = await provisionTenantDB(ctx.userId, input.plan, input.region);
         return {
           id: project.id,
           neonProjectId: project.neonProjectId,
@@ -232,8 +216,7 @@ export const tenantRouter = router({
           plan: project.plan,
         };
       } catch (error: unknown) {
-        const message =
-          error instanceof Error ? error.message : "Provisioning failed";
+        const message = error instanceof Error ? error.message : "Provisioning failed";
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message,
@@ -273,14 +256,10 @@ export const tenantRouter = router({
       }
 
       try {
-        const branch = await createProjectBranch(
-          project.neonProjectId,
-          input.branchName,
-        );
+        const branch = await createProjectBranch(project.neonProjectId, input.branchName);
         return branch;
       } catch (error: unknown) {
-        const message =
-          error instanceof Error ? error.message : "Branch creation failed";
+        const message = error instanceof Error ? error.message : "Branch creation failed";
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message,
@@ -357,13 +336,10 @@ export const tenantRouter = router({
     .use(auditMiddleware("tenant.rollback"))
     .input(z.object({ appName: z.string().min(1) }))
     .mutation(async ({ input }) => {
-      return orchestratorFetch<{ status: string; appName: string }>(
-        "/rollback",
-        {
-          method: "POST",
-          body: JSON.stringify({ appName: input.appName }),
-        },
-      );
+      return orchestratorFetch<{ status: string; appName: string }>("/rollback", {
+        method: "POST",
+        body: JSON.stringify({ appName: input.appName }),
+      });
     }),
 
   // ── Undeploy: stop and remove an app ──────────────────────────────
@@ -372,13 +348,10 @@ export const tenantRouter = router({
     .use(auditMiddleware("tenant.undeploy"))
     .input(z.object({ appName: z.string().min(1) }))
     .mutation(async ({ input }) => {
-      return orchestratorFetch<{ status: string; appName: string }>(
-        "/undeploy",
-        {
-          method: "POST",
-          body: JSON.stringify({ appName: input.appName }),
-        },
-      );
+      return orchestratorFetch<{ status: string; appName: string }>("/undeploy", {
+        method: "POST",
+        body: JSON.stringify({ appName: input.appName }),
+      });
     }),
 
   // ── List All Deployed Apps ────────────────────────────────────────

@@ -75,7 +75,7 @@ async function flush(): Promise<void> {
 
   try {
     await trpc.analytics.track.mutate({ events: batch });
-  } catch (err) {
+  } catch (_err) {
     // On failure, put events back for retry (capped to avoid memory leak)
     if (eventQueue.length < 500) {
       eventQueue.unshift(...batch);

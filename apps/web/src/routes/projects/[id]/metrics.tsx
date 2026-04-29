@@ -19,13 +19,13 @@
 //   • `/projects/[id]/metrics?range=24h` — range is persisted in the
 //     query string so refresh preserves the selected window.
 
-import { createResource, createMemo, For, Show } from "solid-js";
+import { A, useParams, useSearchParams } from "@solidjs/router";
+import { For, Show, createMemo, createResource } from "solid-js";
 import type { JSX } from "solid-js";
-import { useParams, useSearchParams, A } from "@solidjs/router";
+import { MetricCard } from "../../../components/MetricCard";
+import { MetricsChart } from "../../../components/MetricsChart";
 import { ProtectedRoute } from "../../../components/ProtectedRoute";
 import { SEOHead } from "../../../components/SEOHead";
-import { MetricsChart } from "../../../components/MetricsChart";
-import { MetricCard } from "../../../components/MetricCard";
 import { trpc } from "../../../lib/trpc";
 
 // ── Types ────────────────────────────────────────────────────────────
@@ -110,9 +110,7 @@ const RANGES: Array<{ key: RangeKey; label: string }> = [
 const DEFAULT_RANGE: RangeKey = "24h";
 
 function isRangeKey(v: unknown): v is RangeKey {
-  return (
-    v === "1h" || v === "6h" || v === "24h" || v === "7d" || v === "30d"
-  );
+  return v === "1h" || v === "6h" || v === "24h" || v === "7d" || v === "30d";
 }
 
 // ── Page ─────────────────────────────────────────────────────────────
@@ -135,9 +133,10 @@ export default function ProjectMetricsPage(): JSX.Element {
     () => params.id,
     async (id): Promise<{ id: string; name: string } | null> => {
       try {
-        const row = (await trpc.projects.getById.query({ projectId: id })) as
-          | { id: string; name: string }
-          | null;
+        const row = (await trpc.projects.getById.query({ projectId: id })) as {
+          id: string;
+          name: string;
+        } | null;
         return row ? { id: row.id, name: row.name } : null;
       } catch {
         return null;
@@ -189,18 +188,14 @@ export default function ProjectMetricsPage(): JSX.Element {
           {/* Header */}
           <div class="flex flex-wrap items-end justify-between gap-4">
             <div class="flex flex-col gap-2">
-              <h1 class="text-4xl font-bold tracking-tight">
-                Metrics for {displayName()}
-              </h1>
+              <h1 class="text-4xl font-bold tracking-tight">Metrics for {displayName()}</h1>
               <p
                 class="max-w-2xl text-sm leading-relaxed"
                 style={{ color: "var(--color-text-muted)" }}
               >
-                Real-time telemetry from the Crontech observability
-                pipeline (OpenTelemetry &rarr; Mimir). Charts below pull
-                directly from Mimir &mdash; when a series is missing or
-                the pipeline is unreachable we say so rather than invent
-                numbers.
+                Real-time telemetry from the Crontech observability pipeline (OpenTelemetry &rarr;
+                Mimir). Charts below pull directly from Mimir &mdash; when a series is missing or
+                the pipeline is unreachable we say so rather than invent numbers.
               </p>
             </div>
 
@@ -220,17 +215,12 @@ export default function ProjectMetricsPage(): JSX.Element {
                   return (
                     <button
                       type="button"
-                      role="radio"
-                      aria-checked={active()}
+                      aria-pressed={active()}
                       onClick={() => setRange(r.key)}
                       class="inline-flex items-center justify-center rounded-lg px-3 py-1.5 text-xs font-semibold transition"
                       style={{
-                        background: active()
-                          ? "var(--color-primary)"
-                          : "transparent",
-                        color: active()
-                          ? "#ffffff"
-                          : "var(--color-text-muted)",
+                        background: active() ? "var(--color-primary)" : "transparent",
+                        color: active() ? "#ffffff" : "var(--color-text-muted)",
                       }}
                     >
                       {r.label}
@@ -244,24 +234,14 @@ export default function ProjectMetricsPage(): JSX.Element {
           {/* Chart grid */}
           <div class="mt-10 grid grid-cols-1 gap-6 lg:grid-cols-2">
             <For each={METRICS}>
-              {(desc) => (
-                <MetricPanel
-                  projectId={params.id}
-                  descriptor={desc}
-                  range={range()}
-                />
-              )}
+              {(desc) => <MetricPanel projectId={params.id} descriptor={desc} range={range()} />}
             </For>
           </div>
 
           {/* Pipeline footer */}
-          <p
-            class="mt-10 text-xs"
-            style={{ color: "var(--color-text-faint)" }}
-          >
-            Source: OpenTelemetry collector &rarr; Mimir (BLK-014). When
-            per-project labels are not present on a series, the chart
-            shows its empty state &mdash; not synthesised data.
+          <p class="mt-10 text-xs" style={{ color: "var(--color-text-faint)" }}>
+            Source: OpenTelemetry collector &rarr; Mimir (BLK-014). When per-project labels are not
+            present on a series, the chart shows its empty state &mdash; not synthesised data.
           </p>
         </div>
       </div>
@@ -356,18 +336,9 @@ function MetricPanel(props: MetricPanelProps): JSX.Element {
 
       {/* Chart body — 4 states: loading / error / empty / data */}
       <div class="min-h-[240px]">
-        <Show
-          when={!series.loading}
-          fallback={<ChartSkeleton color={props.descriptor.color} />}
-        >
-          <Show
-            when={series.error === undefined}
-            fallback={<ChartError />}
-          >
-            <Show
-              when={hasPoints()}
-              fallback={<ChartEmpty metric={props.descriptor.label} />}
-            >
+        <Show when={!series.loading} fallback={<ChartSkeleton color={props.descriptor.color} />}>
+          <Show when={series.error === undefined} fallback={<ChartError />}>
+            <Show when={hasPoints()} fallback={<ChartEmpty metric={props.descriptor.label} />}>
               <MetricsChart
                 data={chartPoints()}
                 color={props.descriptor.color}
@@ -397,10 +368,7 @@ function ChartSkeleton(props: { color: string }): JSX.Element {
       aria-busy="true"
       aria-label="Loading metrics"
     >
-      <span
-        class="text-xs"
-        style={{ color: "var(--color-text-faint)" }}
-      >
+      <span class="text-xs" style={{ color: "var(--color-text-faint)" }}>
         Loading…
       </span>
     </div>
@@ -418,16 +386,10 @@ function ChartError(): JSX.Element {
       role="alert"
     >
       <div class="flex flex-col items-center gap-1">
-        <span
-          class="text-sm font-semibold"
-          style={{ color: "var(--color-danger)" }}
-        >
+        <span class="text-sm font-semibold" style={{ color: "var(--color-danger)" }}>
           Couldn&apos;t reach the metrics pipeline
         </span>
-        <span
-          class="text-xs"
-          style={{ color: "var(--color-text-muted)" }}
-        >
+        <span class="text-xs" style={{ color: "var(--color-text-muted)" }}>
           The metrics API returned an error. No data shown rather than fake data.
         </span>
       </div>
@@ -445,19 +407,12 @@ function ChartEmpty(props: { metric: string }): JSX.Element {
       }}
     >
       <div class="flex flex-col items-center gap-1">
-        <span
-          class="text-sm font-semibold"
-          style={{ color: "var(--color-text)" }}
-        >
+        <span class="text-sm font-semibold" style={{ color: "var(--color-text)" }}>
           No {props.metric.toLowerCase()} metrics yet
         </span>
-        <span
-          class="max-w-xs text-xs"
-          style={{ color: "var(--color-text-muted)" }}
-        >
-          Mimir is reachable but has no samples for this project in the
-          selected range. Deploy or generate traffic and the chart will
-          fill in — we do not synthesise data.
+        <span class="max-w-xs text-xs" style={{ color: "var(--color-text-muted)" }}>
+          Mimir is reachable but has no samples for this project in the selected range. Deploy or
+          generate traffic and the chart will fill in — we do not synthesise data.
         </span>
       </div>
     </div>

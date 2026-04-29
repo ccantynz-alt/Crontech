@@ -7,10 +7,9 @@
 // rest of the codebase can call a single `showToast(... , "undo")`
 // API for undoable destructive actions without importing two modules.
 
-import { createSignal, For, onCleanup } from "solid-js";
+import { For, createSignal, onCleanup } from "solid-js";
 import type { JSX } from "solid-js";
-import { Box, Text } from "@back-to-the-future/ui";
-import { enqueueUndo, type UndoToastDescriptor } from "./UndoToast";
+import { type UndoToastDescriptor, enqueueUndo } from "./UndoToast";
 
 export type ToastVariant = "success" | "error" | "info" | "warning" | "undo";
 
@@ -24,11 +23,7 @@ export interface Toast {
 const [toasts, setToasts] = createSignal<Toast[]>([]);
 let nextId = 1;
 
-export function showToast(
-  message: string,
-  variant: ToastVariant = "info",
-  duration = 4000,
-): void {
+export function showToast(message: string, variant: ToastVariant = "info", duration = 4000): void {
   if (typeof window === "undefined") return;
   if (variant === "undo") {
     // Callers that want full undo semantics should use
@@ -60,17 +55,40 @@ export function dismissToast(id: number): void {
   setToasts((prev) => prev.filter((t) => t.id !== id));
 }
 
-const variantStyles: Record<Exclude<ToastVariant, "undo">, { bg: string; border: string; color: string; icon: string }> = {
-  success: { bg: "rgba(34, 197, 94, 0.15)", border: "rgba(34, 197, 94, 0.5)", color: "var(--color-success)", icon: "✓" },
-  error: { bg: "rgba(239, 68, 68, 0.15)", border: "rgba(239, 68, 68, 0.5)", color: "var(--color-danger)", icon: "✕" },
-  info: { bg: "rgba(59, 130, 246, 0.15)", border: "rgba(59, 130, 246, 0.5)", color: "var(--color-primary)", icon: "ℹ" },
-  warning: { bg: "rgba(245, 158, 11, 0.15)", border: "rgba(245, 158, 11, 0.5)", color: "var(--color-warning)", icon: "⚠" },
+const variantStyles: Record<
+  Exclude<ToastVariant, "undo">,
+  { bg: string; border: string; color: string; icon: string }
+> = {
+  success: {
+    bg: "rgba(34, 197, 94, 0.15)",
+    border: "rgba(34, 197, 94, 0.5)",
+    color: "var(--color-success)",
+    icon: "✓",
+  },
+  error: {
+    bg: "rgba(239, 68, 68, 0.15)",
+    border: "rgba(239, 68, 68, 0.5)",
+    color: "var(--color-danger)",
+    icon: "✕",
+  },
+  info: {
+    bg: "rgba(59, 130, 246, 0.15)",
+    border: "rgba(59, 130, 246, 0.5)",
+    color: "var(--color-primary)",
+    icon: "ℹ",
+  },
+  warning: {
+    bg: "rgba(245, 158, 11, 0.15)",
+    border: "rgba(245, 158, 11, 0.5)",
+    color: "var(--color-warning)",
+    icon: "⚠",
+  },
 };
 
 export function ToastContainer(): JSX.Element {
   onCleanup(() => setToasts([]));
   return (
-    <Box
+    <output
       style={{
         position: "fixed",
         top: "20px",
@@ -82,14 +100,13 @@ export function ToastContainer(): JSX.Element {
         "max-width": "380px",
         "pointer-events": "none",
       }}
-      role="status"
       aria-live="polite"
     >
       <For each={toasts()}>
         {(toast) => {
           const style = variantStyles[toast.variant];
           return (
-            <Box
+            <div
               style={{
                 background: style.bg,
                 border: `1px solid ${style.border}`,
@@ -102,13 +119,13 @@ export function ToastContainer(): JSX.Element {
                 "align-items": "flex-start",
                 gap: "10px",
                 "pointer-events": "auto",
-                "animation": "toast-slide-in 0.2s ease-out",
+                animation: "toast-slide-in 0.2s ease-out",
                 "font-size": "14px",
                 "font-weight": "500",
               }}
             >
-              <Text as="span" style={{ "font-size": "16px", "line-height": "1.4" }}>{style.icon}</Text>
-              <Text as="span" style={{ flex: "1", "line-height": "1.4" }}>{toast.message}</Text>
+              <span style={{ "font-size": "16px", "line-height": "1.4" }}>{style.icon}</span>
+              <span style={{ flex: "1", "line-height": "1.4" }}>{toast.message}</span>
               <button
                 type="button"
                 onClick={() => dismissToast(toast.id)}
@@ -125,7 +142,7 @@ export function ToastContainer(): JSX.Element {
               >
                 ×
               </button>
-            </Box>
+            </div>
           );
         }}
       </For>
@@ -135,6 +152,6 @@ export function ToastContainer(): JSX.Element {
           to { transform: translateX(0); opacity: 1; }
         }
       `}</style>
-    </Box>
+    </output>
   );
 }

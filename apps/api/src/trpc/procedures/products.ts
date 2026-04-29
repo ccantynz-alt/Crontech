@@ -2,7 +2,7 @@
 // Stub: product registry CRUD. Will be expanded when the product
 // management UI lands.
 
-import { router, protectedProcedure } from "../init";
+import { protectedProcedure, router } from "../init";
 
 export const productsRouter = router({
   list: protectedProcedure.query(() => {

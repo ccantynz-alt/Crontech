@@ -5,8 +5,8 @@
 // - Global invalidation bus: mutations trigger query refreshes
 // - Visibility refetch: refetch when user returns to the tab
 
-import { createResource, createSignal, onCleanup, type Resource } from "solid-js";
 import { TRPCClientError } from "@trpc/client";
+import { type Resource, createResource, createSignal, onCleanup } from "solid-js";
 
 // ── Global Invalidation Bus ────────────────────────────────────────
 // Mutations publish a "key" (e.g. "projects", "chat", "settings") and
@@ -17,8 +17,10 @@ const listeners = new Map<string, Set<InvalidationCallback>>();
 
 function subscribe(key: string, cb: InvalidationCallback): () => void {
   if (!listeners.has(key)) listeners.set(key, new Set());
-  listeners.get(key)!.add(cb);
-  return () => { listeners.get(key)?.delete(cb); };
+  listeners.get(key)?.add(cb);
+  return () => {
+    listeners.get(key)?.delete(cb);
+  };
 }
 
 /** Invalidate all queries tagged with the given key(s). */
@@ -70,12 +72,12 @@ export interface UseQueryResult<T> {
 export function useQuery<T>(fn: () => Promise<T>, options?: UseQueryOptions): UseQueryResult<T> {
   const [data, { refetch, mutate }] = createResource<T>(fn);
 
-  const doRefetch = (): void => { void refetch(); };
+  const doRefetch = (): void => {
+    void refetch();
+  };
 
   // Subscribe to invalidation bus
-  const keys = options?.key
-    ? Array.isArray(options.key) ? options.key : [options.key]
-    : [];
+  const keys = options?.key ? (Array.isArray(options.key) ? options.key : [options.key]) : [];
   const unsubscribers: (() => void)[] = [];
   for (const key of keys) {
     unsubscribers.push(subscribe(key, doRefetch));

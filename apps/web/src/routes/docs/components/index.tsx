@@ -9,11 +9,7 @@
 
 import type { JSX } from "solid-js";
 import { SEOHead } from "../../../components/SEOHead";
-import {
-  DocsArticle,
-  Callout,
-  KeyList,
-} from "../../../components/docs/DocsArticle";
+import { Callout, DocsArticle, KeyList } from "../../../components/docs/DocsArticle";
 
 export default function ComponentsIndexArticle(): JSX.Element {
   return (
@@ -38,29 +34,23 @@ export default function ComponentsIndexArticle(): JSX.Element {
         }}
       >
         <p>
-          The component library lives in{" "}
-          <code>packages/ui</code> and is published to the monorepo as{" "}
-          <code>@back-to-the-future/ui</code>. It is a small, deliberately
-          opinionated set of SolidJS primitives — fifteen of them today —
-          that every Crontech surface uses: the marketing site, the
-          signed-in dashboard, the AI site-builder preview pane, and the
-          generative UI renderer that turns AI output into live pixels.
-          There is no separate "design system repo" and no second library
-          for any surface. One catalog, one source of truth.
+          The component library lives in <code>packages/ui</code> and is published to the monorepo
+          as <code>@back-to-the-future/ui</code>. It is a small, deliberately opinionated set of
+          SolidJS primitives — fifteen of them today — that every Crontech surface uses: the
+          marketing site, the signed-in dashboard, the AI site-builder preview pane, and the
+          generative UI renderer that turns AI output into live pixels. There is no separate "design
+          system repo" and no second library for any surface. One catalog, one source of truth.
         </p>
 
         <Callout tone="info" title="Zero-HTML, by design">
-          You never author HTML in a Crontech app. You import a component
-          from <code>@back-to-the-future/ui</code> and compose. The
-          platform's AI-native architecture depends on this rule — if a
-          surface uses raw <code>&lt;div&gt;</code> soup, the AI cannot
+          You never author HTML in a Crontech app. You import a component from{" "}
+          <code>@back-to-the-future/ui</code> and compose. The platform's AI-native architecture
+          depends on this rule — if a surface uses raw <code>&lt;div&gt;</code> soup, the AI cannot
           reason about it and cannot compose into it.
         </Callout>
 
         <h2>What ships today</h2>
-        <p>
-          Fifteen primitives, grouped by role:
-        </p>
+        <p>Fifteen primitives, grouped by role:</p>
 
         <KeyList
           items={[
@@ -94,8 +84,8 @@ export default function ComponentsIndexArticle(): JSX.Element {
 
         <h2>How this category is organised</h2>
         <p>
-          Three follow-up articles take you from "what exists" to "how to
-          use it with AI" to "how to make it look like yours":
+          Three follow-up articles take you from "what exists" to "how to use it with AI" to "how to
+          make it look like yours":
         </p>
 
         <KeyList
@@ -120,9 +110,8 @@ export default function ComponentsIndexArticle(): JSX.Element {
 
         <h2>The design rules the library enforces</h2>
         <p>
-          Three invariants are guarded by the catalog itself. Break any
-          of them and the build, the type-checker, or the AI renderer
-          will tell you:
+          Three invariants are guarded by the catalog itself. Break any of them and the build, the
+          type-checker, or the AI renderer will tell you:
         </p>
 
         <KeyList
@@ -146,19 +135,16 @@ export default function ComponentsIndexArticle(): JSX.Element {
         />
 
         <Callout tone="note">
-          The catalog grows deliberately. When a new primitive ships, it
-          lands with a Zod schema, a rendering entry in{" "}
-          <code>apps/web/src/components/JsonRenderUI.tsx</code>, and a
-          test. A component that doesn't pass all three gates doesn't
-          ship — that's how we keep the library small, sharp, and
-          AI-trustworthy.
+          The catalog grows deliberately. When a new primitive ships, it lands with a Zod schema, a
+          rendering entry in <code>apps/web/src/components/JsonRenderUI.tsx</code>, and a test. A
+          component that doesn't pass all three gates doesn't ship — that's how we keep the library
+          small, sharp, and AI-trustworthy.
         </Callout>
 
         <h2>Where to go next</h2>
         <p>
-          Start with the catalog to see what's actually in the box, then
-          jump to the AI-composable article once you want to let agents
-          drive the UI instead of hand-writing it.
+          Start with the catalog to see what's actually in the box, then jump to the AI-composable
+          article once you want to let agents drive the UI instead of hand-writing it.
         </p>
       </DocsArticle>
     </>

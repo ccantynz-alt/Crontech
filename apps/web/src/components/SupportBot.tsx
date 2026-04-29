@@ -36,7 +36,11 @@ const PAGE_HINTS: Record<string, PageHints> = {
   },
   "/chat": {
     title: "Claude Chat",
-    suggestions: ["How do I add my API key?", "What models are available?", "How does billing work?"],
+    suggestions: [
+      "How do I add my API key?",
+      "What models are available?",
+      "How does billing work?",
+    ],
   },
   "/billing": {
     title: "Billing",
@@ -203,7 +207,7 @@ export function SupportBot(): ReturnType<typeof Show> {
   ];
 
   function pushMessage(role: Role, content: string): string {
-    const id = `${Date.now()}-${crypto.randomUUID().replace(/-/g, '').slice(0, 6)}`;
+    const id = `${Date.now()}-${crypto.randomUUID().replace(/-/g, "").slice(0, 6)}`;
     setMessages((prev) => [...prev, { id, role, content }]);
     return id;
   }
@@ -248,9 +252,7 @@ export function SupportBot(): ReturnType<typeof Show> {
         [
           {
             role: "system",
-            content:
-              "You are a friendly built-in helper for an AI website and video builder. Use plain English. Be brief and warm. The user is on page: " +
-              location.pathname,
+            content: `You are a friendly built-in helper for an AI website and video builder. Use plain English. Be brief and warm. The user is on page: ${location.pathname}`,
           },
           { role: "user", content: trimmed },
         ],
@@ -416,7 +418,8 @@ export function SupportBot(): ReturnType<typeof Show> {
                     <div
                       style={{
                         "align-self": msg.role === "user" ? "flex-end" : "flex-start",
-                        background: msg.role === "user" ? "var(--color-primary)" : "var(--color-bg-elevated)",
+                        background:
+                          msg.role === "user" ? "var(--color-primary)" : "var(--color-bg-elevated)",
                         color: msg.role === "user" ? "var(--color-text)" : "var(--color-text)",
                         padding: "0.5rem 0.75rem",
                         "border-radius": "12px",
@@ -432,7 +435,9 @@ export function SupportBot(): ReturnType<typeof Show> {
                   )}
                 </For>
                 <Show when={thinking()}>
-                  <div style={{ "font-size": "12px", color: "var(--color-text-muted)" }}>Thinking…</div>
+                  <div style={{ "font-size": "12px", color: "var(--color-text-muted)" }}>
+                    Thinking…
+                  </div>
                 </Show>
               </div>
               <div

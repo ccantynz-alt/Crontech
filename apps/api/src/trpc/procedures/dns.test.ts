@@ -1,4 +1,4 @@
-// ── DNS Procedure Tests (BLK-023) ───────────────────────────────────
+﻿// ── DNS Procedure Tests (BLK-023) ───────────────────────────────────
 // Validates the admin-only DNS router end-to-end against a real (but
 // isolated) SQLite database. The test preload in `apps/api/test/setup.ts`
 // wipes and re-migrates the local DB before the suite loads, so we can
@@ -13,19 +13,12 @@
 //   6. Record create → update → delete each bump the zone serial.
 //   7. bulkImport is all-or-nothing and bumps the serial exactly once.
 
-import { describe, test, expect, afterEach } from "bun:test";
+import { afterEach, describe, expect, test } from "bun:test";
+import { db, dnsRecords, dnsZones, scopedDb, sessions, users } from "@back-to-the-future/db";
 import { eq } from "drizzle-orm";
-import {
-  db,
-  users,
-  sessions,
-  scopedDb,
-  dnsZones,
-  dnsRecords,
-} from "@back-to-the-future/db";
-import { appRouter } from "../router";
 import { createSession } from "../../auth/session";
 import type { TRPCContext } from "../context";
+import { appRouter } from "../router";
 
 function ctxFor(userId: string, sessionToken: string): TRPCContext {
   return {
@@ -33,6 +26,7 @@ function ctxFor(userId: string, sessionToken: string): TRPCContext {
     userId,
     sessionToken,
     csrfToken: null,
+    serviceKey: null,
     scopedDb: scopedDb(db, userId),
   };
 }
@@ -41,7 +35,7 @@ async function createUser(role: "admin" | "viewer"): Promise<string> {
   const id = crypto.randomUUID();
   await db.insert(users).values({
     id,
-    email: `dns-${role}-${Date.now()}-${crypto.randomUUID().replace(/-/g, '').slice(0, 6)}@example.com`,
+    email: `dns-${role}-${Date.now()}-${crypto.randomUUID().replace(/-/g, "").slice(0, 6)}@example.com`,
     displayName: `DNS Test ${role}`,
     role,
   });
@@ -99,6 +93,7 @@ describe("dns router", () => {
       userId: null,
       sessionToken: null,
       csrfToken: null,
+      serviceKey: null,
       scopedDb: null,
     });
     let threw = false;
@@ -514,10 +509,7 @@ describe("dns router", () => {
     }
     expect(threw).toBe(true);
 
-    const remaining = await db
-      .select()
-      .from(dnsRecords)
-      .where(eq(dnsRecords.zoneId, zone.id));
+    const remaining = await db.select().from(dnsRecords).where(eq(dnsRecords.zoneId, zone.id));
     expect(remaining.length).toBe(0);
   });
 
@@ -526,17 +518,6 @@ describe("dns router", () => {
   test("supportedTypes returns the expected set", async () => {
     const caller = await adminCaller();
     const types = await caller.dns.supportedTypes();
-    expect(types).toEqual([
-      "A",
-      "AAAA",
-      "CNAME",
-      "MX",
-      "TXT",
-      "NS",
-      "SOA",
-      "SRV",
-      "CAA",
-    ]);
+    expect(types).toEqual(["A", "AAAA", "CNAME", "MX", "TXT", "NS", "SOA", "SRV", "CAA"]);
   });
 });
-

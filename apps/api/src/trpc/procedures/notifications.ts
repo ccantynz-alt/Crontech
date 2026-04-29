@@ -1,19 +1,14 @@
-import { z } from "zod";
-import { eq, desc, and, sql } from "drizzle-orm";
-import { router, protectedProcedure } from "../init";
 import { notifications } from "@back-to-the-future/db";
+import { and, desc, eq, sql } from "drizzle-orm";
+import { z } from "zod";
+import { protectedProcedure, router } from "../init";
 
 export const notificationsRouter = router({
   getUnread: protectedProcedure.query(async ({ ctx }) => {
     const items = await ctx.db
       .select()
       .from(notifications)
-      .where(
-        and(
-          eq(notifications.userId, ctx.userId),
-          eq(notifications.read, false),
-        ),
-      )
+      .where(and(eq(notifications.userId, ctx.userId), eq(notifications.read, false)))
       .orderBy(desc(notifications.createdAt))
       .limit(50);
 
@@ -37,9 +32,7 @@ export const notificationsRouter = router({
 
       const hasMore = items.length > input.limit;
       const resultItems = hasMore ? items.slice(0, input.limit) : items;
-      const nextCursor = hasMore
-        ? resultItems[resultItems.length - 1]?.id ?? null
-        : null;
+      const nextCursor = hasMore ? (resultItems[resultItems.length - 1]?.id ?? null) : null;
 
       const totalResult = await ctx.db
         .select({ count: sql<number>`count(*)` })
@@ -56,12 +49,7 @@ export const notificationsRouter = router({
       const result = await ctx.db
         .update(notifications)
         .set({ read: true })
-        .where(
-          and(
-            eq(notifications.id, input.id),
-            eq(notifications.userId, ctx.userId),
-          ),
-        )
+        .where(and(eq(notifications.id, input.id), eq(notifications.userId, ctx.userId)))
         .returning();
 
       if (result.length === 0) {
@@ -74,12 +62,7 @@ export const notificationsRouter = router({
     await ctx.db
       .update(notifications)
       .set({ read: true })
-      .where(
-        and(
-          eq(notifications.userId, ctx.userId),
-          eq(notifications.read, false),
-        ),
-      );
+      .where(and(eq(notifications.userId, ctx.userId), eq(notifications.read, false)));
 
     return { success: true as const };
   }),

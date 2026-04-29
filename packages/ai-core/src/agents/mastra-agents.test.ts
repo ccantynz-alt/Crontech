@@ -1,12 +1,12 @@
-import { describe, test, expect } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import {
-  siteBuilderAgent,
+  analyzeCodeTool,
   codeReviewerAgent,
   contentWriterAgent,
+  generateComponentTool,
   mastraAgents,
   searchContentTool,
-  generateComponentTool,
-  analyzeCodeTool,
+  siteBuilderAgent,
 } from "./mastra-agents";
 
 describe("Mastra Agent Definitions", () => {
@@ -50,9 +50,10 @@ describe("Mastra Tools", () => {
   });
 
   test("generateComponentTool execute returns valid result", async () => {
-    const executeFn = generateComponentTool.execute as unknown as (
-      input: { componentName: string; description: string },
-    ) => Promise<{ success: boolean; component: { component: string } | null }>;
+    const executeFn = generateComponentTool.execute as unknown as (input: {
+      componentName: string;
+      description: string;
+    }) => Promise<{ success: boolean; component: { component: string } | null }>;
     const result = await executeFn({
       componentName: "Button",
       description: "Submit form",
@@ -63,9 +64,11 @@ describe("Mastra Tools", () => {
   });
 
   test("analyzeCodeTool detects any type", async () => {
-    const executeFn = analyzeCodeTool.execute as unknown as (
-      input: { code: string; language: string; focus: string },
-    ) => Promise<{ issues: Array<{ message: string }> }>;
+    const executeFn = analyzeCodeTool.execute as unknown as (input: {
+      code: string;
+      language: string;
+      focus: string;
+    }) => Promise<{ issues: Array<{ message: string }> }>;
     const result = await executeFn({
       code: "const x: any = 'hello';",
       language: "typescript",

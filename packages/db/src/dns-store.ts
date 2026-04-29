@@ -24,16 +24,7 @@ import { dnsRecords, dnsZones } from "./schema";
  * Supported DNS resource record types. Matches the CHECK constraint
  * expressed via the `type` column enum in `schema.ts`.
  */
-export type RecordType =
-  | "A"
-  | "AAAA"
-  | "CNAME"
-  | "MX"
-  | "TXT"
-  | "NS"
-  | "SOA"
-  | "SRV"
-  | "CAA";
+export type RecordType = "A" | "AAAA" | "CNAME" | "MX" | "TXT" | "NS" | "SOA" | "SRV" | "CAA";
 
 /**
  * One DNS zone owned by Crontech. Serial increments on any record
@@ -149,11 +140,7 @@ export function createDnsStore(db: Db): ZoneStore {
     },
 
     async getZone(name: string): Promise<DnsZone | null> {
-      const rows = await db
-        .select()
-        .from(dnsZones)
-        .where(eq(dnsZones.name, name))
-        .limit(1);
+      const rows = await db.select().from(dnsZones).where(eq(dnsZones.name, name)).limit(1);
       const row = rows[0];
       return row ? mapZoneRow(row) : null;
     },

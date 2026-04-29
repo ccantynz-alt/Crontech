@@ -1,8 +1,8 @@
-import { z } from "zod";
-import { eq, and, desc, gt, sql } from "drizzle-orm";
-import { router, adminProcedure } from "../init";
 import { auditLogs } from "@back-to-the-future/db";
 import { PaginationInput } from "@back-to-the-future/schemas";
+import { and, desc, eq, gt, sql } from "drizzle-orm";
+import { z } from "zod";
+import { adminProcedure, router } from "../init";
 
 export const auditRouter = router({
   list: adminProcedure.input(PaginationInput).query(async ({ ctx, input }) => {
@@ -19,11 +19,9 @@ export const auditRouter = router({
 
     const hasMore = items.length > limit;
     const resultItems = hasMore ? items.slice(0, limit) : items;
-    const nextCursor = hasMore ? resultItems[resultItems.length - 1]?.id ?? null : null;
+    const nextCursor = hasMore ? (resultItems[resultItems.length - 1]?.id ?? null) : null;
 
-    const totalResult = await ctx.db
-      .select({ count: sql<number>`count(*)` })
-      .from(auditLogs);
+    const totalResult = await ctx.db.select({ count: sql<number>`count(*)` }).from(auditLogs);
     const total = totalResult[0]?.count ?? 0;
 
     return {

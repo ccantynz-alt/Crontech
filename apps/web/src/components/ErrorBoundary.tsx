@@ -1,4 +1,4 @@
-import { ErrorBoundary as SolidErrorBoundary, createSignal, Show } from "solid-js";
+import { Show, ErrorBoundary as SolidErrorBoundary, createSignal } from "solid-js";
 import type { JSX, ParentComponent } from "solid-js";
 
 interface AppErrorBoundaryProps {

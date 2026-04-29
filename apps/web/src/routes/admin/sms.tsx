@@ -4,20 +4,13 @@
 // named competitors, no alarming copy. See apps/api/src/trpc/
 // procedures/sms.ts `adminListAll` for the data contract.
 
+import { Badge, Button, Card, Spinner, Stack, Text } from "@back-to-the-future/ui";
 import { Title } from "@solidjs/meta";
-import { createResource, For, Show, type JSX } from "solid-js";
 import { useNavigate } from "@solidjs/router";
-import {
-  Button,
-  Card,
-  Stack,
-  Text,
-  Badge,
-  Spinner,
-} from "@back-to-the-future/ui";
+import { For, type JSX, Show, createResource } from "solid-js";
 import { AdminRoute } from "../../components/AdminRoute";
-import { useAuth } from "../../stores";
 import { trpc } from "../../lib/trpc";
+import { useAuth } from "../../stores";
 
 interface AdminSmsMessage {
   id: string;
@@ -58,9 +51,7 @@ export function formatMicrodollars(amount: number | null | undefined): string {
 }
 
 /** Pure helper — map an SMS status to the Badge variant. Exported for tests. */
-export function smsStatusVariant(
-  status: string,
-): "success" | "warning" | "error" | "default" {
+export function smsStatusVariant(status: string): "success" | "warning" | "error" | "default" {
   if (status === "delivered" || status === "received") return "success";
   if (status === "sent" || status === "queued") return "warning";
   if (status === "failed") return "error";
@@ -78,16 +69,14 @@ function AdminGuard(props: { children: JSX.Element }): JSX.Element {
         when={isAdmin()}
         fallback={
           <Stack direction="vertical" gap="md" class="page-padded">
-            <Text variant="h2" weight="bold">Access Denied</Text>
-            <Text variant="body" class="text-muted">
-              This page is reserved for administrators. If you believe this is
-              a mistake, please let Craig know.
+            <Text variant="h2" weight="bold">
+              Access Denied
             </Text>
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={() => navigate("/dashboard")}
-            >
+            <Text variant="body" class="text-muted">
+              This page is reserved for administrators. If you believe this is a mistake, please let
+              Craig know.
+            </Text>
+            <Button variant="primary" size="sm" onClick={() => navigate("/dashboard")}>
               Back to Dashboard
             </Button>
           </Stack>
@@ -100,9 +89,7 @@ function AdminGuard(props: { children: JSX.Element }): JSX.Element {
 }
 
 export default function AdminSmsPage(): JSX.Element {
-  const [data, { refetch }] = createResource(() =>
-    trpc.sms.adminListAll.query({ limit: 200 }),
-  );
+  const [data, { refetch }] = createResource(() => trpc.sms.adminListAll.query({ limit: 200 }));
 
   const handleRefresh = async (): Promise<void> => {
     await refetch();
@@ -113,11 +100,12 @@ export default function AdminSmsPage(): JSX.Element {
       <Title>SMS Console — Crontech</Title>
       <Stack direction="vertical" gap="lg" class="page-padded">
         <Stack direction="vertical" gap="xs">
-          <Text variant="h1" weight="bold">SMS Console</Text>
+          <Text variant="h1" weight="bold">
+            SMS Console
+          </Text>
           <Text variant="body" class="text-muted">
-            A read-only view of every SMS we've sent or received on behalf of
-            our customers, with totals and per-customer usage. Kind reminder:
-            figures include the full markup column.
+            A read-only view of every SMS we've sent or received on behalf of our customers, with
+            totals and per-customer usage. Kind reminder: figures include the full markup column.
           </Text>
         </Stack>
 
@@ -132,8 +120,8 @@ export default function AdminSmsPage(): JSX.Element {
             when={data()}
             fallback={
               <Text variant="body" class="text-muted">
-                No SMS activity on record yet. Once customers start sending,
-                their traffic will appear here.
+                No SMS activity on record yet. Once customers start sending, their traffic will
+                appear here.
               </Text>
             }
           >
@@ -186,32 +174,25 @@ export default function AdminSmsPage(): JSX.Element {
                         when={perUser().length > 0}
                         fallback={
                           <Text variant="body" class="text-muted">
-                            No per-customer usage yet. The table populates as
-                            customers send their first SMS.
+                            No per-customer usage yet. The table populates as customers send their
+                            first SMS.
                           </Text>
                         }
                       >
                         <For each={perUser()}>
                           {(user) => (
-                            <Stack
-                              direction="horizontal"
-                              gap="md"
-                              align="center"
-                            >
+                            <Stack direction="horizontal" gap="md" align="center">
                               <Text variant="body" weight="semibold">
                                 {user.userId}
                               </Text>
                               <Text variant="caption" class="text-muted">
-                                {user.messageCount} messages · {user.segments}{" "}
-                                segments
+                                {user.messageCount} messages · {user.segments} segments
                               </Text>
                               <Text variant="caption" class="text-muted">
-                                Cost:{" "}
-                                {formatMicrodollars(user.costMicrodollars)}
+                                Cost: {formatMicrodollars(user.costMicrodollars)}
                               </Text>
                               <Text variant="caption" class="text-muted">
-                                Revenue:{" "}
-                                {formatMicrodollars(user.markupMicrodollars)}
+                                Revenue: {formatMicrodollars(user.markupMicrodollars)}
                               </Text>
                             </Stack>
                           )}
@@ -235,20 +216,9 @@ export default function AdminSmsPage(): JSX.Element {
                       >
                         <For each={messages()}>
                           {(msg) => (
-                            <Stack
-                              direction="vertical"
-                              gap="xs"
-                              class="admin-sms-row"
-                            >
-                              <Stack
-                                direction="horizontal"
-                                gap="sm"
-                                align="center"
-                              >
-                                <Badge
-                                  variant={smsStatusVariant(msg.status)}
-                                  size="sm"
-                                >
+                            <Stack direction="vertical" gap="xs" class="admin-sms-row">
+                              <Stack direction="horizontal" gap="sm" align="center">
+                                <Badge variant={smsStatusVariant(msg.status)} size="sm">
                                   {msg.status}
                                 </Badge>
                                 <Badge variant="default" size="sm">
@@ -260,9 +230,8 @@ export default function AdminSmsPage(): JSX.Element {
                               </Stack>
                               <Text variant="body">{msg.body}</Text>
                               <Text variant="caption" class="text-muted">
-                                {msg.segments} segment(s) ·{" "}
-                                Cost {formatMicrodollars(msg.costMicrodollars)}{" "}
-                                · Markup{" "}
+                                {msg.segments} segment(s) · Cost{" "}
+                                {formatMicrodollars(msg.costMicrodollars)} · Markup{" "}
                                 {formatMicrodollars(msg.markupMicrodollars)}
                               </Text>
                             </Stack>

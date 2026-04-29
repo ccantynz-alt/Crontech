@@ -7,14 +7,7 @@ export interface KnowledgeEntry {
   id: string;
   question: string;
   answer: string;
-  category:
-    | "billing"
-    | "auth"
-    | "ai"
-    | "collaboration"
-    | "api"
-    | "account"
-    | "other";
+  category: "billing" | "auth" | "ai" | "collaboration" | "api" | "account" | "other";
   keywords: string[];
 }
 
@@ -289,10 +282,7 @@ export interface KnowledgeMatch {
  * Lightweight keyword scorer used to pre-select knowledge base entries
  * before handing them to the AI drafter. No embeddings required.
  */
-export function searchKnowledgeBase(
-  query: string,
-  limit: number = 5,
-): KnowledgeMatch[] {
+export function searchKnowledgeBase(query: string, limit = 5): KnowledgeMatch[] {
   const normalized = query.toLowerCase();
   const results: KnowledgeMatch[] = [];
 

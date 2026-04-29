@@ -8,13 +8,9 @@
 // will be rewritten as plain tool-descriptor objects (Anthropic tools
 // API or OpenAI function-calling schema).
 
+import { ComponentCatalog, type ComponentName, ComponentSchema } from "@back-to-the-future/schemas";
 import { tool } from "ai";
 import { z } from "zod";
-import {
-  ComponentSchema,
-  type ComponentName,
-  ComponentCatalog,
-} from "@back-to-the-future/schemas";
 
 // ── searchContent ─────────────────────────────────────────────────
 // Searches indexed content using semantic or keyword matching.
@@ -78,11 +74,11 @@ export const searchContent = tool({
 
       return hits.map((hit) => ({
         id: String(hit.id),
-        title: (hit.payload["title"] as string) ?? "Untitled",
-        snippet: ((hit.payload["content"] as string) ?? "").slice(0, 300),
+        title: (hit.payload.title as string) ?? "Untitled",
+        snippet: ((hit.payload.content as string) ?? "").slice(0, 300),
         score: hit.score,
-        contentType: (hit.payload["type"] as string) ?? "document",
-        url: (hit.payload["url"] as string) ?? `/content/${hit.id}`,
+        contentType: (hit.payload.type as string) ?? "document",
+        url: (hit.payload.url as string) ?? `/content/${hit.id}`,
       }));
     } catch {
       // Qdrant not available — return informative empty result
@@ -124,11 +120,7 @@ export interface GenerateComponentResult {
 }
 
 export const generateComponent = tool({
-  description:
-    "Generate a UI component configuration from the component catalog. " +
-    "Use this to create buttons, inputs, cards, text, stacks, and modals. " +
-    `Available components: ${Object.keys(ComponentCatalog).join(", ")}. ` +
-    "Returns a validated component configuration that can be rendered.",
+  description: `Generate a UI component configuration from the component catalog. Use this to create buttons, inputs, cards, text, stacks, and modals. Available components: ${Object.keys(ComponentCatalog).join(", ")}. Returns a validated component configuration that can be rendered.`,
   inputSchema: GenerateComponentInputSchema,
   execute: async (input): Promise<GenerateComponentResult> => {
     // Build a component config based on the description.
@@ -162,17 +154,49 @@ function getComponentDefaults(
   const name = description.toLowerCase().replace(/\s+/g, "-") || "field";
 
   const defaults: Record<ComponentName, Record<string, unknown>> = {
-    Button: { component: "Button", props: { variant: "primary", size: "md", disabled: false, loading: false, label } },
-    Input: { component: "Input", props: { type: "text", placeholder: label, name, required: false, disabled: false } },
+    Button: {
+      component: "Button",
+      props: { variant: "primary", size: "md", disabled: false, loading: false, label },
+    },
+    Input: {
+      component: "Input",
+      props: { type: "text", placeholder: label, name, required: false, disabled: false },
+    },
     Card: { component: "Card", props: { title: label, padding: "md" } },
-    Stack: { component: "Stack", props: { direction: "vertical", gap: "md", align: "stretch", justify: "start" } },
-    Text: { component: "Text", props: { content: label, variant: "body", weight: "normal", align: "left" } },
+    Stack: {
+      component: "Stack",
+      props: { direction: "vertical", gap: "md", align: "stretch", justify: "start" },
+    },
+    Text: {
+      component: "Text",
+      props: { content: label, variant: "body", weight: "normal", align: "left" },
+    },
     Modal: { component: "Modal", props: { title: label, size: "md", open: false } },
     Badge: { component: "Badge", props: { variant: "default", size: "md", label } },
     Alert: { component: "Alert", props: { variant: "info", title: label } },
-    Avatar: { component: "Avatar", props: { initials: label.slice(0, 2).toUpperCase(), size: "md" } },
-    Tabs: { component: "Tabs", props: { items: [{ id: "tab-1", label: "Tab 1" }, { id: "tab-2", label: "Tab 2" }] } },
-    Select: { component: "Select", props: { options: [{ value: "1", label: "Option 1" }, { value: "2", label: "Option 2" }], placeholder: label } },
+    Avatar: {
+      component: "Avatar",
+      props: { initials: label.slice(0, 2).toUpperCase(), size: "md" },
+    },
+    Tabs: {
+      component: "Tabs",
+      props: {
+        items: [
+          { id: "tab-1", label: "Tab 1" },
+          { id: "tab-2", label: "Tab 2" },
+        ],
+      },
+    },
+    Select: {
+      component: "Select",
+      props: {
+        options: [
+          { value: "1", label: "Option 1" },
+          { value: "2", label: "Option 2" },
+        ],
+        placeholder: label,
+      },
+    },
     Textarea: { component: "Textarea", props: { placeholder: label, rows: 3, resize: "vertical" } },
     Spinner: { component: "Spinner", props: { size: "md" } },
     Tooltip: { component: "Tooltip", props: { content: label, position: "top" } },

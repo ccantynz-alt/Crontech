@@ -1,5 +1,5 @@
-import { describe, test, expect } from "bun:test";
-import { createQdrantClient, type QdrantConfig } from "./qdrant";
+import { describe, expect, test } from "bun:test";
+import { type QdrantConfig, createQdrantClient } from "./qdrant";
 
 describe("Qdrant Client", () => {
   test("createQdrantClient returns a client instance", () => {

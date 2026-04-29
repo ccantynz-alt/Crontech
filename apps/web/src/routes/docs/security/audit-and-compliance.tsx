@@ -8,11 +8,7 @@
 
 import type { JSX } from "solid-js";
 import { SEOHead } from "../../../components/SEOHead";
-import {
-  DocsArticle,
-  Callout,
-  KeyList,
-} from "../../../components/docs/DocsArticle";
+import { Callout, DocsArticle, KeyList } from "../../../components/docs/DocsArticle";
 
 export default function AuditAndComplianceArticle(): JSX.Element {
   return (
@@ -37,21 +33,18 @@ export default function AuditAndComplianceArticle(): JSX.Element {
         }}
       >
         <p>
-          The compliance baseline for Crontech is written down in{" "}
-          <em>CLAUDE.md §5A</em>. The short version: every security-
-          relevant action is logged to an append-only store, every log
-          entry carries a hash of the previous entry, every piece of
-          data in transit is TLS 1.3, and every piece of data at rest
-          is AES-256. This article walks what that looks like in
+          The compliance baseline for Crontech is written down in <em>CLAUDE.md §5A</em>. The short
+          version: every security- relevant action is logged to an append-only store, every log
+          entry carries a hash of the previous entry, every piece of data in transit is TLS 1.3, and
+          every piece of data at rest is AES-256. This article walks what that looks like in
           practice.
         </p>
 
         <h2>The audit log</h2>
 
         <p>
-          The audit log is an append-only table that records every
-          authentication event, every permission-sensitive mutation,
-          and every evidence-touching action. Per CLAUDE.md §5A.3,
+          The audit log is an append-only table that records every authentication event, every
+          permission-sensitive mutation, and every evidence-touching action. Per CLAUDE.md §5A.3,
           each entry carries a fixed set of fields:
         </p>
 
@@ -91,9 +84,8 @@ export default function AuditAndComplianceArticle(): JSX.Element {
         />
 
         <Callout tone="info">
-          The hash chain is the mechanism that lets Crontech meet FRE
-          901 / 902 admissibility requirements for evidence. Any
-          third party can be given the audit log and the public key
+          The hash chain is the mechanism that lets Crontech meet FRE 901 / 902 admissibility
+          requirements for evidence. Any third party can be given the audit log and the public key
           and verify that no entry was modified or removed.
         </Callout>
 
@@ -132,9 +124,9 @@ export default function AuditAndComplianceArticle(): JSX.Element {
         <h2>Certification roadmap</h2>
 
         <p>
-          Certification status is written down honestly. Passing an
-          audit takes months — the platform is built to the standard
-          from day one, but the audit itself is a separate process.
+          Certification status is written down honestly. Passing an audit takes months — the
+          platform is built to the standard from day one, but the audit itself is a separate
+          process.
         </p>
 
         <KeyList
@@ -146,8 +138,7 @@ export default function AuditAndComplianceArticle(): JSX.Element {
             },
             {
               term: "TLS 1.3 + AES-256 — enforced today",
-              description:
-                "No endpoint accepts a weaker cipher suite. Live in production.",
+              description: "No endpoint accepts a weaker cipher suite. Live in production.",
             },
             {
               term: "MFA / Passkeys — live today",
@@ -166,8 +157,7 @@ export default function AuditAndComplianceArticle(): JSX.Element {
             },
             {
               term: "ISO 27001 — roadmap",
-              description:
-                "Scoped for the enterprise tier. Prioritised behind SOC 2 Type II.",
+              description: "Scoped for the enterprise tier. Prioritised behind SOC 2 Type II.",
             },
             {
               term: "GDPR — supported today",
@@ -178,30 +168,25 @@ export default function AuditAndComplianceArticle(): JSX.Element {
         />
 
         <Callout tone="warn">
-          If a prospective customer's procurement checklist requires
-          a certification that is listed above as "in motion" or
-          "roadmap", ask the Crontech team for the current timeline
-          before committing. The team does not ship certification
-          badges on the marketing page until the cert is live.
+          If a prospective customer's procurement checklist requires a certification that is listed
+          above as "in motion" or "roadmap", ask the Crontech team for the current timeline before
+          committing. The team does not ship certification badges on the marketing page until the
+          cert is live.
         </Callout>
 
         <h2>Data residency</h2>
 
         <p>
-          Per CLAUDE.md §5A.6, projects can be locked to a specific
-          geographic region at provisioning time. Data storage,
-          processing, and encryption keys all stay inside the chosen
-          region; network controls prevent transit through
-          unauthorised regions. Data-flow maps are available for
-          tenants completing a GDPR DPIA.
+          Per CLAUDE.md §5A.6, projects can be locked to a specific geographic region at
+          provisioning time. Data storage, processing, and encryption keys all stay inside the
+          chosen region; network controls prevent transit through unauthorised regions. Data-flow
+          maps are available for tenants completing a GDPR DPIA.
         </p>
 
         <Callout tone="note">
-          This article is the source of truth for the compliance
-          posture. If a marketing page or sales deck promises a
-          certification that isn't listed here as "enforced today" or
-          "live today", that's a doc bug — file it and it gets fixed
-          within the day.
+          This article is the source of truth for the compliance posture. If a marketing page or
+          sales deck promises a certification that isn't listed here as "enforced today" or "live
+          today", that's a doc bug — file it and it gets fixed within the day.
         </Callout>
       </DocsArticle>
     </>

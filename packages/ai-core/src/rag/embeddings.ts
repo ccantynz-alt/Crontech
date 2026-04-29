@@ -22,7 +22,7 @@ import type { EmbedFunction } from "./pipeline";
  *
  * Uses a simple hash-spreading algorithm across the vector dimensions.
  */
-export function hashEmbedding(text: string, dimensions: number = 1536): number[] {
+export function hashEmbedding(text: string, dimensions = 1536): number[] {
   const vector = new Float64Array(dimensions);
 
   // Seed from text content using a simple hash
@@ -52,12 +52,13 @@ export function hashEmbedding(text: string, dimensions: number = 1536): number[]
   // Normalize to unit vector (cosine similarity works best with unit vectors)
   let magnitude = 0;
   for (let i = 0; i < dimensions; i++) {
-    magnitude += vector[i]! * vector[i]!;
+    const v = vector[i] ?? 0;
+    magnitude += v * v;
   }
   magnitude = Math.sqrt(magnitude);
   if (magnitude > 0) {
     for (let i = 0; i < dimensions; i++) {
-      vector[i] = vector[i]! / magnitude;
+      vector[i] = (vector[i] ?? 0) / magnitude;
     }
   }
 
@@ -121,7 +122,7 @@ export function createEmbedFunction(options?: {
  */
 function getEnvVar(key: string): string | undefined {
   try {
-    const proc = (globalThis as Record<string, unknown>)["process"] as
+    const proc = (globalThis as Record<string, unknown>).process as
       | { env: Record<string, string | undefined> }
       | undefined;
     return proc?.env[key] ?? undefined;

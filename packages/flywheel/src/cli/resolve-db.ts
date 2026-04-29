@@ -18,11 +18,11 @@ function findRepoRoot(start: string): string | null {
   return null;
 }
 
-const existing = process.env["DATABASE_URL"];
+const existing = process.env.DATABASE_URL;
 if (!existing || existing === "file:local.db") {
   const here = dirname(fileURLToPath(import.meta.url));
   const root = findRepoRoot(here);
   if (root) {
-    process.env["DATABASE_URL"] = `file:${resolve(root, "local.db")}`;
+    process.env.DATABASE_URL = `file:${resolve(root, "local.db")}`;
   }
 }

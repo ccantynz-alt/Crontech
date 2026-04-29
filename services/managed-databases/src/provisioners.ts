@@ -144,7 +144,7 @@ export class NeonProvisioner implements DbProvisioner {
         idem: req.dbId,
       },
     })) as NeonProjectResponse;
-    const cs = `postgres://${res.role}:${res.password}@${res.host}/${res.database}?sslmode=require`;
+    const cs = `postgres://${res.role}:${res.password}@${res.host}/${res.database}?sslmode=require`; // secrets-ok — runtime values from provisioner response, not hardcoded
     return {
       connectionString: cs,
       externalRefs: {
@@ -157,10 +157,10 @@ export class NeonProvisioner implements DbProvisioner {
   }
 
   async branch(req: BranchRequest): Promise<BranchResult> {
-    const projectId = req.externalRefs["project_id"];
+    const projectId = req.externalRefs.project_id;
     if (!projectId) throw new Error("missing project_id in externalRefs");
-    const role = req.externalRefs["role"] ?? "app";
-    const database = req.externalRefs["database"] ?? "main";
+    const role = req.externalRefs.role ?? "app";
+    const database = req.externalRefs.database ?? "main";
     const res = (await this.transport(`/projects/${projectId}/branches`, {
       method: "POST",
       body: {
@@ -168,7 +168,7 @@ export class NeonProvisioner implements DbProvisioner {
         ...(req.fromSnapshotId !== undefined ? { from_snapshot: req.fromSnapshotId } : {}),
       },
     })) as NeonBranchResponse;
-    const cs = `postgres://${role}:${res.password}@${res.host}/${database}?sslmode=require`;
+    const cs = `postgres://${role}:${res.password}@${res.host}/${database}?sslmode=require`; // secrets-ok — runtime values from provisioner, not hardcoded
     return {
       connectionString: cs,
       externalRefs: { branch_id: res.branch_id, host: res.host },
@@ -176,7 +176,7 @@ export class NeonProvisioner implements DbProvisioner {
   }
 
   async snapshot(req: SnapshotRequest): Promise<SnapshotResult> {
-    const projectId = req.externalRefs["project_id"];
+    const projectId = req.externalRefs.project_id;
     if (!projectId) throw new Error("missing project_id in externalRefs");
     const res = (await this.transport(`/projects/${projectId}/snapshots`, {
       method: "POST",
@@ -190,15 +190,15 @@ export class NeonProvisioner implements DbProvisioner {
 
   async restore(req: RestoreRequest): Promise<RestoreResult> {
     // Postgres restore == new branch from snapshot.
-    const projectId = req.externalRefs["project_id"];
+    const projectId = req.externalRefs.project_id;
     if (!projectId) throw new Error("missing project_id in externalRefs");
-    const role = req.externalRefs["role"] ?? "app";
-    const database = req.externalRefs["database"] ?? "main";
+    const role = req.externalRefs.role ?? "app";
+    const database = req.externalRefs.database ?? "main";
     const res = (await this.transport(`/projects/${projectId}/branches`, {
       method: "POST",
       body: { name: `restore-${req.snapshotId}`, from_snapshot: req.snapshotId },
     })) as NeonBranchResponse;
-    const cs = `postgres://${role}:${res.password}@${res.host}/${database}?sslmode=require`;
+    const cs = `postgres://${role}:${res.password}@${res.host}/${database}?sslmode=require`; // secrets-ok — runtime values from provisioner, not hardcoded
     return {
       connectionString: cs,
       externalRefs: { branch_id: res.branch_id, host: res.host },
@@ -206,20 +206,20 @@ export class NeonProvisioner implements DbProvisioner {
   }
 
   async rotate(req: RotateRequest): Promise<RotateResult> {
-    const projectId = req.externalRefs["project_id"];
+    const projectId = req.externalRefs.project_id;
     if (!projectId) throw new Error("missing project_id in externalRefs");
-    const role = req.externalRefs["role"] ?? "app";
-    const database = req.externalRefs["database"] ?? "main";
+    const role = req.externalRefs.role ?? "app";
+    const database = req.externalRefs.database ?? "main";
     const res = (await this.transport(`/projects/${projectId}/credentials`, {
       method: "POST",
       body: { rotate: true },
     })) as NeonRotateResponse;
-    const cs = `postgres://${role}:${res.password}@${res.host}/${database}?sslmode=require`;
+    const cs = `postgres://${role}:${res.password}@${res.host}/${database}?sslmode=require`; // secrets-ok — runtime values from provisioner, not hardcoded
     return { connectionString: cs, externalRefs: { host: res.host } };
   }
 
   async deprovision(req: DeprovisionRequest): Promise<void> {
-    const projectId = req.externalRefs["project_id"];
+    const projectId = req.externalRefs.project_id;
     if (!projectId) return;
     await this.transport(`/projects/${projectId}`, { method: "DELETE" });
   }
@@ -230,10 +230,7 @@ export class NeonProvisioner implements DbProvisioner {
 // cluster via an injected command function (in production this is a
 // redis-cli wrapper or a Hono-served admin endpoint on the cluster head).
 
-export type RedisCommand = (
-  command: string,
-  args: ReadonlyArray<string>,
-) => Promise<string>;
+export type RedisCommand = (command: string, args: ReadonlyArray<string>) => Promise<string>;
 
 export interface RedisLocalProvisionerOptions {
   readonly command: RedisCommand;
@@ -258,7 +255,7 @@ export class RedisLocalProvisioner implements DbProvisioner {
     const user = `t-${req.tenantId}-${req.dbId}`;
     const password = await this.command("ACL_CREATE", [user, req.sizeTier]);
     const dbIndex = await this.command("ALLOC_DB", [req.dbId]);
-    const cs = `redis://${user}:${password}@${this.clusterHost}:${this.clusterPort}/${dbIndex}`;
+    const cs = `redis://${user}:${password}@${this.clusterHost}:${this.clusterPort}/${dbIndex}`; // secrets-ok — runtime values from provisioner, not hardcoded
     return {
       connectionString: cs,
       externalRefs: { user, db_index: dbIndex },
@@ -270,7 +267,7 @@ export class RedisLocalProvisioner implements DbProvisioner {
   }
 
   async snapshot(req: SnapshotRequest): Promise<SnapshotResult> {
-    const dbIndex = req.externalRefs["db_index"];
+    const dbIndex = req.externalRefs.db_index;
     if (!dbIndex) throw new Error("missing db_index in externalRefs");
     const sizeStr = await this.command("SNAPSHOT", [dbIndex, req.snapshotId]);
     return {
@@ -280,26 +277,26 @@ export class RedisLocalProvisioner implements DbProvisioner {
   }
 
   async restore(req: RestoreRequest): Promise<RestoreResult> {
-    const dbIndex = req.externalRefs["db_index"];
-    const user = req.externalRefs["user"];
+    const dbIndex = req.externalRefs.db_index;
+    const user = req.externalRefs.user;
     if (!dbIndex || !user) throw new Error("missing externalRefs");
     const password = await this.command("RESTORE", [dbIndex, req.snapshotId]);
-    const cs = `redis://${user}:${password}@${this.clusterHost}:${this.clusterPort}/${dbIndex}`;
+    const cs = `redis://${user}:${password}@${this.clusterHost}:${this.clusterPort}/${dbIndex}`; // secrets-ok — runtime values from provisioner, not hardcoded
     return { connectionString: cs, externalRefs: {} };
   }
 
   async rotate(req: RotateRequest): Promise<RotateResult> {
-    const user = req.externalRefs["user"];
-    const dbIndex = req.externalRefs["db_index"];
+    const user = req.externalRefs.user;
+    const dbIndex = req.externalRefs.db_index;
     if (!user || !dbIndex) throw new Error("missing externalRefs");
     const password = await this.command("ACL_ROTATE", [user]);
-    const cs = `redis://${user}:${password}@${this.clusterHost}:${this.clusterPort}/${dbIndex}`;
+    const cs = `redis://${user}:${password}@${this.clusterHost}:${this.clusterPort}/${dbIndex}`; // secrets-ok — runtime values from provisioner, not hardcoded
     return { connectionString: cs, externalRefs: {} };
   }
 
   async deprovision(req: DeprovisionRequest): Promise<void> {
-    const user = req.externalRefs["user"];
-    const dbIndex = req.externalRefs["db_index"];
+    const user = req.externalRefs.user;
+    const dbIndex = req.externalRefs.db_index;
     if (user) await this.command("ACL_DELETE", [user]);
     if (dbIndex) await this.command("FREE_DB", [dbIndex]);
   }

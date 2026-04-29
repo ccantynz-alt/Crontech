@@ -1,13 +1,13 @@
 // ── BLK-025 Domain Search: Orchestrator Unit Tests ──────────────────
 
-import { describe, test, expect } from "bun:test";
+import { describe, expect, test } from "bun:test";
+import type { SoaResolver } from "./availability";
 import {
-  searchDomains,
+  DEFAULT_TLDS,
   DomainSearchCache,
   __resetDefaultCacheForTests,
-  DEFAULT_TLDS,
+  searchDomains,
 } from "./index";
-import type { SoaResolver } from "./availability";
 
 function mkResolver(taken: ReadonlySet<string>): SoaResolver {
   return {
@@ -32,10 +32,7 @@ describe("searchDomains", () => {
     );
     expect(out.label).toBe("nova");
     expect(out.taken.map((r) => r.domain)).toEqual(["nova.com"]);
-    expect(out.available.map((r) => r.domain).sort()).toEqual([
-      "nova.ai",
-      "nova.io",
-    ]);
+    expect(out.available.map((r) => r.domain).sort()).toEqual(["nova.ai", "nova.io"]);
     expect(out.unknown).toEqual([]);
     expect(out.cached).toBe(false);
   });
@@ -115,11 +112,7 @@ describe("searchDomains", () => {
   test("DEFAULT_TLDS is used when no tlds passed", async () => {
     const cache = new DomainSearchCache(60_000);
     const resolver = mkResolver(new Set());
-    const out = await searchDomains(
-      { query: "defaults" },
-      { resolver },
-      cache,
-    );
+    const out = await searchDomains({ query: "defaults" }, { resolver }, cache);
     expect(out.available.length).toBe(DEFAULT_TLDS.length);
   });
 });

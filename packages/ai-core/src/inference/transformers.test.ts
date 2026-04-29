@@ -1,9 +1,9 @@
-import { describe, test, expect } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import {
-  TransformersTask,
-  TransformersModelId,
-  TransformersConfigSchema,
   TRANSFORMERS_MODELS,
+  TransformersConfigSchema,
+  TransformersModelId,
+  TransformersTask,
   isTransformersAvailable,
   isTransformersGPUAvailable,
 } from "./transformers";

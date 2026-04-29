@@ -1,5 +1,5 @@
+import { type db, flywheelSessions, flywheelTurns } from "@back-to-the-future/db";
 import { and, desc, eq, like, or } from "drizzle-orm";
-import { flywheelSessions, flywheelTurns, db } from "@back-to-the-future/db";
 
 type Database = typeof db;
 
@@ -44,12 +44,7 @@ export async function searchMemory(
     })
     .from(flywheelTurns)
     .innerJoin(flywheelSessions, eq(flywheelSessions.id, flywheelTurns.sessionId))
-    .where(
-      or(
-        like(flywheelTurns.content, needle),
-        like(flywheelSessions.firstUserMessage, needle),
-      ),
-    )
+    .where(or(like(flywheelTurns.content, needle), like(flywheelSessions.firstUserMessage, needle)))
     .orderBy(desc(flywheelTurns.timestamp))
     .limit(limit);
 
@@ -146,15 +141,17 @@ export async function getSession(
 export async function listRecentSessions(
   database: Database,
   options: { limit?: number; gitBranch?: string } = {},
-): Promise<ReadonlyArray<{
-  id: string;
-  startedAt: Date;
-  endedAt: Date | null;
-  gitBranch: string | null;
-  firstUserMessage: string | null;
-  turnCount: number;
-  compactCount: number;
-}>> {
+): Promise<
+  ReadonlyArray<{
+    id: string;
+    startedAt: Date;
+    endedAt: Date | null;
+    gitBranch: string | null;
+    firstUserMessage: string | null;
+    turnCount: number;
+    compactCount: number;
+  }>
+> {
   const limit = options.limit ?? 25;
   const conditions = options.gitBranch
     ? eq(flywheelSessions.gitBranch, options.gitBranch)

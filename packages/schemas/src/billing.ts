@@ -17,12 +17,7 @@ export type Plan = z.infer<typeof PlanSchema>;
 
 // ── Subscription Schemas ─────────────────────────────────────────────
 
-export const SubscriptionStatusSchema = z.enum([
-  "active",
-  "canceled",
-  "past_due",
-  "trialing",
-]);
+export const SubscriptionStatusSchema = z.enum(["active", "canceled", "past_due", "trialing"]);
 
 export const SubscriptionSchema = z.object({
   id: z.string(),

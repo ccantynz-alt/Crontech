@@ -47,6 +47,6 @@ describe("support route — smoke", () => {
 
   test("validates email client-side before submit", () => {
     const src = readFileSync(ROUTE_PATH, "utf-8");
-    expect(src).toContain(".includes(\"@\")");
+    expect(src).toContain('.includes("@")');
   });
 });

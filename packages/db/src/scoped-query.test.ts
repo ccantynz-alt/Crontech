@@ -2,7 +2,7 @@
 // Verifies that scopedDb auto-injects tenant filtering on every
 // operation and that the raw db remains available for admin access.
 
-import { describe, test, expect, beforeAll, afterAll } from "bun:test";
+import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { eq } from "drizzle-orm";
 import { db } from "./client";
 import { sites, users } from "./schema";
@@ -10,8 +10,8 @@ import { scopedDb } from "./scoped-query";
 
 // ── Setup ───────────────────────────────────────────────────────────
 
-const TENANT_A = "tenant-a-" + Date.now().toString(36);
-const TENANT_B = "tenant-b-" + Date.now().toString(36);
+const TENANT_A = `tenant-a-${Date.now().toString(36)}`;
+const TENANT_B = `tenant-b-${Date.now().toString(36)}`;
 let siteIdA: string;
 let siteIdB: string;
 
@@ -97,7 +97,7 @@ describe("scopedDb", () => {
     // Verify the row has the correct userId
     const rows = await db.select().from(sites).where(eq(sites.id, insertedId));
     expect(rows).toHaveLength(1);
-    expect(rows[0]!.userId).toBe(TENANT_A);
+    expect(rows[0]?.userId).toBe(TENANT_A);
 
     // Cleanup
     await db.delete(sites).where(eq(sites.id, insertedId));
@@ -111,11 +111,11 @@ describe("scopedDb", () => {
 
     // Verify A was updated
     const rowsA = await db.select().from(sites).where(eq(sites.id, siteIdA));
-    expect(rowsA[0]!.name).toBe("Updated A");
+    expect(rowsA[0]?.name).toBe("Updated A");
 
     // Verify B was NOT affected
     const rowsB = await db.select().from(sites).where(eq(sites.id, siteIdB));
-    expect(rowsB[0]!.name).toBe("Tenant B Site");
+    expect(rowsB[0]?.name).toBe("Tenant B Site");
 
     // Restore
     await db.update(sites).set({ name: "Tenant A Site" }).where(eq(sites.id, siteIdA));

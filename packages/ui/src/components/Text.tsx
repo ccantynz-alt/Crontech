@@ -9,7 +9,20 @@ export interface TextProps {
    * (body → p, caption → span, etc.) but you often want e.g. a
    * semibold `<span>` inside a `<p>` — pass `as="span"` for that.
    */
-  as?: "h1" | "h2" | "h3" | "h4" | "h5" | "h6" | "p" | "span" | "div" | "code" | "label" | "strong" | "em";
+  as?:
+    | "h1"
+    | "h2"
+    | "h3"
+    | "h4"
+    | "h5"
+    | "h6"
+    | "p"
+    | "span"
+    | "div"
+    | "code"
+    | "label"
+    | "strong"
+    | "em";
   weight?: "normal" | "medium" | "semibold" | "bold";
   align?: "left" | "center" | "right";
   size?: "xs" | "sm" | "md" | "lg";

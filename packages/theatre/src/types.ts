@@ -12,22 +12,10 @@ export const BuildKindSchema = z.enum([
 ]);
 export type BuildKind = z.infer<typeof BuildKindSchema>;
 
-export const RunStatusSchema = z.enum([
-  "queued",
-  "running",
-  "succeeded",
-  "failed",
-  "cancelled",
-]);
+export const RunStatusSchema = z.enum(["queued", "running", "succeeded", "failed", "cancelled"]);
 export type RunStatus = z.infer<typeof RunStatusSchema>;
 
-export const StepStatusSchema = z.enum([
-  "queued",
-  "running",
-  "succeeded",
-  "failed",
-  "skipped",
-]);
+export const StepStatusSchema = z.enum(["queued", "running", "succeeded", "failed", "skipped"]);
 export type StepStatus = z.infer<typeof StepStatusSchema>;
 
 export const LogStreamSchema = z.enum(["stdout", "stderr", "event"]);
@@ -56,10 +44,7 @@ export interface StepHandle {
 export interface RunHandle {
   readonly id: string;
   readonly kind: BuildKind;
-  step<T>(
-    name: string,
-    fn: (step: StepHandle) => Promise<T>,
-  ): Promise<T>;
+  step<T>(name: string, fn: (step: StepHandle) => Promise<T>): Promise<T>;
   log(line: string, stream?: LogStream): Promise<void>;
   succeed(): Promise<void>;
   fail(error: Error | string): Promise<void>;

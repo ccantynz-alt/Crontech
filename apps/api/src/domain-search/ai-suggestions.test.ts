@@ -1,11 +1,11 @@
 // ── BLK-025 Domain Search: AI Suggestions Unit Tests ────────────────
 
-import { describe, test, expect, beforeEach } from "bun:test";
+import { beforeEach, describe, expect, test } from "bun:test";
 import { generateBrandableAlternatives } from "./ai-suggestions";
 
 describe("generateBrandableAlternatives", () => {
   beforeEach(() => {
-    process.env["ANTHROPIC_API_KEY"] = "";
+    process.env.ANTHROPIC_API_KEY = "";
   });
 
   test("returns empty list + note when no key configured", async () => {

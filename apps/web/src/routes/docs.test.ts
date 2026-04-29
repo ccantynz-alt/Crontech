@@ -17,10 +17,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 const ROUTE_PATH = resolve(import.meta.dir, "docs.tsx");
-const FIRST_ARTICLE = resolve(
-  import.meta.dir,
-  "docs/getting-started/install.tsx",
-);
+const FIRST_ARTICLE = resolve(import.meta.dir, "docs/getting-started/install.tsx");
 
 // The full Getting Started series — five real articles. Every one
 // must resolve to a file on disk or /docs ships a dead link.
@@ -176,8 +173,7 @@ describe("docs route — smoke", () => {
 
   test("polite tone — no competitor names", () => {
     const src = readFileSync(ROUTE_PATH, "utf-8").toLowerCase();
-    const fromCodes = (...codes: number[]): string =>
-      String.fromCharCode(...codes);
+    const fromCodes = (...codes: number[]): string => String.fromCharCode(...codes);
     const banned = [
       ` ${fromCodes(118, 101, 114, 99, 101, 108)} `, // vercel
       ` ${fromCodes(110, 101, 116, 108, 105, 102, 121)} `, // netlify

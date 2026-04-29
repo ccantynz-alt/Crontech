@@ -2,16 +2,16 @@
 // Provides unified AI access that routes through compute tiers.
 // Tries client-side inference first (free), falls back to API.
 
-import { createSignal } from "solid-js";
 import type { ComputeTier } from "@back-to-the-future/ai-core";
+import { createSignal } from "solid-js";
 import {
-  isModelLoaded,
-  generate as clientGenerate,
-  getEmbeddings as clientEmbeddings,
-  detectCapabilities,
-  type GenerateResult,
   type EmbeddingResult,
+  type GenerateResult,
   InferenceError,
+  getEmbeddings as clientEmbeddings,
+  generate as clientGenerate,
+  detectCapabilities,
+  isModelLoaded,
 } from "./inference";
 
 // ── Compute Tier Signal ─────────────────────────────────────────────
@@ -181,12 +181,7 @@ export async function streamSiteBuilderChat(
   onDone: () => void,
   onError: (error: string) => void,
 ): Promise<void> {
-  await streamChat(
-    messages,
-    onToken,
-    () => onDone(),
-    onError,
-  );
+  await streamChat(messages, onToken, () => onDone(), onError);
 }
 
 // ── Unified Embeddings ──────────────────────────────────────────────

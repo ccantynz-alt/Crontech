@@ -1,12 +1,12 @@
-// BLK-018 Voice — smoke test. Verifies the stub-fallback path works
+﻿// BLK-018 Voice — smoke test. Verifies the stub-fallback path works
 // when ANTHROPIC_API_KEY is absent so CI can pass without a live key.
 
-import { describe, test, expect, beforeEach, afterEach } from "bun:test";
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import { buildRuns, db, scopedDb, sessions, users } from "@back-to-the-future/db";
 import { eq } from "drizzle-orm";
-import { db, users, sessions, buildRuns, scopedDb } from "@back-to-the-future/db";
-import { appRouter } from "../router";
 import { createSession } from "../../auth/session";
 import type { TRPCContext } from "../context";
+import { appRouter } from "../router";
 
 function ctxFor(userId: string, sessionToken: string): TRPCContext {
   return {
@@ -14,6 +14,7 @@ function ctxFor(userId: string, sessionToken: string): TRPCContext {
     userId,
     sessionToken,
     csrfToken: null,
+    serviceKey: null,
     scopedDb: scopedDb(db, userId),
   };
 }
@@ -22,7 +23,7 @@ async function createTestUser(): Promise<string> {
   const id = crypto.randomUUID();
   await db.insert(users).values({
     id,
-    email: `voice-test-${Date.now()}-${crypto.randomUUID().replace(/-/g, '').slice(0, 6)}@example.com`,
+    email: `voice-test-${Date.now()}-${crypto.randomUUID().replace(/-/g, "").slice(0, 6)}@example.com`,
     displayName: "Voice Test User",
   });
   return id;
@@ -42,14 +43,14 @@ describe("voice.dispatch (stub fallback path)", () => {
   beforeEach(async () => {
     // Force the no-Anthropic path so the test is deterministic even in
     // a dev environment that happens to have a key configured.
-    savedKey = process.env["ANTHROPIC_API_KEY"];
-    delete process.env["ANTHROPIC_API_KEY"];
+    savedKey = process.env.ANTHROPIC_API_KEY;
+    process.env.ANTHROPIC_API_KEY = undefined;
     userId = await createTestUser();
     token = await createSession(userId, db);
   });
 
   afterEach(async () => {
-    if (savedKey !== undefined) process.env["ANTHROPIC_API_KEY"] = savedKey;
+    if (savedKey !== undefined) process.env.ANTHROPIC_API_KEY = savedKey;
     await cleanupTestUser(userId);
   });
 
@@ -69,14 +70,11 @@ describe("voice.dispatch (stub fallback path)", () => {
   });
 
   test("writes a theatre run for every dispatch — even on the stub path", async () => {
-    const transcript = "smoke-probe-" + Date.now().toString(36);
+    const transcript = `smoke-probe-${Date.now().toString(36)}`;
     const caller = appRouter.createCaller(ctxFor(userId, token));
     await caller.voice.dispatch({ transcript });
 
-    const runs = await db
-      .select()
-      .from(buildRuns)
-      .where(eq(buildRuns.actorUserId, userId));
+    const runs = await db.select().from(buildRuns).where(eq(buildRuns.actorUserId, userId));
     const match = runs.find((r) => r.kind === "voice");
     expect(match).toBeDefined();
     expect(match?.status).toBe("succeeded");
@@ -89,6 +87,7 @@ describe("voice.dispatch (stub fallback path)", () => {
       userId: null,
       sessionToken: null,
       csrfToken: null,
+      serviceKey: null,
       scopedDb: null,
     });
     try {

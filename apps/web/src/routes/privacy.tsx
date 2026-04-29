@@ -6,8 +6,8 @@
  * attorney review; this route is the rendered public copy.
  */
 
-import { SEOHead } from "../components/SEOHead";
 import LegalPage, { type LegalSection } from "../components/LegalPage";
+import { SEOHead } from "../components/SEOHead";
 
 const sections: LegalSection[] = [
   {
@@ -16,18 +16,15 @@ const sections: LegalSection[] = [
     blocks: [
       {
         type: "p",
-        text:
-          'This Privacy Policy explains how Crontech ("**Crontech**", "**we**", "**us**", "**our**") collects, uses, and protects personal data when you visit crontech.ai or use the Crontech platform.',
+        text: 'This Privacy Policy explains how Crontech ("**Crontech**", "**we**", "**us**", "**our**") collects, uses, and protects personal data when you visit crontech.ai or use the Crontech platform.',
       },
       {
         type: "p",
-        text:
-          "Crontech is a business operated in New Zealand. You can contact us at **privacy@crontech.ai**.",
+        text: "Crontech is a business operated in New Zealand. You can contact us at **privacy@crontech.ai**.",
       },
       {
         type: "p",
-        text:
-          'Where we act as a "controller" of your personal data under the GDPR, UK GDPR, or the NZ Privacy Act 2020, the contact address above is the controller\'s contact point.',
+        text: 'Where we act as a "controller" of your personal data under the GDPR, UK GDPR, or the NZ Privacy Act 2020, the contact address above is the controller\'s contact point.',
       },
     ],
   },
@@ -86,8 +83,7 @@ const sections: LegalSection[] = [
       },
       {
         type: "p",
-        text:
-          "We **do not** store your payment card details. Those are held by Stripe under PCI DSS Level 1.",
+        text: "We **do not** store your payment card details. Those are held by Stripe under PCI DSS Level 1.",
       },
     ],
   },
@@ -135,8 +131,7 @@ const sections: LegalSection[] = [
       },
       {
         type: "p",
-        text:
-          "We may use a sample of de-identified, aggregated prompt data to improve our AI features. You can opt out of this by emailing privacy@crontech.ai.",
+        text: "We may use a sample of de-identified, aggregated prompt data to improve our AI features. You can opt out of this by emailing privacy@crontech.ai.",
       },
     ],
   },
@@ -159,13 +154,11 @@ const sections: LegalSection[] = [
       },
       {
         type: "p",
-        text:
-          "Under the NZ Privacy Act 2020, we comply with the twelve Information Privacy Principles (IPPs).",
+        text: "Under the NZ Privacy Act 2020, we comply with the twelve Information Privacy Principles (IPPs).",
       },
       {
         type: "p",
-        text:
-          'Under CCPA, we do not "sell" your personal data as that term is defined in California law. We do not share personal data for cross-context behavioural advertising.',
+        text: 'Under CCPA, we do not "sell" your personal data as that term is defined in California law. We do not share personal data for cross-context behavioural advertising.',
       },
     ],
   },
@@ -175,36 +168,62 @@ const sections: LegalSection[] = [
     blocks: [
       {
         type: "p",
-        text:
-          "We share limited personal data with the following sub-processors, each under a data processing agreement:",
+        text: "We share limited personal data with the following sub-processors, each under a data processing agreement:",
       },
       {
         type: "table",
         headers: ["Sub-processor", "Purpose", "Data shared", "Location"],
         rows: [
-          ["Stripe, Inc.", "Payment processing", "Billing contact; card details pass directly to Stripe, not to us", "US + EU (SCCs)"],
-          ["AlecRae Ltd", "Transactional email delivery", "Email address + template variables", "Australasia"],
-          ["Cloudflare, Inc.", "Edge hosting + DDoS protection + DNS", "IP address + request metadata", "Global (SCCs)"],
-          ["Turso / ChiselStrike, Inc.", "Database hosting", "All account + usage data encrypted at rest", "US (SCCs)"],
+          [
+            "Stripe, Inc.",
+            "Payment processing",
+            "Billing contact; card details pass directly to Stripe, not to us",
+            "US + EU (SCCs)",
+          ],
+          [
+            "AlecRae Ltd",
+            "Transactional email delivery",
+            "Email address + template variables",
+            "Australasia",
+          ],
+          [
+            "Cloudflare, Inc.",
+            "Edge hosting + DDoS protection + DNS",
+            "IP address + request metadata",
+            "Global (SCCs)",
+          ],
+          [
+            "Turso / ChiselStrike, Inc.",
+            "Database hosting",
+            "All account + usage data encrypted at rest",
+            "US (SCCs)",
+          ],
           ["Upstash, Inc.", "Queue + cache", "Transient job metadata", "US (SCCs)"],
-          ["Anthropic PBC", "Claude AI API", "Your AI prompts + Crontech-generated context", "US (SCCs)"],
-          ["OpenAI, L.L.C.", "Fallback AI + Whisper transcription", "Your AI prompts when Claude is unavailable", "US (SCCs)"],
+          [
+            "Anthropic PBC",
+            "Claude AI API",
+            "Your AI prompts + Crontech-generated context",
+            "US (SCCs)",
+          ],
+          [
+            "OpenAI, L.L.C.",
+            "Fallback AI + Whisper transcription",
+            "Your AI prompts when Claude is unavailable",
+            "US (SCCs)",
+          ],
         ],
       },
       {
         type: "p",
-        text:
-          "We update this list when we add or change sub-processors. Material changes are notified by email 30 days in advance.",
+        text: "We update this list when we add or change sub-processors. Material changes are notified by email 30 days in advance.",
       },
       {
         type: "p",
-        text:
-          "We do **not** sell personal data to advertisers. We do **not** share it with third-party data brokers. We do **not** use it for cross-context behavioural advertising.",
+        text: "We do **not** sell personal data to advertisers. We do **not** share it with third-party data brokers. We do **not** use it for cross-context behavioural advertising.",
       },
       {
         type: "p",
-        text:
-          "We may disclose personal data to law enforcement, courts, or regulators when legally compelled to do so. Where legally permitted, we will notify you before disclosing your data.",
+        text: "We may disclose personal data to law enforcement, courts, or regulators when legally compelled to do so. Where legally permitted, we will notify you before disclosing your data.",
       },
     ],
   },
@@ -228,8 +247,7 @@ const sections: LegalSection[] = [
       },
       {
         type: "p",
-        text:
-          "After these periods, data is permanently deleted or anonymised beyond the point of re-identification.",
+        text: "After these periods, data is permanently deleted or anonymised beyond the point of re-identification.",
       },
     ],
   },
@@ -239,8 +257,7 @@ const sections: LegalSection[] = [
     blocks: [
       {
         type: "p",
-        text:
-          "Under the GDPR, UK GDPR, CCPA, and the NZ Privacy Act 2020, you have the right to:",
+        text: "Under the GDPR, UK GDPR, CCPA, and the NZ Privacy Act 2020, you have the right to:",
       },
       {
         type: "ul",
@@ -258,13 +275,11 @@ const sections: LegalSection[] = [
       },
       {
         type: "p",
-        text:
-          "To exercise any right, email **privacy@crontech.ai**. We respond within 30 days (GDPR Article 12(3)). If we need longer, we will tell you why.",
+        text: "To exercise any right, email **privacy@crontech.ai**. We respond within 30 days (GDPR Article 12(3)). If we need longer, we will tell you why.",
       },
       {
         type: "p",
-        text:
-          "We do not charge a fee for reasonable requests. For manifestly unfounded or repetitive requests, we may charge a reasonable administrative fee or refuse.",
+        text: "We do not charge a fee for reasonable requests. For manifestly unfounded or repetitive requests, we may charge a reasonable administrative fee or refuse.",
       },
     ],
   },
@@ -274,8 +289,7 @@ const sections: LegalSection[] = [
     blocks: [
       {
         type: "p",
-        text:
-          "When we transfer personal data outside your country, we rely on one or more of these mechanisms:",
+        text: "When we transfer personal data outside your country, we rely on one or more of these mechanisms:",
       },
       {
         type: "ul",
@@ -288,8 +302,7 @@ const sections: LegalSection[] = [
       },
       {
         type: "p",
-        text:
-          "Data transferred to our US sub-processors (Stripe, Cloudflare, Turso, Upstash, Anthropic, OpenAI) is covered by SCCs.",
+        text: "Data transferred to our US sub-processors (Stripe, Cloudflare, Turso, Upstash, Anthropic, OpenAI) is covered by SCCs.",
       },
     ],
   },
@@ -299,8 +312,7 @@ const sections: LegalSection[] = [
     blocks: [
       {
         type: "p",
-        text:
-          "See our separate Cookie Policy (/cookies) for the full list of cookies we set and how to control them.",
+        text: "See our separate Cookie Policy (/cookies) for the full list of cookies we set and how to control them.",
       },
     ],
   },
@@ -325,8 +337,7 @@ const sections: LegalSection[] = [
       },
       {
         type: "p",
-        text:
-          "No system is perfectly secure. If you believe your account has been compromised, email **security@crontech.ai** immediately.",
+        text: "No system is perfectly secure. If you believe your account has been compromised, email **security@crontech.ai** immediately.",
       },
     ],
   },
@@ -336,8 +347,7 @@ const sections: LegalSection[] = [
     blocks: [
       {
         type: "p",
-        text:
-          "Crontech is not intended for anyone under **16** (or under the age of digital consent in your jurisdiction, whichever is higher). We do not knowingly collect personal data from children. If you believe a child has submitted personal data, email **privacy@crontech.ai** and we will delete it promptly.",
+        text: "Crontech is not intended for anyone under **16** (or under the age of digital consent in your jurisdiction, whichever is higher). We do not knowingly collect personal data from children. If you believe a child has submitted personal data, email **privacy@crontech.ai** and we will delete it promptly.",
       },
     ],
   },
@@ -347,8 +357,7 @@ const sections: LegalSection[] = [
     blocks: [
       {
         type: "p",
-        text:
-          "If a personal data breach occurs that is likely to result in a risk to your rights and freedoms, we will:",
+        text: "If a personal data breach occurs that is likely to result in a risk to your rights and freedoms, we will:",
       },
       {
         type: "ul",
@@ -368,7 +377,7 @@ const sections: LegalSection[] = [
       {
         type: "ul",
         items: [
-          'We will notify registered users by email at least **30 days** in advance',
+          "We will notify registered users by email at least **30 days** in advance",
           'We will update the "Last updated" date at the top of this document',
           "Continued use of the service after the change date means you accept the updated policy",
         ],
@@ -393,8 +402,7 @@ const sections: LegalSection[] = [
       },
       {
         type: "p",
-        text:
-          "For EU residents, you have the right to lodge a complaint with your national data protection authority. For UK residents, you may contact the Information Commissioner's Office (ICO) at ico.org.uk. For NZ residents, you may contact the Office of the Privacy Commissioner at privacy.org.nz. For California residents, you may contact the California Attorney General.",
+        text: "For EU residents, you have the right to lodge a complaint with your national data protection authority. For UK residents, you may contact the Information Commissioner's Office (ICO) at ico.org.uk. For NZ residents, you may contact the Office of the Privacy Commissioner at privacy.org.nz. For California residents, you may contact the California Attorney General.",
       },
     ],
   },
@@ -408,12 +416,7 @@ export default function Privacy() {
         description="How Crontech collects, uses, and protects personal data. GDPR, CCPA, and NZ Privacy Act 2020 compliant."
         path="/privacy"
       />
-      <LegalPage
-        title="Privacy Policy"
-        version="1.0"
-        updated="2026-04-22"
-        sections={sections}
-      />
+      <LegalPage title="Privacy Policy" version="1.0" updated="2026-04-22" sections={sections} />
     </>
   );
 }

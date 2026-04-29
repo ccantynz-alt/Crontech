@@ -21,18 +21,13 @@
  */
 
 import type { MiddlewareHandler } from "hono";
-import { rateLimiter as memoryRateLimiter } from "./rate-limiter";
 
 // ── KV binding type ──────────────────────────────────────────────────
 // We declare a minimal local interface rather than depending on @cloudflare/workers-types
 // to avoid adding a top-level dev dep. This surface is exactly what we use.
 export interface KvNamespaceLike {
   get(key: string, options?: { type?: "text" | "json" }): Promise<string | null>;
-  put(
-    key: string,
-    value: string,
-    options?: { expirationTtl?: number },
-  ): Promise<void>;
+  put(key: string, value: string, options?: { expirationTtl?: number }): Promise<void>;
 }
 
 interface BucketState {
@@ -56,11 +51,10 @@ export function createKvRateLimiter(opts: KvRateLimiterOptions): MiddlewareHandl
   const windowMs = opts.windowMs ?? 60_000;
   const max = opts.max ?? 100;
   const kv = opts.kv;
-  const fallback = opts.fallback ?? memoryRateLimiter({ windowMs, max });
+  const fallback = opts.fallback;
 
-  return async (c, next): Promise<Response | void> => {
-    const ip =
-      c.req.header("x-forwarded-for") ?? c.req.header("x-real-ip") ?? "unknown";
+  return async (c, next): Promise<Response | undefined> => {
+    const ip = c.req.header("x-forwarded-for") ?? c.req.header("x-real-ip") ?? "unknown";
     const key = `rate:${ip}:${c.req.path}`;
     const now = Date.now();
 
@@ -102,7 +96,8 @@ export function createKvRateLimiter(opts: KvRateLimiterOptions): MiddlewareHandl
       c.header("X-RateLimit-Limit", String(max));
       c.header("X-RateLimit-Remaining", String(Math.max(0, max - state.count)));
 
-      return next();
+      await next();
+      return undefined;
     } catch (err) {
       // KV unreachable — fall back to the in-memory limiter for this request.
       // NEVER return 500 because the rate-limit store broke.
@@ -110,7 +105,12 @@ export function createKvRateLimiter(opts: KvRateLimiterOptions): MiddlewareHandl
         "[rate-limiter-kv] KV store unreachable, falling back to memory limiter:",
         err instanceof Error ? err.message : String(err),
       );
-      return fallback(c, next);
+      if (fallback) {
+        await fallback(c, next);
+      } else {
+        await next();
+      }
+      return undefined;
     }
   };
 }

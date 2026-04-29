@@ -9,11 +9,7 @@
 
 import type { JSX } from "solid-js";
 import { SEOHead } from "../../../components/SEOHead";
-import {
-  DocsArticle,
-  Callout,
-  KeyList,
-} from "../../../components/docs/DocsArticle";
+import { Callout, DocsArticle, KeyList } from "../../../components/docs/DocsArticle";
 
 export default function CollaborationOverviewArticle(): JSX.Element {
   return (
@@ -39,18 +35,16 @@ export default function CollaborationOverviewArticle(): JSX.Element {
       >
         <p>
           Collaboration on Crontech is built on three subsystems in{" "}
-          <code>apps/api/src/realtime/</code>. They share no code —
-          they are three separate bets on different use cases — and
-          you pick the one that matches the shape of the problem you
-          are solving.
+          <code>apps/api/src/realtime/</code>. They share no code — they are three separate bets on
+          different use cases — and you pick the one that matches the shape of the problem you are
+          solving.
         </p>
 
         <Callout tone="info">
-          All three primitives run in-process on a single-node Bun
-          server today. This works for dev and for real single-server
-          deployments. The Durable Object-backed multi-region
-          variant is BLK-011 🔵 PLANNED — not shipped. The overview
-          below names the gap explicitly where it matters.
+          All three primitives run in-process on a single-node Bun server today. This works for dev
+          and for real single-server deployments. The Durable Object-backed multi-region variant is
+          BLK-011 🔵 PLANNED — not shipped. The overview below names the gap explicitly where it
+          matters.
         </Callout>
 
         <h2>The three primitives</h2>
@@ -120,24 +114,18 @@ export default function CollaborationOverviewArticle(): JSX.Element {
         />
 
         <Callout tone="note">
-          Durable Object-backed rooms are on the roadmap. Today, if
-          you scale to more than one Bun server, the rooms are
-          process-local — two users on different nodes won't see each
-          other. For single-server deployments this is a non-issue.
-          The Collaboration section will get a third article once
-          Durable Object persistence lands.
+          Durable Object-backed rooms are on the roadmap. Today, if you scale to more than one Bun
+          server, the rooms are process-local — two users on different nodes won't see each other.
+          For single-server deployments this is a non-issue. The Collaboration section will get a
+          third article once Durable Object persistence lands.
         </Callout>
 
         <h2>Where to start</h2>
         <p>
           If you're building a collaborative editor, start with{" "}
-          <a href="/docs/collaboration/yjs-crdts">Yjs CRDT documents</a>
-          . If you're adding live cursors to a dashboard or
-          implementing a "who's here" badge, start with{" "}
-          <a href="/docs/collaboration/presence-and-cursors">
-            Presence and cursors
-          </a>
-          .
+          <a href="/docs/collaboration/yjs-crdts">Yjs CRDT documents</a>. If you're adding live
+          cursors to a dashboard or implementing a "who's here" badge, start with{" "}
+          <a href="/docs/collaboration/presence-and-cursors">Presence and cursors</a>.
         </p>
       </DocsArticle>
     </>

@@ -105,9 +105,7 @@ describe("gluecron-platform-deploy", () => {
 
     test("401 when Authorization header is malformed (no Bearer prefix)", async () => {
       const { app, calls } = setup();
-      const res = await app.request(
-        postRequest(validPayload(), { Authorization: SECRET }),
-      );
+      const res = await app.request(postRequest(validPayload(), { Authorization: SECRET }));
       expect(res.status).toBe(401);
       expect(calls.length).toBe(0);
     });

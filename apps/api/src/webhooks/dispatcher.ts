@@ -19,9 +19,9 @@
  *      to its caller.
  */
 
-import { and, asc, eq, lte } from "drizzle-orm";
 import type { db as defaultDb } from "@back-to-the-future/db";
 import { userWebhooks, webhookDeliveries } from "@back-to-the-future/db";
+import { and, asc, eq, lte } from "drizzle-orm";
 
 export type DbClient = typeof defaultDb;
 
@@ -251,16 +251,13 @@ async function processDelivery(
         lastError: `${errorMessage} (exhausted retries)`,
       })
       .where(eq(webhookDeliveries.id, delivery.id));
-    await db
-      .update(userWebhooks)
-      .set({ isActive: false })
-      .where(eq(userWebhooks.id, parent.id));
+    await db.update(userWebhooks).set({ isActive: false }).where(eq(userWebhooks.id, parent.id));
     return "failed";
   }
 
   // Schedule the next retry per the backoff table.
   const backoffIdx = Math.min(delivery.attemptCount, BACKOFF_MS.length - 1);
-  const backoff = BACKOFF_MS[backoffIdx] ?? BACKOFF_MS[BACKOFF_MS.length - 1]!;
+  const backoff = BACKOFF_MS[backoffIdx] ?? BACKOFF_MS[BACKOFF_MS.length - 1] ?? 21_600_000;
   const nextRetryAt = new Date(now() + backoff);
 
   await db

@@ -23,19 +23,14 @@ interface NeonApiError {
 }
 
 function getApiKey(): string {
-  const key = process.env["NEON_API_KEY"];
+  const key = process.env.NEON_API_KEY;
   if (!key) {
-    throw new Error(
-      "NEON_API_KEY is required. Set it in your environment variables.",
-    );
+    throw new Error("NEON_API_KEY is required. Set it in your environment variables.");
   }
   return key;
 }
 
-async function neonFetch<T>(
-  path: string,
-  options: RequestInit = {},
-): Promise<T> {
+async function neonFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
   const apiKey = getApiKey();
   const url = `${NEON_API_BASE}${path}`;
 
@@ -120,10 +115,7 @@ interface NeonCreateBranchResponse {
  * Create a new Neon project for a tenant.
  * Each tenant gets a fully isolated PostgreSQL database.
  */
-export async function createTenantProject(
-  tenantId: string,
-  region?: string,
-): Promise<NeonProject> {
+export async function createTenantProject(tenantId: string, region?: string): Promise<NeonProject> {
   const data = await neonFetch<NeonCreateProjectResponse>("/projects", {
     method: "POST",
     body: JSON.stringify({
@@ -159,12 +151,8 @@ export async function deleteTenantProject(projectId: string): Promise<void> {
 /**
  * Get project details for a specific Neon project.
  */
-export async function getTenantProject(
-  projectId: string,
-): Promise<NeonProject> {
-  const data = await neonFetch<NeonGetProjectResponse>(
-    `/projects/${projectId}`,
-  );
+export async function getTenantProject(projectId: string): Promise<NeonProject> {
+  const data = await neonFetch<NeonGetProjectResponse>(`/projects/${projectId}`);
 
   // Fetch the connection URI separately
   let connectionUri = "";
@@ -204,12 +192,8 @@ export async function listTenantProjects(): Promise<NeonProject[]> {
 /**
  * Get the connection string for a tenant's Neon project.
  */
-export async function getTenantConnectionString(
-  projectId: string,
-): Promise<string> {
-  const data = await neonFetch<NeonConnectionUriResponse>(
-    `/projects/${projectId}/connection_uri`,
-  );
+export async function getTenantConnectionString(projectId: string): Promise<string> {
+  const data = await neonFetch<NeonConnectionUriResponse>(`/projects/${projectId}/connection_uri`);
   return data.uri;
 }
 
@@ -221,22 +205,19 @@ export async function createProjectBranch(
   projectId: string,
   branchName: string,
 ): Promise<NeonBranch> {
-  const data = await neonFetch<NeonCreateBranchResponse>(
-    `/projects/${projectId}/branches`,
-    {
-      method: "POST",
-      body: JSON.stringify({
-        branch: {
-          name: branchName,
+  const data = await neonFetch<NeonCreateBranchResponse>(`/projects/${projectId}/branches`, {
+    method: "POST",
+    body: JSON.stringify({
+      branch: {
+        name: branchName,
+      },
+      endpoints: [
+        {
+          type: "read_write",
         },
-        endpoints: [
-          {
-            type: "read_write",
-          },
-        ],
-      }),
-    },
-  );
+      ],
+    }),
+  });
 
   return {
     id: data.branch.id,

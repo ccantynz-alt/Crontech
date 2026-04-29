@@ -4,7 +4,7 @@
 // no layout thrash, no reflow. Honors prefers-reduced-motion by rendering
 // a completely static wrapper.
 
-import { createSignal, onCleanup, type JSX } from "solid-js";
+import { type JSX, createSignal, onCleanup } from "solid-js";
 import { usePrefersReducedMotion } from "./reduced-motion";
 
 export interface MagneticProps {

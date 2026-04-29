@@ -6,11 +6,7 @@
 
 import type { JSX } from "solid-js";
 import { SEOHead } from "../../../components/SEOHead";
-import {
-  DocsArticle,
-  Callout,
-  KeyList,
-} from "../../../components/docs/DocsArticle";
+import { Callout, DocsArticle, KeyList } from "../../../components/docs/DocsArticle";
 
 export default function AiAndChatReference(): JSX.Element {
   return (
@@ -30,33 +26,31 @@ export default function AiAndChatReference(): JSX.Element {
         nextStep={{
           label: "Support procedures",
           href: "/docs/api-reference/support",
-          description:
-            "Public + authenticated ticket submission, admin triage, and stats.",
+          description: "Public + authenticated ticket submission, admin triage, and stats.",
         }}
       >
         <p>
-          Crontech's AI surface has two entry points. The site builder
-          (<code>ai.siteBuilder.*</code>) generates full{" "}
-          <code>PageLayout</code> objects from natural-language prompts
-          and persists them as versioned site rows. Chat (<code>chat.*</code>)
-          is the general-purpose conversational router, used by the
-          in-product assistant and by any customer-built feature that
-          wants to bolt on an LLM without managing its own state.
+          Crontech's AI surface has two entry points. The site builder (
+          <code>ai.siteBuilder.*</code>) generates full <code>PageLayout</code> objects from
+          natural-language prompts and persists them as versioned site rows. Chat (
+          <code>chat.*</code>) is the general-purpose conversational router, used by the in-product
+          assistant and by any customer-built feature that wants to bolt on an LLM without managing
+          its own state.
         </p>
 
         <Callout tone="info" title="Three-tier compute routing">
-          Every inference request can run on the client GPU (WebGPU,
-          $0/token), the edge (Workers AI, cheap + fast), or the cloud
-          (H100 on Modal.com). The site builder honours an optional{" "}
-          <code>tier</code> input; chat picks automatically based on
-          the model + prompt size. There is no manual provisioning
-          step — the router just picks the cheapest tier that meets
-          the request.
+          Every inference request can run on the client GPU (WebGPU, $0/token), the edge (Workers
+          AI, cheap + fast), or the cloud (H100 on Modal.com). The site builder honours an optional{" "}
+          <code>tier</code> input; chat picks automatically based on the model + prompt size. There
+          is no manual provisioning step — the router just picks the cheapest tier that meets the
+          request.
         </Callout>
 
         <h2>ai.siteBuilder.* — generate + persist layouts</h2>
 
-        <h3><code>ai.siteBuilder.generate</code></h3>
+        <h3>
+          <code>ai.siteBuilder.generate</code>
+        </h3>
         <p>
           Protected <em>mutation</em>. Input:
         </p>
@@ -77,16 +71,16 @@ export default function AiAndChatReference(): JSX.Element {
 })`}</code>
         </pre>
         <p>
-          Returns{" "}
-          <code>{`{ layout: PageLayout, source: "ai" | "stub" }`}</code>.
-          When no cloud provider is configured (no{" "}
-          <code>OPENAI_API_KEY</code> / equivalent), the procedure
-          falls back to a deterministic stub layout so the UI + DB
-          wiring stays testable — <code>source: "stub"</code> flags
-          that case. Real AI calls return <code>source: "ai"</code>.
+          Returns <code>{`{ layout: PageLayout, source: "ai" | "stub" }`}</code>. When no cloud
+          provider is configured (no <code>OPENAI_API_KEY</code> / equivalent), the procedure falls
+          back to a deterministic stub layout so the UI + DB wiring stays testable —{" "}
+          <code>source: "stub"</code> flags that case. Real AI calls return{" "}
+          <code>source: "ai"</code>.
         </p>
 
-        <h3><code>ai.siteBuilder.save</code></h3>
+        <h3>
+          <code>ai.siteBuilder.save</code>
+        </h3>
         <p>
           Protected <em>mutation</em>. Input:
         </p>
@@ -110,14 +104,14 @@ export default function AiAndChatReference(): JSX.Element {
 })`}</code>
         </pre>
         <p>
-          Persists a layout as version 1 of a new site. Rejects with{" "}
-          <code>CONFLICT</code> if the slug is already taken. The
-          layout is validated against <code>PageLayoutSchema</code>{" "}
-          before it hits the DB — AI output that doesn't match the
-          schema is rejected, not stored.
+          Persists a layout as version 1 of a new site. Rejects with <code>CONFLICT</code> if the
+          slug is already taken. The layout is validated against <code>PageLayoutSchema</code>{" "}
+          before it hits the DB — AI output that doesn't match the schema is rejected, not stored.
         </p>
 
-        <h3><code>ai.siteBuilder.addVersion</code></h3>
+        <h3>
+          <code>ai.siteBuilder.addVersion</code>
+        </h3>
         <p>
           Protected <em>mutation</em>. Input:
         </p>
@@ -140,20 +134,22 @@ export default function AiAndChatReference(): JSX.Element {
 })`}</code>
         </pre>
         <p>
-          Appends a new version row to an existing site. Versions are
-          immutable — you iterate by adding, not editing.
+          Appends a new version row to an existing site. Versions are immutable — you iterate by
+          adding, not editing.
         </p>
 
-        <h3><code>ai.siteBuilder.listSites</code></h3>
+        <h3>
+          <code>ai.siteBuilder.listSites</code>
+        </h3>
         <p>
-          Protected <em>query</em>. No input. Returns every site owned
-          by the caller, newest first.
+          Protected <em>query</em>. No input. Returns every site owned by the caller, newest first.
         </p>
 
-        <h3><code>ai.siteBuilder.getSite</code></h3>
+        <h3>
+          <code>ai.siteBuilder.getSite</code>
+        </h3>
         <p>
-          Protected <em>query</em>. Input{" "}
-          <code>{`{ id: string, version?: number }`}</code>. Returns
+          Protected <em>query</em>. Input <code>{"{ id: string, version?: number }"}</code>. Returns
           the site row, its latest version, and the resolved layout.
         </p>
 
@@ -213,9 +209,8 @@ export default function AiAndChatReference(): JSX.Element {
 
         <h3>Provider BYOK (admin-only)</h3>
         <Callout tone="warn">
-          Provider keys are admin-scoped today. Customer-facing BYOK —
-          where a user bolts on their own Anthropic or OpenAI key —
-          uses the same underlying table but ships behind an admin
+          Provider keys are admin-scoped today. Customer-facing BYOK — where a user bolts on their
+          own Anthropic or OpenAI key — uses the same underlying table but ships behind an admin
           gate while the encryption + rotation story is hardened.
         </Callout>
         <KeyList
@@ -232,8 +227,7 @@ export default function AiAndChatReference(): JSX.Element {
             },
             {
               term: "chat.deleteProviderKey",
-              description:
-                "Admin mutation. Input { provider }. Removes the key.",
+              description: "Admin mutation. Input { provider }. Removes the key.",
             },
           ]}
         />

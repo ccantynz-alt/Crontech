@@ -2,9 +2,9 @@
 // Horizontal bar showing connected user avatars with status indicators.
 // Includes "Invite AI" button and total connected count.
 
-import { For, Show, createSignal, createEffect } from "solid-js";
+import { Badge, Button, Tooltip } from "@back-to-the-future/ui";
+import { For, Show, createEffect, createSignal } from "solid-js";
 import type { JSX } from "solid-js";
-import { Button, Badge, Tooltip } from "@back-to-the-future/ui";
 import type { AwarenessState } from "../collab/collaborative-doc";
 
 // ── Types ────────────────────────────────────────────────────────────
@@ -83,7 +83,7 @@ export function PresenceBar(props: PresenceBarProps): JSX.Element {
         padding: "6px 12px",
         background: "var(--color-bg-elevated)",
         "border-radius": "8px",
-        "border": "1px solid var(--color-border)",
+        border: "1px solid var(--color-border)",
       }}
     >
       {/* Current user */}
@@ -124,7 +124,10 @@ export function PresenceBar(props: PresenceBarProps): JSX.Element {
       {/* Remote users */}
       <For each={displayUsers()}>
         {(user) => (
-          <Tooltip content={`${user.name}${user.isAI ? " (AI Agent)" : ""} - ${user.status}`} position="bottom">
+          <Tooltip
+            content={`${user.name}${user.isAI ? " (AI Agent)" : ""} - ${user.status}`}
+            position="bottom"
+          >
             <div
               style={{
                 position: "relative",
@@ -181,11 +184,7 @@ export function PresenceBar(props: PresenceBarProps): JSX.Element {
 
       {/* Invite AI button */}
       <Show when={props.onInviteAI}>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => props.onInviteAI?.()}
-        >
+        <Button variant="ghost" size="sm" onClick={() => props.onInviteAI?.()}>
           + Invite AI
         </Button>
       </Show>

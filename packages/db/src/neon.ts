@@ -1,36 +1,56 @@
-import { neon, type NeonQueryFunction } from "@neondatabase/serverless";
-import { drizzle } from "drizzle-orm/neon-http";
+import { type NeonQueryFunction, Pool, neon, neonConfig } from "@neondatabase/serverless";
+import { drizzle } from "drizzle-orm/neon-serverless";
 import * as tursoSchema from "./schema";
 
-// ── Neon PostgreSQL Schema ───────────────────────────────────────────
-// Neon is the secondary database for complex queries, full-text search,
-// pgvector embeddings, and workloads that exceed SQLite capabilities.
+// ── Neon PostgreSQL ──────────────────────────────────────────────────
+// Secondary DB: complex queries, full-text search, pgvector embeddings.
+//
+// Transport: WebSocket (persistent pool) instead of HTTP round-trips.
+// Bun exposes WebSocket as a built-in global — no `ws` package needed.
+// Under high agent concurrency the pool keeps connections warm and avoids
+// the TLS+TCP handshake cost on every query.
+neonConfig.webSocketConstructor = WebSocket;
 
-// Re-export Turso schema types for reference
 export { tursoSchema };
 
-// ── Neon Client Factory ──────────────────────────────────────────────
-
 type NeonDb = ReturnType<typeof drizzle>;
+
+// Module-level singleton — one pool per process, shared across all
+// requests. Explicit databaseUrl overrides (e.g. per-tenant Neon
+// projects) get their own pool and are not cached here.
+let _pool: Pool | null = null;
+let _db: NeonDb | null = null;
 
 export function createNeonClient(databaseUrl?: string): {
   db: NeonDb;
   sql: NeonQueryFunction<false, false>;
+  pool: Pool;
 } {
-  const url = databaseUrl ?? process.env["NEON_DATABASE_URL"];
+  const url = databaseUrl ?? process.env.NEON_DATABASE_URL;
   if (!url) {
     throw new Error(
       "NEON_DATABASE_URL is required. Set it in your environment or pass it directly.",
     );
   }
 
-  const sql = neon(url);
-  const db = drizzle({ client: sql });
+  // Reuse singleton for the default (non-tenant-overridden) URL.
+  if (!databaseUrl && _pool && _db) {
+    return { db: _db, sql: neon(url) as NeonQueryFunction<false, false>, pool: _pool };
+  }
 
-  return { db, sql };
+  const pool = new Pool({ connectionString: url });
+  const db = drizzle({ client: pool });
+  const sql = neon(url) as NeonQueryFunction<false, false>;
+
+  if (!databaseUrl) {
+    _pool = pool;
+    _db = db;
+  }
+
+  return { db, pool, sql };
 }
 
-// ── Neon Health Check ────────────────────────────────────────────────
+// ── Health Check ─────────────────────────────────────────────────────
 
 export async function checkNeonHealth(databaseUrl?: string): Promise<{
   status: "ok" | "error";
@@ -39,8 +59,8 @@ export async function checkNeonHealth(databaseUrl?: string): Promise<{
 }> {
   const start = performance.now();
   try {
-    const { sql } = createNeonClient(databaseUrl);
-    await sql`SELECT 1 as health_check`;
+    const { pool } = createNeonClient(databaseUrl);
+    await pool.query("SELECT 1 as health_check");
     return {
       status: "ok",
       latencyMs: Math.round(performance.now() - start),

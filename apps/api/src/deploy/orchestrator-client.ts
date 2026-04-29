@@ -9,7 +9,7 @@
 
 import { TRPCError } from "@trpc/server";
 
-const ORCHESTRATOR_URL = process.env["ORCHESTRATOR_URL"] ?? "http://127.0.0.1:9000";
+const ORCHESTRATOR_URL = process.env.ORCHESTRATOR_URL ?? "http://127.0.0.1:9000";
 
 /**
  * POST/GET to the orchestrator at `${ORCHESTRATOR_URL}${path}`. Returns the
@@ -18,10 +18,7 @@ const ORCHESTRATOR_URL = process.env["ORCHESTRATOR_URL"] ?? "http://127.0.0.1:90
  * previously in `tenant.ts` so the tRPC procedure can continue to rely on
  * TRPCError semantics.
  */
-export async function orchestratorFetch<T>(
-  path: string,
-  options?: RequestInit,
-): Promise<T> {
+export async function orchestratorFetch<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${ORCHESTRATOR_URL}${path}`, {
     ...options,
     headers: {

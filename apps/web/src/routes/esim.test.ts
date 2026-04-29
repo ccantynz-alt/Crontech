@@ -5,7 +5,7 @@
 // a country picker, and wires the tRPC esim.listPackages query — all
 // without booting a SolidStart runtime (notSup() chokes under bun test).
 
-import { describe, test, expect } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
@@ -67,8 +67,7 @@ describe("esim route — smoke", () => {
     // name ever appears in public copy. Names are assembled from char
     // codes so this guard itself does not name them in source.
     const lower = src.toLowerCase();
-    const fromCodes = (...codes: number[]): string =>
-      String.fromCharCode(...codes);
+    const fromCodes = (...codes: number[]): string => String.fromCharCode(...codes);
     const bannedWholesalers = [
       fromCodes(97, 105, 114, 97, 108, 111),
       fromCodes(49, 103, 108, 111, 98, 97, 108),

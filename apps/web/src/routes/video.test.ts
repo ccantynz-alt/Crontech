@@ -77,8 +77,7 @@ describe("video route — smoke", () => {
 
   test("polite tone — no competitor names", () => {
     const src = readFileSync(ROUTE_PATH, "utf-8").toLowerCase();
-    const fromCodes = (...codes: number[]): string =>
-      String.fromCharCode(...codes);
+    const fromCodes = (...codes: number[]): string => String.fromCharCode(...codes);
     // Each banned token is matched with spaces around it (or leading
     // edge) so substrings like "descript" embedded inside "description"
     // don't false-positive the guard. If a real competitor name ever

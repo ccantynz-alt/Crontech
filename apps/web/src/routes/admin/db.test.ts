@@ -86,9 +86,7 @@ function referenceFormatRowCount(n: number): string {
   return String(Math.round(n));
 }
 
-function referenceRowCountVariant(
-  n: number,
-): "success" | "warning" | "error" | "default" {
+function referenceRowCountVariant(n: number): "success" | "warning" | "error" | "default" {
   if (!Number.isFinite(n) || n < 0) return "default";
   if (n === 0) return "default";
   if (n < 100) return "success";

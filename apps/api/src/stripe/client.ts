@@ -8,13 +8,13 @@ let _stripe: Stripe | null = null;
  * triggers a Stripe SDK construction.
  */
 export function isStripeEnabled(): boolean {
-  const flag = process.env["STRIPE_ENABLED"];
+  const flag = process.env.STRIPE_ENABLED;
   return flag === "true" || flag === "1";
 }
 
 export function getStripe(): Stripe {
   if (!_stripe) {
-    const key = process.env["STRIPE_SECRET_KEY"];
+    const key = process.env.STRIPE_SECRET_KEY;
     if (!key) {
       throw new Error("STRIPE_SECRET_KEY is not set");
     }
@@ -38,9 +38,7 @@ export async function createPortalSession(
   returnUrl: string,
 ): Promise<string> {
   if (!isStripeEnabled()) {
-    throw new Error(
-      "Stripe is not enabled (STRIPE_ENABLED env flag is not 'true' or '1').",
-    );
+    throw new Error("Stripe is not enabled (STRIPE_ENABLED env flag is not 'true' or '1').");
   }
   if (!stripeCustomerId) {
     throw new Error("stripeCustomerId is required");

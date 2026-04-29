@@ -17,12 +17,12 @@
 
 import {
   E164Schema,
-  SinchSendResponseSchema,
-  SinchMessageSchema,
-  SinchListMessagesResponseSchema,
-  type SinchSendResponse,
-  type SinchMessage,
   type SinchListMessagesResponse,
+  SinchListMessagesResponseSchema,
+  type SinchMessage,
+  SinchMessageSchema,
+  type SinchSendResponse,
+  SinchSendResponseSchema,
   type SmsSegmentation,
 } from "./sinch-types";
 
@@ -46,9 +46,9 @@ export interface SinchClientDeps {
 /** Construct config from the standard environment variables. */
 export function configFromEnv(): SinchConfig {
   return {
-    servicePlanId: process.env["SINCH_SERVICE_PLAN_ID"] ?? "",
-    apiToken: process.env["SINCH_API_TOKEN"] ?? "",
-    baseUrl: process.env["SINCH_BASE_URL"] ?? "https://zt.sinch.com/xms/v1",
+    servicePlanId: process.env.SINCH_SERVICE_PLAN_ID ?? "",
+    apiToken: process.env.SINCH_API_TOKEN ?? "",
+    baseUrl: process.env.SINCH_BASE_URL ?? "https://zt.sinch.com/xms/v1",
   };
 }
 
@@ -178,7 +178,7 @@ export function dollarsToMicrodollars(value: string | number | undefined): numbe
 }
 
 export function markupPercentFromEnv(): number {
-  const raw = process.env["SMS_MARKUP_PERCENT"];
+  const raw = process.env.SMS_MARKUP_PERCENT;
   const parsed = raw ? Number.parseFloat(raw) : Number.NaN;
   if (!Number.isFinite(parsed) || parsed < 0) return 30;
   return parsed;
@@ -201,11 +201,7 @@ export class SinchClient {
     return `${base}/${plan}${path}`;
   }
 
-  private async request(
-    method: "GET" | "POST",
-    path: string,
-    body?: unknown,
-  ): Promise<unknown> {
+  private async request(method: "GET" | "POST", path: string, body?: unknown): Promise<unknown> {
     const url = this.endpoint(path);
     const headers: Record<string, string> = {
       Authorization: `Bearer ${this.config.apiToken}`,
@@ -240,8 +236,8 @@ export class SinchClient {
 
     if (!res.ok) {
       const code = extractErrorCode(json);
-      const message = extractErrorMessage(json) ??
-        `Sinch ${method} ${path} failed with HTTP ${res.status}.`;
+      const message =
+        extractErrorMessage(json) ?? `Sinch ${method} ${path} failed with HTTP ${res.status}.`;
       throw new SinchError(message, {
         status: res.status,
         ...(code !== undefined ? { code } : {}),
@@ -263,16 +259,14 @@ export class SinchClient {
     callbackUrl?: string;
   }): Promise<SinchSendResponse> {
     if (!isValidE164(input.from)) {
-      throw new SinchError(
-        "The `from` number must be in E.164 format, e.g. +14155551234.",
-        { status: 400 },
-      );
+      throw new SinchError("The `from` number must be in E.164 format, e.g. +14155551234.", {
+        status: 400,
+      });
     }
     if (!isValidE164(input.to)) {
-      throw new SinchError(
-        "The `to` number must be in E.164 format, e.g. +14155551234.",
-        { status: 400 },
-      );
+      throw new SinchError("The `to` number must be in E.164 format, e.g. +14155551234.", {
+        status: 400,
+      });
     }
     const body: Record<string, unknown> = {
       from: input.from,
@@ -280,10 +274,10 @@ export class SinchClient {
       body: input.body,
     };
     if (input.deliveryReport !== undefined) {
-      body["delivery_report"] = input.deliveryReport;
+      body.delivery_report = input.deliveryReport;
     }
     if (input.callbackUrl !== undefined) {
-      body["callback_url"] = input.callbackUrl;
+      body.callback_url = input.callbackUrl;
     }
     const raw = await this.request("POST", "/batches", body);
     return SinchSendResponseSchema.parse(raw);
@@ -317,11 +311,11 @@ export class SinchClient {
 function extractErrorMessage(body: unknown): string | undefined {
   if (!body || typeof body !== "object") return undefined;
   const record = body as Record<string, unknown>;
-  const text = record["text"];
+  const text = record.text;
   if (typeof text === "string" && text.length > 0) return text;
-  const message = record["message"];
+  const message = record.message;
   if (typeof message === "string" && message.length > 0) return message;
-  const detail = record["detail"];
+  const detail = record.detail;
   if (typeof detail === "string" && detail.length > 0) return detail;
   return undefined;
 }
@@ -329,7 +323,7 @@ function extractErrorMessage(body: unknown): string | undefined {
 function extractErrorCode(body: unknown): string | undefined {
   if (!body || typeof body !== "object") return undefined;
   const record = body as Record<string, unknown>;
-  const code = record["code"];
+  const code = record.code;
   if (typeof code === "string" && code.length > 0) return code;
   if (typeof code === "number") return String(code);
   return undefined;
@@ -348,9 +342,7 @@ export async function verifySinchSignature(input: {
 }): Promise<boolean> {
   if (!input.provided || input.secret.length === 0) return false;
   const { createHmac } = await import("node:crypto");
-  const computed = createHmac("sha256", input.secret)
-    .update(input.rawBody, "utf8")
-    .digest("hex");
+  const computed = createHmac("sha256", input.secret).update(input.rawBody, "utf8").digest("hex");
   // Some Sinch deployments prefix with the algorithm, e.g. "sha256=...".
   const normalised = input.provided.startsWith("sha256=")
     ? input.provided.slice("sha256=".length)

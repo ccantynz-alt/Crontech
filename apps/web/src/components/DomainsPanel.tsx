@@ -9,23 +9,19 @@
 // Uses existing tRPC procedures — projects.addDomain, projects.removeDomain,
 // projects.verifyDomain — and never calls raw fetch.
 
-import {
-  createSignal,
-  For,
-  Show,
-  Switch,
-  Match,
-  type JSX,
-} from "solid-js";
 import { Badge, Button, Card, Stack, Text } from "@back-to-the-future/ui";
+import { For, type JSX, Match, Show, Switch, createSignal } from "solid-js";
+import { trpc } from "../lib/trpc";
 import { AddDomainModal } from "./AddDomainModal";
 import { showToast } from "./Toast";
-import { trpc } from "../lib/trpc";
+import { classifyDomain } from "./domain-utils";
+import type { DomainType } from "./domain-utils";
+
+export type { DomainType };
 
 // ── Types ──────────────────────────────────────────────────────────────
 
 export type DomainVerificationStatus = "verifying" | "verified" | "failed";
-export type DomainType = "custom" | "subdomain";
 
 export interface DomainRecord {
   id: string;
@@ -45,16 +41,7 @@ export interface DomainsPanelProps {
 
 // ── Helpers ────────────────────────────────────────────────────────────
 
-/** A domain is a subdomain if it has 3+ labels (e.g. app.example.com). */
-export function classifyDomain(domain: string): DomainType {
-  const labels = domain.split(".").filter((l) => l.length > 0);
-  return labels.length >= 3 ? "subdomain" : "custom";
-}
-
-function statusFromRecord(
-  record: DomainRecord,
-  localFailure: boolean,
-): DomainVerificationStatus {
+function statusFromRecord(record: DomainRecord, localFailure: boolean): DomainVerificationStatus {
   if (record.dnsVerified) return "verified";
   if (localFailure) return "failed";
   return "verifying";
@@ -151,19 +138,11 @@ export function DomainsPanel(props: DomainsPanelProps): JSX.Element {
             <Text variant="h4" weight="semibold">
               Domains
             </Text>
-            <Text
-              variant="caption"
-              style={{ color: "var(--color-text-faint)" }}
-            >
-              Attach custom domains to this project. SSL is issued automatically
-              once DNS verifies.
+            <Text variant="caption" style={{ color: "var(--color-text-faint)" }}>
+              Attach custom domains to this project. SSL is issued automatically once DNS verifies.
             </Text>
           </div>
-          <Button
-            variant="primary"
-            size="md"
-            onClick={() => setModalOpen(true)}
-          >
+          <Button variant="primary" size="md" onClick={() => setModalOpen(true)}>
             + Add Domain
           </Button>
         </Stack>
@@ -175,11 +154,7 @@ export function DomainsPanel(props: DomainsPanelProps): JSX.Element {
         fallback={
           <Card padding="lg">
             <Stack direction="vertical" gap="sm" class="items-center py-8">
-              <Text
-                variant="body"
-                class="text-center"
-                style={{ color: "var(--color-text-faint)" }}
-              >
+              <Text variant="body" class="text-center" style={{ color: "var(--color-text-faint)" }}>
                 No domains connected yet.
               </Text>
               <Text
@@ -189,11 +164,7 @@ export function DomainsPanel(props: DomainsPanelProps): JSX.Element {
               >
                 Add your first domain to serve this project at your own URL.
               </Text>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setModalOpen(true)}
-              >
+              <Button variant="outline" size="sm" onClick={() => setModalOpen(true)}>
                 + Add Domain
               </Button>
             </Stack>
@@ -261,10 +232,7 @@ function DomainRow(props: DomainRowProps): JSX.Element {
             >
               {props.domain.domain}
             </a>
-            <Badge
-              variant="default"
-              size="sm"
-            >
+            <Badge variant="default" size="sm">
               {type() === "subdomain" ? "Subdomain" : "Custom"}
             </Badge>
             <Show when={props.domain.isPrimary}>
@@ -303,8 +271,7 @@ function DomainRow(props: DomainRowProps): JSX.Element {
             <StatusDetail tone="info">
               <span class="inline-flex items-center gap-2">
                 <PulseDot color="var(--color-info)" />
-                DNS propagation can take up to 48 hours. We&apos;ll keep
-                checking.
+                DNS propagation can take up to 48 hours. We&apos;ll keep checking.
               </span>
             </StatusDetail>
           </Match>
@@ -312,8 +279,7 @@ function DomainRow(props: DomainRowProps): JSX.Element {
             <StatusDetail tone="success">
               <span class="inline-flex items-center gap-2">
                 <Checkmark />
-                SSL certificate active. Verified{" "}
-                {formatDate(props.domain.dnsVerifiedAt)}.
+                SSL certificate active. Verified {formatDate(props.domain.dnsVerifiedAt)}.
               </span>
             </StatusDetail>
           </Match>
@@ -429,10 +395,7 @@ function StatusDetail(props: {
   };
 
   return (
-    <div
-      class="rounded-lg px-3 py-2 text-xs"
-      style={style()}
-    >
+    <div class="rounded-lg px-3 py-2 text-xs" style={style()}>
       {props.children}
     </div>
   );
@@ -449,13 +412,7 @@ function PulseDot(props: { color: string }): JSX.Element {
 
 function Checkmark(): JSX.Element {
   return (
-    <svg
-      width="14"
-      height="14"
-      viewBox="0 0 20 20"
-      fill="none"
-      aria-hidden="true"
-    >
+    <svg width="14" height="14" viewBox="0 0 20 20" fill="none" aria-hidden="true">
       <path
         d="M5 10l3 3 7-7"
         stroke="currentColor"
@@ -469,19 +426,8 @@ function Checkmark(): JSX.Element {
 
 function Cross(): JSX.Element {
   return (
-    <svg
-      width="14"
-      height="14"
-      viewBox="0 0 20 20"
-      fill="none"
-      aria-hidden="true"
-    >
-      <path
-        d="M6 6l8 8M14 6l-8 8"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-      />
+    <svg width="14" height="14" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <path d="M6 6l8 8M14 6l-8 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
     </svg>
   );
 }

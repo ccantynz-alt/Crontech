@@ -1,7 +1,7 @@
-import { createSignal, onMount, Show } from "solid-js";
-import type { JSX } from "solid-js";
-import { A } from "@solidjs/router";
 import { Button, Text } from "@back-to-the-future/ui";
+import { A } from "@solidjs/router";
+import { Show, createSignal, onMount } from "solid-js";
+import type { JSX } from "solid-js";
 
 const STORAGE_KEY = "btf_cookie_consent";
 
@@ -38,11 +38,11 @@ export function CookieConsent(): JSX.Element {
 
   return (
     <Show when={visible()}>
-      <div
+      <dialog
+        open
         class={`fixed bottom-0 left-0 right-0 z-50 transition-transform duration-300 ease-out ${
           animateIn() ? "translate-y-0" : "translate-y-full"
         }`}
-        role="dialog"
         aria-label="Cookie consent"
       >
         <div class="mx-auto max-w-4xl p-4">
@@ -58,8 +58,7 @@ export function CookieConsent(): JSX.Element {
                 We use cookies
               </Text>
               <Text variant="caption" class="text-muted mt-1">
-                We use cookies to improve your experience and analyze site traffic.
-                Read our{" "}
+                We use cookies to improve your experience and analyze site traffic. Read our{" "}
                 <A href="/legal/cookies" class="underline hover:opacity-80">
                   Cookie Policy
                 </A>{" "}
@@ -67,24 +66,16 @@ export function CookieConsent(): JSX.Element {
               </Text>
             </div>
             <div class="flex shrink-0 gap-3">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => accept("essential")}
-              >
+              <Button variant="outline" size="sm" onClick={() => accept("essential")}>
                 Essential Only
               </Button>
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={() => accept("all")}
-              >
+              <Button variant="primary" size="sm" onClick={() => accept("all")}>
                 Accept All
               </Button>
             </div>
           </div>
         </div>
-      </div>
+      </dialog>
     </Show>
   );
 }

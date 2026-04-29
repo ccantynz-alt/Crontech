@@ -2,20 +2,16 @@
 // Monitors competitors, analyzes threats, and alerts the team.
 // Runs as a long-lived Bun process with an HTTP health endpoint.
 
-import { githubReleasesCollector } from "./collectors/github-releases";
-import { githubCommitsCollector } from "./collectors/github-commits";
-import { npmRegistryCollector } from "./collectors/npm-registry";
-import { hackernewsCollector } from "./collectors/hackernews";
 import { arxivCollector } from "./collectors/arxiv";
+import { githubCommitsCollector } from "./collectors/github-commits";
+import { githubReleasesCollector } from "./collectors/github-releases";
+import { hackernewsCollector } from "./collectors/hackernews";
+import { npmRegistryCollector } from "./collectors/npm-registry";
+import type { Collector } from "./collectors/types";
 import { runDeadMansSwitch } from "./dead-mans-switch";
-import { getItemCount } from "./storage/intelligence-store";
 import { sendDailyDigest } from "./digest/daily-digest";
 import { runCycle } from "./runner";
-import {
-  handleHeartbeatRequest,
-  registerSystemdHeartbeat,
-} from "./checks/systemd-heartbeat";
-import type { Collector } from "./collectors/types";
+import { getItemCount } from "./storage/intelligence-store";
 
 // ── Configuration ───────────────────────────────────────────────────
 
@@ -54,16 +50,14 @@ async function runSingleCollector(collector: Collector): Promise<void> {
   const result = await runCycle([collector], { emitAlerts: true });
   totalItemsCollected += result.itemsStored;
   if (result.collectorErrors.length > 0) {
-    console.warn(
-      `[sentinel] ${collector.name} errors: ${result.collectorErrors.join("; ")}`,
-    );
+    console.warn(`[sentinel] ${collector.name} errors: ${result.collectorErrors.join("; ")}`);
   }
 }
 
 // ── Health Endpoint ─────────────────────────────────────────────────
 
 function startHealthServer(): void {
-  const port = Number(process.env["SENTINEL_PORT"]) || 3002;
+  const port = Number(process.env.SENTINEL_PORT) || 3002;
 
   Bun.serve({
     port,
@@ -117,15 +111,17 @@ function startHealthServer(): void {
 
 function startScheduler(): void {
   const now = new Date().toISOString();
-  console.info(`[sentinel] ═══════════════════════════════════════════════`);
-  console.info(`[sentinel] Sentinel Competitive Intelligence System`);
+  console.info("[sentinel] ═══════════════════════════════════════════════");
+  console.info("[sentinel] Sentinel Competitive Intelligence System");
   console.info(`[sentinel] Started at: ${now}`);
   console.info(`[sentinel] Monitoring ${collectors.length} sources:`);
   for (const collector of collectors) {
     const intervalMin = Math.round(collector.intervalMs / 60_000);
-    console.info(`[sentinel]   - ${collector.name} (every ${intervalMin}m, cron: ${collector.cronExpression})`);
+    console.info(
+      `[sentinel]   - ${collector.name} (every ${intervalMin}m, cron: ${collector.cronExpression})`,
+    );
   }
-  console.info(`[sentinel] ═══════════════════════════════════════════════`);
+  console.info("[sentinel] ═══════════════════════════════════════════════");
 
   // Start health endpoint
   startHealthServer();
@@ -139,31 +135,40 @@ function startScheduler(): void {
 
   // Schedule each collector independently. Each tick delegates to
   // runSingleCollector which internally uses the shared runner.
-  for (const collector of collectors) {
+  const _collectorIntervals = collectors.map((collector) =>
     setInterval(() => {
       void runSingleCollector(collector);
-    }, collector.intervalMs);
-  }
+    }, collector.intervalMs),
+  );
 
   // Dead man's switch check every 30 minutes
-  setInterval(() => {
-    void runDeadMansSwitch();
-  }, 30 * 60 * 1000);
+  const _deadManInterval = setInterval(
+    () => {
+      void runDeadMansSwitch();
+    },
+    30 * 60 * 1000,
+  );
 
   // Daily digest every 24 hours (also run first digest 1 hour after start)
-  setTimeout(() => {
-    void sendDailyDigest().then((d) => {
-      lastDigestAt = d.generatedAt;
-    });
-  }, 60 * 60 * 1000);
+  setTimeout(
+    () => {
+      void sendDailyDigest().then((d) => {
+        lastDigestAt = d.generatedAt;
+      });
+    },
+    60 * 60 * 1000,
+  );
 
-  setInterval(() => {
-    void sendDailyDigest().then((d) => {
-      lastDigestAt = d.generatedAt;
-    });
-  }, 24 * 60 * 60 * 1000);
+  const _dailyDigestInterval = setInterval(
+    () => {
+      void sendDailyDigest().then((d) => {
+        lastDigestAt = d.generatedAt;
+      });
+    },
+    24 * 60 * 60 * 1000,
+  );
 
-  console.info(`[sentinel] All collectors scheduled. System is active.`);
+  console.info("[sentinel] All collectors scheduled. System is active.");
 }
 
 startScheduler();

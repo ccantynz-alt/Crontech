@@ -3,7 +3,7 @@
  * keyboard shortcuts, and canvas overlay for processed frames.
  */
 
-import { createSignal, onMount, onCleanup, Show } from "solid-js";
+import { Show, createSignal, onCleanup, onMount } from "solid-js";
 import type { JSX } from "solid-js";
 
 export interface VideoPlayerProps {
@@ -173,7 +173,6 @@ export function VideoPlayer(props: VideoPlayerProps): JSX.Element {
   return (
     <div
       ref={containerEl}
-      tabIndex={0}
       class="video-player-container"
       style={{
         width: `${playerWidth()}px`,
@@ -213,7 +212,9 @@ export function VideoPlayer(props: VideoPlayerProps): JSX.Element {
             setIsPlaying(false);
             props.onPlayStateChange?.(false);
           }}
-        />
+        >
+          <track kind="captions" />
+        </video>
       </Show>
 
       {/* Canvas overlay for processed frames / demo content */}
@@ -259,7 +260,8 @@ export function VideoPlayer(props: VideoPlayerProps): JSX.Element {
           <span
             style={{
               background: "rgba(0,0,0,0.6)",
-              color: props.backendLabel === "WebGPU" ? "var(--color-primary)" : "var(--color-warning)",
+              color:
+                props.backendLabel === "WebGPU" ? "var(--color-primary)" : "var(--color-warning)",
               padding: "2px 8px",
               "border-radius": "4px",
               "font-size": "12px",

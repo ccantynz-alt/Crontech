@@ -10,11 +10,7 @@
 
 import type { JSX } from "solid-js";
 import { SEOHead } from "../../../components/SEOHead";
-import {
-  DocsArticle,
-  Callout,
-  KeyList,
-} from "../../../components/docs/DocsArticle";
+import { Callout, DocsArticle, KeyList } from "../../../components/docs/DocsArticle";
 
 export default function AuthenticationArticle(): JSX.Element {
   return (
@@ -39,32 +35,26 @@ export default function AuthenticationArticle(): JSX.Element {
         }}
       >
         <p>
-          All three auth paths land on the same session layer
-          (implemented in <code>apps/api/src/auth/session.ts</code>):
-          a successful authentication creates a new row in the{" "}
-          <code>sessions</code> table with a cryptographically random
-          64-character token and a 30-day expiry. The client sends
-          that token as a <code>Bearer</code> Authorization header on
-          every subsequent request. The{" "}
-          <code>authMiddleware</code> in{" "}
-          <code>apps/api/src/auth/middleware.ts</code> validates it
-          against the database and sets <code>userId</code> on the
-          Hono context.
+          All three auth paths land on the same session layer (implemented in{" "}
+          <code>apps/api/src/auth/session.ts</code>): a successful authentication creates a new row
+          in the <code>sessions</code> table with a cryptographically random 64-character token and
+          a 30-day expiry. The client sends that token as a <code>Bearer</code> Authorization header
+          on every subsequent request. The <code>authMiddleware</code> in{" "}
+          <code>apps/api/src/auth/middleware.ts</code> validates it against the database and sets{" "}
+          <code>userId</code> on the Hono context.
         </p>
 
         <Callout tone="info">
-          Tokens are opaque — they are not JWTs and they carry no
-          claims. The server is the single source of truth. Revoking
-          a session is one row deletion.
+          Tokens are opaque — they are not JWTs and they carry no claims. The server is the single
+          source of truth. Revoking a session is one row deletion.
         </Callout>
 
         <h2>Passkey / WebAuthn</h2>
 
         <p>
-          Implemented in <code>apps/api/src/auth/webauthn.ts</code>{" "}
-          on top of{" "}
-          <code>@simplewebauthn/server</code>. The registration and
-          login ceremonies are each two tRPC procedures:
+          Implemented in <code>apps/api/src/auth/webauthn.ts</code> on top of{" "}
+          <code>@simplewebauthn/server</code>. The registration and login ceremonies are each two
+          tRPC procedures:
         </p>
 
         <KeyList
@@ -93,20 +83,17 @@ export default function AuthenticationArticle(): JSX.Element {
         />
 
         <Callout tone="note">
-          The relying party id defaults to <code>localhost</code>{" "}
-          when <code>WEBAUTHN_RP_ID</code> is unset, which is correct
-          for local dev but wrong for every other environment. Always
-          set <code>WEBAUTHN_RP_ID</code> and{" "}
-          <code>WEBAUTHN_ORIGIN</code> in project env vars before
+          The relying party id defaults to <code>localhost</code> when <code>WEBAUTHN_RP_ID</code>{" "}
+          is unset, which is correct for local dev but wrong for every other environment. Always set{" "}
+          <code>WEBAUTHN_RP_ID</code> and <code>WEBAUTHN_ORIGIN</code> in project env vars before
           deploying.
         </Callout>
 
         <h2>Google OAuth 2.0</h2>
 
         <p>
-          Implemented in{" "}
-          <code>apps/api/src/auth/google-oauth.ts</code>. The full
-          authorization-code flow is wired end-to-end:
+          Implemented in <code>apps/api/src/auth/google-oauth.ts</code>. The full authorization-code
+          flow is wired end-to-end:
         </p>
 
         <KeyList
@@ -132,12 +119,10 @@ export default function AuthenticationArticle(): JSX.Element {
         <h2>Email + password</h2>
 
         <p>
-          Implemented in <code>apps/api/src/auth/password.ts</code>.
-          Two tRPC procedures — <code>auth.registerWithPassword</code>{" "}
-          and <code>auth.loginWithPassword</code> — wrap an argon2id
-          hash via <code>hash-wasm</code>. The library was chosen
-          because it runs identically on Bun and Cloudflare Workers;
-          the deploy target per BLK-020 is Workers.
+          Implemented in <code>apps/api/src/auth/password.ts</code>. Two tRPC procedures —{" "}
+          <code>auth.registerWithPassword</code> and <code>auth.loginWithPassword</code> — wrap an
+          argon2id hash via <code>hash-wasm</code>. The library was chosen because it runs
+          identically on Bun and Cloudflare Workers; the deploy target per BLK-020 is Workers.
         </p>
 
         <KeyList
@@ -168,12 +153,10 @@ export default function AuthenticationArticle(): JSX.Element {
         <h2>Sessions and sign-out</h2>
 
         <p>
-          Every successful authentication calls{" "}
-          <code>createSession(userId, db)</code> and returns the
-          token. The token is 32 bytes of random data (via{" "}
-          <code>crypto.getRandomValues</code>) encoded as 64 hex
-          characters. It is not reversible, not derived from the
-          userId, and not guessable.
+          Every successful authentication calls <code>createSession(userId, db)</code> and returns
+          the token. The token is 32 bytes of random data (via <code>crypto.getRandomValues</code>)
+          encoded as 64 hex characters. It is not reversible, not derived from the userId, and not
+          guessable.
         </p>
 
         <KeyList
@@ -197,9 +180,8 @@ export default function AuthenticationArticle(): JSX.Element {
         />
 
         <Callout tone="warn">
-          The Bearer token is the keys to the kingdom. Store it in
-          an HttpOnly, Secure, SameSite=Strict cookie or in a
-          platform-appropriate secure storage. Never log it, never
+          The Bearer token is the keys to the kingdom. Store it in an HttpOnly, Secure,
+          SameSite=Strict cookie or in a platform-appropriate secure storage. Never log it, never
           ship it to an analytics tool, never embed it in a URL.
         </Callout>
       </DocsArticle>

@@ -1,8 +1,8 @@
+import { Badge, Button, Card, Input, Stack, Text } from "@back-to-the-future/ui";
 import { For, Show, createSignal } from "solid-js";
 import type { JSX } from "solid-js";
-import { SEOHead } from "../components/SEOHead";
-import { Button, Card, Input, Stack, Text, Badge } from "@back-to-the-future/ui";
 import { ProtectedRoute } from "../components/ProtectedRoute";
+import { SEOHead } from "../components/SEOHead";
 
 interface Room {
   id: string;
@@ -37,7 +37,9 @@ export default function CollabPage(): JSX.Element {
       />
       <Stack direction="vertical" gap="lg" class="page-padded">
         <Stack direction="vertical" gap="xs">
-          <Text variant="h1" weight="bold">Real-Time Collaboration</Text>
+          <Text variant="h1" weight="bold">
+            Real-Time Collaboration
+          </Text>
           <Text variant="body" class="text-muted">
             Create or join rooms to collaborate with team members and AI agents in real-time.
           </Text>
@@ -45,7 +47,9 @@ export default function CollabPage(): JSX.Element {
 
         <Card padding="lg">
           <Stack direction="vertical" gap="md">
-            <Text variant="h3" weight="semibold">Create New Room</Text>
+            <Text variant="h3" weight="semibold">
+              Create New Room
+            </Text>
             <Stack direction="horizontal" gap="sm" align="end">
               <Input
                 placeholder="Room name..."
@@ -66,8 +70,12 @@ export default function CollabPage(): JSX.Element {
         <Card padding="lg">
           <Stack direction="vertical" gap="md">
             <Stack direction="horizontal" gap="sm" align="center">
-              <Text variant="h3" weight="semibold">Active Rooms</Text>
-              <Badge variant="info" size="sm">{rooms().length} rooms</Badge>
+              <Text variant="h3" weight="semibold">
+                Active Rooms
+              </Text>
+              <Badge variant="info" size="sm">
+                {rooms().length} rooms
+              </Badge>
             </Stack>
 
             <Show
@@ -84,7 +92,9 @@ export default function CollabPage(): JSX.Element {
                     <Card padding="sm">
                       <Stack direction="horizontal" justify="between" align="center">
                         <Stack direction="vertical" gap="xs">
-                          <Text variant="body" weight="semibold">{room.name}</Text>
+                          <Text variant="body" weight="semibold">
+                            {room.name}
+                          </Text>
                           <Text variant="caption" class="text-muted">
                             {room.users} user(s) connected
                           </Text>
@@ -96,7 +106,13 @@ export default function CollabPage(): JSX.Element {
                           >
                             {room.status}
                           </Badge>
-                          <Button variant="outline" size="sm" onClick={() => { window.location.href = `/builder?room=${room.id}`; }}>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              window.location.href = `/builder?room=${room.id}`;
+                            }}
+                          >
                             Join
                           </Button>
                         </Stack>
@@ -111,11 +127,15 @@ export default function CollabPage(): JSX.Element {
 
         <Card padding="lg">
           <Stack direction="vertical" gap="md">
-            <Text variant="h3" weight="semibold">Collaboration Features</Text>
+            <Text variant="h3" weight="semibold">
+              Collaboration Features
+            </Text>
             <div class="grid-3">
               <Card padding="sm">
                 <Stack direction="vertical" gap="xs">
-                  <Text variant="body" weight="semibold">CRDT Sync</Text>
+                  <Text variant="body" weight="semibold">
+                    CRDT Sync
+                  </Text>
                   <Text variant="caption" class="text-muted">
                     Conflict-free editing powered by Yjs
                   </Text>
@@ -123,7 +143,9 @@ export default function CollabPage(): JSX.Element {
               </Card>
               <Card padding="sm">
                 <Stack direction="vertical" gap="xs">
-                  <Text variant="body" weight="semibold">AI Participants</Text>
+                  <Text variant="body" weight="semibold">
+                    AI Participants
+                  </Text>
                   <Text variant="caption" class="text-muted">
                     AI agents join as real-time collaborators
                   </Text>
@@ -131,7 +153,9 @@ export default function CollabPage(): JSX.Element {
               </Card>
               <Card padding="sm">
                 <Stack direction="vertical" gap="xs">
-                  <Text variant="body" weight="semibold">Live Cursors</Text>
+                  <Text variant="body" weight="semibold">
+                    Live Cursors
+                  </Text>
                   <Text variant="caption" class="text-muted">
                     See everyone's position in real-time
                   </Text>

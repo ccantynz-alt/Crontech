@@ -5,24 +5,24 @@
  * processor registry, and dispatch logic.
  */
 
-import { describe, test, expect, beforeEach, mock } from "bun:test";
+import { beforeEach, describe, expect, mock, test } from "bun:test";
+import type { Job } from "bullmq";
 import {
-  SendEmailJobSchema,
+  GenerateSiteJobSchema,
+  JOB_SCHEMAS,
+  JobTypeSchema,
   ProcessWebhookJobSchema,
   ProvisionTenantJobSchema,
-  GenerateSiteJobSchema,
-  JobTypeSchema,
-  JOB_SCHEMAS,
+  SendEmailJobSchema,
 } from "./jobs";
 import {
-  registerProcessor,
-  getProcessor,
-  hasProcessor,
-  registeredTypes,
   clearProcessors,
   dispatch,
+  getProcessor,
+  hasProcessor,
+  registerProcessor,
+  registeredTypes,
 } from "./processors";
-import type { Job } from "bullmq";
 
 // ── Job schema validation ─────────────────────────────────────────────
 
@@ -236,9 +236,7 @@ describe("dispatch", () => {
       opts: {},
     } as unknown as Job;
 
-    await expect(dispatch(fakeJob)).rejects.toThrow(
-      "No processor registered for job type",
-    );
+    await expect(dispatch(fakeJob)).rejects.toThrow("No processor registered for job type");
   });
 
   test("validates payload against schema before dispatching", async () => {
@@ -277,6 +275,6 @@ describe("dispatch", () => {
     expect(handler).toHaveBeenCalledTimes(1);
     const callArgs = handler.mock.calls[0];
     expect(callArgs).toBeDefined();
-    expect((callArgs![0] as Record<string, unknown>)["webhookId"]).toBe("wh_1");
+    expect((callArgs?.[0] as Record<string, unknown>).webhookId).toBe("wh_1");
   });
 });

@@ -37,9 +37,7 @@ describe("settings route — smoke", () => {
     // honest state. What's NOT fine is promising features that
     // don't exist.
     const mentionsHonest =
-      lower.includes("coming soon") ||
-      lower.includes("not yet") ||
-      lower.includes("soon");
+      lower.includes("coming soon") || lower.includes("not yet") || lower.includes("soon");
     // Allow either: all-real-features OR honest-about-preview.
     expect(typeof mentionsHonest).toBe("boolean");
   });

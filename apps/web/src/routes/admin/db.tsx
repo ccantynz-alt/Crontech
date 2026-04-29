@@ -9,20 +9,13 @@
 // Polite tone — no named competitors. Zero raw HTML — SolidJS JSX +
 // shared UI primitives only.
 
+import { Badge, Button, Card, Spinner, Stack, Text } from "@back-to-the-future/ui";
 import { Title } from "@solidjs/meta";
-import { createResource, For, Show, type JSX } from "solid-js";
 import { A, useNavigate } from "@solidjs/router";
-import {
-  Button,
-  Card,
-  Stack,
-  Text,
-  Badge,
-  Spinner,
-} from "@back-to-the-future/ui";
+import { For, type JSX, Show, createResource } from "solid-js";
 import { AdminRoute } from "../../components/AdminRoute";
-import { useAuth } from "../../stores";
 import { trpc } from "../../lib/trpc";
+import { useAuth } from "../../stores";
 
 // ── Types ───────────────────────────────────────────────────────────
 
@@ -48,9 +41,7 @@ export function formatRowCount(n: number): string {
 }
 
 /** Badge variant for a row-count bucket (visual scanning aid). */
-export function rowCountVariant(
-  n: number,
-): "success" | "warning" | "error" | "default" {
+export function rowCountVariant(n: number): "success" | "warning" | "error" | "default" {
   if (!Number.isFinite(n) || n < 0) return "default";
   if (n === 0) return "default";
   if (n < 100) return "success";
@@ -75,14 +66,10 @@ function AdminGuard(props: { children: JSX.Element }): JSX.Element {
               Access Denied
             </Text>
             <Text variant="body" class="text-muted">
-              The database inspector is reserved for administrators. If you
-              believe this is a mistake, please let Craig know.
+              The database inspector is reserved for administrators. If you believe this is a
+              mistake, please let Craig know.
             </Text>
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={() => navigate("/dashboard")}
-            >
+            <Button variant="primary" size="sm" onClick={() => navigate("/dashboard")}>
               Back to Dashboard
             </Button>
           </Stack>
@@ -140,11 +127,7 @@ function DatabaseSection(props: DatabaseSectionProps): JSX.Element {
                     background: "var(--color-bg-muted, transparent)",
                   }}
                 >
-                  <Stack
-                    direction="horizontal"
-                    gap="md"
-                    align="center"
-                  >
+                  <Stack direction="horizontal" gap="md" align="center">
                     <Text variant="body" weight="semibold">
                       {t.name}
                     </Text>
@@ -183,9 +166,9 @@ export default function AdminDbInspectorPage(): JSX.Element {
             Database Inspector
           </Text>
           <Text variant="body" class="text-muted">
-            A read-only browser for every table on both data tiers. Click a
-            table to view its columns and paginated rows. Secret-looking
-            columns (passwords, tokens, keys) are masked on display.
+            A read-only browser for every table on both data tiers. Click a table to view its
+            columns and paginated rows. Secret-looking columns (passwords, tokens, keys) are masked
+            on display.
           </Text>
         </Stack>
 

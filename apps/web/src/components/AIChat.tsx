@@ -1,6 +1,6 @@
+import { Button, Card, Input, Spinner, Stack, Text } from "@back-to-the-future/ui";
 import { For, Show, createSignal } from "solid-js";
 import type { JSX } from "solid-js";
-import { Button, Card, Input, Stack, Text, Spinner } from "@back-to-the-future/ui";
 
 export interface ChatMessage {
   id: string;
@@ -88,14 +88,20 @@ export function AIChat(props: AIChatProps): JSX.Element {
                 <Text variant="caption" weight="semibold" class="chat-role">
                   {msg.role === "user" ? "You" : "AI"}
                 </Text>
-                <Text variant="body" class="chat-content">{msg.content}</Text>
+                <Text variant="body" class="chat-content">
+                  {msg.content}
+                </Text>
               </div>
             )}
           </For>
           <Show when={isStreaming() && streamContent()}>
             <div class="chat-message chat-message-assistant">
-              <Text variant="caption" weight="semibold" class="chat-role">AI</Text>
-              <Text variant="body" class="chat-content">{streamContent()}</Text>
+              <Text variant="caption" weight="semibold" class="chat-role">
+                AI
+              </Text>
+              <Text variant="body" class="chat-content">
+                {streamContent()}
+              </Text>
             </div>
           </Show>
           <Show when={isStreaming() && !streamContent()}>

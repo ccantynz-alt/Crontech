@@ -17,16 +17,9 @@
 // The backend tRPC surface (setEnvVar, listEnvVars, deleteEnvVar) is
 // intentionally untouched — values round-trip only once, on write.
 
-import { createMemo, createSignal, For, Show } from "solid-js";
+import { Badge, Button, Card, Spinner, Stack, Text } from "@back-to-the-future/ui";
+import { For, Show, createMemo, createSignal } from "solid-js";
 import type { Accessor, JSX } from "solid-js";
-import {
-  Badge,
-  Button,
-  Card,
-  Spinner,
-  Stack,
-  Text,
-} from "@back-to-the-future/ui";
 import { trpc } from "../lib/trpc";
 import { invalidateQueries, useQuery } from "../lib/use-trpc";
 import { showToast } from "./Toast";
@@ -35,11 +28,7 @@ import { showToast } from "./Toast";
 
 export type EnvTarget = "production" | "preview" | "development";
 
-const ENV_TARGETS: ReadonlyArray<EnvTarget> = [
-  "production",
-  "preview",
-  "development",
-];
+const ENV_TARGETS: ReadonlyArray<EnvTarget> = ["production", "preview", "development"];
 
 interface EnvVarRow {
   id: string;
@@ -115,12 +104,24 @@ function EyeIcon(props: { open: boolean }): JSX.Element {
       when={props.open}
       fallback={
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M3 3l18 18M10.58 10.58a2 2 0 002.83 2.83M9.88 4.24A10.05 10.05 0 0112 4c7 0 11 8 11 8a17.6 17.6 0 01-3.17 4.33M6.12 6.12A17.6 17.6 0 001 12s4 8 11 8a10.05 10.05 0 004.88-1.24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+          <path
+            d="M3 3l18 18M10.58 10.58a2 2 0 002.83 2.83M9.88 4.24A10.05 10.05 0 0112 4c7 0 11 8 11 8a17.6 17.6 0 01-3.17 4.33M6.12 6.12A17.6 17.6 0 001 12s4 8 11 8a10.05 10.05 0 004.88-1.24"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
         </svg>
       }
     >
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+        <path
+          d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
         <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.8" />
       </svg>
     </Show>
@@ -131,7 +132,12 @@ function CopyIcon(): JSX.Element {
   return (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor" stroke-width="1.8" />
-      <path d="M5 15V5a2 2 0 012-2h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+      <path
+        d="M5 15V5a2 2 0 012-2h10"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+      />
     </svg>
   );
 }
@@ -139,7 +145,13 @@ function CopyIcon(): JSX.Element {
 function TrashIcon(): JSX.Element {
   return (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2M6 6l1 14a2 2 0 002 2h6a2 2 0 002-2l1-14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+      <path
+        d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2M6 6l1 14a2 2 0 002 2h6a2 2 0 002-2l1-14"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
     </svg>
   );
 }
@@ -164,44 +176,41 @@ function EnvTargetCheckboxes(props: {
   onToggle: (target: EnvTarget) => void;
 }): JSX.Element {
   return (
-    <div class="flex flex-wrap gap-2" role="group" aria-label="Environments">
+    <fieldset class="flex flex-wrap gap-2 border-0 p-0 m-0" aria-label="Environments">
       <For each={ENV_TARGETS}>
         {(target) => {
           const active = (): boolean => props.selected().includes(target);
           return (
             <button
               type="button"
-              role="checkbox"
-              aria-checked={active()}
+              aria-pressed={active()}
               onClick={() => props.onToggle(target)}
               class="flex items-center gap-2 rounded-lg border px-3 py-1.5 text-xs font-medium capitalize transition-colors"
               style={{
-                "border-color": active()
-                  ? "var(--color-primary)"
-                  : "var(--color-border)",
+                "border-color": active() ? "var(--color-primary)" : "var(--color-border)",
                 background: active()
                   ? "color-mix(in srgb, var(--color-primary) 12%, transparent)"
                   : "var(--color-bg-subtle)",
-                color: active()
-                  ? "var(--color-primary)"
-                  : "var(--color-text-muted)",
+                color: active() ? "var(--color-primary)" : "var(--color-text-muted)",
               }}
             >
               <span
                 aria-hidden="true"
                 class="flex h-3.5 w-3.5 items-center justify-center rounded-sm border"
                 style={{
-                  "border-color": active()
-                    ? "var(--color-primary)"
-                    : "var(--color-border)",
-                  background: active()
-                    ? "var(--color-primary)"
-                    : "transparent",
+                  "border-color": active() ? "var(--color-primary)" : "var(--color-border)",
+                  background: active() ? "var(--color-primary)" : "transparent",
                 }}
               >
                 <Show when={active()}>
-                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                    <path d="M2 5l2 2 4-4" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
+                    <path
+                      d="M2 5l2 2 4-4"
+                      stroke="#fff"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
                   </svg>
                 </Show>
               </span>
@@ -210,7 +219,7 @@ function EnvTargetCheckboxes(props: {
           );
         }}
       </For>
-    </div>
+    </fieldset>
   );
 }
 
@@ -223,9 +232,7 @@ function AddEnvVarForm(props: {
   const [key, setKey] = createSignal("");
   const [value, setValue] = createSignal("");
   const [reveal, setReveal] = createSignal(false);
-  const [targets, setTargets] = createSignal<ReadonlyArray<EnvTarget>>([
-    "production",
-  ]);
+  const [targets, setTargets] = createSignal<ReadonlyArray<EnvTarget>>(["production"]);
   const [submitting, setSubmitting] = createSignal(false);
 
   const keyValid = (): boolean => ENV_KEY_RE.test(key().trim());
@@ -237,9 +244,7 @@ function AddEnvVarForm(props: {
     targets().length > 0;
 
   const toggleTarget = (t: EnvTarget): void => {
-    setTargets((prev) =>
-      prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t],
-    );
+    setTargets((prev) => (prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]));
   };
 
   const submit = async (): Promise<void> => {
@@ -265,10 +270,7 @@ function AddEnvVarForm(props: {
     }
     setSubmitting(false);
     if (ok > 0) {
-      showToast(
-        `Saved ${k} to ${ok} environment${ok === 1 ? "" : "s"}`,
-        "success",
-      );
+      showToast(`Saved ${k} to ${ok} environment${ok === 1 ? "" : "s"}`, "success");
       invalidateQueries("projects", "env-vars");
       setKey("");
       setValue("");
@@ -277,10 +279,7 @@ function AddEnvVarForm(props: {
       props.onClose();
     }
     if (failed > 0) {
-      showToast(
-        `Failed to save to ${failed} environment${failed === 1 ? "" : "s"}`,
-        "error",
-      );
+      showToast(`Failed to save to ${failed} environment${failed === 1 ? "" : "s"}`, "error");
     }
   };
 
@@ -288,7 +287,9 @@ function AddEnvVarForm(props: {
     <Card padding="lg">
       <Stack direction="vertical" gap="md">
         <div class="flex items-center justify-between">
-          <Text variant="h4" weight="semibold">Add environment variable</Text>
+          <Text variant="h4" weight="semibold">
+            Add environment variable
+          </Text>
           <button
             type="button"
             onClick={props.onClose}
@@ -320,10 +321,7 @@ function AddEnvVarForm(props: {
               aria-invalid={key().length > 0 && !keyValid()}
             />
             <Show when={key().length > 0 && !keyValid()}>
-              <span
-                class="mt-1 block text-[11px]"
-                style={{ color: "var(--color-danger)" }}
-              >
+              <span class="mt-1 block text-[11px]" style={{ color: "var(--color-danger)" }}>
                 Must be UPPER_SNAKE_CASE
               </span>
             </Show>
@@ -359,15 +357,15 @@ function AddEnvVarForm(props: {
           </div>
         </div>
 
-        <div>
-          <label
+        <fieldset class="border-0 p-0 m-0">
+          <legend
             class="mb-2 block text-xs font-medium"
             style={{ color: "var(--color-text-muted)" }}
           >
             Environments
-          </label>
+          </legend>
           <EnvTargetCheckboxes selected={targets} onToggle={toggleTarget} />
-        </div>
+        </fieldset>
 
         <div class="flex items-center justify-end gap-2">
           <Button variant="outline" size="md" onClick={props.onClose}>
@@ -397,21 +395,16 @@ function BulkImportForm(props: {
   onClose: () => void;
 }): JSX.Element {
   const [text, setText] = createSignal("");
-  const [targets, setTargets] = createSignal<ReadonlyArray<EnvTarget>>([
-    "production",
-  ]);
+  const [targets, setTargets] = createSignal<ReadonlyArray<EnvTarget>>(["production"]);
   const [submitting, setSubmitting] = createSignal(false);
 
   const parsed = createMemo((): ParsedEnvLine[] => parseEnvFile(text()));
 
   const toggleTarget = (t: EnvTarget): void => {
-    setTargets((prev) =>
-      prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t],
-    );
+    setTargets((prev) => (prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]));
   };
 
-  const canSubmit = (): boolean =>
-    !submitting() && parsed().length > 0 && targets().length > 0;
+  const canSubmit = (): boolean => !submitting() && parsed().length > 0 && targets().length > 0;
 
   const submit = async (): Promise<void> => {
     if (!canSubmit()) return;
@@ -443,10 +436,7 @@ function BulkImportForm(props: {
       props.onClose();
     }
     if (failed > 0) {
-      showToast(
-        `Failed to import ${failed} entr${failed === 1 ? "y" : "ies"}`,
-        "error",
-      );
+      showToast(`Failed to import ${failed} entr${failed === 1 ? "y" : "ies"}`, "error");
     }
   };
 
@@ -455,11 +445,10 @@ function BulkImportForm(props: {
       <Stack direction="vertical" gap="md">
         <div class="flex items-center justify-between">
           <div>
-            <Text variant="h4" weight="semibold">Bulk import from .env</Text>
-            <Text
-              variant="caption"
-              style={{ color: "var(--color-text-faint)" }}
-            >
+            <Text variant="h4" weight="semibold">
+              Bulk import from .env
+            </Text>
+            <Text variant="caption" style={{ color: "var(--color-text-faint)" }}>
               Paste the contents of a .env file. Lines starting with # are skipped.
             </Text>
           </div>
@@ -477,7 +466,7 @@ function BulkImportForm(props: {
         <textarea
           value={text()}
           onInput={(e) => setText(e.currentTarget.value)}
-          placeholder={"DATABASE_URL=postgres://...\nAPI_KEY=sk-..."}
+          placeholder={"DATABASE_URL=postgres://...\nAPI_KEY=sk-..."} // secrets-ok — placeholder example text, not a real credential
           aria-label="Bulk .env content"
           rows={8}
           spellcheck={false}
@@ -544,10 +533,7 @@ function EnvVarRowItem(props: {
       invalidateQueries("projects", "env-vars");
     } catch (err) {
       setDeleting(false);
-      showToast(
-        err instanceof Error ? err.message : "Failed to delete variable",
-        "error",
-      );
+      showToast(err instanceof Error ? err.message : "Failed to delete variable", "error");
     }
   };
 
@@ -562,7 +548,9 @@ function EnvVarRowItem(props: {
           >
             {props.row.key}
           </span>
-          <Badge variant="default" size="sm">{props.row.environment}</Badge>
+          <Badge variant="default" size="sm">
+            {props.row.environment}
+          </Badge>
         </div>
 
         <div class="flex flex-wrap items-center gap-2">
@@ -629,17 +617,14 @@ export function EnvVarsPanel(props: EnvVarsPanelProps): JSX.Element {
   const [showAdd, setShowAdd] = createSignal(false);
   const [showImport, setShowImport] = createSignal(false);
 
-  const query = useQuery(
-    () => trpc.projects.listEnvVars.query({ projectId: props.projectId }),
-    { key: ["projects", "env-vars"] },
-  );
+  const query = useQuery(() => trpc.projects.listEnvVars.query({ projectId: props.projectId }), {
+    key: ["projects", "env-vars"],
+  });
 
   const rows = createMemo((): EnvVarRow[] => {
     const data = query.data();
     if (!data) return [];
-    return data
-      .slice()
-      .sort((a, b) => a.key.localeCompare(b.key));
+    return data.slice().sort((a, b) => a.key.localeCompare(b.key));
   });
 
   const totalCount = (): number => rows().length;
@@ -673,7 +658,9 @@ export function EnvVarsPanel(props: EnvVarsPanelProps): JSX.Element {
       {/* Toolbar */}
       <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <Text variant="h4" weight="semibold">Environment variables</Text>
+          <Text variant="h4" weight="semibold">
+            Environment variables
+          </Text>
           <Text variant="caption" style={{ color: "var(--color-text-faint)" }}>
             Encrypted at rest. Values are never returned by the API once saved.
             {totalCount() > 0 ? ` • ${totalCount()} variable${totalCount() === 1 ? "" : "s"}` : ""}
@@ -718,18 +705,12 @@ export function EnvVarsPanel(props: EnvVarsPanelProps): JSX.Element {
 
       {/* Add form */}
       <Show when={showAdd()}>
-        <AddEnvVarForm
-          projectId={props.projectId}
-          onClose={() => setShowAdd(false)}
-        />
+        <AddEnvVarForm projectId={props.projectId} onClose={() => setShowAdd(false)} />
       </Show>
 
       {/* Import form */}
       <Show when={showImport()}>
-        <BulkImportForm
-          projectId={props.projectId}
-          onClose={() => setShowImport(false)}
-        />
+        <BulkImportForm projectId={props.projectId} onClose={() => setShowImport(false)} />
       </Show>
 
       {/* Loading state */}
@@ -766,11 +747,7 @@ export function EnvVarsPanel(props: EnvVarsPanelProps): JSX.Element {
                   Values are encrypted at rest and scoped per environment.
                 </Text>
                 <div class="mt-2">
-                  <Button
-                    variant="primary"
-                    size="sm"
-                    onClick={() => setShowAdd(true)}
-                  >
+                  <Button variant="primary" size="sm" onClick={() => setShowAdd(true)}>
                     <span class="inline-flex items-center gap-1.5">
                       <PlusIcon />
                       Add your first variable
@@ -783,9 +760,7 @@ export function EnvVarsPanel(props: EnvVarsPanelProps): JSX.Element {
         >
           <div class="space-y-2">
             <For each={rows()}>
-              {(row) => (
-                <EnvVarRowItem projectId={props.projectId} row={row} />
-              )}
+              {(row) => <EnvVarRowItem projectId={props.projectId} row={row} />}
             </For>
           </div>
         </Show>

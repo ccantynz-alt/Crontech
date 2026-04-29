@@ -21,7 +21,7 @@ set -euo pipefail
 
 GLUECRON_HOST="${GLUECRON_HOST:?set GLUECRON_HOST (e.g. gluecron.crontech.ai)}"
 GLUECRON_USER="${GLUECRON_USER:?set GLUECRON_USER}"
-GLUECRON_TOKEN="${GLUECRON_TOKEN:?set GLUECRON_TOKEN}"
+GLUECRON_TOKEN="${GLUECRON_TOKEN:?set GLUECRON_TOKEN}" # secrets-ok — required env var, not hardcoded
 
 GITHUB_OWNER="${GITHUB_OWNER:-ccantynz-alt}"
 REPOS="${REPOS:-Crontech Gluecron.com AlecRae.com}"

@@ -3,8 +3,8 @@
 // Demo mode (no key needed) uses smart rule-based heuristics.
 // With an API key, the same shape is produced by an LLM (future).
 
-import { z } from "zod";
 import type { Component } from "@back-to-the-future/schemas";
+import { z } from "zod";
 
 /** Narrow view of Component for property access (Component resolves to unknown via ZodType). */
 interface ComponentLike {
@@ -74,20 +74,32 @@ export function analyzeProject(tree: Component[]): ProjectSuggestion[] {
     suggestions.push({
       id: "missing-cta",
       title: "Your page is missing a call-to-action button.",
-      description: "Visitors need an obvious next step. Want me to add a 'Get Started' button at the bottom?",
+      description:
+        "Visitors need an obvious next step. Want me to add a 'Get Started' button at the bottom?",
       severity: "tip",
       fix: {
         kind: "add",
         component: {
           component: "Button",
-          props: { label: "Get Started", variant: "primary", size: "lg", disabled: false, loading: false },
+          props: {
+            label: "Get Started",
+            variant: "primary",
+            size: "lg",
+            disabled: false,
+            loading: false,
+          },
         },
       },
     });
   }
 
   // Rule 2: No headline
-  if (!flatten(tree).some((c) => c.component === "Text" && (c.props as { variant?: string } | undefined)?.variant === "h1")) {
+  if (
+    !flatten(tree).some(
+      (c) =>
+        c.component === "Text" && (c.props as { variant?: string } | undefined)?.variant === "h1",
+    )
+  ) {
     suggestions.push({
       id: "missing-headline",
       title: "There is no main headline on this page.",
@@ -108,7 +120,8 @@ export function analyzeProject(tree: Component[]): ProjectSuggestion[] {
     suggestions.push({
       id: "needs-visuals",
       title: "This page is text-only.",
-      description: "Adding visual cards or imagery makes pages feel friendlier. Want me to add a feature grid?",
+      description:
+        "Adding visual cards or imagery makes pages feel friendlier. Want me to add a feature grid?",
       severity: "tip",
       fix: { kind: "add" },
     });
@@ -119,13 +132,20 @@ export function analyzeProject(tree: Component[]): ProjectSuggestion[] {
     suggestions.push({
       id: "add-contact-form",
       title: "Add a contact form?",
-      description: "Letting visitors reach out is one of the easiest ways to grow. Shall I add a contact form?",
+      description:
+        "Letting visitors reach out is one of the easiest ways to grow. Shall I add a contact form?",
       severity: "info",
       fix: {
         kind: "add",
         component: {
           component: "Input",
-          props: { name: "email", type: "email", label: "Your email", required: true, disabled: false },
+          props: {
+            name: "email",
+            type: "email",
+            label: "Your email",
+            required: true,
+            disabled: false,
+          },
         },
       },
     });
@@ -136,7 +156,8 @@ export function analyzeProject(tree: Component[]): ProjectSuggestion[] {
     suggestions.push({
       id: "needs-spacing",
       title: "This section could use better spacing.",
-      description: "Wrapping your content in a Stack with consistent gaps will make it look polished. Shall I fix it?",
+      description:
+        "Wrapping your content in a Stack with consistent gaps will make it look polished. Shall I fix it?",
       severity: "tip",
       fix: { kind: "modify" },
     });
@@ -154,7 +175,8 @@ export function analyzeProject(tree: Component[]): ProjectSuggestion[] {
     suggestions.push({
       id: "mobile-friendly",
       title: "Make this mobile-friendly?",
-      description: "You have wide horizontal layouts that may break on phones. Want me to make them stack vertically on small screens?",
+      description:
+        "You have wide horizontal layouts that may break on phones. Want me to make them stack vertically on small screens?",
       severity: "tip",
       fix: { kind: "modify" },
     });

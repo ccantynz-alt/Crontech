@@ -11,17 +11,17 @@
 // providers.ts + agents/site-builder.ts for the deferred list. This
 // file flips when those do.
 
-import { Hono } from "hono";
-import { streamText, generateObject, type ModelMessage } from "ai";
-import { z } from "zod";
 import {
+  type ComputeTier,
   getModelForTier,
+  processGenerativeUIOutput,
   readProviderEnv,
   streamSiteBuilder,
-  processGenerativeUIOutput,
-  type ComputeTier,
 } from "@back-to-the-future/ai-core";
 import { ComponentSchema } from "@back-to-the-future/schemas";
+import { type ModelMessage, generateObject, streamText } from "ai";
+import { Hono } from "hono";
+import { z } from "zod";
 
 // ── Input Schemas ─────────────────────────────────────────────────
 
@@ -87,14 +87,49 @@ function generateDemoLayout(description: string): {
           component: "Stack",
           props: { direction: "vertical", gap: "lg", align: "center", justify: "center" },
           children: [
-            { component: "Text", props: { content: "Welcome to Your New Website", variant: "h1", weight: "bold", align: "center" } },
-            { component: "Text", props: { content: "Built with AI-powered component generation. This is a demo layout showing what the builder can create.", variant: "body", weight: "normal", align: "center" } },
+            {
+              component: "Text",
+              props: {
+                content: "Welcome to Your New Website",
+                variant: "h1",
+                weight: "bold",
+                align: "center",
+              },
+            },
+            {
+              component: "Text",
+              props: {
+                content:
+                  "Built with AI-powered component generation. This is a demo layout showing what the builder can create.",
+                variant: "body",
+                weight: "normal",
+                align: "center",
+              },
+            },
             {
               component: "Stack",
               props: { direction: "horizontal", gap: "md", align: "center", justify: "center" },
               children: [
-                { component: "Button", props: { variant: "primary", size: "lg", disabled: false, loading: false, label: "Get Started" } },
-                { component: "Button", props: { variant: "outline", size: "lg", disabled: false, loading: false, label: "Learn More" } },
+                {
+                  component: "Button",
+                  props: {
+                    variant: "primary",
+                    size: "lg",
+                    disabled: false,
+                    loading: false,
+                    label: "Get Started",
+                  },
+                },
+                {
+                  component: "Button",
+                  props: {
+                    variant: "outline",
+                    size: "lg",
+                    disabled: false,
+                    loading: false,
+                    label: "Learn More",
+                  },
+                },
               ],
             },
             { component: "Separator", props: { orientation: "horizontal" } },
@@ -106,21 +141,46 @@ function generateDemoLayout(description: string): {
                   component: "Card",
                   props: { title: "Fast", padding: "md" },
                   children: [
-                    { component: "Text", props: { content: "Lightning-fast performance with edge computing and WebGPU acceleration.", variant: "body", weight: "normal", align: "left" } },
+                    {
+                      component: "Text",
+                      props: {
+                        content:
+                          "Lightning-fast performance with edge computing and WebGPU acceleration.",
+                        variant: "body",
+                        weight: "normal",
+                        align: "left",
+                      },
+                    },
                   ],
                 },
                 {
                   component: "Card",
                   props: { title: "Smart", padding: "md" },
                   children: [
-                    { component: "Text", props: { content: "AI-native architecture that learns and adapts to your needs.", variant: "body", weight: "normal", align: "left" } },
+                    {
+                      component: "Text",
+                      props: {
+                        content: "AI-native architecture that learns and adapts to your needs.",
+                        variant: "body",
+                        weight: "normal",
+                        align: "left",
+                      },
+                    },
                   ],
                 },
                 {
                   component: "Card",
                   props: { title: "Secure", padding: "md" },
                   children: [
-                    { component: "Text", props: { content: "Zero-trust security with passkey authentication and encryption.", variant: "body", weight: "normal", align: "left" } },
+                    {
+                      component: "Text",
+                      props: {
+                        content: "Zero-trust security with passkey authentication and encryption.",
+                        variant: "body",
+                        weight: "normal",
+                        align: "left",
+                      },
+                    },
                   ],
                 },
               ],
@@ -128,11 +188,17 @@ function generateDemoLayout(description: string): {
           ],
         },
       ],
-      reasoning: "Demo mode: Generated a landing page layout with hero section, CTA buttons, and feature cards. Set OPENAI_API_KEY for AI-generated layouts.",
+      reasoning:
+        "Demo mode: Generated a landing page layout with hero section, CTA buttons, and feature cards. Set OPENAI_API_KEY for AI-generated layouts.",
     };
   }
 
-  if (lower.includes("form") || lower.includes("contact") || lower.includes("signup") || lower.includes("login")) {
+  if (
+    lower.includes("form") ||
+    lower.includes("contact") ||
+    lower.includes("signup") ||
+    lower.includes("login")
+  ) {
     return {
       layout: [
         {
@@ -147,11 +213,49 @@ function generateDemoLayout(description: string): {
                   component: "Stack",
                   props: { direction: "vertical", gap: "md", align: "stretch", justify: "start" },
                   children: [
-                    { component: "Text", props: { content: "Fill out the form below and we will get back to you.", variant: "body", weight: "normal", align: "left" } },
-                    { component: "Input", props: { type: "text", placeholder: "Your name", name: "name", required: true, disabled: false } },
-                    { component: "Input", props: { type: "email", placeholder: "your@email.com", name: "email", required: true, disabled: false } },
-                    { component: "Textarea", props: { placeholder: "Your message...", rows: 4, resize: "vertical" } },
-                    { component: "Button", props: { variant: "primary", size: "md", disabled: false, loading: false, label: "Send Message" } },
+                    {
+                      component: "Text",
+                      props: {
+                        content: "Fill out the form below and we will get back to you.",
+                        variant: "body",
+                        weight: "normal",
+                        align: "left",
+                      },
+                    },
+                    {
+                      component: "Input",
+                      props: {
+                        type: "text",
+                        placeholder: "Your name",
+                        name: "name",
+                        required: true,
+                        disabled: false,
+                      },
+                    },
+                    {
+                      component: "Input",
+                      props: {
+                        type: "email",
+                        placeholder: "your@email.com",
+                        name: "email",
+                        required: true,
+                        disabled: false,
+                      },
+                    },
+                    {
+                      component: "Textarea",
+                      props: { placeholder: "Your message...", rows: 4, resize: "vertical" },
+                    },
+                    {
+                      component: "Button",
+                      props: {
+                        variant: "primary",
+                        size: "md",
+                        disabled: false,
+                        loading: false,
+                        label: "Send Message",
+                      },
+                    },
                   ],
                 },
               ],
@@ -159,7 +263,8 @@ function generateDemoLayout(description: string): {
           ],
         },
       ],
-      reasoning: "Demo mode: Generated a contact form layout with name, email, message fields and submit button. Set OPENAI_API_KEY for AI-generated layouts.",
+      reasoning:
+        "Demo mode: Generated a contact form layout with name, email, message fields and submit button. Set OPENAI_API_KEY for AI-generated layouts.",
     };
   }
 
@@ -174,7 +279,10 @@ function generateDemoLayout(description: string): {
               component: "Stack",
               props: { direction: "horizontal", gap: "md", align: "center", justify: "between" },
               children: [
-                { component: "Text", props: { content: "Dashboard", variant: "h2", weight: "bold", align: "left" } },
+                {
+                  component: "Text",
+                  props: { content: "Dashboard", variant: "h2", weight: "bold", align: "left" },
+                },
                 { component: "Badge", props: { variant: "success", size: "md", label: "Online" } },
               ],
             },
@@ -186,24 +294,57 @@ function generateDemoLayout(description: string): {
                   component: "Card",
                   props: { title: "Total Users", padding: "md" },
                   children: [
-                    { component: "Text", props: { content: "12,345", variant: "h2", weight: "bold", align: "center" } },
-                    { component: "Text", props: { content: "+12% this month", variant: "caption", weight: "normal", align: "center" } },
+                    {
+                      component: "Text",
+                      props: { content: "12,345", variant: "h2", weight: "bold", align: "center" },
+                    },
+                    {
+                      component: "Text",
+                      props: {
+                        content: "+12% this month",
+                        variant: "caption",
+                        weight: "normal",
+                        align: "center",
+                      },
+                    },
                   ],
                 },
                 {
                   component: "Card",
                   props: { title: "Revenue", padding: "md" },
                   children: [
-                    { component: "Text", props: { content: "$98,765", variant: "h2", weight: "bold", align: "center" } },
-                    { component: "Text", props: { content: "+8% this month", variant: "caption", weight: "normal", align: "center" } },
+                    {
+                      component: "Text",
+                      props: { content: "$98,765", variant: "h2", weight: "bold", align: "center" },
+                    },
+                    {
+                      component: "Text",
+                      props: {
+                        content: "+8% this month",
+                        variant: "caption",
+                        weight: "normal",
+                        align: "center",
+                      },
+                    },
                   ],
                 },
                 {
                   component: "Card",
                   props: { title: "Active Projects", padding: "md" },
                   children: [
-                    { component: "Text", props: { content: "42", variant: "h2", weight: "bold", align: "center" } },
-                    { component: "Text", props: { content: "3 due this week", variant: "caption", weight: "normal", align: "center" } },
+                    {
+                      component: "Text",
+                      props: { content: "42", variant: "h2", weight: "bold", align: "center" },
+                    },
+                    {
+                      component: "Text",
+                      props: {
+                        content: "3 due this week",
+                        variant: "caption",
+                        weight: "normal",
+                        align: "center",
+                      },
+                    },
                   ],
                 },
               ],
@@ -217,8 +358,14 @@ function generateDemoLayout(description: string): {
                   props: { direction: "vertical", gap: "sm", align: "stretch", justify: "start" },
                   children: [
                     { component: "Alert", props: { variant: "info", title: "New user signed up" } },
-                    { component: "Alert", props: { variant: "success", title: "Payment received" } },
-                    { component: "Alert", props: { variant: "warning", title: "Server load high" } },
+                    {
+                      component: "Alert",
+                      props: { variant: "success", title: "Payment received" },
+                    },
+                    {
+                      component: "Alert",
+                      props: { variant: "warning", title: "Server load high" },
+                    },
                   ],
                 },
               ],
@@ -226,7 +373,8 @@ function generateDemoLayout(description: string): {
           ],
         },
       ],
-      reasoning: "Demo mode: Generated a dashboard layout with stat cards and activity feed. Set OPENAI_API_KEY for AI-generated layouts.",
+      reasoning:
+        "Demo mode: Generated a dashboard layout with stat cards and activity feed. Set OPENAI_API_KEY for AI-generated layouts.",
     };
   }
 
@@ -237,8 +385,20 @@ function generateDemoLayout(description: string): {
         component: "Stack",
         props: { direction: "vertical", gap: "lg", align: "stretch", justify: "start" },
         children: [
-          { component: "Text", props: { content: description, variant: "h1", weight: "bold", align: "left" } },
-          { component: "Text", props: { content: "This page was generated in demo mode. Connect an AI provider (set OPENAI_API_KEY) for intelligent, context-aware layouts.", variant: "body", weight: "normal", align: "left" } },
+          {
+            component: "Text",
+            props: { content: description, variant: "h1", weight: "bold", align: "left" },
+          },
+          {
+            component: "Text",
+            props: {
+              content:
+                "This page was generated in demo mode. Connect an AI provider (set OPENAI_API_KEY) for intelligent, context-aware layouts.",
+              variant: "body",
+              weight: "normal",
+              align: "left",
+            },
+          },
           { component: "Separator", props: { orientation: "horizontal" } },
           {
             component: "Card",
@@ -248,10 +408,32 @@ function generateDemoLayout(description: string): {
                 component: "Stack",
                 props: { direction: "vertical", gap: "sm", align: "stretch", justify: "start" },
                 children: [
-                  { component: "Text", props: { content: "The AI builder can generate any layout from a natural language description. Try these prompts:", variant: "body", weight: "normal", align: "left" } },
-                  { component: "Badge", props: { variant: "info", size: "md", label: "Build a landing page with hero and features" } },
-                  { component: "Badge", props: { variant: "info", size: "md", label: "Create a contact form" } },
-                  { component: "Badge", props: { variant: "info", size: "md", label: "Design a dashboard with stats" } },
+                  {
+                    component: "Text",
+                    props: {
+                      content:
+                        "The AI builder can generate any layout from a natural language description. Try these prompts:",
+                      variant: "body",
+                      weight: "normal",
+                      align: "left",
+                    },
+                  },
+                  {
+                    component: "Badge",
+                    props: {
+                      variant: "info",
+                      size: "md",
+                      label: "Build a landing page with hero and features",
+                    },
+                  },
+                  {
+                    component: "Badge",
+                    props: { variant: "info", size: "md", label: "Create a contact form" },
+                  },
+                  {
+                    component: "Badge",
+                    props: { variant: "info", size: "md", label: "Design a dashboard with stats" },
+                  },
                 ],
               },
             ],
@@ -260,8 +442,26 @@ function generateDemoLayout(description: string): {
             component: "Stack",
             props: { direction: "horizontal", gap: "md", align: "center", justify: "start" },
             children: [
-              { component: "Button", props: { variant: "primary", size: "md", disabled: false, loading: false, label: "Try Again" } },
-              { component: "Button", props: { variant: "outline", size: "md", disabled: false, loading: false, label: "View Docs" } },
+              {
+                component: "Button",
+                props: {
+                  variant: "primary",
+                  size: "md",
+                  disabled: false,
+                  loading: false,
+                  label: "Try Again",
+                },
+              },
+              {
+                component: "Button",
+                props: {
+                  variant: "outline",
+                  size: "md",
+                  disabled: false,
+                  loading: false,
+                  label: "View Docs",
+                },
+              },
             ],
           },
         ],
@@ -365,10 +565,7 @@ aiRoutes.post("/chat", async (c) => {
   const parsed = ChatInputSchema.safeParse(body);
 
   if (!parsed.success) {
-    return c.json(
-      { error: "Invalid input", details: parsed.error.flatten() },
-      400,
-    );
+    return c.json({ error: "Invalid input", details: parsed.error.flatten() }, 400);
   }
 
   const { messages, computeTier, maxTokens, temperature } = parsed.data;
@@ -443,10 +640,7 @@ aiRoutes.post("/generate-ui", async (c) => {
   const parsed = GenerateUIInputSchema.safeParse(body);
 
   if (!parsed.success) {
-    return c.json(
-      { error: "Invalid input", details: parsed.error.flatten() },
-      400,
-    );
+    return c.json({ error: "Invalid input", details: parsed.error.flatten() }, 400);
   }
 
   const { description, computeTier, mode } = parsed.data;
@@ -485,18 +679,20 @@ Compose a clean, well-structured component tree. Use Stack for layout (direction
     // Validate the output through the generative UI processor
     const validation = processGenerativeUIOutput(JSON.stringify(object.layout));
     if (!validation.success) {
-      return c.json({
-        success: false,
-        error: "Generated UI failed validation",
-        details: validation.errors,
-        ui: object,
-      }, 422);
+      return c.json(
+        {
+          success: false,
+          error: "Generated UI failed validation",
+          details: validation.errors,
+          ui: object,
+        },
+        422,
+      );
     }
 
     return c.json({ success: true, demoMode: false, ui: object });
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "UI generation failed";
+    const message = error instanceof Error ? error.message : "UI generation failed";
 
     // If AI fails, fall back to demo mode
     const demo = generateDemoLayout(description);
@@ -521,10 +717,7 @@ aiRoutes.post("/site-builder", async (c) => {
   const parsed = SiteBuilderInputSchema.safeParse(body);
 
   if (!parsed.success) {
-    return c.json(
-      { error: "Invalid input", details: parsed.error.flatten() },
-      400,
-    );
+    return c.json({ error: "Invalid input", details: parsed.error.flatten() }, 400);
   }
 
   const { messages, computeTier, maxTokens, temperature } = parsed.data;

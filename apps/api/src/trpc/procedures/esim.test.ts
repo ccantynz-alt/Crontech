@@ -1,4 +1,4 @@
-// ── BLK-029 — eSIM router tests ───────────────────────────────────────
+﻿// ── BLK-029 — eSIM router tests ───────────────────────────────────────
 // Exercises the tRPC `esim` router against the test sqlite DB with a
 // mocked provider client so we never hit the real upstream API. Per the
 // BLK-029 brief the coverage contract is:
@@ -18,28 +18,19 @@
 // what's under test. The HTTP + Zod decoding for the client itself lives
 // in a separate unit test when that's added.
 
-import { describe, test, expect, afterEach, beforeEach } from "bun:test";
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import { db, esimOrders, scopedDb, sessions, users } from "@back-to-the-future/db";
 import { eq } from "drizzle-orm";
-import {
-  db,
-  users,
-  sessions,
-  scopedDb,
-  esimOrders,
-} from "@back-to-the-future/db";
-import { appRouter } from "../router";
 import { createSession } from "../../auth/session";
-import type { TRPCContext } from "../context";
-import {
-  __setEsimTestHooks,
-  __resetEsimTestHooks,
-} from "./esim";
 import type { CelitechClient } from "../../esim/celitech-client";
 import type {
   CelitechPurchase,
   EsimInstallInfo,
   EsimPackageSummary,
 } from "../../esim/celitech-types";
+import type { TRPCContext } from "../context";
+import { appRouter } from "../router";
+import { __resetEsimTestHooks, __setEsimTestHooks } from "./esim";
 
 // ── Test harness ──────────────────────────────────────────────────────
 
@@ -49,6 +40,7 @@ function ctxFor(userId: string, sessionToken: string): TRPCContext {
     userId,
     sessionToken,
     csrfToken: null,
+    serviceKey: null,
     scopedDb: scopedDb(db, userId),
   };
 }
@@ -57,7 +49,7 @@ async function createUser(role: "admin" | "viewer"): Promise<string> {
   const id = crypto.randomUUID();
   await db.insert(users).values({
     id,
-    email: `esim-${role}-${Date.now()}-${crypto.randomUUID().replace(/-/g, '').slice(0, 6)}@example.com`,
+    email: `esim-${role}-${Date.now()}-${crypto.randomUUID().replace(/-/g, "").slice(0, 6)}@example.com`,
     displayName: `eSIM Test ${role}`,
     role,
   });
@@ -74,10 +66,7 @@ async function cleanupUser(userId: string): Promise<void> {
 
 interface FakeClientState {
   packages: EsimPackageSummary[];
-  purchaseResult:
-    | { kind: "ok"; value: CelitechPurchase }
-    | { kind: "err"; error: Error }
-    | null;
+  purchaseResult: { kind: "ok"; value: CelitechPurchase } | { kind: "err"; error: Error } | null;
   installInfo: EsimInstallInfo | null;
   purchaseCalls: Array<{
     packageId: string;
@@ -192,6 +181,7 @@ describe("esim router", () => {
       userId: null,
       sessionToken: null,
       csrfToken: null,
+      serviceKey: null,
       scopedDb: null,
     });
   }
@@ -396,11 +386,7 @@ describe("esim router", () => {
     const { CelitechError } = await import("../../esim/celitech-client");
     state.purchaseResult = {
       kind: "err",
-      error: new CelitechError(
-        "Insufficient partner balance.",
-        "createPurchase",
-        402,
-      ),
+      error: new CelitechError("Insufficient partner balance.", "createPurchase", 402),
     };
 
     const caller = await adminCaller();
@@ -417,10 +403,7 @@ describe("esim router", () => {
     const code = (caught as { code?: string }).code;
     expect(code).toBe("BAD_GATEWAY");
 
-    const rows = await db
-      .select()
-      .from(esimOrders)
-      .where(eq(esimOrders.packageId, "pkg-fail"));
+    const rows = await db.select().from(esimOrders).where(eq(esimOrders.packageId, "pkg-fail"));
     expect(rows).toHaveLength(0);
   });
 

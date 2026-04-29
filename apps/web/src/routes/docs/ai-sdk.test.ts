@@ -81,8 +81,7 @@ describe("docs/ai-sdk — four-article series", () => {
   });
 
   test("polite tone — no competitor names in AI SDK articles", () => {
-    const fromCodes = (...codes: number[]): string =>
-      String.fromCharCode(...codes);
+    const fromCodes = (...codes: number[]): string => String.fromCharCode(...codes);
     const banned = [
       ` ${fromCodes(118, 101, 114, 99, 101, 108)} `, // vercel
       ` ${fromCodes(110, 101, 116, 108, 105, 102, 121)} `, // netlify
@@ -101,10 +100,7 @@ describe("docs/ai-sdk — four-article series", () => {
     // The three-tier article must not drift from the actual compute-tier
     // API. If a future refactor renames any of these, this test catches
     // it and the doc gets updated — not silently wrong.
-    const src = readFileSync(
-      resolve(AI_SDK_DIR, "three-tier-compute.tsx"),
-      "utf-8",
-    );
+    const src = readFileSync(resolve(AI_SDK_DIR, "three-tier-compute.tsx"), "utf-8");
     expect(src).toContain("computeTierRouter");
     expect(src).toContain("computeTierWithReason");
     expect(src).toContain("selectCloudModel");
@@ -114,10 +110,7 @@ describe("docs/ai-sdk — four-article series", () => {
   });
 
   test("streaming article cites the real /chat/stream route file", () => {
-    const src = readFileSync(
-      resolve(AI_SDK_DIR, "streaming-completions.tsx"),
-      "utf-8",
-    );
+    const src = readFileSync(resolve(AI_SDK_DIR, "streaming-completions.tsx"), "utf-8");
     expect(src).toContain("/chat/stream");
     expect(src).toContain("apps/api/src/ai/chat-stream.ts");
     // Must mention streamText from the Vercel AI SDK — the key contract
@@ -127,10 +120,7 @@ describe("docs/ai-sdk — four-article series", () => {
   });
 
   test("client-gpu article cites the real inference entry points", () => {
-    const src = readFileSync(
-      resolve(AI_SDK_DIR, "client-gpu-inference.tsx"),
-      "utf-8",
-    );
+    const src = readFileSync(resolve(AI_SDK_DIR, "client-gpu-inference.tsx"), "utf-8");
     expect(src).toContain("clientInfer");
     expect(src).toContain("getClientCapabilities");
     expect(src).toContain("initializeWebLLM");
@@ -150,16 +140,10 @@ describe("docs/ai-sdk — four-article series", () => {
     const index = readFileSync(resolve(AI_SDK_DIR, "index.tsx"), "utf-8");
     expect(index).toContain("/docs/ai-sdk/three-tier-compute");
 
-    const three = readFileSync(
-      resolve(AI_SDK_DIR, "three-tier-compute.tsx"),
-      "utf-8",
-    );
+    const three = readFileSync(resolve(AI_SDK_DIR, "three-tier-compute.tsx"), "utf-8");
     expect(three).toContain("/docs/ai-sdk/streaming-completions");
 
-    const stream = readFileSync(
-      resolve(AI_SDK_DIR, "streaming-completions.tsx"),
-      "utf-8",
-    );
+    const stream = readFileSync(resolve(AI_SDK_DIR, "streaming-completions.tsx"), "utf-8");
     expect(stream).toContain("/docs/ai-sdk/client-gpu-inference");
   });
 });

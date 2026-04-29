@@ -135,7 +135,11 @@ export class Timeline {
     return [first, second];
   }
 
-  addEffect(segmentId: string, effectId: string, params: VideoEffectParams): AppliedEffect | undefined {
+  addEffect(
+    segmentId: string,
+    effectId: string,
+    params: VideoEffectParams,
+  ): AppliedEffect | undefined {
     const idx = this._segments.findIndex((s) => s.id === segmentId);
     if (idx === -1) return undefined;
 
@@ -237,7 +241,11 @@ export class Timeline {
   }
 
   /** Restore from serialized state */
-  static fromJSON(json: { segments: readonly TimelineSegment[]; duration: number; currentTime: number }): Timeline {
+  static fromJSON(json: {
+    segments: readonly TimelineSegment[];
+    duration: number;
+    currentTime: number;
+  }): Timeline {
     const tl = new Timeline(json.duration);
     tl._segments = json.segments.map((s) => ({ ...s, effects: [...s.effects] }));
     tl._currentTime = json.currentTime;

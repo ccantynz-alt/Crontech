@@ -54,8 +54,7 @@ describe("ai-playground route — smoke", () => {
 
   test("polite tone — no competitor names", () => {
     const src = readFileSync(ROUTE_PATH, "utf-8").toLowerCase();
-    const fromCodes = (...codes: number[]): string =>
-      String.fromCharCode(...codes);
+    const fromCodes = (...codes: number[]): string => String.fromCharCode(...codes);
     const banned = [
       ` ${fromCodes(118, 101, 114, 99, 101, 108)} `, // vercel
       ` ${fromCodes(115, 117, 112, 97, 98, 97, 115, 101)} `, // supabase

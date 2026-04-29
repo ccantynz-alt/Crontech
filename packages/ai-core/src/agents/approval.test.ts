@@ -1,12 +1,12 @@
-import { describe, test, expect } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import {
-  classifyRisk,
-  requiresApproval,
-  createApprovalRequest,
   approveRequest,
-  rejectRequest,
-  getPendingApprovals,
+  classifyRisk,
+  createApprovalRequest,
   getApprovalRequest,
+  getPendingApprovals,
+  rejectRequest,
+  requiresApproval,
 } from "./approval";
 
 describe("Risk Classification", () => {
@@ -68,8 +68,8 @@ describe("Approval Workflow", () => {
     );
     const approved = approveRequest(request.id, "admin-user");
     expect(approved).toBeDefined();
-    expect(approved!.status).toBe("approved");
-    expect(approved!.resolvedBy).toBe("admin-user");
+    expect(approved?.status).toBe("approved");
+    expect(approved?.resolvedBy).toBe("admin-user");
   });
 
   test("rejects a pending request", () => {
@@ -81,7 +81,7 @@ describe("Approval Workflow", () => {
     );
     const rejected = rejectRequest(request.id, "admin-user");
     expect(rejected).toBeDefined();
-    expect(rejected!.status).toBe("rejected");
+    expect(rejected?.status).toBe("rejected");
   });
 
   test("returns undefined for non-existent request", () => {
@@ -103,6 +103,6 @@ describe("Approval Workflow", () => {
     const request = createApprovalRequest("a", "s", "delete_file", "d");
     const found = getApprovalRequest(request.id);
     expect(found).toBeDefined();
-    expect(found!.id).toBe(request.id);
+    expect(found?.id).toBe(request.id);
   });
 });

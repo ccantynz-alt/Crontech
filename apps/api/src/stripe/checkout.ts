@@ -12,8 +12,11 @@ export async function createCheckoutSession(params: {
     payment_method_types: ["card"],
     line_items: [{ price: params.priceId, quantity: 1 }],
     ...(params.customerId ? { customer: params.customerId } : {}),
-    success_url: params.successUrl ?? `${process.env["PUBLIC_API_URL"] ?? "http://localhost:3000"}/billing?success=true`,
-    cancel_url: params.cancelUrl ?? `${process.env["PUBLIC_API_URL"] ?? "http://localhost:3000"}/pricing`,
+    success_url:
+      params.successUrl ??
+      `${process.env.PUBLIC_API_URL ?? "http://localhost:3000"}/billing?success=true`,
+    cancel_url:
+      params.cancelUrl ?? `${process.env.PUBLIC_API_URL ?? "http://localhost:3000"}/pricing`,
   });
   return { url: session.url, sessionId: session.id };
 }
@@ -25,7 +28,8 @@ export async function createPortalSession(params: {
   const stripe = getStripe();
   const session = await stripe.billingPortal.sessions.create({
     customer: params.customerId,
-    return_url: params.returnUrl ?? `${process.env["PUBLIC_API_URL"] ?? "http://localhost:3000"}/billing`,
+    return_url:
+      params.returnUrl ?? `${process.env.PUBLIC_API_URL ?? "http://localhost:3000"}/billing`,
   });
   return { url: session.url };
 }

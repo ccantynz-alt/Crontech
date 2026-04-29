@@ -14,10 +14,10 @@
 // lands. No fake counts. No dead links. Search filters over the real
 // category list plus the one real article.
 
-import { createSignal, For, Show, createMemo } from "solid-js";
-import type { JSX } from "solid-js";
-import { A } from "@solidjs/router";
 import { Badge } from "@back-to-the-future/ui";
+import { A } from "@solidjs/router";
+import { For, Show, createMemo, createSignal } from "solid-js";
+import type { JSX } from "solid-js";
 import { SEOHead } from "../components/SEOHead";
 
 // ── Types ───────────────────────────────────────────────────────────
@@ -52,8 +52,7 @@ const DOC_CATEGORIES: DocCategory[] = [
     id: "getting-started",
     icon: "⚡",
     title: "Getting Started",
-    description:
-      "Create your account, install the CLI, and ship your first project to the edge.",
+    description: "Create your account, install the CLI, and ship your first project to the edge.",
     tags: ["setup", "quickstart", "install"],
     gradient: "var(--color-primary)",
     ready: true,
@@ -362,31 +361,23 @@ function DocCategoryCard(props: { category: DocCategory }): JSX.Element {
         </div>
         <div class="min-w-0 flex-1">
           <div class="flex flex-wrap items-center gap-2 mb-1">
-            <span
-              class="text-lg font-semibold"
-              style={{ color: "var(--color-text)" }}
-            >
+            <span class="text-lg font-semibold" style={{ color: "var(--color-text)" }}>
               {props.category.title}
             </span>
             <Show when={!props.category.ready}>
               <span
                 class="rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider"
                 style={{
-                  background:
-                    "color-mix(in oklab, var(--color-warning) 15%, transparent)",
+                  background: "color-mix(in oklab, var(--color-warning) 15%, transparent)",
                   color: "var(--color-warning)",
-                  border:
-                    "1px solid color-mix(in oklab, var(--color-warning) 30%, transparent)",
+                  border: "1px solid color-mix(in oklab, var(--color-warning) 30%, transparent)",
                 }}
               >
                 Coming soon
               </span>
             </Show>
           </div>
-          <p
-            class="text-sm leading-relaxed mb-3"
-            style={{ color: "var(--color-text-muted)" }}
-          >
+          <p class="text-sm leading-relaxed mb-3" style={{ color: "var(--color-text-muted)" }}>
             {props.category.description}
           </p>
           <div class="flex flex-wrap gap-1.5">
@@ -411,7 +402,7 @@ function DocCategoryCard(props: { category: DocCategory }): JSX.Element {
           class="absolute right-5 top-1/2 -translate-y-1/2"
           style={{ color: "var(--color-text-faint)" }}
         >
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
             <path
               d="M7.5 15L12.5 10L7.5 5"
               stroke="currentColor"
@@ -461,9 +452,7 @@ export default function DocsPage(): JSX.Element {
     const query = searchQuery().toLowerCase().trim();
     if (!query) return REAL_ARTICLES;
     return REAL_ARTICLES.filter(
-      (a) =>
-        a.title.toLowerCase().includes(query) ||
-        a.category.toLowerCase().includes(query),
+      (a) => a.title.toLowerCase().includes(query) || a.category.toLowerCase().includes(query),
     );
   });
 
@@ -491,7 +480,8 @@ export default function DocsPage(): JSX.Element {
           <div class="relative mx-auto max-w-6xl px-6 pt-20 pb-12">
             <div class="flex flex-col items-center text-center">
               <Badge variant="info" size="sm">
-                {articleCount()} {articleCount() === 1 ? "article" : "articles"} · {readyCount()} of {DOC_CATEGORIES.length} categories ready
+                {articleCount()} {articleCount() === 1 ? "article" : "articles"} · {readyCount()} of{" "}
+                {DOC_CATEGORIES.length} categories ready
               </Badge>
               <h1
                 class="mt-6 text-5xl font-bold tracking-tight sm:text-6xl"
@@ -505,13 +495,10 @@ export default function DocsPage(): JSX.Element {
               >
                 Documentation
               </h1>
-              <p
-                class="mt-4 max-w-2xl text-lg"
-                style={{ color: "var(--color-text-muted)" }}
-              >
-                Quickstart is live. The rest of the docs land category-by-
-                category as each subsystem stabilises — we'd rather ship
-                accurate references slowly than inaccurate ones quickly.
+              <p class="mt-4 max-w-2xl text-lg" style={{ color: "var(--color-text-muted)" }}>
+                Quickstart is live. The rest of the docs land category-by- category as each
+                subsystem stabilises — we'd rather ship accurate references slowly than inaccurate
+                ones quickly.
               </p>
 
               {/* ── Search ───────────────────────────────────────── */}
@@ -530,6 +517,7 @@ export default function DocsPage(): JSX.Element {
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
+                      aria-hidden="true"
                     >
                       <path
                         stroke-linecap="round"
@@ -557,16 +545,10 @@ export default function DocsPage(): JSX.Element {
         {/* ── Category Grid ────────────────────────────────────────── */}
         <div class="mx-auto max-w-6xl px-6 pb-20">
           <div class="mb-5 flex items-baseline justify-between">
-            <h2
-              class="text-lg font-semibold"
-              style={{ color: "var(--color-text)" }}
-            >
+            <h2 class="text-lg font-semibold" style={{ color: "var(--color-text)" }}>
               Categories
             </h2>
-            <p
-              class="text-xs"
-              style={{ color: "var(--color-text-faint)" }}
-            >
+            <p class="text-xs" style={{ color: "var(--color-text-faint)" }}>
               Cards fade out until their first article ships
             </p>
           </div>
@@ -574,10 +556,7 @@ export default function DocsPage(): JSX.Element {
             when={filteredCategories().length > 0}
             fallback={
               <div class="flex flex-col items-center justify-center py-20 text-center">
-                <p
-                  class="text-lg"
-                  style={{ color: "var(--color-text-muted)" }}
-                >
+                <p class="text-lg" style={{ color: "var(--color-text-muted)" }}>
                   No results for "{searchQuery()}"
                 </p>
                 <button
@@ -604,10 +583,7 @@ export default function DocsPage(): JSX.Element {
           {/* ── Real articles ────────────────────────────────────── */}
           <Show when={filteredArticles().length > 0}>
             <div class="mt-16">
-              <h2
-                class="text-lg font-semibold mb-6"
-                style={{ color: "var(--color-text)" }}
-              >
+              <h2 class="text-lg font-semibold mb-6" style={{ color: "var(--color-text)" }}>
                 Articles
               </h2>
               <div class="space-y-2">
@@ -619,10 +595,7 @@ export default function DocsPage(): JSX.Element {
                       style={{ "text-decoration": "none" }}
                     >
                       <div class="min-w-0">
-                        <span
-                          class="text-sm"
-                          style={{ color: "var(--color-text-secondary)" }}
-                        >
+                        <span class="text-sm" style={{ color: "var(--color-text-secondary)" }}>
                           {article.title}
                         </span>
                         <span

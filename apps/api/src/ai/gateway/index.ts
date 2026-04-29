@@ -32,21 +32,18 @@ import { tracer } from "../../telemetry";
 import { timingSafeEqual } from "../../webhooks/gluecron-push";
 import { GatewayCache, buildCacheKey, parseTtlHeader } from "./cache";
 import {
+  GatewayUpstreamError,
+  type ProviderCaller,
   __readEnv,
   clampClientErrorStatus,
   defaultProviderCaller,
   extractBearer,
   fallbackProvider,
-  GatewayUpstreamError,
   isFailoverable,
   providerForModel,
-  type ProviderCaller,
 } from "./providers";
-import { runProviderAttempt, type AttemptCtx } from "./runner";
-import {
-  ChatCompletionRequestSchema,
-  type ChatCompletionResponse,
-} from "./schemas";
+import { type AttemptCtx, runProviderAttempt } from "./runner";
+import { ChatCompletionRequestSchema, type ChatCompletionResponse } from "./schemas";
 
 // ── Re-exports for the public module surface ────────────────────────
 
@@ -103,10 +100,7 @@ export function createAiGatewayApp(deps: AiGatewayDeps = {}): Hono {
     try {
       raw = await c.req.json();
     } catch {
-      return c.json(
-        { error: { type: "invalid_request", message: "body is not valid JSON" } },
-        400,
-      );
+      return c.json({ error: { type: "invalid_request", message: "body is not valid JSON" } }, 400);
     }
     const parsed = ChatCompletionRequestSchema.safeParse(raw);
     if (!parsed.success) {

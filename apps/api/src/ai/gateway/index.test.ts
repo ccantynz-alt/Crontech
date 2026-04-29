@@ -10,11 +10,11 @@
 
 import { describe, expect, test } from "bun:test";
 import {
+  type ChatCompletionResponse,
   __test__,
   createAiGatewayApp,
   fallbackProvider,
   providerForModel,
-  type ChatCompletionResponse,
 } from "./index";
 import {
   ANTHROPIC_MODEL,
@@ -133,9 +133,7 @@ describe("AI Gateway — happy path", () => {
   test("non-claude models route to OpenAI", async () => {
     const { caller, calls } = recordingCaller(() => happy());
     const app = createAiGatewayApp({ getBearer: () => BEARER, callProvider: caller });
-    await app.fetch(
-      makeRequest(validBody({ model: OPENAI_MODEL }), { auth: `Bearer ${BEARER}` }),
-    );
+    await app.fetch(makeRequest(validBody({ model: OPENAI_MODEL }), { auth: `Bearer ${BEARER}` }));
     expect(calls[0]?.provider).toBe("openai");
   });
 });

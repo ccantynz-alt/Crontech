@@ -48,9 +48,7 @@ describe("database route — real inspector shape", () => {
   });
 
   test("links table rows to /database/:table with a ?db= query param", () => {
-    expect(src).toMatch(
-      /\/database\/\$\{encodeURIComponent\(t\.name\)\}\?db=/,
-    );
+    expect(src).toMatch(/\/database\/\$\{encodeURIComponent\(t\.name\)\}\?db=/);
   });
 
   test("exports the pure formatRowCount + rowCountVariant helpers", () => {
@@ -88,8 +86,7 @@ describe("database route — real inspector shape", () => {
 
   test("polite tone — no competitor names", () => {
     const lowered = src.toLowerCase();
-    const fromCodes = (...codes: number[]): string =>
-      String.fromCharCode(...codes);
+    const fromCodes = (...codes: number[]): string => String.fromCharCode(...codes);
     // Each banned token is wrapped in spaces so substrings don't
     // false-positive (e.g. "descript" inside "description").
     const banned = [
@@ -176,9 +173,7 @@ function referenceFormatRowCount(n: number): string {
   return String(Math.round(n));
 }
 
-function referenceRowCountVariant(
-  n: number,
-): "success" | "warning" | "error" | "default" {
+function referenceRowCountVariant(n: number): "success" | "warning" | "error" | "default" {
   if (!Number.isFinite(n) || n < 0) return "default";
   if (n === 0) return "default";
   if (n < 100) return "success";
@@ -186,9 +181,7 @@ function referenceRowCountVariant(
   return "error";
 }
 
-function referenceParseDbKind(
-  raw: string | undefined | null,
-): "turso" | "neon" {
+function referenceParseDbKind(raw: string | undefined | null): "turso" | "neon" {
   return raw === "neon" ? "neon" : "turso";
 }
 
@@ -212,10 +205,7 @@ function referenceTotalPages(total: number, pageSize: number): number {
   return Math.max(1, Math.ceil(total / pageSize));
 }
 
-function referenceBuildSelectSnippet(
-  table: string,
-  db: "turso" | "neon",
-): string {
+function referenceBuildSelectSnippet(table: string, db: "turso" | "neon"): string {
   const engine = db === "turso" ? "Turso (edge)" : "Neon (serverless PG)";
   return `-- ${engine}\nSELECT * FROM "${table}" LIMIT 25;`;
 }

@@ -16,8 +16,8 @@
 //   GET /api/admin/diagnose       — fast read-only health battery
 
 import { Title } from "@solidjs/meta";
-import { createSignal, createResource, For, Show, type JSX } from "solid-js";
 import { A } from "@solidjs/router";
+import { For, type JSX, Show, createResource, createSignal } from "solid-js";
 import { AdminRoute } from "../../components/AdminRoute";
 
 // ── Types ───────────────────────────────────────────────────────────
@@ -121,7 +121,8 @@ async function fetchJson<T>(path: string): Promise<T | null> {
     const res = await fetch(path, { headers: authHeaders() });
     if (!res.ok) return null;
     return (await res.json()) as T;
-  } catch {
+  } catch (e: unknown) {
+    console.warn("[ops] fetch failed:", e);
     return null;
   }
 }
@@ -139,19 +140,17 @@ export default function AdminOpsPage(): JSX.Element {
 // ── Content ─────────────────────────────────────────────────────────
 
 function AdminOpsContent(): JSX.Element {
-  const [status, { refetch: refetchStatus }] = createResource<DeployStatus | null>(
-    () => fetchJson<DeployStatus>("/api/admin/deploy/status"),
+  const [status, { refetch: refetchStatus }] = createResource<DeployStatus | null>(() =>
+    fetchJson<DeployStatus>("/api/admin/deploy/status"),
   );
-  const [commits, { refetch: refetchCommits }] = createResource<GitCommit[]>(
-    async () => {
-      const body = await fetchJson<{ ok: boolean; commits?: GitCommit[] }>(
-        "/api/admin/git/log?limit=20",
-      );
-      return body?.commits ?? [];
-    },
-  );
-  const [drift, { refetch: refetchDrift }] = createResource<GitDrift | null>(
-    () => fetchJson<GitDrift>("/api/admin/git/drift"),
+  const [commits, { refetch: refetchCommits }] = createResource<GitCommit[]>(async () => {
+    const body = await fetchJson<{ ok: boolean; commits?: GitCommit[] }>(
+      "/api/admin/git/log?limit=20",
+    );
+    return body?.commits ?? [];
+  });
+  const [drift, { refetch: refetchDrift }] = createResource<GitDrift | null>(() =>
+    fetchJson<GitDrift>("/api/admin/git/drift"),
   );
 
   const [diagnose, setDiagnose] = createSignal<DiagnoseResult | null>(null);
@@ -168,9 +167,12 @@ function AdminOpsContent(): JSX.Element {
     setDiagnoseRunning(true);
     setDiagnoseError(null);
     try {
-      const body = await fetchJson<{ ok: boolean; services: Record<string, string>; checks: DiagnoseCheck[]; error?: string }>(
-        "/api/admin/diagnose",
-      );
+      const body = await fetchJson<{
+        ok: boolean;
+        services: Record<string, string>;
+        checks: DiagnoseCheck[];
+        error?: string;
+      }>("/api/admin/diagnose");
       if (!body || !body.ok) {
         setDiagnoseError(body?.error ?? "Diagnose request failed");
         setDiagnose(null);
@@ -207,16 +209,12 @@ function AdminOpsContent(): JSX.Element {
                 Operations
               </span>
             </nav>
-            <h1
-              class="text-3xl font-bold tracking-tight"
-              style={{ color: "var(--color-text)" }}
-            >
+            <h1 class="text-3xl font-bold tracking-tight" style={{ color: "var(--color-text)" }}>
               Operations Console
             </h1>
             <p class="mt-1 text-sm" style={{ color: "var(--color-text-faint)" }}>
-              Live state of the production box — deploy drift, recent commits, service
-              health, and a one-click diagnose battery. All data fetched from the deploy
-              agent over localhost.
+              Live state of the production box — deploy drift, recent commits, service health, and a
+              one-click diagnose battery. All data fetched from the deploy agent over localhost.
             </p>
           </div>
           <div class="flex items-center gap-3">
@@ -316,10 +314,7 @@ function DriftCard(props: {
                 >
                   Deploy drift
                 </span>
-                <span
-                  class="text-xl font-bold tracking-tight"
-                  style={{ color: driftColor(d()) }}
-                >
+                <span class="text-xl font-bold tracking-tight" style={{ color: driftColor(d()) }}>
                   {formatDriftLabel(d())}
                 </span>
               </div>
@@ -330,10 +325,7 @@ function DriftCard(props: {
                 >
                   Box · origin/Main
                 </span>
-                <span
-                  class="font-mono text-sm"
-                  style={{ color: "var(--color-text-secondary)" }}
-                >
+                <span class="font-mono text-sm" style={{ color: "var(--color-text-secondary)" }}>
                   {d().localSha} &middot; {d().originSha}
                 </span>
               </div>
@@ -392,7 +384,10 @@ function CommitList(props: {
           <ul class="flex flex-col gap-2">
             <For each={props.commits}>
               {(commit) => (
-                <CommitRow commit={commit} deployed={isCommitDeployed(commit.sha, props.localSha)} />
+                <CommitRow
+                  commit={commit}
+                  deployed={isCommitDeployed(commit.sha, props.localSha)}
+                />
               )}
             </For>
           </ul>
@@ -459,10 +454,7 @@ function ServicesCard(props: {
         border: "1px solid var(--color-border)",
       }}
     >
-      <h2
-        class="mb-4 text-lg font-semibold"
-        style={{ color: "var(--color-text)" }}
-      >
+      <h2 class="mb-4 text-lg font-semibold" style={{ color: "var(--color-text)" }}>
         Services
       </h2>
       <Show
@@ -519,10 +511,7 @@ function ServicesCard(props: {
                   </div>
                 )}
               </For>
-              <div
-                class="mt-1 text-[10px]"
-                style={{ color: "var(--color-text-faint)" }}
-              >
+              <div class="mt-1 text-[10px]" style={{ color: "var(--color-text-faint)" }}>
                 Box uptime: {s().uptime || "unknown"}
               </div>
             </div>
@@ -567,14 +556,11 @@ function DiagnoseCard(props: {
         </button>
       </div>
       <p class="mb-3 text-xs" style={{ color: "var(--color-text-faint)" }}>
-        Hits the API health route, the web origin, and confirms every systemd unit
-        is active. Read-only — safe to run anytime.
+        Hits the API health route, the web origin, and confirms every systemd unit is active.
+        Read-only — safe to run anytime.
       </p>
       <Show when={props.error}>
-        <p
-          class="mb-3 text-xs"
-          style={{ color: "var(--color-danger)" }}
-        >
+        <p class="mb-3 text-xs" style={{ color: "var(--color-danger)" }}>
           {props.error}
         </p>
       </Show>
@@ -606,10 +592,7 @@ function DiagnoseCard(props: {
                       {check.name}
                     </span>
                   </div>
-                  <span
-                    class="text-[11px]"
-                    style={{ color: "var(--color-text-faint)" }}
-                  >
+                  <span class="text-[11px]" style={{ color: "var(--color-text-faint)" }}>
                     {check.detail}
                   </span>
                 </li>

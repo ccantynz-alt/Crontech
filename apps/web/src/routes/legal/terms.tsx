@@ -1,6 +1,6 @@
+import { Card, Separator, Stack, Text } from "@back-to-the-future/ui";
 import { For } from "solid-js";
 import type { JSX } from "solid-js";
-import { Box, Container, Stack, Text, Card, Separator } from "@back-to-the-future/ui";
 import { SEOHead } from "../../components/SEOHead";
 
 interface Section {
@@ -12,10 +12,10 @@ const sections: Section[] = [
   {
     title: "1. Acceptance of Terms",
     content: [
-      "By accessing or using the Crontech platform, website, APIs, or any related services (collectively, the \"Service\"), you agree to be bound by these Terms of Service (\"Terms\"). If you do not agree to all of these Terms, you may not access or use the Service.",
+      'By accessing or using the Crontech platform, website, APIs, or any related services (collectively, the "Service"), you agree to be bound by these Terms of Service ("Terms"). If you do not agree to all of these Terms, you may not access or use the Service.',
       "You must be at least 13 years of age to use the Service. If you are located in the European Economic Area (EEA) or the United Kingdom, you must be at least 16 years of age.",
       "If you are using the Service on behalf of an organization, you represent and warrant that you have the authority to bind that organization to these Terms.",
-      "These Terms constitute a legally binding agreement between you and Crontech Technologies, Inc. (\"Crontech,\" \"we,\" \"us,\" or \"our\"). By clicking \"I Agree,\" creating an account, or otherwise accessing the Service, you acknowledge that you have read, understood, and agree to be bound by these Terms, our Privacy Policy, our Acceptable Use Policy, and our Cookie Policy, all of which are incorporated herein by reference.",
+      'These Terms constitute a legally binding agreement between you and Crontech Technologies, Inc. ("Crontech," "we," "us," or "our"). By clicking "I Agree," creating an account, or otherwise accessing the Service, you acknowledge that you have read, understood, and agree to be bound by these Terms, our Privacy Policy, our Acceptable Use Policy, and our Cookie Policy, all of which are incorporated herein by reference.',
     ],
   },
   {
@@ -44,7 +44,7 @@ const sections: Section[] = [
   {
     title: "4. Subscription Plans, Billing, and Payments",
     content: [
-      "The Service is offered in multiple tiers: Free, Pro, Team, and Enterprise. The Free tier is subject to usage limitations and is provided \"as-is\" without uptime guarantees.",
+      'The Service is offered in multiple tiers: Free, Pro, Team, and Enterprise. The Free tier is subject to usage limitations and is provided "as-is" without uptime guarantees.',
       "Paid subscriptions are billed in advance on either a monthly or annual basis through Stripe, Inc. By subscribing, you authorize Crontech to charge your designated payment method for all applicable fees. All fees are stated in U.S. dollars unless otherwise specified.",
       "Paid subscriptions automatically renew unless you cancel before the renewal date via the Settings page. Cancellation takes effect at the end of the current billing period.",
       "We may change pricing at any time. For existing subscribers, price changes take effect at the start of the next billing period following at least thirty (30) days' written notice via email.",
@@ -63,8 +63,8 @@ const sections: Section[] = [
   {
     title: "6. Intellectual Property Rights",
     content: [
-      "Platform Ownership. The Service, including all software, algorithms, user interfaces, designs, logos, trademarks, and other materials created by Crontech (\"Crontech IP\"), is our exclusive property, protected by U.S. and international intellectual property laws.",
-      "Your Content. You retain all rights, title, and interest in content, code, data, and materials you create, upload, or store using the Service (\"Your Content\"). Crontech does not claim any ownership rights in Your Content.",
+      'Platform Ownership. The Service, including all software, algorithms, user interfaces, designs, logos, trademarks, and other materials created by Crontech ("Crontech IP"), is our exclusive property, protected by U.S. and international intellectual property laws.',
+      'Your Content. You retain all rights, title, and interest in content, code, data, and materials you create, upload, or store using the Service ("Your Content"). Crontech does not claim any ownership rights in Your Content.',
       "Limited License to Crontech. You grant Crontech a limited, non-exclusive, worldwide, royalty-free license to host, store, transmit, display, and distribute Your Content solely as necessary to provide the Service. This license terminates when you delete Your Content or close your account.",
       "Feedback. If you provide suggestions or feedback about the Service, you grant Crontech an irrevocable, non-exclusive, worldwide, royalty-free license to use and incorporate such Feedback without obligation to you.",
     ],
@@ -76,7 +76,7 @@ const sections: Section[] = [
       "No Training on Your Content. Crontech does not use Your Content or AI interactions to train, fine-tune, or improve AI models. Your data is processed solely to generate the requested output.",
       "Client-Side AI Privacy. When you use client-side AI features powered by WebGPU, all processing occurs entirely within your browser on your device. No prompts, inputs, outputs, or intermediate data are transmitted to Crontech's servers or any third party.",
       "Server-Side AI Processing. Edge or cloud AI features transmit prompts to our servers or third-party providers for processing, handled per our Privacy Policy and not retained beyond fulfilling your request.",
-      "No Warranty of AI Accuracy. AI Output is provided \"as-is.\" Crontech makes no representations regarding the accuracy, completeness, reliability, or fitness of AI Output. AI may produce incorrect, biased, or misleading results. You are solely responsible for reviewing and validating AI Output.",
+      'No Warranty of AI Accuracy. AI Output is provided "as-is." Crontech makes no representations regarding the accuracy, completeness, reliability, or fitness of AI Output. AI may produce incorrect, biased, or misleading results. You are solely responsible for reviewing and validating AI Output.',
       "AI Output is not a substitute for professional advice. Do not rely on AI Output for legal, medical, financial, or other professional decisions without independent human review.",
       "AI Output Liability. CRONTECH SHALL NOT BE LIABLE FOR ANY CLAIMS, DAMAGES, LOSSES, OR EXPENSES ARISING FROM OR RELATED TO AI-GENERATED OUTPUT, INCLUDING BUT NOT LIMITED TO: (A) INACCURATE, INCOMPLETE, OR MISLEADING CONTENT; (B) CONTENT THAT INFRINGES THIRD-PARTY INTELLECTUAL PROPERTY RIGHTS; (C) DECISIONS MADE BASED ON AI OUTPUT; (D) FINANCIAL, LEGAL, MEDICAL, OR OTHER PROFESSIONAL LOSSES RESULTING FROM RELIANCE ON AI OUTPUT. YOU ASSUME ALL RISK ASSOCIATED WITH AI-GENERATED CONTENT.",
       "AI Output and Third-Party IP. You are solely responsible for ensuring that AI-generated content does not infringe any third-party intellectual property rights before publishing, distributing, or commercially using such content. Crontech provides no indemnification for intellectual property claims arising from AI-generated output.",
@@ -103,9 +103,9 @@ const sections: Section[] = [
     content: [
       "TO THE MAXIMUM EXTENT PERMITTED BY LAW, CRONTECH SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, EXEMPLARY, OR PUNITIVE DAMAGES, INCLUDING LOSS OF PROFITS, REVENUE, GOODWILL, OR DATA, WHETHER IN CONTRACT, TORT, STRICT LIABILITY, OR OTHERWISE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.",
       "CRONTECH'S TOTAL AGGREGATE LIABILITY SHALL NOT EXCEED THE GREATER OF: (A) THE AMOUNT YOU PAID IN THE TWELVE (12) MONTHS PRECEDING THE CLAIM; OR (B) ONE HUNDRED U.S. DOLLARS ($100).",
-      "THE FREE TIER IS PROVIDED \"AS IS\" AND \"AS AVAILABLE\" WITHOUT WARRANTIES OF ANY KIND, EXPRESS, IMPLIED, OR STATUTORY.",
+      'THE FREE TIER IS PROVIDED "AS IS" AND "AS AVAILABLE" WITHOUT WARRANTIES OF ANY KIND, EXPRESS, IMPLIED, OR STATUTORY.',
       "Some jurisdictions do not allow exclusion of certain damages. In such jurisdictions, limitations apply to the fullest extent permitted.",
-      "BETA AND EARLY ACCESS DISCLAIMER. DURING ANY BETA, EARLY ACCESS, OR PREVIEW PERIOD, THE SERVICE IS PROVIDED ON AN \"AS-IS\" AND \"AS-AVAILABLE\" BASIS WITHOUT ANY WARRANTIES WHATSOEVER. CRONTECH MAKES NO COMMITMENTS REGARDING UPTIME, DATA PRESERVATION, FEATURE AVAILABILITY, OR SERVICE CONTINUITY DURING BETA PERIODS. USE OF BETA FEATURES IS ENTIRELY AT YOUR OWN RISK.",
+      'BETA AND EARLY ACCESS DISCLAIMER. DURING ANY BETA, EARLY ACCESS, OR PREVIEW PERIOD, THE SERVICE IS PROVIDED ON AN "AS-IS" AND "AS-AVAILABLE" BASIS WITHOUT ANY WARRANTIES WHATSOEVER. CRONTECH MAKES NO COMMITMENTS REGARDING UPTIME, DATA PRESERVATION, FEATURE AVAILABILITY, OR SERVICE CONTINUITY DURING BETA PERIODS. USE OF BETA FEATURES IS ENTIRELY AT YOUR OWN RISK.',
     ],
   },
   {
@@ -138,7 +138,7 @@ const sections: Section[] = [
     title: "14. Modifications to Terms",
     content: [
       "We may modify these Terms at any time. For material changes, we provide at least thirty (30) days' notice via email and/or prominent in-Service notice.",
-      "Non-material changes may be made without advance notice, indicated by an updated \"Last Updated\" date.",
+      'Non-material changes may be made without advance notice, indicated by an updated "Last Updated" date.',
       "Continued use after the effective date of modifications constitutes acceptance. If you disagree, discontinue use and terminate your account.",
     ],
   },
@@ -170,7 +170,7 @@ const sections: Section[] = [
       "DRAFT \u2014 requires attorney review. This section consolidates and strengthens the protections set forth above. Nothing in this Section 17 weakens any existing protection; where duplicative, the stronger protection controls.",
       "17.1 Binding Individual Arbitration. Disputes are resolved by binding individual arbitration before the American Arbitration Association (AAA) or, at Crontech's election, JAMS, under each body's applicable Commercial Arbitration Rules. Arbitration is conducted by a single arbitrator, in English, by videoconference where permitted. The arbitrator, not a court, decides all issues relating to enforceability, arbitrability, and scope of this clause. See also Section 12.",
       "17.2 Class-Action Waiver. Each party may bring claims only in an individual capacity. No class, consolidated, collective, mass, or representative actions. No private attorney general actions. If the class-action waiver is found unenforceable, the entire arbitration clause is severable at Crontech's election.",
-      "17.3 30-Day Opt-Out. You may opt out of arbitration (Sections 12 and 17.1) by emailing legal@crontech.dev within thirty (30) days of first accepting these Terms, with subject line \"Arbitration Opt-Out\" and including your account email. Opt-out does not affect the class-action waiver or any other provision.",
+      '17.3 30-Day Opt-Out. You may opt out of arbitration (Sections 12 and 17.1) by emailing legal@crontech.dev within thirty (30) days of first accepting these Terms, with subject line "Arbitration Opt-Out" and including your account email. Opt-out does not affect the class-action waiver or any other provision.',
       "17.4 Small Claims Carve-Out. Either party may bring a qualifying individual claim in small-claims court in the claimant's jurisdiction of residence.",
       "17.5 Liability Cap. Reaffirming Section 10: total aggregate liability is capped at the GREATER of (a) fees paid in the twelve (12) months preceding the claim or (b) one hundred U.S. dollars ($100). During any beta or early-access phase, the Beta Disclaimer imposes a lower $50 cap that controls per the conflict rule in the Beta Disclaimer.",
       "17.6 No Consequential Damages. Reaffirming Section 10: Crontech is not liable for lost profits, lost revenue, lost data, lost goodwill, business interruption, or any indirect, incidental, special, consequential, exemplary, or punitive damages, even if advised of the possibility.",
@@ -198,11 +198,15 @@ export default function TermsPage(): JSX.Element {
         description="Terms of Service for the Crontech platform. Read about usage rights, AI-generated content, payments, and more."
         path="/legal/terms"
       />
-      <Box class="min-h-screen bg-[var(--color-bg)] text-[var(--color-text)]">
-        <Container size="full" padding="md" class="max-w-4xl py-16 sm:px-8 lg:py-24">
+      <div class="min-h-screen bg-[var(--color-bg)] text-[var(--color-text)]">
+        <div class="mx-auto max-w-4xl px-6 py-16 sm:px-8 lg:py-24">
           <Stack direction="vertical" gap="lg">
             <Stack direction="vertical" gap="sm">
-              <Text variant="h1" weight="bold" class="bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+              <Text
+                variant="h1"
+                weight="bold"
+                class="bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent"
+              >
                 Terms of Service
               </Text>
               <Text variant="caption" style={{ color: "var(--color-text-faint)" }}>
@@ -219,7 +223,11 @@ export default function TermsPage(): JSX.Element {
                     </Text>
                     <For each={section.content}>
                       {(paragraph) => (
-                        <Text variant="body" class="leading-relaxed" style={{ color: "var(--color-text-muted)" }}>
+                        <Text
+                          variant="body"
+                          class="leading-relaxed"
+                          style={{ color: "var(--color-text-muted)" }}
+                        >
                           {paragraph}
                         </Text>
                       )}
@@ -229,8 +237,8 @@ export default function TermsPage(): JSX.Element {
               )}
             </For>
           </Stack>
-        </Container>
-      </Box>
+        </div>
+      </div>
     </>
   );
 }

@@ -26,17 +26,10 @@
 //
 // Gating: same as BuildTrack — admin-only, or localStorage force flag.
 
-import {
-  For,
-  Show,
-  createMemo,
-  createSignal,
-  onCleanup,
-  onMount,
-} from "solid-js";
+import { For, Show, createMemo, createSignal, onCleanup, onMount } from "solid-js";
 import type { JSX } from "solid-js";
-import { useAuth } from "../stores";
 import { trpc } from "../lib/trpc";
+import { useAuth } from "../stores";
 
 // ── Data model ──────────────────────────────────────────────────────
 
@@ -85,14 +78,7 @@ export interface ChecklistPhase {
 // Initial state for Phase A — everything here is verified green as of
 // 16 Apr 2026 after Deploy #59. If the pipeline ever regresses, flip
 // these back to pending manually; the HUD is not magical, it's a HUD.
-const PRESEEDED_DONE: readonly string[] = [
-  "A1",
-  "A2",
-  "A3",
-  "A4",
-  "A5",
-  "A6",
-];
+const PRESEEDED_DONE: readonly string[] = ["A1", "A2", "A3", "A4", "A5", "A6"];
 
 export const LAUNCH_PHASES: readonly ChecklistPhase[] = [
   {
@@ -462,9 +448,7 @@ export function LaunchChecklist(): JSX.Element {
                 gap: "0.5rem",
                 padding: "0.5rem 0.85rem",
                 "border-radius": "999px",
-                background: isLive()
-                  ? "rgba(16,185,129,0.18)"
-                  : "rgba(15,15,17,0.95)",
+                background: isLive() ? "rgba(16,185,129,0.18)" : "rgba(15,15,17,0.95)",
                 border: `1px solid ${isLive() ? "var(--color-success)" : "var(--color-border)"}`,
                 "box-shadow": isLive()
                   ? "0 0 20px rgba(16,185,129,0.45)"
@@ -515,9 +499,7 @@ export function LaunchChecklist(): JSX.Element {
                 gap: "0.75rem",
                 padding: "0.75rem 0.95rem",
                 "border-bottom": "1px solid var(--color-border)",
-                background: isLive()
-                  ? "rgba(16,185,129,0.08)"
-                  : "rgba(255,255,255,0.02)",
+                background: isLive() ? "rgba(16,185,129,0.08)" : "rgba(255,255,255,0.02)",
               }}
             >
               <div>
@@ -545,9 +527,7 @@ export function LaunchChecklist(): JSX.Element {
                       "font-size": "1.6rem",
                       "font-weight": 800,
                       color: isLive() ? "var(--color-success)" : "var(--color-text)",
-                      "text-shadow": isLive()
-                        ? "0 0 16px rgba(16,185,129,0.6)"
-                        : "none",
+                      "text-shadow": isLive() ? "0 0 16px rgba(16,185,129,0.6)" : "none",
                       "font-variant-numeric": "tabular-nums",
                       "line-height": 1,
                     }}
@@ -615,7 +595,9 @@ export function LaunchChecklist(): JSX.Element {
                             "font-size": "0.7rem",
                             "letter-spacing": "0.1em",
                             "text-transform": "uppercase",
-                            color: phaseComplete() ? "var(--color-success)" : "var(--color-text-secondary)",
+                            color: phaseComplete()
+                              ? "var(--color-success)"
+                              : "var(--color-text-secondary)",
                             "font-weight": 700,
                           }}
                         >
@@ -633,7 +615,9 @@ export function LaunchChecklist(): JSX.Element {
                         <span
                           style={{
                             "font-size": "0.68rem",
-                            color: phaseComplete() ? "var(--color-success)" : "var(--color-text-muted)",
+                            color: phaseComplete()
+                              ? "var(--color-success)"
+                              : "var(--color-text-muted)",
                             "font-variant-numeric": "tabular-nums",
                             "font-weight": 600,
                           }}
@@ -646,9 +630,7 @@ export function LaunchChecklist(): JSX.Element {
                       </div>
                       <For each={phase.items}>
                         {(item) => {
-                          const isDone = createMemo(() =>
-                            combinedDone().has(item.id),
-                          );
+                          const isDone = createMemo(() => combinedDone().has(item.id));
                           return (
                             <button
                               type="button"
@@ -661,9 +643,7 @@ export function LaunchChecklist(): JSX.Element {
                                 width: "100%",
                                 padding: "0.35rem 0.4rem",
                                 "border-radius": "8px",
-                                background: isDone()
-                                  ? "rgba(16,185,129,0.08)"
-                                  : "transparent",
+                                background: isDone() ? "rgba(16,185,129,0.08)" : "transparent",
                                 border: "1px solid transparent",
                                 cursor: "pointer",
                                 "text-align": "left",
@@ -686,12 +666,12 @@ export function LaunchChecklist(): JSX.Element {
                                   border: `1px solid ${
                                     isDone() ? "var(--color-success)" : "var(--color-border-strong)"
                                   }`,
-                                  color: isDone() ? "var(--color-success)" : "var(--color-text-muted)",
+                                  color: isDone()
+                                    ? "var(--color-success)"
+                                    : "var(--color-text-muted)",
                                   "font-weight": 800,
                                   "font-size": "0.85rem",
-                                  "box-shadow": isDone()
-                                    ? "0 0 10px rgba(16,185,129,0.4)"
-                                    : "none",
+                                  "box-shadow": isDone() ? "0 0 10px rgba(16,185,129,0.4)" : "none",
                                   "margin-top": "0.05rem",
                                 }}
                               >

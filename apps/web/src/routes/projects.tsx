@@ -1,8 +1,8 @@
+import { Badge, Button, Spinner } from "@back-to-the-future/ui";
 import { Title } from "@solidjs/meta";
 import { A, useNavigate } from "@solidjs/router";
 import { For, Show, createMemo, onCleanup, onMount } from "solid-js";
 import type { JSX } from "solid-js";
-import { Badge, Box, Button, Container, Spinner, Stack, Text } from "@back-to-the-future/ui";
 import { ProtectedRoute } from "../components/ProtectedRoute";
 import { SEOHead } from "../components/SEOHead";
 import { registerShortcut } from "../lib/keyboard";
@@ -138,38 +138,32 @@ interface ProjectCardProps {
 
 function ProjectCard(props: ProjectCardProps): JSX.Element {
   const isBuilding = (): boolean =>
-    props.status === "building" ||
-    props.status === "deploying" ||
-    props.status === "creating";
-  const isFailed = (): boolean =>
-    props.status === "failed" || props.status === "error";
+    props.status === "building" || props.status === "deploying" || props.status === "creating";
+  const isFailed = (): boolean => props.status === "failed" || props.status === "error";
 
   return (
     <A href={`/projects/${props.id}`} class="block group">
-      <Box
+      <div
         class="relative overflow-hidden rounded-2xl p-5 transition-all duration-300"
         style={{
           background: "var(--color-bg-elevated)",
           border: "1px solid var(--color-border)",
         }}
       >
-
-        <Stack direction="vertical" gap="md" class="relative z-10">
+        <div class="relative z-10 flex flex-col gap-4">
           {/* Header: name + status (dot / spinner + badge) */}
-          <Stack direction="horizontal" gap="sm" align="start" justify="between">
-            <Stack direction="horizontal" gap="sm" align="center" class="min-w-0">
-              <Text as="span" class="text-xl shrink-0">
-                {frameworkIcon(props.framework ?? "")}
-              </Text>
-              <Text as="h3" weight="semibold" class="text-sm truncate" style={{ color: "var(--color-text)" }}>
+          <div class="flex items-start justify-between gap-3">
+            <div class="flex items-center gap-3 min-w-0">
+              <span class="text-xl shrink-0">{frameworkIcon(props.framework ?? "")}</span>
+              <h3 class="text-sm font-semibold truncate" style={{ color: "var(--color-text)" }}>
                 {props.name}
-              </Text>
-            </Stack>
-            <Stack direction="horizontal" gap="xs" align="center" class="shrink-0">
+              </h3>
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
               <Show
                 when={isBuilding()}
                 fallback={
-                  <Box
+                  <span
                     aria-hidden="true"
                     class="inline-block h-2 w-2 rounded-full"
                     style={{ background: statusDotColor(props.status) }}
@@ -181,12 +175,12 @@ function ProjectCard(props: ProjectCardProps): JSX.Element {
               <Badge variant={statusVariant(props.status)} size="sm">
                 {statusLabel(props.status)}
               </Badge>
-            </Stack>
-          </Stack>
+            </div>
+          </div>
 
           {/* Failure banner: inline error copy so Craig can diagnose from the list */}
           <Show when={isFailed() && props.errorMessage}>
-            <Box
+            <div
               role="alert"
               class="rounded-lg border px-3 py-2 text-xs"
               style={{
@@ -195,43 +189,47 @@ function ProjectCard(props: ProjectCardProps): JSX.Element {
                 color: "#ef4444",
               }}
             >
-              <Text as="span" weight="semibold">Deploy failed:</Text>{" "}
-              <Text as="span" style={{ color: "var(--color-text)" }}>
-                {props.errorMessage}
-              </Text>
-            </Box>
+              <span class="font-semibold">Deploy failed:</span>{" "}
+              <span style={{ color: "var(--color-text)" }}>{props.errorMessage}</span>
+            </div>
           </Show>
 
           {/* Details */}
-          <Stack direction="vertical" gap="xs">
-            <Stack direction="horizontal" gap="xs" align="center">
-              <Text as="span" weight="medium" class="text-[11px] uppercase tracking-wider" style={{ color: "var(--color-text-secondary)" }}>
+          <div class="flex flex-col gap-2">
+            <div class="flex items-center gap-2">
+              <span
+                class="text-[11px] font-medium uppercase tracking-wider"
+                style={{ color: "var(--color-text-secondary)" }}
+              >
                 Framework
-              </Text>
-              <Text as="span" class="text-xs" style={{ color: "var(--color-text)" }}>{props.framework ?? "Unknown"}</Text>
-            </Stack>
+              </span>
+              <span class="text-xs" style={{ color: "var(--color-text)" }}>
+                {props.framework ?? "Unknown"}
+              </span>
+            </div>
 
-            <Stack direction="horizontal" gap="xs" align="center">
-              <Text as="span" weight="medium" class="text-[11px] uppercase tracking-wider" style={{ color: "var(--color-text-secondary)" }}>
+            <div class="flex items-center gap-2">
+              <span
+                class="text-[11px] font-medium uppercase tracking-wider"
+                style={{ color: "var(--color-text-secondary)" }}
+              >
                 Updated
-              </Text>
-              <Text as="span" class="text-xs" style={{ color: "var(--color-text-muted)" }}>
+              </span>
+              <span class="text-xs" style={{ color: "var(--color-text-muted)" }}>
                 {relativeTime(props.updatedAt)}
-              </Text>
-            </Stack>
+              </span>
+            </div>
 
             {/* Live URL — clickable anchor that does NOT navigate into the project */}
             <Show when={props.liveUrl}>
               {(url) => (
-                <Stack direction="horizontal" gap="xs" align="center">
-                  <Text
-                    as="span"
-                    weight="medium"
-                    class="text-[11px] uppercase tracking-wider"
+                <div class="flex items-center gap-2">
+                  <span
+                    class="text-[11px] font-medium uppercase tracking-wider"
                     style={{ color: "var(--color-text-secondary)" }}
                   >
                     URL
-                  </Text>
+                  </span>
                   <a
                     href={url()}
                     target="_blank"
@@ -242,13 +240,12 @@ function ProjectCard(props: ProjectCardProps): JSX.Element {
                   >
                     {url()}
                   </a>
-                </Stack>
+                </div>
               )}
             </Show>
-          </Stack>
-        </Stack>
-
-      </Box>
+          </div>
+        </div>
+      </div>
     </A>
   );
 }
@@ -257,33 +254,38 @@ function ProjectCard(props: ProjectCardProps): JSX.Element {
 
 function EmptyState(): JSX.Element {
   return (
-    <Stack direction="vertical" gap="lg" align="center" justify="center" class="py-24">
-      <Box class="flex h-20 w-20 items-center justify-center rounded-2xl" style={{ background: "var(--color-bg-subtle)" }}>
-        <Text as="span" class="text-4xl">{"\u{1F680}"}</Text>
-      </Box>
-      <Stack direction="vertical" gap="xs" align="center" class="text-center">
-        <Text variant="h2" weight="bold" class="text-xl" style={{ color: "var(--color-text)" }}>No projects yet</Text>
-        <Text variant="body" class="max-w-sm text-sm" style={{ color: "var(--color-text-secondary)" }}>
-          Deploy your first app on Crontech. Connect a repo or start from a
-          template and have it live on the edge in under a minute.
-        </Text>
-      </Stack>
+    <div class="flex flex-col items-center justify-center gap-6 py-24">
+      <div
+        class="flex h-20 w-20 items-center justify-center rounded-2xl"
+        style={{ background: "var(--color-bg-subtle)" }}
+      >
+        <span class="text-4xl">{"\u{1F680}"}</span>
+      </div>
+      <div class="flex flex-col items-center gap-2 text-center">
+        <h2 class="text-xl font-bold" style={{ color: "var(--color-text)" }}>
+          No projects yet
+        </h2>
+        <p class="max-w-sm text-sm" style={{ color: "var(--color-text-secondary)" }}>
+          Deploy your first app on Crontech. Connect a repo or start from a template and have it
+          live on the edge in under a minute.
+        </p>
+      </div>
       <A href="/projects/new">
         <Button variant="primary" size="md">
           Create your first project
         </Button>
       </A>
-    </Stack>
+    </div>
   );
 }
 
 // ── Projects Page ───────────────────────────────────────────────────
 
 export default function ProjectsPage(): ReturnType<typeof ProtectedRoute> {
-  const projects = useQuery(() =>
-    trpc.projects.list.query().catch(() => []),
-    { key: "projects", refetchInterval: 30_000 },
-  );
+  const projects = useQuery(() => trpc.projects.list.query().catch(() => []), {
+    key: "projects",
+    refetchInterval: 30_000,
+  });
 
   // ── URL-backed filter ─────────────────────────────────────────────
   // The text filter and status filter both round-trip through the
@@ -329,10 +331,7 @@ export default function ProjectsPage(): ReturnType<typeof ProtectedRoute> {
     return all.filter((p) => {
       if (status !== "all" && p.status !== status) return false;
       if (!q) return true;
-      return (
-        p.name.toLowerCase().includes(q) ||
-        (p.framework ?? "").toLowerCase().includes(q)
-      );
+      return p.name.toLowerCase().includes(q) || (p.framework ?? "").toLowerCase().includes(q);
     });
   });
 
@@ -345,27 +344,27 @@ export default function ProjectsPage(): ReturnType<typeof ProtectedRoute> {
       />
       <Title>Projects — Crontech</Title>
 
-      <Box class="min-h-screen" style={{ background: "var(--color-bg)" }}>
-        <Container size="2xl" padding="md" class="py-8">
+      <div class="min-h-screen" style={{ background: "var(--color-bg)" }}>
+        <div class="mx-auto max-w-[1400px] px-6 py-8 lg:px-8">
           {/* ── Header ─────────────────────────────────────────────── */}
-          <Stack direction="horizontal" gap="md" align="center" justify="between" class="mb-8">
-            <Stack direction="vertical" gap="xs">
-              <Text variant="h1" weight="bold" class="text-3xl tracking-tight" style={{ color: "var(--color-text)" }}>
+          <div class="mb-8 flex items-center justify-between gap-4">
+            <div class="flex flex-col gap-1">
+              <h1 class="text-3xl font-bold tracking-tight" style={{ color: "var(--color-text)" }}>
                 Projects
-              </Text>
-              <Text variant="body" class="text-sm" style={{ color: "var(--color-text-secondary)" }}>
+              </h1>
+              <p class="text-sm" style={{ color: "var(--color-text-secondary)" }}>
                 Your deployed apps and sites on the Crontech edge network.
-              </Text>
-            </Stack>
+              </p>
+            </div>
             <A href="/projects/new">
               <Button variant="primary" size="md">
                 New Project
               </Button>
             </A>
-          </Stack>
+          </div>
 
           {/* ── Filter bar (URL-state backed) ──────────────────────── */}
-          <Box class="mb-6 flex flex-wrap items-center gap-3">
+          <div class="mb-6 flex flex-wrap items-center gap-3">
             <input
               id="projects-filter-input"
               type="search"
@@ -399,36 +398,31 @@ export default function ProjectsPage(): ReturnType<typeof ProtectedRoute> {
               <option value="stopped">Stopped</option>
               <option value="error">Error</option>
             </select>
-          </Box>
+          </div>
 
           {/* ── Content ────────────────────────────────────────────── */}
           <Show
             when={!projects.loading()}
             fallback={
-              <Stack direction="horizontal" align="center" justify="center" class="py-24">
+              <div class="flex items-center justify-center py-24">
                 <Spinner size="lg" />
-              </Stack>
+              </div>
             }
           >
             <Show
               when={filtered().length > 0}
               fallback={
-                <Show
-                  when={(projects.data() ?? []).length > 0}
-                  fallback={<EmptyState />}
-                >
-                  <Text
-                    variant="body"
-                    align="center"
-                    class="py-16 text-sm"
+                <Show when={(projects.data() ?? []).length > 0} fallback={<EmptyState />}>
+                  <div
+                    class="py-16 text-center text-sm"
                     style={{ color: "var(--color-text-muted)" }}
                   >
                     No projects match this filter.
-                  </Text>
+                  </div>
                 </Show>
               }
             >
-              <Box class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 <For each={filtered()}>
                   {(project) => (
                     <ProjectCard
@@ -443,17 +437,16 @@ export default function ProjectsPage(): ReturnType<typeof ProtectedRoute> {
                         null
                       }
                       errorMessage={
-                        (project as { errorMessage?: string | null })
-                          .errorMessage ?? null
+                        (project as { errorMessage?: string | null }).errorMessage ?? null
                       }
                     />
                   )}
                 </For>
-              </Box>
+              </div>
             </Show>
           </Show>
-        </Container>
-      </Box>
+        </div>
+      </div>
     </ProtectedRoute>
   );
 }

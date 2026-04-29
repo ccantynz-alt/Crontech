@@ -12,8 +12,8 @@
 
 import { A } from "@solidjs/router";
 import { For, type JSX } from "solid-js";
-import { SEOHead } from "../components/SEOHead";
 import { Icon, type IconName } from "../components/Icon";
+import { SEOHead } from "../components/SEOHead";
 
 // ── Feature bullets ────────────────────────────────────────────────
 
@@ -109,9 +109,8 @@ export default function DnsPage(): JSX.Element {
               class="mx-auto mt-6 max-w-2xl text-base leading-relaxed sm:text-lg"
               style={{ color: "rgba(255,255,255,0.65)" }}
             >
-              Replace third-party DNS with your own, in minutes. Crontech runs
-              the nameservers, serves the records, and gives you a single
-              console to manage every zone.
+              Replace third-party DNS with your own, in minutes. Crontech runs the nameservers,
+              serves the records, and gives you a single console to manage every zone.
             </p>
             <div class="mt-10 flex flex-wrap items-center justify-center gap-3">
               <A
@@ -143,26 +142,25 @@ export default function DnsPage(): JSX.Element {
 
         {/* ── Description ─────────────────────────────────────── */}
         <section class="mx-auto max-w-3xl px-6 pb-16">
-          <div class="space-y-5 text-base leading-[1.8]" style={{ color: "rgba(255,255,255,0.72)" }}>
+          <div
+            class="space-y-5 text-base leading-[1.8]"
+            style={{ color: "rgba(255,255,255,0.72)" }}
+          >
             <p>
-              Crontech Authoritative DNS is a self-hosted DNS service. Your
-              domains delegate to Crontech nameservers, and every query — from
-              the first SOA lookup to the last TXT record — is answered by
-              infrastructure you control through the Crontech console. No
-              external resolver in the path, no surprise rate limits, no
-              opaque dashboards.
+              Crontech Authoritative DNS is a self-hosted DNS service. Your domains delegate to
+              Crontech nameservers, and every query — from the first SOA lookup to the last TXT
+              record — is answered by infrastructure you control through the Crontech console. No
+              external resolver in the path, no surprise rate limits, no opaque dashboards.
             </p>
             <p>
-              Zone management, record editing, TTL tuning, and DNSSEC signing
-              all live in one place. Changes propagate through the anycast
-              fleet in seconds, and every edit lands in the audit log so you
-              can answer "who changed that MX record?" without a ticket.
+              Zone management, record editing, TTL tuning, and DNSSEC signing all live in one place.
+              Changes propagate through the anycast fleet in seconds, and every edit lands in the
+              audit log so you can answer "who changed that MX record?" without a ticket.
             </p>
             <p>
-              Already on another provider? The built-in Cloudflare-import tool
-              pulls your zones across, shows you a full diff, and holds the
-              nameserver flip until you say go. Migration is a review step,
-              not a weekend.
+              Already on another provider? The built-in Cloudflare-import tool pulls your zones
+              across, shows you a full diff, and holds the nameserver flip until you say go.
+              Migration is a review step, not a weekend.
             </p>
           </div>
         </section>
@@ -211,19 +209,12 @@ export default function DnsPage(): JSX.Element {
 
         {/* ── Code snippet ────────────────────────────────────── */}
         <section class="mx-auto max-w-4xl px-6 pb-16">
-          <h2
-            class="text-2xl font-semibold tracking-tight"
-            style={{ color: "#f0f0f5" }}
-          >
+          <h2 class="text-2xl font-semibold tracking-tight" style={{ color: "#f0f0f5" }}>
             Manage zones from code
           </h2>
-          <p
-            class="mt-2 text-sm"
-            style={{ color: "rgba(255,255,255,0.55)" }}
-          >
-            Everything you can do in the console you can do from tRPC with
-            full end-to-end types. Drop in the client, call the procedure,
-            ship it.
+          <p class="mt-2 text-sm" style={{ color: "rgba(255,255,255,0.55)" }}>
+            Everything you can do in the console you can do from tRPC with full end-to-end types.
+            Drop in the client, call the procedure, ship it.
           </p>
           <pre
             class="mt-5 overflow-x-auto rounded-2xl p-5 text-[13px] leading-[1.7]"
@@ -231,8 +222,7 @@ export default function DnsPage(): JSX.Element {
               background: "rgba(8, 8, 14, 0.75)",
               border: "1px solid rgba(255,255,255,0.08)",
               color: "#e5e7eb",
-              "font-family":
-                "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+              "font-family": "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
             }}
           >
             <code>{DNS_TRPC_SNIPPET}</code>
@@ -243,8 +233,7 @@ export default function DnsPage(): JSX.Element {
               background: "rgba(8, 8, 14, 0.75)",
               border: "1px solid rgba(255,255,255,0.08)",
               color: "#e5e7eb",
-              "font-family":
-                "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+              "font-family": "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
             }}
           >
             <code>{DNS_DIG_SNIPPET}</code>
@@ -256,8 +245,7 @@ export default function DnsPage(): JSX.Element {
           <div
             class="rounded-3xl p-10 text-center"
             style={{
-              background:
-                "linear-gradient(135deg, rgba(99,102,241,0.14), rgba(139,92,246,0.10))",
+              background: "linear-gradient(135deg, rgba(99,102,241,0.14), rgba(139,92,246,0.10))",
               border: "1px solid rgba(99,102,241,0.22)",
             }}
           >
@@ -271,8 +259,8 @@ export default function DnsPage(): JSX.Element {
               class="mx-auto mt-3 max-w-xl text-sm sm:text-base"
               style={{ color: "rgba(255,255,255,0.65)" }}
             >
-              Create your first zone in the console, or import everything you
-              already run elsewhere. Crontech holds your hand through the flip.
+              Create your first zone in the console, or import everything you already run elsewhere.
+              Crontech holds your hand through the flip.
             </p>
             <div class="mt-6 flex flex-wrap items-center justify-center gap-3">
               <A

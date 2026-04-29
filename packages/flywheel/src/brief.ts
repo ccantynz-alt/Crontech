@@ -1,5 +1,5 @@
+import { type db, flywheelLessons, flywheelSessions, flywheelTurns } from "@back-to-the-future/db";
 import { desc, eq } from "drizzle-orm";
-import { flywheelLessons, flywheelSessions, flywheelTurns, db } from "@back-to-the-future/db";
 
 type Database = typeof db;
 

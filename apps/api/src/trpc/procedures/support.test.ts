@@ -13,9 +13,9 @@
 // transitively. It intentionally does not call any procedure — the
 // point is the module-load assertion, not business logic.
 
-import { describe, test, expect } from "bun:test";
-import { supportRouter } from "./support";
+import { describe, expect, test } from "bun:test";
 import { appRouter } from "../router";
+import { supportRouter } from "./support";
 
 describe("support router — module load", () => {
   test("supportRouter is defined and exports a tRPC router", () => {
@@ -26,24 +26,24 @@ describe("support router — module load", () => {
   test("supportRouter exposes the admin-facing procedures used by /admin/support", () => {
     const procs = (supportRouter as unknown as { _def: { record: Record<string, unknown> } })._def
       .record;
-    expect(procs["listTickets"]).toBeDefined();
-    expect(procs["getTicket"]).toBeDefined();
-    expect(procs["approveDraft"]).toBeDefined();
-    expect(procs["editAndSend"]).toBeDefined();
-    expect(procs["updateStatus"]).toBeDefined();
-    expect(procs["getStats"]).toBeDefined();
+    expect(procs.listTickets).toBeDefined();
+    expect(procs.getTicket).toBeDefined();
+    expect(procs.approveDraft).toBeDefined();
+    expect(procs.editAndSend).toBeDefined();
+    expect(procs.updateStatus).toBeDefined();
+    expect(procs.getStats).toBeDefined();
   });
 
   test("supportRouter exposes the submitPublic procedure used by the /support page", () => {
     const procs = (supportRouter as unknown as { _def: { record: Record<string, unknown> } })._def
       .record;
-    expect(procs["submitPublic"]).toBeDefined();
-    expect(procs["submitRequest"]).toBeDefined();
+    expect(procs.submitPublic).toBeDefined();
+    expect(procs.submitRequest).toBeDefined();
   });
 
   test("appRouter mounts the support namespace", () => {
     const procs = (appRouter as unknown as { _def: { record: Record<string, unknown> } })._def
       .record;
-    expect(procs["support"]).toBeDefined();
+    expect(procs.support).toBeDefined();
   });
 });

@@ -17,12 +17,8 @@
  * surfaced back via the build-runner's own log stream.
  */
 
+import { db as defaultDb, dnsRecords, dnsZones } from "@back-to-the-future/db";
 import { and, eq } from "drizzle-orm";
-import {
-  db as defaultDb,
-  dnsRecords,
-  dnsZones,
-} from "@back-to-the-future/db";
 
 export type DnsDbClient = typeof defaultDb;
 
@@ -56,8 +52,7 @@ export async function upsertSubdomainRecord(
 ): Promise<void> {
   const db = options.db ?? defaultDb;
   const nowMs = options.now ?? ((): number => Date.now());
-  const generateId =
-    options.generateId ?? ((): string => crypto.randomUUID());
+  const generateId = options.generateId ?? ((): string => crypto.randomUUID());
 
   const fqdn = `${slug}.${CRONTECH_ZONE}`;
 
@@ -70,9 +65,7 @@ export async function upsertSubdomainRecord(
       .limit(1);
     const zone = zoneRows[0];
     if (!zone) {
-      console.warn(
-        `[dns-helper] zone ${CRONTECH_ZONE} not found — skipping A record for ${fqdn}`,
-      );
+      console.warn(`[dns-helper] zone ${CRONTECH_ZONE} not found — skipping A record for ${fqdn}`);
       return;
     }
 
@@ -81,11 +74,7 @@ export async function upsertSubdomainRecord(
       .select()
       .from(dnsRecords)
       .where(
-        and(
-          eq(dnsRecords.zoneId, zone.id),
-          eq(dnsRecords.name, fqdn),
-          eq(dnsRecords.type, "A"),
-        ),
+        and(eq(dnsRecords.zoneId, zone.id), eq(dnsRecords.name, fqdn), eq(dnsRecords.type, "A")),
       )
       .limit(1);
     const existing = existingRows[0];

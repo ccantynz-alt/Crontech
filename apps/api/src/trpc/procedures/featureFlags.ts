@@ -1,15 +1,15 @@
-import { z } from "zod";
+import { users } from "@back-to-the-future/db";
 import { TRPCError } from "@trpc/server";
 import { eq } from "drizzle-orm";
-import { router, publicProcedure, protectedProcedure, middleware } from "../init";
-import { users } from "@back-to-the-future/db";
+import { z } from "zod";
 import {
+  type FeatureFlag,
   getAllFlags,
   getFlag,
   isFeatureEnabled,
   updateFlagPersisted,
-  type FeatureFlag,
 } from "../../feature-flags";
+import { middleware, protectedProcedure, publicProcedure, router } from "../init";
 
 // ── Admin Middleware ──────────────────────────────────────────────────
 
@@ -61,10 +61,12 @@ export const featureFlagsRouter = router({
     }),
 
   evaluate: publicProcedure
-    .input(z.object({
-      flagKey: z.string(),
-      userId: z.string().optional(),
-    }))
+    .input(
+      z.object({
+        flagKey: z.string(),
+        userId: z.string().optional(),
+      }),
+    )
     .query(({ input }): { key: string; enabled: boolean; flag: FeatureFlag | null } => {
       const flag = getFlag(input.flagKey) ?? null;
       const enabled = isFeatureEnabled(input.flagKey, input.userId);

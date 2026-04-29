@@ -8,11 +8,7 @@
 
 import type { JSX } from "solid-js";
 import { SEOHead } from "../../../components/SEOHead";
-import {
-  DocsArticle,
-  Callout,
-  KeyList,
-} from "../../../components/docs/DocsArticle";
+import { Callout, DocsArticle, KeyList } from "../../../components/docs/DocsArticle";
 
 export default function StreamingCompletionsArticle(): JSX.Element {
   return (
@@ -37,24 +33,19 @@ export default function StreamingCompletionsArticle(): JSX.Element {
         }}
       >
         <p>
-          The server-side streaming entry point is a single Hono route
-          at{" "}
-          <code>POST /chat/stream</code>, defined in{" "}
-          <code>apps/api/src/ai/chat-stream.ts</code> and mounted on
-          the API app under <code>/chat</code>. It takes a message
-          array, resolves an Anthropic API key, hands the call to{" "}
-          <code>streamText()</code> from the <code>ai</code> package,
-          and returns a plain text stream over HTTP.
+          The server-side streaming entry point is a single Hono route at{" "}
+          <code>POST /chat/stream</code>, defined in <code>apps/api/src/ai/chat-stream.ts</code> and
+          mounted on the API app under <code>/chat</code>. It takes a message array, resolves an
+          Anthropic API key, hands the call to <code>streamText()</code> from the <code>ai</code>{" "}
+          package, and returns a plain text stream over HTTP.
         </p>
 
         <Callout tone="info" title="Why one route, not a tRPC subscription">
-          SSE streams are long-lived HTTP responses, and{" "}
-          <code>streamText()</code> from the <code>ai</code> package
-          already produces a <code>ReadableStream</code> that parks
-          nicely on top of Hono's response handler. Wrapping it in a
-          tRPC subscription adds a framing layer the consumer doesn't
-          need. The route stays as a raw Hono handler so the wire
-          format is interoperable with any SSE reader.
+          SSE streams are long-lived HTTP responses, and <code>streamText()</code> from the{" "}
+          <code>ai</code> package already produces a <code>ReadableStream</code> that parks nicely
+          on top of Hono's response handler. Wrapping it in a tRPC subscription adds a framing layer
+          the consumer doesn't need. The route stays as a raw Hono handler so the wire format is
+          interoperable with any SSE reader.
         </Callout>
 
         <h2>Route lifecycle</h2>
@@ -125,11 +116,9 @@ const ChatStreamInput = z.object({
         </pre>
 
         <p>
-          <code>systemPrompt</code> is a convenience for callers that
-          don't want to assemble a <code>role: "system"</code> message
-          themselves. When present, the handler prepends it to the
-          messages array before passing them to{" "}
-          <code>streamText()</code>.
+          <code>systemPrompt</code> is a convenience for callers that don't want to assemble a{" "}
+          <code>role: "system"</code> message themselves. When present, the handler prepends it to
+          the messages array before passing them to <code>streamText()</code>.
         </p>
 
         <h2>Calling the route</h2>
@@ -181,11 +170,9 @@ while (true) {
 
         <Callout tone="note">
           The response body is a plain text stream — not an
-          <code> application/json</code> document. Do not await{" "}
-          <code>response.json()</code>; you will block until the full
-          completion arrives and lose the whole point of streaming.
-          Read the body with a <code>ReadableStreamDefaultReader</code>{" "}
-          and decode chunks as they come.
+          <code> application/json</code> document. Do not await <code>response.json()</code>; you
+          will block until the full completion arrives and lose the whole point of streaming. Read
+          the body with a <code>ReadableStreamDefaultReader</code> and decode chunks as they come.
         </Callout>
 
         <h2>Error shapes</h2>
@@ -218,9 +205,8 @@ while (true) {
         <h2>Status endpoint</h2>
 
         <p>
-          Before the UI opens a stream it usually wants to know whether
-          a key is configured. <code>GET /chat/status</code> answers
-          that without touching any credentials:
+          Before the UI opens a stream it usually wants to know whether a key is configured.{" "}
+          <code>GET /chat/status</code> answers that without touching any credentials:
         </p>
 
         <pre
@@ -249,45 +235,33 @@ Authorization: Bearer <session>
         </pre>
 
         <p>
-          The <code>models</code> list is assembled from{" "}
-          <code>ANTHROPIC_MODELS</code> in{" "}
-          <code>packages/ai-core/src/providers.ts</code>, which also
-          carries per-million-token input/output costs — the dashboard
-          reads the same entries to draw the model picker and the cost
-          estimator.
+          The <code>models</code> list is assembled from <code>ANTHROPIC_MODELS</code> in{" "}
+          <code>packages/ai-core/src/providers.ts</code>, which also carries per-million-token
+          input/output costs — the dashboard reads the same entries to draw the model picker and the
+          cost estimator.
         </p>
 
         <h2>How the router hands work to this route</h2>
 
         <p>
-          The{" "}
-          <a href="/docs/ai-sdk/three-tier-compute">
-            three-tier router
-          </a>{" "}
-          runs <em>before</em> this endpoint is called. When the
-          router's decision is <code>"cloud"</code> (or{" "}
-          <code>"edge"</code> with an Anthropic fallback), the caller
-          POSTs to <code>/chat/stream</code> and this route takes it
-          from there. When the decision is{" "}
+          The <a href="/docs/ai-sdk/three-tier-compute">three-tier router</a> runs <em>before</em>{" "}
+          this endpoint is called. When the router's decision is <code>"cloud"</code> (or{" "}
+          <code>"edge"</code> with an Anthropic fallback), the caller POSTs to{" "}
+          <code>/chat/stream</code> and this route takes it from there. When the decision is{" "}
           <code>"client"</code>, the stream stays in the browser — see{" "}
-          <a href="/docs/ai-sdk/client-gpu-inference">
-            Client-GPU inference
-          </a>{" "}
-          for that path.
+          <a href="/docs/ai-sdk/client-gpu-inference">Client-GPU inference</a> for that path.
         </p>
 
         <h2>Observability</h2>
 
         <p>
-          Every response sets the <code>X-Model-Id</code> header, so a
-          dashboard trace can bucket streams by model without parsing
-          the body. Token usage + cost are recorded on conversation
+          Every response sets the <code>X-Model-Id</code> header, so a dashboard trace can bucket
+          streams by model without parsing the body. Token usage + cost are recorded on conversation
           persistence via the{" "}
           <a href="/docs/api-reference/ai-and-chat">
             <code>chat.saveMessage</code>
           </a>{" "}
-          mutation — the streaming route itself does not write to the
-          DB, it just serves the bytes.
+          mutation — the streaming route itself does not write to the DB, it just serves the bytes.
         </p>
 
         <h2>Related</h2>
@@ -295,8 +269,7 @@ Authorization: Bearer <session>
           items={[
             {
               term: "Three-tier compute routing",
-              description:
-                "Decides whether the request comes to this endpoint at all.",
+              description: "Decides whether the request comes to this endpoint at all.",
             },
             {
               term: "Client-GPU inference",

@@ -1,36 +1,33 @@
+import { Badge, Button, Card, Spinner, Stack, Text } from "@back-to-the-future/ui";
+import { A, useNavigate, useParams } from "@solidjs/router";
 import {
-  createSignal,
-  createMemo,
-  createEffect,
   For,
-  Show,
-  Switch,
   Match,
+  Show,
   Suspense,
+  Switch,
+  createEffect,
+  createMemo,
+  createSignal,
   lazy,
   onCleanup,
 } from "solid-js";
 import type { JSX } from "solid-js";
-import { A, useParams, useNavigate } from "@solidjs/router";
-import { Badge, Box, Button, Card, Spinner, Stack, Text } from "@back-to-the-future/ui";
-import { ProtectedRoute } from "../../components/ProtectedRoute";
-import { SEOHead } from "../../components/SEOHead";
-import { CollabPresence } from "../../components/CollabPresence";
-import { DomainsPanel } from "../../components/DomainsPanel";
+import { type JoinedAIParticipant, joinAsParticipant } from "../../collab/ai-participant";
 import {
+  type CollabRoom,
   createCollabRoom,
   getRandomColor,
   projectRoomId,
-  type CollabRoom,
 } from "../../collab/yjs-provider";
-import {
-  joinAsParticipant,
-  type JoinedAIParticipant,
-} from "../../collab/ai-participant";
-import { useAuth } from "../../stores";
-import { trpc } from "../../lib/trpc";
-import { useQuery, invalidateQueries } from "../../lib/use-trpc";
+import { CollabPresence } from "../../components/CollabPresence";
+import { DomainsPanel } from "../../components/DomainsPanel";
+import { ProtectedRoute } from "../../components/ProtectedRoute";
+import { SEOHead } from "../../components/SEOHead";
 import { useOptimisticMutation } from "../../lib/optimistic";
+import { trpc } from "../../lib/trpc";
+import { invalidateQueries, useQuery } from "../../lib/use-trpc";
+import { useAuth } from "../../stores";
 
 // EnvVarsPanel is a 27KB tab-gated panel (activeTab === "env"). Users
 // land on "overview" by default — most never click into env vars.
@@ -57,9 +54,7 @@ type Tab = "overview" | "domains" | "env" | "deployments" | "settings";
 
 // ── Status helpers ─────────────────────────────────────────────────────
 
-function statusVariant(
-  status: string,
-): "default" | "success" | "warning" | "error" | "info" {
+function statusVariant(status: string): "default" | "success" | "warning" | "error" | "info" {
   switch (status) {
     case "active":
     case "live":
@@ -114,23 +109,27 @@ function OverviewTab(props: { project: ProjectData }): JSX.Element {
   const p = (): ProjectData => props.project;
 
   return (
-    <Box class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
       {/* Project Info */}
       <Card padding="lg">
         <Stack direction="vertical" gap="md">
-          <Text variant="h4" weight="semibold">Project Info</Text>
-          <Box class="grid grid-cols-2 gap-4">
+          <Text variant="h4" weight="semibold">
+            Project Info
+          </Text>
+          <div class="grid grid-cols-2 gap-4">
             <InfoRow label="Name" value={p().name} />
             <InfoRow label="Slug" value={p().slug} mono />
             <InfoRow label="Framework" value={frameworkLabel(p().framework)} />
             <InfoRow label="Runtime" value={p().runtime ?? "bun"} />
             <InfoRow label="Port" value={String(p().port ?? 3000)} />
             <InfoRow label="Status" value={p().status} />
-          </Box>
+          </div>
           <Show when={p().description}>
-            <Box class="mt-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-subtle)] p-3">
-              <Text variant="body" style={{ color: "var(--color-text-muted)" }}>{p().description}</Text>
-            </Box>
+            <div class="mt-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-subtle)] p-3">
+              <Text variant="body" style={{ color: "var(--color-text-muted)" }}>
+                {p().description}
+              </Text>
+            </div>
           </Show>
         </Stack>
       </Card>
@@ -138,7 +137,9 @@ function OverviewTab(props: { project: ProjectData }): JSX.Element {
       {/* Quick Actions */}
       <Card padding="lg">
         <Stack direction="vertical" gap="md">
-          <Text variant="h4" weight="semibold">Quick Actions</Text>
+          <Text variant="h4" weight="semibold">
+            Quick Actions
+          </Text>
           <Stack direction="vertical" gap="sm">
             <A href={`/projects/${p().id}/metrics`}>
               <Button variant="outline" size="md" class="w-full justify-start">
@@ -146,22 +147,14 @@ function OverviewTab(props: { project: ProjectData }): JSX.Element {
               </Button>
             </A>
             <Show when={p().repoUrl}>
-              <a
-                href={p().repoUrl ?? ""}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
+              <a href={p().repoUrl ?? ""} target="_blank" rel="noopener noreferrer">
                 <Button variant="outline" size="md" class="w-full justify-start">
                   Open Repository
                 </Button>
               </a>
             </Show>
             <Show when={p().latestDeployment?.url}>
-              <a
-                href={p().latestDeployment?.url ?? ""}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
+              <a href={p().latestDeployment?.url ?? ""} target="_blank" rel="noopener noreferrer">
                 <Button variant="outline" size="md" class="w-full justify-start">
                   Visit Live Site
                 </Button>
@@ -174,53 +167,65 @@ function OverviewTab(props: { project: ProjectData }): JSX.Element {
       {/* Build Configuration */}
       <Card padding="lg">
         <Stack direction="vertical" gap="md">
-          <Text variant="h4" weight="semibold">Build Configuration</Text>
-          <Box class="space-y-3">
+          <Text variant="h4" weight="semibold">
+            Build Configuration
+          </Text>
+          <div class="space-y-3">
             <ConfigRow label="Build Command" value={p().buildCommand ?? "bun run build"} />
             <ConfigRow label="Repo URL" value={p().repoUrl ?? "Not configured"} />
-          </Box>
+          </div>
         </Stack>
       </Card>
 
       {/* Latest Deployment */}
       <Card padding="lg">
         <Stack direction="vertical" gap="md">
-          <Text variant="h4" weight="semibold">Latest Deployment</Text>
+          <Text variant="h4" weight="semibold">
+            Latest Deployment
+          </Text>
           <Show
             when={p().latestDeployment}
             fallback={
-              <Text variant="body" style={{ color: "var(--color-text-faint)" }}>No deployments yet</Text>
+              <Text variant="body" style={{ color: "var(--color-text-faint)" }}>
+                No deployments yet
+              </Text>
             }
           >
             {(dep) => (
-              <Box class="space-y-3">
-                <Stack direction="horizontal" align="center" justify="between">
+              <div class="space-y-3">
+                <div class="flex items-center justify-between">
                   <Badge variant={statusVariant(dep().status)} size="sm">
                     {dep().status}
                   </Badge>
                   <Text variant="caption" style={{ color: "var(--color-text-faint)" }}>
                     {relativeTime(dep().createdAt)}
                   </Text>
-                </Stack>
+                </div>
                 <Show when={dep().commitMessage}>
-                  <Text variant="body" class="text-sm" style={{ color: "var(--color-text-secondary)" }}>
+                  <Text
+                    variant="body"
+                    class="text-sm"
+                    style={{ color: "var(--color-text-secondary)" }}
+                  >
                     {dep().commitMessage}
                   </Text>
                 </Show>
                 <Show when={dep().commitSha}>
-                  <Text variant="caption" class="font-mono" style={{ color: "var(--color-text-faint)" }}>
+                  <Text
+                    variant="caption"
+                    class="font-mono"
+                    style={{ color: "var(--color-text-faint)" }}
+                  >
                     {dep().commitSha?.slice(0, 7)}
-                    <Show when={dep().branch}>
-                      {" "}on {dep().branch}
-                    </Show>
+                    <Show when={dep().branch}> on {dep().branch}</Show>
                   </Text>
                 </Show>
-              </Box>
+              </div>
             )}
           </Show>
         </Stack>
       </Card>
-    </Box>
+    </div>
   );
 }
 
@@ -232,15 +237,17 @@ function DeploymentsTab(props: { project: ProjectData }): JSX.Element {
       {/* Deploy Button */}
       <Card padding="lg">
         <Stack direction="horizontal" justify="between" align="center">
-          <Box>
-            <Text variant="h4" weight="semibold">Trigger Deployment</Text>
+          <div>
+            <Text variant="h4" weight="semibold">
+              Trigger Deployment
+            </Text>
             <Text variant="caption" style={{ color: "var(--color-text-faint)" }}>
               Deploy the latest commit from{" "}
-              <Text as="span" class="font-mono" style={{ color: "var(--color-primary)" }}>
+              <span class="font-mono" style={{ color: "var(--color-primary)" }}>
                 {props.project.repoUrl ? "your repository" : "configured source"}
-              </Text>
+              </span>
             </Text>
-          </Box>
+          </div>
           <Button
             variant="primary"
             size="md"
@@ -273,24 +280,24 @@ function DeploymentsTab(props: { project: ProjectData }): JSX.Element {
       >
         {(dep) => (
           <Card padding="md">
-            <Stack direction="horizontal" align="center" justify="between">
+            <div class="flex items-center justify-between">
               <Stack direction="horizontal" gap="md" align="center">
                 <Badge variant={statusVariant(dep().status)} size="sm">
                   {dep().status}
                 </Badge>
-                <Box>
+                <div>
                   <Text variant="body" class="text-sm" style={{ color: "var(--color-text)" }}>
                     {dep().commitMessage ?? "Manual deployment"}
                   </Text>
                   <Text variant="caption" style={{ color: "var(--color-text-faint)" }}>
                     {dep().commitSha?.slice(0, 7) ?? "—"} on {dep().branch ?? "main"}
                   </Text>
-                </Box>
+                </div>
               </Stack>
               <Text variant="caption" style={{ color: "var(--color-text-faint)" }}>
                 {relativeTime(dep().createdAt)}
               </Text>
-            </Stack>
+            </div>
           </Card>
         )}
       </Show>
@@ -331,13 +338,15 @@ function SettingsTab(props: { project: ProjectData }): JSX.Element {
       {/* General Settings */}
       <Card padding="lg">
         <Stack direction="vertical" gap="md">
-          <Text variant="h4" weight="semibold">General Settings</Text>
-          <Box class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <Text variant="h4" weight="semibold">
+            General Settings
+          </Text>
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <InfoRow label="Project ID" value={props.project.id} mono />
             <InfoRow label="Slug" value={props.project.slug} mono />
             <InfoRow label="Created" value={relativeTime(props.project.createdAt)} />
             <InfoRow label="Last Updated" value={relativeTime(props.project.updatedAt)} />
-          </Box>
+          </div>
         </Stack>
       </Card>
 
@@ -347,25 +356,21 @@ function SettingsTab(props: { project: ProjectData }): JSX.Element {
           <Text variant="h4" weight="semibold" class="text-red-400">
             Danger Zone
           </Text>
-          <Box class="rounded-lg border border-red-500/20 bg-red-500/5 p-4">
+          <div class="rounded-lg border border-red-500/20 bg-red-500/5 p-4">
             <Stack direction="horizontal" justify="between" align="center">
-              <Box>
+              <div>
                 <Text variant="body" class="text-sm" style={{ color: "var(--color-text)" }}>
                   Delete this project
                 </Text>
                 <Text variant="caption" style={{ color: "var(--color-text-faint)" }}>
                   Permanently removes the project, all domains, env vars, and deployments.
                 </Text>
-              </Box>
+              </div>
               <Show
                 when={!confirmDelete()}
                 fallback={
                   <Stack direction="horizontal" gap="sm">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setConfirmDelete(false)}
-                    >
+                    <Button variant="outline" size="sm" onClick={() => setConfirmDelete(false)}>
                       Cancel
                     </Button>
                     <Button
@@ -384,16 +389,12 @@ function SettingsTab(props: { project: ProjectData }): JSX.Element {
                   </Stack>
                 }
               >
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setConfirmDelete(true)}
-                >
+                <Button variant="outline" size="sm" onClick={() => setConfirmDelete(true)}>
                   Delete Project
                 </Button>
               </Show>
             </Stack>
-          </Box>
+          </div>
         </Stack>
       </Card>
     </Stack>
@@ -408,27 +409,34 @@ function InfoRow(props: {
   mono?: boolean;
 }): JSX.Element {
   return (
-    <Stack direction="vertical" gap="none" class="gap-0.5">
-      <Text as="span" weight="medium" class="text-[11px] uppercase tracking-widest" style={{ color: "var(--color-text-faint)" }}>
+    <div class="flex flex-col gap-0.5">
+      <span
+        class="text-[11px] font-medium uppercase tracking-widest"
+        style={{ color: "var(--color-text-faint)" }}
+      >
         {props.label}
-      </Text>
-      <Text
-        as="span"
-        class={`text-sm${props.mono === true ? " font-mono" : ""}`}
+      </span>
+      <span
+        class="text-sm"
+        classList={{ "font-mono": props.mono === true }}
         style={{ color: "var(--color-text-secondary)" }}
       >
         {props.value}
-      </Text>
-    </Stack>
+      </span>
+    </div>
   );
 }
 
 function ConfigRow(props: { label: string; value: string }): JSX.Element {
   return (
-    <Stack direction="horizontal" align="center" justify="between" class="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-subtle)] px-3 py-2">
-      <Text as="span" class="text-xs" style={{ color: "var(--color-text-muted)" }}>{props.label}</Text>
-      <Text as="span" class="font-mono text-xs" style={{ color: "var(--color-text-secondary)" }}>{props.value}</Text>
-    </Stack>
+    <div class="flex items-center justify-between rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-subtle)] px-3 py-2">
+      <span class="text-xs" style={{ color: "var(--color-text-muted)" }}>
+        {props.label}
+      </span>
+      <span class="font-mono text-xs" style={{ color: "var(--color-text-secondary)" }}>
+        {props.value}
+      </span>
+    </div>
   );
 }
 
@@ -484,8 +492,7 @@ export default function ProjectDetailPage(): JSX.Element {
   const [aiParticipantError, setAiParticipantError] = createSignal<string | null>(null);
 
   const projectQuery = useQuery(
-    () =>
-      trpc.projects.getById.query({ projectId: params.id }) as Promise<ProjectData>,
+    () => trpc.projects.getById.query({ projectId: params.id }) as Promise<ProjectData>,
     { key: ["projects", "deployments"], refetchInterval: 15_000 },
   );
 
@@ -564,9 +571,9 @@ export default function ProjectDetailPage(): JSX.Element {
       <Show
         when={projectData()}
         fallback={
-          <Stack direction="horizontal" align="center" justify="center" class="min-h-[60vh]">
+          <div class="flex min-h-[60vh] items-center justify-center">
             <Spinner size="lg" />
-          </Stack>
+          </div>
         }
       >
         {(project) => (
@@ -578,26 +585,45 @@ export default function ProjectDetailPage(): JSX.Element {
             />
             <Stack direction="vertical" gap="lg" class="page-padded">
               {/* Header */}
-              <Box class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <Stack direction="horizontal" gap="md" align="center">
-                  <A href="/projects" aria-label="Back to projects" class="transition-colors hover:text-[var(--color-text)]" style={{ color: "var(--color-text-faint)" }}>
+              <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div class="flex items-center gap-4">
+                  <A
+                    href="/projects"
+                    aria-label="Back to projects"
+                    class="transition-colors hover:text-[var(--color-text)]"
+                    style={{ color: "var(--color-text-faint)" }}
+                  >
                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                      <path d="M12 15L7 10L12 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                      <path
+                        d="M12 15L7 10L12 5"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      />
                     </svg>
                   </A>
-                  <Box>
-                    <Text variant="h2" weight="bold">{project().name}</Text>
-                    <Text variant="caption" class="font-mono" style={{ color: "var(--color-text-faint)" }}>
+                  <div>
+                    <Text variant="h2" weight="bold">
+                      {project().name}
+                    </Text>
+                    <Text
+                      variant="caption"
+                      class="font-mono"
+                      style={{ color: "var(--color-text-faint)" }}
+                    >
                       {project().slug}
                     </Text>
-                  </Box>
+                  </div>
                   <Badge variant={statusVariant(project().status)} size="sm">
                     {project().status}
                   </Badge>
-                </Stack>
+                </div>
                 <Stack direction="horizontal" gap="sm">
                   <A href={`/projects/${project().id}/metrics`}>
-                    <Button variant="outline" size="sm">Metrics</Button>
+                    <Button variant="outline" size="sm">
+                      Metrics
+                    </Button>
                   </A>
                   <Button
                     variant="primary"
@@ -616,54 +642,53 @@ export default function ProjectDetailPage(): JSX.Element {
                     Deploy
                   </Button>
                 </Stack>
-              </Box>
+              </div>
 
               {/* Live collaborator presence (humans + AI peers) */}
-              <CollabPresence
-                room={collabRoom()}
-                currentUserId={currentUserId()}
-              />
+              <CollabPresence room={collabRoom()} currentUserId={currentUserId()} />
 
               <Show when={aiParticipantError()}>
                 {(message) => (
-                  <Box
+                  <output
                     class="flex items-center gap-2 rounded-lg px-3 py-2 text-xs"
+                    aria-live="polite"
                     style={{
+                      display: "flex",
                       background: "rgba(245, 158, 11, 0.08)",
                       border: "1px solid rgba(245, 158, 11, 0.25)",
                       color: "#fbbf24",
                     }}
-                    role="status"
-                    aria-live="polite"
                   >
-                    <Text as="span" aria-hidden="true">{"⚠"}</Text>
-                    <Text as="span">AI peer unavailable: {message()}</Text>
-                  </Box>
+                    <span aria-hidden="true">{"⚠"}</span>
+                    <span>AI peer unavailable: {message()}</span>
+                  </output>
                 )}
               </Show>
 
               {/* Tab Navigation */}
-              <Box class="flex gap-1 border-b border-[var(--color-border)] pb-px">
+              <div class="flex gap-1 border-b border-[var(--color-border)] pb-px">
                 <For each={tabs}>
                   {(tab) => (
                     <button
                       type="button"
                       class="relative px-4 py-2 text-sm font-medium transition-colors"
                       style={{
-                        color: activeTab() === tab.id
-                          ? "var(--color-text)"
-                          : "var(--color-text-faint)",
+                        color:
+                          activeTab() === tab.id ? "var(--color-text)" : "var(--color-text-faint)",
                       }}
                       onClick={() => setActiveTab(tab.id)}
                     >
                       {tab.label}
                       <Show when={activeTab() === tab.id}>
-                        <Box class="absolute bottom-0 left-0 h-[2px] w-full" style={{ background: "var(--color-primary)" }} />
+                        <div
+                          class="absolute bottom-0 left-0 h-[2px] w-full"
+                          style={{ background: "var(--color-primary)" }}
+                        />
                       </Show>
                     </button>
                   )}
                 </For>
-              </Box>
+              </div>
 
               {/* Tab Content */}
               <Switch>

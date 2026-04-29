@@ -1,6 +1,6 @@
+import { A } from "@solidjs/router";
 import type { JSX } from "solid-js";
 import { For, Show } from "solid-js";
-import { A } from "@solidjs/router";
 
 // ── Shared docs article shell ───────────────────────────────────────
 // Used by every /docs/getting-started/* article. Keeps the styling,
@@ -33,10 +33,7 @@ export function DocsArticle(props: DocsArticleProps): JSX.Element {
           style={{ color: "var(--color-text-faint)" }}
           aria-label="Breadcrumb"
         >
-          <A
-            href="/docs"
-            style={{ color: "var(--color-text-muted)", "text-decoration": "none" }}
-          >
+          <A href="/docs" style={{ color: "var(--color-text-muted)", "text-decoration": "none" }}>
             Docs
           </A>
           <span>/</span>
@@ -102,16 +99,10 @@ export function DocsArticle(props: DocsArticleProps): JSX.Element {
               >
                 Next steps
               </span>
-              <span
-                class="block text-lg font-semibold"
-                style={{ color: "var(--color-text)" }}
-              >
+              <span class="block text-lg font-semibold" style={{ color: "var(--color-text)" }}>
                 {step().label} →
               </span>
-              <span
-                class="mt-1 block text-sm"
-                style={{ color: "var(--color-text-muted)" }}
-              >
+              <span class="mt-1 block text-sm" style={{ color: "var(--color-text-muted)" }}>
                 {step().description}
               </span>
             </A>
@@ -157,10 +148,7 @@ export function Callout(props: {
       }}
     >
       <Show when={props.title}>
-        <p
-          class="mb-1 text-sm font-semibold"
-          style={{ color: "var(--color-text)" }}
-        >
+        <p class="mb-1 text-sm font-semibold" style={{ color: "var(--color-text)" }}>
           {props.title}
         </p>
       </Show>
@@ -193,10 +181,7 @@ export function ScreenshotSlot(props: { caption: string }): JSX.Element {
       >
         Screenshot · coming soon
       </div>
-      <figcaption
-        class="text-sm"
-        style={{ color: "var(--color-text-muted)" }}
-      >
+      <figcaption class="text-sm" style={{ color: "var(--color-text-muted)" }}>
         {props.caption}
       </figcaption>
     </figure>
@@ -214,10 +199,7 @@ export function KeyList(props: {
             class="rounded-lg border border-[var(--color-border)] p-4"
             style={{ background: "var(--color-bg-subtle)" }}
           >
-            <dt
-              class="text-sm font-semibold font-mono"
-              style={{ color: "var(--color-text)" }}
-            >
+            <dt class="text-sm font-semibold font-mono" style={{ color: "var(--color-text)" }}>
               {item.term}
             </dt>
             <dd

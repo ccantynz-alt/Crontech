@@ -10,7 +10,7 @@
 // States: idle → listening → processing → idle/error. The ring pulses
 // while listening; the pill turns red on error with a one-line message.
 
-import { createSignal, onCleanup, onMount, Show } from "solid-js";
+import { Show, createSignal, onCleanup, onMount } from "solid-js";
 import type { JSX } from "solid-js";
 
 // ── WebSpeech typings (not in lib.dom for all TS versions) ────────
@@ -63,22 +63,19 @@ function getSpeechRecognitionCtor(): SpeechRecognitionCtor | null {
 
 // ── Component ─────────────────────────────────────────────────────
 
-export type VoicePillStatus =
-  | "idle"
-  | "unsupported"
-  | "listening"
-  | "processing"
-  | "error";
+export type VoicePillStatus = "idle" | "unsupported" | "listening" | "processing" | "error";
 
 export interface VoicePillProps {
   /** Called with the final transcript once speech ends. */
   readonly onTranscript: (transcript: string) => Promise<void> | void;
+  /** Called with each interim (partial) transcript as the user speaks. */
+  readonly onInterimTranscript?: ((interim: string) => void) | undefined;
   /** Called when the pill's status changes — for parent UI sync. */
-  readonly onStatusChange?: (status: VoicePillStatus) => void;
+  readonly onStatusChange?: ((status: VoicePillStatus) => void) | undefined;
   /** BCP-47 language tag. Defaults to en-US. */
-  readonly lang?: string;
+  readonly lang?: string | undefined;
   /** Hide the pill entirely. */
-  readonly hidden?: boolean;
+  readonly hidden?: boolean | undefined;
 }
 
 export function VoicePill(props: VoicePillProps): JSX.Element {
@@ -125,6 +122,9 @@ export function VoicePill(props: VoicePillProps): JSX.Element {
         }
       }
       setInterim(interimPart);
+      if (interimPart && props.onInterimTranscript) {
+        props.onInterimTranscript(interimPart);
+      }
     };
 
     rec.onerror = (ev) => {
@@ -255,15 +255,12 @@ export function VoicePill(props: VoicePillProps): JSX.Element {
             height: "56px",
             "border-radius": "50%",
             border: `2px solid ${ringColor()}`,
-            background:
-              status() === "listening"
-                ? "rgba(239,68,68,0.12)"
-                : "rgba(15,15,17,0.92)",
+            background: status() === "listening" ? "rgba(239,68,68,0.12)" : "rgba(15,15,17,0.92)",
             color: ringColor(),
             cursor: status() === "processing" ? "wait" : "pointer",
             "box-shadow":
               status() === "listening"
-                ? `0 0 0 6px rgba(239,68,68,0.18), 0 8px 24px rgba(0,0,0,0.4)`
+                ? "0 0 0 6px rgba(239,68,68,0.18), 0 8px 24px rgba(0,0,0,0.4)"
                 : "0 8px 24px rgba(0,0,0,0.4)",
             transition: "box-shadow 150ms ease, background 150ms ease",
           }}
@@ -303,7 +300,7 @@ export function VoicePill(props: VoicePillProps): JSX.Element {
           </Show>
         </button>
       </div>
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      <style>{"@keyframes spin { to { transform: rotate(360deg); } }"}</style>
     </Show>
   );
 }

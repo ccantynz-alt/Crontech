@@ -12,10 +12,7 @@ import { JOB_SCHEMAS } from "./jobs";
 
 // ── Processor type ────────────────────────────────────────────────────
 
-export type JobProcessor = (
-  data: Record<string, unknown>,
-  job: Job,
-) => Promise<void>;
+export type JobProcessor = (data: Record<string, unknown>, job: Job) => Promise<void>;
 
 // ── Registry ──────────────────────────────────────────────────────────
 
@@ -24,10 +21,7 @@ const registry = new Map<JobType, JobProcessor>();
 /**
  * Register a processor for a given job type.
  */
-export function registerProcessor(
-  jobType: JobType,
-  handler: JobProcessor,
-): void {
+export function registerProcessor(jobType: JobType, handler: JobProcessor): void {
   registry.set(jobType, handler);
 }
 
@@ -90,35 +84,21 @@ registerProcessor("send_email", async (data, _job) => {
   // Delegates to the existing email client in apps/api.
   // In production, import { sendEmail } from "../../email/client"
   // and call it here. Stubbed for now.
-  console.info("[queue:send_email] Processing:", data["to"], data["subject"]);
+  console.info("[queue:send_email] Processing:", data.to, data.subject);
 });
 
 registerProcessor("process_webhook", async (data, _job) => {
   // Delegates to the webhook dispatcher.
   // In production, import { runDispatcher } and enqueue the delivery.
-  console.info(
-    "[queue:process_webhook] Processing:",
-    data["webhookId"],
-    data["eventType"],
-  );
+  console.info("[queue:process_webhook] Processing:", data.webhookId, data.eventType);
 });
 
 registerProcessor("provision_tenant", async (data, _job) => {
-  console.info(
-    "[queue:provision_tenant] Provisioning tenant:",
-    data["tenantId"],
-    "plan:",
-    data["plan"],
-  );
+  console.info("[queue:provision_tenant] Provisioning tenant:", data.tenantId, "plan:", data.plan);
   // Stub: will call tenant-manager.provisionTenantDB()
 });
 
 registerProcessor("generate_site", async (data, _job) => {
-  console.info(
-    "[queue:generate_site] Generating site:",
-    data["siteId"],
-    "for tenant:",
-    data["tenantId"],
-  );
+  console.info("[queue:generate_site] Generating site:", data.siteId, "for tenant:", data.tenantId);
   // Stub: will call AI site builder agent
 });

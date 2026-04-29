@@ -1,0 +1,12 @@
+{
+  "ignorePatterns": [
+    "**/*.ts",
+    "**/*.tsx",
+    "**/*.mts",
+    "**/*.cts",
+    "node_modules/",
+    ".next/",
+    "dist/",
+    ".turbo/"
+  ]
+}

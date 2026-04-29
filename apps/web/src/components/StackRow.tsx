@@ -112,9 +112,7 @@ function StackBadge(inputProps: StackBadgeProps): JSX.Element {
       <span class="inline-flex h-5 w-5 items-center justify-center transition-transform duration-300 ease-out group-hover:scale-110">
         <Logo size={20} />
       </span>
-      <span class="whitespace-nowrap font-medium tracking-tight">
-        {item.name}
-      </span>
+      <span class="whitespace-nowrap font-medium tracking-tight">{item.name}</span>
     </a>
   );
 }

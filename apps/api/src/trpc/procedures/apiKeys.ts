@@ -1,8 +1,8 @@
-import { z } from "zod";
-import { eq, and } from "drizzle-orm";
-import { TRPCError } from "@trpc/server";
-import { router, protectedProcedure } from "../init";
 import { apiKeys } from "@back-to-the-future/db";
+import { TRPCError } from "@trpc/server";
+import { and, eq } from "drizzle-orm";
+import { z } from "zod";
+import { protectedProcedure, router } from "../init";
 
 /**
  * Hash a raw API key using SHA-256.
@@ -130,19 +130,24 @@ export const apiKeysRouter = router({
 
       const key = results[0];
       if (!key) {
-        return { valid: false as const, userId: null as string | null, keyId: null as string | null };
+        return {
+          valid: false as const,
+          userId: null as string | null,
+          keyId: null as string | null,
+        };
       }
 
       // Check expiration
       if (key.expiresAt && key.expiresAt < new Date()) {
-        return { valid: false as const, userId: null as string | null, keyId: null as string | null };
+        return {
+          valid: false as const,
+          userId: null as string | null,
+          keyId: null as string | null,
+        };
       }
 
       // Update last used timestamp
-      await ctx.db
-        .update(apiKeys)
-        .set({ lastUsedAt: new Date() })
-        .where(eq(apiKeys.id, key.id));
+      await ctx.db.update(apiKeys).set({ lastUsedAt: new Date() }).where(eq(apiKeys.id, key.id));
 
       return { valid: true as const, userId: key.userId, keyId: key.id };
     }),

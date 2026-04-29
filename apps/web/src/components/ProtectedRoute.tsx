@@ -1,6 +1,6 @@
+import { useNavigate } from "@solidjs/router";
 import type { JSX } from "solid-js";
 import { Show } from "solid-js";
-import { useNavigate } from "@solidjs/router";
 import { createEffect, onMount } from "solid-js";
 import { Box, Text } from "@back-to-the-future/ui";
 import { useAuth } from "../stores";

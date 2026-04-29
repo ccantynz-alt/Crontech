@@ -1,21 +1,11 @@
-import {
-  For,
-  Show,
-  createEffect,
-  createMemo,
-  createSignal,
-  onCleanup,
-  onMount,
-} from "solid-js";
-import type { JSX } from "solid-js";
 import { useNavigate } from "@solidjs/router";
-import { Box, Text } from "@back-to-the-future/ui";
-import { useAuth, useTheme } from "../stores";
+import { For, Show, createEffect, createMemo, createSignal, onCleanup, onMount } from "solid-js";
+import type { JSX } from "solid-js";
 import {
-  GROUP_LABELS,
   type CommandContext,
   type CommandDescriptor,
   type CommandGroup,
+  GROUP_LABELS,
   findCommand,
   getRecentCommandIds,
   getVisibleCommands,
@@ -23,6 +13,7 @@ import {
   recordCommandUse,
   searchCommands,
 } from "../lib/commands";
+import { useAuth, useTheme } from "../stores";
 
 // ── Command Palette (Cmd+K / Ctrl+K) ───────────────────────────────
 //
@@ -200,8 +191,11 @@ export function CommandPalette(): JSX.Element {
 
   return (
     <Show when={open()}>
-      <Box
+      <div
         onClick={() => setOpen(false)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") setOpen(false);
+        }}
         style={{
           position: "fixed",
           inset: "0",
@@ -213,10 +207,12 @@ export function CommandPalette(): JSX.Element {
           "padding-top": "10vh",
         }}
       >
-        <Box
+        <dialog
+          open
           onClick={(e) => e.stopPropagation()}
-          role="dialog"
-          aria-modal="true"
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") e.stopPropagation();
+          }}
           aria-label="Command palette"
           style={{
             width: "min(820px, 92vw)",
@@ -249,9 +245,9 @@ export function CommandPalette(): JSX.Element {
             }}
           />
 
-          <Box style={{ display: "flex", "max-height": "60vh" }}>
+          <div style={{ display: "flex", "max-height": "60vh" }}>
             {/* List ─────────────────────────────────────────────── */}
-            <Box
+            <div
               style={{
                 flex: "1 1 auto",
                 "overflow-y": "auto",
@@ -262,7 +258,7 @@ export function CommandPalette(): JSX.Element {
               <Show
                 when={rows().length > 0}
                 fallback={
-                  <Box
+                  <div
                     style={{
                       padding: "24px",
                       "text-align": "center",
@@ -270,14 +266,14 @@ export function CommandPalette(): JSX.Element {
                     }}
                   >
                     No matches. Try a different search.
-                  </Box>
+                  </div>
                 }
               >
                 <For each={rows()}>
                   {(row, i) => (
                     <>
                       <Show when={row.isFirstInSection && row.groupLabel}>
-                        <Box
+                        <div
                           style={{
                             padding: "8px 20px 4px",
                             "font-size": "11px",
@@ -289,7 +285,7 @@ export function CommandPalette(): JSX.Element {
                           }}
                         >
                           {row.groupLabel}
-                        </Box>
+                        </div>
                       </Show>
                       <button
                         type="button"
@@ -317,8 +313,7 @@ export function CommandPalette(): JSX.Element {
                           color: "var(--color-text)",
                         }}
                       >
-                        <Text
-                          as="span"
+                        <span
                           style={{
                             "font-weight": "500",
                             "white-space": "nowrap",
@@ -327,10 +322,9 @@ export function CommandPalette(): JSX.Element {
                           }}
                         >
                           {row.command.label}
-                        </Text>
+                        </span>
                         <Show when={row.command.shortcut}>
-                          <Text
-                            as="span"
+                          <span
                             style={{
                               "font-size": "11px",
                               "font-family": "ui-monospace, SFMono-Regular, monospace",
@@ -342,17 +336,17 @@ export function CommandPalette(): JSX.Element {
                             }}
                           >
                             {row.command.shortcut}
-                          </Text>
+                          </span>
                         </Show>
                       </button>
                     </>
                   )}
                 </For>
               </Show>
-            </Box>
+            </div>
 
             {/* Preview pane ─────────────────────────────────────── */}
-            <Box
+            <div
               style={{
                 flex: "0 0 240px",
                 padding: "16px",
@@ -365,14 +359,14 @@ export function CommandPalette(): JSX.Element {
               <Show
                 when={selectedRow()}
                 fallback={
-                  <Box style={{ "font-style": "italic" }}>
+                  <div style={{ "font-style": "italic" }}>
                     Select a command to see what it does.
-                  </Box>
+                  </div>
                 }
               >
                 {(row) => (
-                  <Box style={{ display: "flex", "flex-direction": "column", gap: "10px" }}>
-                    <Box
+                  <div style={{ display: "flex", "flex-direction": "column", gap: "10px" }}>
+                    <div
                       style={{
                         "font-size": "14px",
                         "font-weight": "600",
@@ -380,13 +374,13 @@ export function CommandPalette(): JSX.Element {
                       }}
                     >
                       {row().command.label}
-                    </Box>
+                    </div>
                     <Show when={row().command.description}>
-                      <Box>{row().command.description}</Box>
+                      <div>{row().command.description}</div>
                     </Show>
                     <Show when={row().command.destination}>
-                      <Box>
-                        <Box
+                      <div>
+                        <div
                           style={{
                             "font-size": "11px",
                             "text-transform": "uppercase",
@@ -396,9 +390,8 @@ export function CommandPalette(): JSX.Element {
                           }}
                         >
                           Lands on
-                        </Box>
-                        <Text
-                          as="code"
+                        </div>
+                        <code
                           style={{
                             "font-family": "ui-monospace, SFMono-Regular, monospace",
                             "font-size": "12px",
@@ -406,11 +399,11 @@ export function CommandPalette(): JSX.Element {
                           }}
                         >
                           {row().command.destination}
-                        </Text>
-                      </Box>
+                        </code>
+                      </div>
                     </Show>
                     <Show when={row().command.destructive}>
-                      <Box
+                      <div
                         style={{
                           padding: "6px 8px",
                           "border-radius": "6px",
@@ -421,15 +414,15 @@ export function CommandPalette(): JSX.Element {
                         }}
                       >
                         Destructive — review before confirming.
-                      </Box>
+                      </div>
                     </Show>
-                  </Box>
+                  </div>
                 )}
               </Show>
-            </Box>
-          </Box>
+            </div>
+          </div>
 
-          <Box
+          <div
             style={{
               padding: "8px 20px",
               "border-top": "1px solid var(--color-border)",
@@ -439,12 +432,12 @@ export function CommandPalette(): JSX.Element {
               "justify-content": "space-between",
             }}
           >
-            <Text as="span">Up/Down to navigate</Text>
-            <Text as="span">Enter to select</Text>
-            <Text as="span">Esc to close</Text>
-          </Box>
-        </Box>
-      </Box>
+            <span>Up/Down to navigate</span>
+            <span>Enter to select</span>
+            <span>Esc to close</span>
+          </div>
+        </dialog>
+      </div>
     </Show>
   );
 }

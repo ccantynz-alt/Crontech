@@ -8,11 +8,7 @@
 
 import type { JSX } from "solid-js";
 import { SEOHead } from "../../../components/SEOHead";
-import {
-  DocsArticle,
-  Callout,
-  KeyList,
-} from "../../../components/docs/DocsArticle";
+import { Callout, DocsArticle, KeyList } from "../../../components/docs/DocsArticle";
 
 export default function DeploymentOverviewArticle(): JSX.Element {
   return (
@@ -37,34 +33,28 @@ export default function DeploymentOverviewArticle(): JSX.Element {
         }}
       >
         <p>
-          The Deployment category is where you go when you want to
-          understand what the platform is doing on your behalf between
-          the moment you push a commit and the moment visitors start
-          hitting the new version. It is also where the levers live —
-          environment variables, custom domains, preview environments —
-          and where the promises the platform makes about isolation and
-          rollback are written down.
+          The Deployment category is where you go when you want to understand what the platform is
+          doing on your behalf between the moment you push a commit and the moment visitors start
+          hitting the new version. It is also where the levers live — environment variables, custom
+          domains, preview environments — and where the promises the platform makes about isolation
+          and rollback are written down.
         </p>
 
         <h2>How deploys work on Crontech, in one paragraph</h2>
         <p>
-          A deploy is triggered by a GitHub webhook (production on push
-          to the default branch, preview on every pull request) or by
-          clicking <strong>Deploy</strong> on the project page. The
-          build runner clones your repo into an isolated workspace,
-          runs <code>bun install</code> and your build command inside a
-          locked-down Docker sandbox, then hands the artefact to the
-          orchestrator which publishes it to Cloudflare Workers behind
-          the project's <code>*.crontech.app</code> URL (and any custom
-          domains you've wired up). Every deploy is recorded, every log
-          line is streamed live into the dashboard, and every
+          A deploy is triggered by a GitHub webhook (production on push to the default branch,
+          preview on every pull request) or by clicking <strong>Deploy</strong> on the project page.
+          The build runner clones your repo into an isolated workspace, runs{" "}
+          <code>bun install</code> and your build command inside a locked-down Docker sandbox, then
+          hands the artefact to the orchestrator which publishes it to Cloudflare Workers behind the
+          project's <code>*.crontech.app</code> URL (and any custom domains you've wired up). Every
+          deploy is recorded, every log line is streamed live into the dashboard, and every
           deployment is one click away from a rollback.
         </p>
 
         <Callout tone="info">
-          There is no public CLI yet — every flow in this category is
-          dashboard-driven. The webhook, build runner, sandbox, and
-          orchestrator pieces are all shipped and run the real pipeline
+          There is no public CLI yet — every flow in this category is dashboard-driven. The webhook,
+          build runner, sandbox, and orchestrator pieces are all shipped and run the real pipeline
           for every deploy today.
         </Callout>
 
@@ -128,28 +118,19 @@ export default function DeploymentOverviewArticle(): JSX.Element {
         />
 
         <Callout tone="note">
-          Build concurrency on the primary worker is serial today — the
-          queue drains one deployment at a time so a runaway{" "}
-          <code>bun install</code> can't starve the rest of the box.
-          The queue is in-process; a multi-worker distributed lock is
-          on the roadmap but is not required for single-node
-          deployments.
+          Build concurrency on the primary worker is serial today — the queue drains one deployment
+          at a time so a runaway <code>bun install</code> can't starve the rest of the box. The
+          queue is in-process; a multi-worker distributed lock is on the roadmap but is not required
+          for single-node deployments.
         </Callout>
 
         <h2>Where to go next</h2>
         <p>
-          If you are setting up a new project, start with the Getting
-          Started series:{" "}
-          <a href="/docs/getting-started/new-project">
-            Create your first project
-          </a>{" "}
-          and{" "}
-          <a href="/docs/getting-started/connect-github">
-            Connect a GitHub repository
-          </a>
-          . Once you have a deploy running, come back here to master
-          the pipeline, wire up env vars, and point real domains at the
-          project.
+          If you are setting up a new project, start with the Getting Started series:{" "}
+          <a href="/docs/getting-started/new-project">Create your first project</a> and{" "}
+          <a href="/docs/getting-started/connect-github">Connect a GitHub repository</a>. Once you
+          have a deploy running, come back here to master the pipeline, wire up env vars, and point
+          real domains at the project.
         </p>
       </DocsArticle>
     </>

@@ -45,16 +45,20 @@ export const GHCommitSchema = z.object({
   sha: z.string(),
   commit: z.object({
     message: z.string(),
-    author: z.object({
-      name: z.string(),
-      date: z.string(),
-    }).nullable(),
+    author: z
+      .object({
+        name: z.string(),
+        date: z.string(),
+      })
+      .nullable(),
   }),
   html_url: z.string(),
-  author: z.object({
-    login: z.string(),
-    avatar_url: z.string(),
-  }).nullable(),
+  author: z
+    .object({
+      login: z.string(),
+      avatar_url: z.string(),
+    })
+    .nullable(),
 });
 export type GHCommit = z.infer<typeof GHCommitSchema>;
 
@@ -89,10 +93,12 @@ export const GHIssueSchema = z.object({
   html_url: z.string(),
   created_at: z.string(),
   updated_at: z.string(),
-  labels: z.array(z.object({
-    name: z.string(),
-    color: z.string(),
-  })),
+  labels: z.array(
+    z.object({
+      name: z.string(),
+      color: z.string(),
+    }),
+  ),
   user: z.object({
     login: z.string(),
     avatar_url: z.string(),
@@ -165,16 +171,12 @@ export class GitHubClient {
     per_page?: number;
     page?: number;
   }): Promise<GHRepo[]> {
-    return this.request(
-      "/user/repos",
-      z.array(GHRepoSchema),
-      {
-        sort: opts?.sort ?? "pushed",
-        per_page: opts?.per_page ?? 30,
-        page: opts?.page ?? 1,
-        type: "all",
-      },
-    );
+    return this.request("/user/repos", z.array(GHRepoSchema), {
+      sort: opts?.sort ?? "pushed",
+      per_page: opts?.per_page ?? 30,
+      page: opts?.page ?? 1,
+      type: "all",
+    });
   }
 
   /** Get a single repository. */
@@ -188,11 +190,9 @@ export class GitHubClient {
     repo: string,
     opts?: { per_page?: number },
   ): Promise<GHBranch[]> {
-    return this.request(
-      `/repos/${owner}/${repo}/branches`,
-      z.array(GHBranchSchema),
-      { per_page: opts?.per_page ?? 30 },
-    );
+    return this.request(`/repos/${owner}/${repo}/branches`, z.array(GHBranchSchema), {
+      per_page: opts?.per_page ?? 30,
+    });
   }
 
   /** List recent commits for a repository. */
@@ -204,12 +204,8 @@ export class GitHubClient {
     const params: Record<string, string | number> = {
       per_page: opts?.per_page ?? 20,
     };
-    if (opts?.sha) params["sha"] = opts.sha;
-    return this.request(
-      `/repos/${owner}/${repo}/commits`,
-      z.array(GHCommitSchema),
-      params,
-    );
+    if (opts?.sha) params.sha = opts.sha;
+    return this.request(`/repos/${owner}/${repo}/commits`, z.array(GHCommitSchema), params);
   }
 
   /** List pull requests for a repository. */
@@ -218,16 +214,12 @@ export class GitHubClient {
     repo: string,
     opts?: { state?: "open" | "closed" | "all"; per_page?: number },
   ): Promise<GHPullRequest[]> {
-    return this.request(
-      `/repos/${owner}/${repo}/pulls`,
-      z.array(GHPullRequestSchema),
-      {
-        state: opts?.state ?? "open",
-        per_page: opts?.per_page ?? 20,
-        sort: "updated",
-        direction: "desc",
-      },
-    );
+    return this.request(`/repos/${owner}/${repo}/pulls`, z.array(GHPullRequestSchema), {
+      state: opts?.state ?? "open",
+      per_page: opts?.per_page ?? 20,
+      sort: "updated",
+      direction: "desc",
+    });
   }
 
   /** List issues (excluding PRs) for a repository. */
@@ -236,16 +228,12 @@ export class GitHubClient {
     repo: string,
     opts?: { state?: "open" | "closed" | "all"; per_page?: number },
   ): Promise<GHIssue[]> {
-    const all = await this.request(
-      `/repos/${owner}/${repo}/issues`,
-      z.array(GHIssueSchema),
-      {
-        state: opts?.state ?? "open",
-        per_page: opts?.per_page ?? 20,
-        sort: "updated",
-        direction: "desc",
-      },
-    );
+    const all = await this.request(`/repos/${owner}/${repo}/issues`, z.array(GHIssueSchema), {
+      state: opts?.state ?? "open",
+      per_page: opts?.per_page ?? 20,
+      sort: "updated",
+      direction: "desc",
+    });
     // GitHub's issues endpoint includes PRs — filter them out
     return all.filter((i) => !i.pull_request);
   }

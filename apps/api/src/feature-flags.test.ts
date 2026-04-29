@@ -1,13 +1,13 @@
-import { describe, test, expect, beforeEach } from "bun:test";
+import { beforeEach, describe, expect, test } from "bun:test";
 import {
   defineFlag,
-  getFlag,
-  getAllFlags,
-  updateFlag,
-  updateFlagPersisted,
   deleteFlag,
+  getAllFlags,
+  getFlag,
   isFeatureEnabled,
   loadFlagsFromDB,
+  updateFlag,
+  updateFlagPersisted,
 } from "./feature-flags";
 
 describe("Feature Flags", () => {
@@ -30,7 +30,7 @@ describe("Feature Flags", () => {
     defineFlag("test.get", { enabled: true });
     const flag = getFlag("test.get");
     expect(flag).toBeDefined();
-    expect(flag!.key).toBe("test.get");
+    expect(flag?.key).toBe("test.get");
   });
 
   test("getFlag returns undefined for non-existent flag", () => {
@@ -50,8 +50,8 @@ describe("Feature Flags", () => {
     defineFlag("test.update", { enabled: false });
     const updated = updateFlag("test.update", { enabled: true, rolloutPercentage: 75 });
     expect(updated).toBeDefined();
-    expect(updated!.enabled).toBe(true);
-    expect(updated!.rolloutPercentage).toBe(75);
+    expect(updated?.enabled).toBe(true);
+    expect(updated?.rolloutPercentage).toBe(75);
   });
 
   test("updateFlag returns undefined for non-existent flag", () => {
@@ -66,13 +66,13 @@ describe("Feature Flags", () => {
       updatedBy: "test-user",
     });
     expect(updated).toBeDefined();
-    expect(updated!.enabled).toBe(true);
-    expect(updated!.rolloutPercentage).toBe(80);
-    expect(updated!.updatedBy).toBe("test-user");
+    expect(updated?.enabled).toBe(true);
+    expect(updated?.rolloutPercentage).toBe(80);
+    expect(updated?.updatedBy).toBe("test-user");
 
     // Verify in-memory cache was updated
     const cached = getFlag("test.persist");
-    expect(cached!.enabled).toBe(true);
+    expect(cached?.enabled).toBe(true);
   });
 
   test("updateFlagPersisted returns undefined for non-existent flag", async () => {
@@ -90,8 +90,8 @@ describe("Feature Flags", () => {
 
     const flag = getFlag("test.dbload");
     expect(flag).toBeDefined();
-    expect(flag!.enabled).toBe(true);
-    expect(flag!.rolloutPercentage).toBe(42);
+    expect(flag?.enabled).toBe(true);
+    expect(flag?.rolloutPercentage).toBe(42);
   });
 
   test("deleteFlag removes a flag", () => {

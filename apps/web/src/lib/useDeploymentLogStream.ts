@@ -9,23 +9,12 @@
 //   const logs = useDeploymentLogStream(() => deploymentId());
 //   <For each={logs.lines()}>{(line) => <LogRow line={line} />}</For>
 
-import {
-  createRenderEffect,
-  createSignal,
-  onCleanup,
-  type Accessor,
-} from "solid-js";
+import { type Accessor, createRenderEffect, createSignal, onCleanup } from "solid-js";
 import type { DeploymentLogLine } from "../components/DeploymentLogs";
 
 // ── Types ────────────────────────────────────────────────────────────
 
-export type LogStreamStatus =
-  | "idle"
-  | "connecting"
-  | "open"
-  | "reconnecting"
-  | "closed"
-  | "error";
+export type LogStreamStatus = "idle" | "connecting" | "open" | "reconnecting" | "closed" | "error";
 
 export interface DeploymentStreamStatus {
   /** Current deployment status reported by the server. */
@@ -83,9 +72,7 @@ function defaultToken(): string | null {
   }
 }
 
-function resolveEventSource(
-  override?: typeof EventSource,
-): typeof EventSource | null {
+function resolveEventSource(override?: typeof EventSource): typeof EventSource | null {
   if (override) return override;
   if (typeof EventSource !== "undefined") return EventSource;
   return null;
@@ -135,16 +122,16 @@ export function useDeploymentLogStream(
       connect(id);
     }, reconnectDelay);
     reconnectDelay = Math.min(
-      reconnectDelay * 2 + Math.floor(crypto.getRandomValues(new Uint32Array(1))[0]! / 0x100000000 * 500),
+      reconnectDelay * 2 +
+        Math.floor(((crypto.getRandomValues(new Uint32Array(1))[0] ?? 0) / 0x100000000) * 500),
       MAX_RECONNECT_MS,
     );
   }
 
   function appendLine(line: DeploymentLogLine): void {
     setLines((prev) => {
-      const next = prev.length >= MAX_LINES
-        ? prev.slice(prev.length - MAX_LINES + 1)
-        : prev.slice();
+      const next =
+        prev.length >= MAX_LINES ? prev.slice(prev.length - MAX_LINES + 1) : prev.slice();
       next.push(line);
       return next;
     });
@@ -183,11 +170,7 @@ export function useDeploymentLogStream(
         };
         if (typeof payload.line !== "string") return;
         const stream =
-          payload.stream === "stderr"
-            ? "stderr"
-            : payload.stream === "event"
-              ? "stdout"
-              : "stdout";
+          payload.stream === "stderr" ? "stderr" : payload.stream === "event" ? "stdout" : "stdout";
         appendLine({
           timestamp: payload.timestamp ?? new Date().toISOString(),
           stream,

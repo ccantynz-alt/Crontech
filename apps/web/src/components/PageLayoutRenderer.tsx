@@ -8,28 +8,51 @@
 // it. That guarantee is the architectural moat: Lovable and Zoobicon
 // hallucinate raw HTML/React and hope it compiles; Crontech composes
 // pre-validated Solid components and renders them by construction.
+//
+// Ghost Mode support:
+// When `enableGhostIds` is true, interactive elements (Button, Input,
+// Select, Textarea) are wrapped in a transparent <span data-ghost-id>
+// so GhostMode can find them in the DOM by the IDs that extractInteractives()
+// assigns in the same depth-first order.
 
-import { For, Show } from "solid-js";
-import type { JSX } from "solid-js";
+import type { PageLayout } from "@back-to-the-future/ai-core";
+import type { Component } from "@back-to-the-future/schemas";
 import {
-  Button,
-  Input,
-  Card,
-  Stack,
-  Text,
-  Modal,
-  Badge,
   Alert,
   Avatar,
-  Tabs,
+  Badge,
+  Button,
+  Card,
+  Input,
+  Modal,
   Select,
-  Textarea,
-  Spinner,
-  Tooltip,
   Separator,
+  Spinner,
+  Stack,
+  Tabs,
+  Text,
+  Textarea,
+  Tooltip,
 } from "@back-to-the-future/ui";
-import type { Component } from "@back-to-the-future/schemas";
-import type { PageLayout } from "@back-to-the-future/ai-core";
+import { For, Show } from "solid-js";
+import type { JSX } from "solid-js";
+
+// ── Ghost ID counter ──────────────────────────────────────────────────
+// Must mirror the counter in GhostMode.tsx's extractInteractives() so
+// that data-ghost-id values align 1:1 with the IDs the ghost cursor
+// uses for DOM lookup. The counter is reset at the top of each full
+// layout render when enableGhostIds is active.
+
+let _ghostLayoutSeq = 0;
+
+function resetGhostLayoutSeq(): void {
+  _ghostLayoutSeq = 0;
+}
+
+function nextGhostLayoutId(): string {
+  _ghostLayoutSeq++;
+  return `ghost-${_ghostLayoutSeq}`;
+}
 
 // ── exactOptionalPropertyTypes helper ────────────────────────────────
 // Some UI components declare optional props as `prop?: T` (NOT
@@ -66,32 +89,47 @@ function childrenOf(node: { children?: unknown }): Component[] {
 // so arbitrary nesting depth just works. Interaction handlers are
 // no-oped in the preview — the AI emits them as strings (action names)
 // and the builder attaches behavior separately.
+//
+// When ghostIds is true, interactive elements are wrapped in a
+// transparent `<span data-ghost-id="...">` with `display: contents`
+// so the GhostMode cursor can locate the rendered DOM node without
+// altering the visual layout.
 
-function renderNode(node: Component): JSX.Element {
+function renderNode(node: Component, ghostIds: boolean): JSX.Element {
   switch (node.component) {
     case "Button":
       return (
-        <Button
-          variant={node.props.variant}
-          size={node.props.size}
-          disabled={node.props.disabled}
-          loading={node.props.loading}
+        <span
+          data-ghost-id={ghostIds ? nextGhostLayoutId() : undefined}
+          style={{ display: "contents" }}
         >
-          {node.props.label}
-        </Button>
+          <Button
+            variant={node.props.variant}
+            size={node.props.size}
+            disabled={node.props.disabled}
+            loading={node.props.loading}
+          >
+            {node.props.label}
+          </Button>
+        </span>
       );
 
     case "Input":
       return (
-        <Input
-          type={node.props.type}
-          placeholder={node.props.placeholder}
-          label={node.props.label}
-          required={node.props.required}
-          disabled={node.props.disabled}
-          error={node.props.error}
-          name={node.props.name}
-        />
+        <span
+          data-ghost-id={ghostIds ? nextGhostLayoutId() : undefined}
+          style={{ display: "contents" }}
+        >
+          <Input
+            type={node.props.type}
+            placeholder={node.props.placeholder}
+            label={node.props.label}
+            required={node.props.required}
+            disabled={node.props.disabled}
+            error={node.props.error}
+            name={node.props.name}
+          />
+        </span>
       );
 
     case "Card":
@@ -101,7 +139,7 @@ function renderNode(node: Component): JSX.Element {
           description={node.props.description}
           padding={node.props.padding}
         >
-          <For each={childrenOf(node)}>{(child) => renderNode(child)}</For>
+          <For each={childrenOf(node)}>{(child) => renderNode(child, ghostIds)}</For>
         </Card>
       );
 
@@ -113,7 +151,7 @@ function renderNode(node: Component): JSX.Element {
           align={node.props.align}
           justify={node.props.justify}
         >
-          <For each={childrenOf(node)}>{(child) => renderNode(child)}</For>
+          <For each={childrenOf(node)}>{(child) => renderNode(child, ghostIds)}</For>
         </Stack>
       );
 
@@ -137,18 +175,12 @@ function renderNode(node: Component): JSX.Element {
             size: node.props.size,
           })}
         >
-          <For each={childrenOf(node)}>{(child) => renderNode(child)}</For>
+          <For each={childrenOf(node)}>{(child) => renderNode(child, ghostIds)}</For>
         </Modal>
       );
 
     case "Badge":
-      return (
-        <Badge
-          variant={node.props.variant}
-          size={node.props.size}
-          label={node.props.label}
-        />
-      );
+      return <Badge variant={node.props.variant} size={node.props.size} label={node.props.label} />;
 
     case "Alert":
       return (
@@ -158,7 +190,7 @@ function renderNode(node: Component): JSX.Element {
           description={node.props.description}
           dismissible={node.props.dismissible}
         >
-          <For each={childrenOf(node)}>{(child) => renderNode(child)}</For>
+          <For each={childrenOf(node)}>{(child) => renderNode(child, ghostIds)}</For>
         </Alert>
       );
 
@@ -173,46 +205,60 @@ function renderNode(node: Component): JSX.Element {
       );
 
     case "Tabs":
+      // Tab items are targeted individually via their existing
+      // id="tab-<id>" attributes. No data-ghost-id wrapper needed.
       return (
         <Tabs
-          items={node.props.items.map((item) =>
-            compact({
-              id: item.id,
-              label: item.label,
-              disabled: item.disabled,
-            }),
-          ) as Array<{ id: string; label: string; disabled?: boolean }>}
+          items={
+            node.props.items.map((item) =>
+              compact({
+                id: item.id,
+                label: item.label,
+                disabled: item.disabled,
+              }),
+            ) as Array<{ id: string; label: string; disabled?: boolean }>
+          }
           {...compact({ defaultTab: node.props.defaultTab })}
         />
       );
 
     case "Select":
       return (
-        <Select
-          options={node.props.options}
-          value={node.props.value}
-          placeholder={node.props.placeholder}
-          label={node.props.label}
-          error={node.props.error}
-          disabled={node.props.disabled}
-          name={node.props.name}
-        />
+        <span
+          data-ghost-id={ghostIds ? nextGhostLayoutId() : undefined}
+          style={{ display: "contents" }}
+        >
+          <Select
+            options={node.props.options}
+            value={node.props.value}
+            placeholder={node.props.placeholder}
+            label={node.props.label}
+            error={node.props.error}
+            disabled={node.props.disabled}
+            name={node.props.name}
+          />
+        </span>
       );
 
     case "Textarea":
       return (
-        <Textarea
-          {...compact({
-            label: node.props.label,
-            error: node.props.error,
-            placeholder: node.props.placeholder,
-            rows: node.props.rows,
-            resize: node.props.resize,
-            required: node.props.required,
-            disabled: node.props.disabled,
-            name: node.props.name,
-          })}
-        />
+        <span
+          data-ghost-id={ghostIds ? nextGhostLayoutId() : undefined}
+          style={{ display: "contents" }}
+        >
+          <Textarea
+            {...compact({
+              label: node.props.label,
+              error: node.props.error,
+              placeholder: node.props.placeholder,
+              rows: node.props.rows,
+              resize: node.props.resize,
+              required: node.props.required,
+              disabled: node.props.disabled,
+              name: node.props.name,
+            })}
+          />
+        </span>
       );
 
     case "Spinner":
@@ -221,7 +267,7 @@ function renderNode(node: Component): JSX.Element {
     case "Tooltip":
       return (
         <Tooltip content={node.props.content} position={node.props.position}>
-          <For each={childrenOf(node)}>{(child) => renderNode(child)}</For>
+          <For each={childrenOf(node)}>{(child) => renderNode(child, ghostIds)}</For>
         </Tooltip>
       );
 
@@ -239,18 +285,31 @@ function renderNode(node: Component): JSX.Element {
 export interface PageLayoutRendererProps {
   layout: PageLayout | null;
   fallback?: JSX.Element;
+  /**
+   * When true, interactive elements (Button, Input, Select, Textarea)
+   * are wrapped in `<span data-ghost-id="...">` so GhostMode can
+   * locate them in the DOM. The IDs are assigned in depth-first order
+   * matching extractInteractives() in GhostMode.tsx.
+   */
+  enableGhostIds?: boolean | undefined;
 }
 
-export function PageLayoutRenderer(
-  props: PageLayoutRendererProps,
-): JSX.Element {
+export function PageLayoutRenderer(props: PageLayoutRendererProps): JSX.Element {
   return (
     <Show when={props.layout} fallback={props.fallback}>
-      {(layout) => (
-        <div class="page-layout-root">
-          <For each={layout().components}>{(node) => renderNode(node)}</For>
-        </div>
-      )}
+      {(layout) => {
+        // Reset ghost ID counter at the start of each layout render.
+        if (props.enableGhostIds) {
+          resetGhostLayoutSeq();
+        }
+        return (
+          <div class="page-layout-root">
+            <For each={layout().components}>
+              {(node) => renderNode(node, props.enableGhostIds ?? false)}
+            </For>
+          </div>
+        );
+      }}
     </Show>
   );
 }

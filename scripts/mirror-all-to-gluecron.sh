@@ -82,7 +82,7 @@ mirror_one() {
   if ! TARGET_REPO="${target_repo}" SOURCE_DIR="${tmp_dir}" \
        GLUECRON_URL="${GLUECRON_URL}" \
        GLUECRON_USER="${GLUECRON_USER}" \
-       GLUECRON_TOKEN="${GLUECRON_TOKEN}" \
+       GLUECRON_TOKEN=$GLUECRON_TOKEN \
        "${MIRROR_SCRIPT}" 2>&1 | redact; then
     warn "[${name}] mirror-to-gluecron.sh failed"
     cleanup_tmp "${name}"
@@ -93,7 +93,7 @@ mirror_one() {
   if ! TARGET_REPO="${target_repo}" SOURCE_DIR="${tmp_dir}" \
        GLUECRON_URL="${GLUECRON_URL}" \
        GLUECRON_USER="${GLUECRON_USER}" \
-       GLUECRON_TOKEN="${GLUECRON_TOKEN}" \
+       GLUECRON_TOKEN=$GLUECRON_TOKEN \
        "${VERIFY_SCRIPT}" 2>&1 | redact; then
     warn "[${name}] verification failed"
     cleanup_tmp "${name}"

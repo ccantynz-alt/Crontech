@@ -62,10 +62,7 @@ describe("docs/components — four-article series", () => {
   });
 
   test("catalog references the real @back-to-the-future/ui import path", () => {
-    const src = readFileSync(
-      resolve(COMPONENTS_DIR, "catalog.tsx"),
-      "utf-8",
-    );
+    const src = readFileSync(resolve(COMPONENTS_DIR, "catalog.tsx"), "utf-8");
     expect(src).toContain("@back-to-the-future/ui");
     // Spot-check that the catalog names components that actually ship.
     for (const name of [
@@ -90,20 +87,14 @@ describe("docs/components — four-article series", () => {
   });
 
   test("ai-composable names the real schema + renderer files", () => {
-    const src = readFileSync(
-      resolve(COMPONENTS_DIR, "ai-composable.tsx"),
-      "utf-8",
-    );
+    const src = readFileSync(resolve(COMPONENTS_DIR, "ai-composable.tsx"), "utf-8");
     expect(src).toContain("packages/schemas/src/components.ts");
     expect(src).toContain("apps/web/src/components/JsonRenderUI.tsx");
     expect(src).toContain("GenerativeUI.tsx");
   });
 
   test("customization teaches theme tokens, not component forks", () => {
-    const src = readFileSync(
-      resolve(COMPONENTS_DIR, "customization.tsx"),
-      "utf-8",
-    );
+    const src = readFileSync(resolve(COMPONENTS_DIR, "customization.tsx"), "utf-8");
     expect(src).toContain("--color-primary");
     expect(src).toContain("--color-bg");
     expect(src).toContain("--color-text");
@@ -113,8 +104,7 @@ describe("docs/components — four-article series", () => {
     // Matches the regression guard on other docs categories: named
     // competitor brands must never appear in public docs copy. Char
     // codes keep this test's source itself clean.
-    const fromCodes = (...codes: number[]): string =>
-      String.fromCharCode(...codes);
+    const fromCodes = (...codes: number[]): string => String.fromCharCode(...codes);
     const banned = [
       ` ${fromCodes(118, 101, 114, 99, 101, 108)} `, // vercel
       ` ${fromCodes(110, 101, 116, 108, 105, 102, 121)} `, // netlify
@@ -122,10 +112,7 @@ describe("docs/components — four-article series", () => {
       ` ${fromCodes(114, 101, 110, 100, 101, 114)} `, // render
     ];
     for (const { file } of ARTICLES) {
-      const src = readFileSync(
-        resolve(COMPONENTS_DIR, file),
-        "utf-8",
-      ).toLowerCase();
+      const src = readFileSync(resolve(COMPONENTS_DIR, file), "utf-8").toLowerCase();
       for (const name of banned) {
         expect(src).not.toContain(name);
       }

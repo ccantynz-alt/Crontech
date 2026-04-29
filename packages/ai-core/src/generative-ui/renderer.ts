@@ -2,12 +2,8 @@
 // AI generates UI from Zod-schema component catalogs using json-render.
 // Describe what you want → AI selects components → validates → renders.
 
+import { ComponentCatalog, type ComponentName, ComponentSchema } from "@back-to-the-future/schemas";
 import { z } from "zod";
-import {
-  ComponentSchema,
-  ComponentCatalog,
-  type ComponentName,
-} from "@back-to-the-future/schemas";
 
 // ── Types ────────────────────────────────────────────────────────────
 
@@ -40,9 +36,7 @@ export interface GenerativeUIResult {
 // Generates a human-readable description of available components
 // that can be injected into LLM prompts.
 
-export function describeComponentCatalog(
-  allowedComponents?: ComponentName[],
-): string {
+export function describeComponentCatalog(allowedComponents?: ComponentName[]): string {
   const components = allowedComponents ?? (Object.keys(ComponentCatalog) as ComponentName[]);
   const descriptions: string[] = [];
 
@@ -98,16 +92,16 @@ const ComponentTreeSchema = z.array(ComponentSchema);
  */
 export function validateComponentTree(
   tree: unknown,
-): { success: true; data: z.infer<typeof ComponentSchema>[] } | { success: false; errors: string[] } {
+):
+  | { success: true; data: z.infer<typeof ComponentSchema>[] }
+  | { success: false; errors: string[] } {
   const result = ComponentTreeSchema.safeParse(tree);
 
   if (result.success) {
     return { success: true, data: result.data };
   }
 
-  const errors = result.error.issues.map(
-    (issue) => `${issue.path.join(".")}: ${issue.message}`,
-  );
+  const errors = result.error.issues.map((issue) => `${issue.path.join(".")}: ${issue.message}`);
   return { success: false, errors };
 }
 
@@ -145,9 +139,7 @@ function countComponents(tree: z.infer<typeof ComponentSchema>[]): {
  * Processes raw AI output into a validated GenerativeUIResult.
  * Handles JSON parsing, validation, and error reporting.
  */
-export function processGenerativeUIOutput(
-  rawOutput: string,
-): GenerativeUIResult {
+export function processGenerativeUIOutput(rawOutput: string): GenerativeUIResult {
   // Strip markdown code fences if present
   let cleaned = rawOutput.trim();
   if (cleaned.startsWith("```")) {

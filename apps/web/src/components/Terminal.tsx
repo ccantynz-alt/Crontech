@@ -1,6 +1,6 @@
-import { createSignal, onMount, onCleanup, Show } from "solid-js";
-import type { JSX } from "solid-js";
 import { Badge, Button } from "@back-to-the-future/ui";
+import { Show, createSignal, onCleanup, onMount } from "solid-js";
+import type { JSX } from "solid-js";
 import "xterm/css/xterm.css";
 
 // ── Types ────────────────────────────────────────────────────────────
@@ -145,10 +145,7 @@ export function Terminal(props: TerminalProps): JSX.Element {
     if (!containerRef) return;
 
     // Dynamic import to avoid SSR issues with xterm.js
-    const [xtermMod, fitMod] = await Promise.all([
-      import("xterm"),
-      import("@xterm/addon-fit"),
-    ]);
+    const [xtermMod, fitMod] = await Promise.all([import("xterm"), import("@xterm/addon-fit")]);
 
     const XTerminal = xtermMod.Terminal;
     const FitAddon = fitMod.FitAddon;
@@ -157,7 +154,8 @@ export function Terminal(props: TerminalProps): JSX.Element {
     terminal = new XTerminal({
       cursorBlink: true,
       cursorStyle: "bar",
-      fontFamily: "'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'SF Mono', Menlo, Monaco, 'Courier New', monospace",
+      fontFamily:
+        "'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'SF Mono', Menlo, Monaco, 'Courier New', monospace",
       fontSize: 14,
       lineHeight: 1.4,
       letterSpacing: 0.5,
@@ -258,21 +256,35 @@ export function Terminal(props: TerminalProps): JSX.Element {
   return (
     <div class="terminal-wrapper flex flex-col h-full w-full">
       {/* Status bar */}
-      <div class="terminal-status-bar flex items-center justify-between px-4 py-2 border-b border-[var(--color-border)]" style={{ background: "var(--color-bg-elevated)" }}>
+      <div
+        class="terminal-status-bar flex items-center justify-between px-4 py-2 border-b border-[var(--color-border)]"
+        style={{ background: "var(--color-bg-elevated)" }}
+      >
         <div class="flex items-center gap-3">
           <div class="flex items-center gap-2">
             <div
               class="h-2.5 w-2.5 rounded-full transition-colors duration-300"
               classList={{
                 "bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.5)]": status() === "connected",
-                "bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.5)] animate-pulse": status() === "connecting",
+                "bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.5)] animate-pulse":
+                  status() === "connecting",
                 "bg-red-400 shadow-[0_0_8px_rgba(248,113,113,0.5)]": status() === "disconnected",
               }}
             />
             <Badge
-              variant={status() === "connected" ? "success" : status() === "connecting" ? "warning" : "error"}
+              variant={
+                status() === "connected"
+                  ? "success"
+                  : status() === "connecting"
+                    ? "warning"
+                    : "error"
+              }
             >
-              {status() === "connected" ? "Connected" : status() === "connecting" ? "Connecting..." : "Disconnected"}
+              {status() === "connected"
+                ? "Connected"
+                : status() === "connecting"
+                  ? "Connecting..."
+                  : "Disconnected"}
             </Badge>
           </div>
 
@@ -283,20 +295,12 @@ export function Terminal(props: TerminalProps): JSX.Element {
 
         <div class="flex items-center gap-2">
           <Show when={status() === "disconnected"}>
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={reconnect}
-            >
+            <Button variant="primary" size="sm" onClick={reconnect}>
               Reconnect
             </Button>
           </Show>
           <Show when={status() === "connected"}>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={disconnect}
-            >
+            <Button variant="ghost" size="sm" onClick={disconnect}>
               Disconnect
             </Button>
           </Show>
@@ -305,7 +309,10 @@ export function Terminal(props: TerminalProps): JSX.Element {
 
       {/* Error banner */}
       <Show when={errorMessage()}>
-        <div class="px-4 py-2 text-xs font-medium text-red-300 border-b border-red-500/20" style={{ background: "color-mix(in oklab, var(--color-danger) 10%, transparent)" }}>
+        <div
+          class="px-4 py-2 text-xs font-medium text-red-300 border-b border-red-500/20"
+          style={{ background: "color-mix(in oklab, var(--color-danger) 10%, transparent)" }}
+        >
           {errorMessage()}
         </div>
       </Show>

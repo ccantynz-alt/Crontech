@@ -60,7 +60,7 @@ export function processCommand(input: string, state: ShellState): string {
       return `${state.cwd}\r\n`;
 
     case "whoami":
-      return `${state.env["USER"] ?? "crontech"}\r\n`;
+      return `${state.env.USER ?? "crontech"}\r\n`;
 
     case "echo": {
       const output = args
@@ -84,7 +84,7 @@ export function processCommand(input: string, state: ShellState): string {
     case "cd": {
       const target = args[0];
       if (!target || target === "~") {
-        state.cwd = state.env["HOME"] ?? "/home/user";
+        state.cwd = state.env.HOME ?? "/home/user";
       } else if (target === "..") {
         const segments = state.cwd.split("/").filter(Boolean);
         segments.pop();
@@ -128,7 +128,7 @@ export function processCommand(input: string, state: ShellState): string {
       const file = args[0];
       if (!file) return "cat: missing operand\r\n";
       if (file === "package.json") {
-        return `{\r\n  "name": "project-${state.env["PROJECT_ID"] ?? "unknown"}",\r\n  "version": "1.0.0",\r\n  "type": "module",\r\n  "scripts": {\r\n    "dev": "bun run --hot src/index.ts",\r\n    "build": "bun build src/index.ts --outdir dist",\r\n    "test": "bun test"\r\n  }\r\n}\r\n`;
+        return `{\r\n  "name": "project-${state.env.PROJECT_ID ?? "unknown"}",\r\n  "version": "1.0.0",\r\n  "type": "module",\r\n  "scripts": {\r\n    "dev": "bun run --hot src/index.ts",\r\n    "build": "bun build src/index.ts --outdir dist",\r\n    "test": "bun test"\r\n  }\r\n}\r\n`;
       }
       return `cat: ${file}: No such file or directory\r\n`;
     }
@@ -248,7 +248,7 @@ terminalApp.get(
             "\x1b[1;36m  ╚═════╝╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═══╝   ╚═╝   ╚══════╝ ╚═════╝╚═╝  ╚═╝\x1b[0m",
             "",
             `\x1b[2m  Web Terminal \x1b[0m\x1b[2m|\x1b[0m\x1b[2m Project: ${projectId}\x1b[0m`,
-            `\x1b[2m  Type \x1b[0m\x1b[1mhelp\x1b[0m\x1b[2m for available commands.\x1b[0m`,
+            "\x1b[2m  Type \x1b[0m\x1b[1mhelp\x1b[0m\x1b[2m for available commands.\x1b[0m",
             "",
           ].join("\r\n");
 

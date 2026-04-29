@@ -71,7 +71,7 @@ function installLocalStorage(): MemoryStorage {
 
 function uninstallLocalStorage(): void {
   // biome-ignore lint/suspicious/noExplicitAny: test shim
-  delete (globalThis as any).localStorage;
+  (globalThis as any).localStorage = undefined;
 }
 
 // ── Default command set ──────────────────────────────────────────────

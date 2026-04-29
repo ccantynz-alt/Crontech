@@ -6,11 +6,11 @@
 
 import { describe, expect, test } from "bun:test";
 import {
+  type ChecklistPhase,
   LAUNCH_PHASES,
+  type LaunchStatusResponse,
   computeCounts,
   deriveAutoDone,
-  type ChecklistPhase,
-  type LaunchStatusResponse,
 } from "./LaunchChecklist";
 
 describe("computeCounts", () => {

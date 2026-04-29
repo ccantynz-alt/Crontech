@@ -236,9 +236,7 @@ export async function chatCompletion(
   config?: Partial<WebLLMConfig>,
 ): Promise<ChatCompletionResult> {
   if (currentEngine === null) {
-    throw new Error(
-      "WebLLM engine is not initialized. Call initializeWebLLM() first.",
-    );
+    throw new Error("WebLLM engine is not initialized. Call initializeWebLLM() first.");
   }
 
   const defaults = WebLLMConfigSchema.parse({
@@ -282,9 +280,7 @@ export async function* chatCompletionStream(
   config?: Partial<WebLLMConfig>,
 ): AsyncGenerator<ChatCompletionChunk, void, undefined> {
   if (currentEngine === null) {
-    throw new Error(
-      "WebLLM engine is not initialized. Call initializeWebLLM() first.",
-    );
+    throw new Error("WebLLM engine is not initialized. Call initializeWebLLM() first.");
   }
 
   const defaults = WebLLMConfigSchema.parse({
@@ -331,9 +327,7 @@ export function getModelInfo(modelId: WebLLMModelId): WebLLMModelInfo {
  */
 export function selectModelForVRAM(vramMB: number): WebLLMModelInfo | undefined {
   // Sort by parameters descending -- prefer the most capable model
-  const sorted = [...WEBLLM_MODELS].sort(
-    (a, b) => b.parametersBillion - a.parametersBillion,
-  );
+  const sorted = [...WEBLLM_MODELS].sort((a, b) => b.parametersBillion - a.parametersBillion);
   return sorted.find((m) => m.minVRAMMB <= vramMB);
 }
 

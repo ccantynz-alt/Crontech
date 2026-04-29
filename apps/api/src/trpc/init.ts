@@ -1,10 +1,8 @@
-import { initTRPC, TRPCError } from "@trpc/server";
-import { eq } from "drizzle-orm";
-import type { TRPCContext } from "./context";
-import { validateSession } from "../auth/session";
 import { users } from "@back-to-the-future/db";
-
-import type * as _schema from "@back-to-the-future/db";
+import { TRPCError, initTRPC } from "@trpc/server";
+import { eq } from "drizzle-orm";
+import { validateSession } from "../auth/session";
+import type { TRPCContext } from "./context";
 
 export type { TRPCContext };
 

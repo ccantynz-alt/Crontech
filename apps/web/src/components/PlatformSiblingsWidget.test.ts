@@ -8,14 +8,8 @@ import { describe, expect, test } from "bun:test";
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-const WIDGET_PATH = resolve(
-  import.meta.dir,
-  "PlatformSiblingsWidget.tsx",
-);
-const CROSS_SELL_PATH = resolve(
-  import.meta.dir,
-  "PlatformCrossSellCard.tsx",
-);
+const WIDGET_PATH = resolve(import.meta.dir, "PlatformSiblingsWidget.tsx");
+const CROSS_SELL_PATH = resolve(import.meta.dir, "PlatformCrossSellCard.tsx");
 
 describe("PlatformSiblingsWidget — file presence", () => {
   test("widget file exists at the documented path", () => {

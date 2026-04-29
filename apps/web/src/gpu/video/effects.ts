@@ -32,12 +32,21 @@ function applyBrightness(imageData: ImageData, params: VideoEffectParams): void 
 
 function applyContrast(imageData: ImageData, params: VideoEffectParams): void {
   const data = imageData.data;
-  const factor = ((params.value + 100) / 100);
+  const factor = (params.value + 100) / 100;
   const contrastFactor = factor * factor;
   for (let i = 0; i < data.length; i += 4) {
-    data[i] = Math.max(0, Math.min(255, ((((data[i] as number) / 255) - 0.5) * contrastFactor + 0.5) * 255));
-    data[i + 1] = Math.max(0, Math.min(255, ((((data[i + 1] as number) / 255) - 0.5) * contrastFactor + 0.5) * 255));
-    data[i + 2] = Math.max(0, Math.min(255, ((((data[i + 2] as number) / 255) - 0.5) * contrastFactor + 0.5) * 255));
+    data[i] = Math.max(
+      0,
+      Math.min(255, (((data[i] as number) / 255 - 0.5) * contrastFactor + 0.5) * 255),
+    );
+    data[i + 1] = Math.max(
+      0,
+      Math.min(255, (((data[i + 1] as number) / 255 - 0.5) * contrastFactor + 0.5) * 255),
+    );
+    data[i + 2] = Math.max(
+      0,
+      Math.min(255, (((data[i + 2] as number) / 255 - 0.5) * contrastFactor + 0.5) * 255),
+    );
   }
 }
 
@@ -104,7 +113,12 @@ function applySharpen(imageData: ImageData, params: VideoEffectParams): void {
 
       for (let c = 0; c < 3; c++) {
         const center = src[ci + c] as number;
-        const avg = ((src[ti + c] as number) + (src[bi + c] as number) + (src[li + c] as number) + (src[ri + c] as number)) / 4;
+        const avg =
+          ((src[ti + c] as number) +
+            (src[bi + c] as number) +
+            (src[li + c] as number) +
+            (src[ri + c] as number)) /
+          4;
         data[ci + c] = Math.max(0, Math.min(255, center + (center - avg) * amount));
       }
     }
@@ -114,7 +128,10 @@ function applySharpen(imageData: ImageData, params: VideoEffectParams): void {
 function applyGrayscale(imageData: ImageData, _params: VideoEffectParams): void {
   const data = imageData.data;
   for (let i = 0; i < data.length; i += 4) {
-    const luma = 0.2126 * (data[i] as number) + 0.7152 * (data[i + 1] as number) + 0.0722 * (data[i + 2] as number);
+    const luma =
+      0.2126 * (data[i] as number) +
+      0.7152 * (data[i + 1] as number) +
+      0.0722 * (data[i + 2] as number);
     data[i] = luma;
     data[i + 1] = luma;
     data[i + 2] = luma;

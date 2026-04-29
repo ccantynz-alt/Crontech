@@ -43,12 +43,7 @@ export interface ProgressTracker {
   categories: ProgressCategory[];
 }
 
-const STATUSES: readonly ProgressStatus[] = [
-  "completed",
-  "in_progress",
-  "pending",
-  "blocked",
-];
+const STATUSES: readonly ProgressStatus[] = ["completed", "in_progress", "pending", "blocked"];
 
 const PRIORITIES: readonly ProgressPriority[] = ["p0", "p1", "p2", "p3"];
 
@@ -195,12 +190,7 @@ function matchesEntry(entry: ProgressEntry, f: ProgressFilters): boolean {
   if (f.priorities.size > 0 && !f.priorities.has(entry.priority)) return false;
   if (f.search.length > 0) {
     const needle = f.search.toLowerCase();
-    const haystack = [
-      entry.id,
-      entry.title,
-      entry.description,
-      ...entry.tags,
-    ]
+    const haystack = [entry.id, entry.title, entry.description, ...entry.tags]
       .join(" ")
       .toLowerCase();
     if (!haystack.includes(needle)) return false;
@@ -220,10 +210,7 @@ function matchesEntry(entry: ProgressEntry, f: ProgressFilters): boolean {
  * entries pruned. Categories with zero matching entries are omitted entirely
  * so the UI stays clean.
  */
-export function filterTracker(
-  tracker: ProgressTracker,
-  filters: ProgressFilters,
-): ProgressTracker {
+export function filterTracker(tracker: ProgressTracker, filters: ProgressFilters): ProgressTracker {
   const categories: ProgressCategory[] = [];
   for (const category of tracker.categories) {
     const entries = category.entries.filter((e) => matchesEntry(e, filters));

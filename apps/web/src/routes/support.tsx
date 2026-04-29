@@ -1,17 +1,11 @@
-import { createSignal, For, Show } from "solid-js";
-import type { JSX } from "solid-js";
+import { Badge } from "@back-to-the-future/ui";
 import { A } from "@solidjs/router";
-import { Badge, Box, Container } from "@back-to-the-future/ui";
+import { For, Show, createSignal } from "solid-js";
+import type { JSX } from "solid-js";
 import { SEOHead } from "../components/SEOHead";
 import { trpc } from "../lib/trpc";
 
-type SupportCategory =
-  | "technical"
-  | "billing"
-  | "bug"
-  | "feature"
-  | "sales"
-  | "other";
+type SupportCategory = "technical" | "billing" | "bug" | "feature" | "sales" | "other";
 
 // ── Types ───────────────────────────────────────────────────────────
 
@@ -34,32 +28,28 @@ const QUICK_LINKS: QuickLinkCard[] = [
   {
     icon: "\uD83D\uDCD6",
     title: "Documentation",
-    description:
-      "Guides, API references, and tutorials for every feature in the platform.",
+    description: "Guides, API references, and tutorials for every feature in the platform.",
     href: "/docs",
     gradient: "var(--color-primary)",
   },
   {
     icon: "\uD83D\uDC65",
     title: "Community",
-    description:
-      "Join thousands of developers building with Crontech on Discord.",
+    description: "Join thousands of developers building with Crontech on Discord.",
     href: "https://discord.gg/crontech",
     gradient: "var(--color-primary)",
   },
   {
     icon: "\uD83D\uDFE2",
     title: "API Status",
-    description:
-      "Real-time operational status for all platform services.",
+    description: "Real-time operational status for all platform services.",
     href: "/status",
     gradient: "var(--color-success)",
   },
   {
     icon: "\u2709\uFE0F",
     title: "Contact Sales",
-    description:
-      "Enterprise plans, SLAs, and custom deployments for large teams.",
+    description: "Enterprise plans, SLAs, and custom deployments for large teams.",
     href: "mailto:sales@crontech.dev",
     gradient: "var(--color-warning)",
   },
@@ -133,9 +123,7 @@ function FAQAccordion(props: { item: FAQItem; index: number }): JSX.Element {
         style={{ color: "var(--color-text-secondary)" }}
         onClick={() => setOpen(!open())}
       >
-        <span class="text-sm font-medium pr-8 leading-relaxed">
-          {props.item.question}
-        </span>
+        <span class="text-sm font-medium pr-8 leading-relaxed">{props.item.question}</span>
         <svg
           class="h-5 w-5 shrink-0 transition-transform duration-300"
           style={{
@@ -145,6 +133,7 @@ function FAQAccordion(props: { item: FAQItem; index: number }): JSX.Element {
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
+          aria-hidden="true"
         >
           <path
             stroke-linecap="round"
@@ -179,11 +168,7 @@ export default function SupportPage(): JSX.Element {
   const handleSubmit = async (e: SubmitEvent): Promise<void> => {
     e.preventDefault();
     setErrorText(null);
-    if (
-      name().trim().length < 2 ||
-      !email().includes("@") ||
-      message().trim().length < 10
-    ) {
+    if (name().trim().length < 2 || !email().includes("@") || message().trim().length < 10) {
       setErrorText(
         "Please fill in your name, a valid email, and a message of at least 10 characters.",
       );
@@ -220,10 +205,10 @@ export default function SupportPage(): JSX.Element {
         path="/support"
       />
 
-      <Box class="min-h-screen" style={{ background: "var(--color-bg)" }}>
+      <div class="min-h-screen" style={{ background: "var(--color-bg)" }}>
         {/* ── Hero ───────────────────────────────────────────────── */}
-        <Box class="relative overflow-hidden">
-          <Box
+        <div class="relative overflow-hidden">
+          <div
             class="absolute inset-0 opacity-25"
             style={{
               background:
@@ -231,8 +216,8 @@ export default function SupportPage(): JSX.Element {
             }}
           />
 
-          <Container size="full" padding="md" class="relative max-w-5xl pt-20 pb-12">
-            <Box class="flex flex-col items-center text-center">
+          <div class="relative mx-auto max-w-5xl px-6 pt-20 pb-12">
+            <div class="flex flex-col items-center text-center">
               <h1
                 class="text-5xl font-bold tracking-tight sm:text-6xl"
                 style={{
@@ -246,27 +231,27 @@ export default function SupportPage(): JSX.Element {
                 How can we help?
               </h1>
               <p class="mt-4 max-w-xl text-lg" style={{ color: "var(--color-text-muted)" }}>
-                Most replies arrive within minutes. Our AI handles the
-                common questions instantly — everything else goes straight
-                to a human teammate.
+                Most replies arrive within minutes. Our AI handles the common questions instantly —
+                everything else goes straight to a human teammate.
               </p>
 
               {/* Search bar */}
-              <Box class="mt-8 w-full max-w-xl">
-                <Box
+              <div class="mt-8 w-full max-w-xl">
+                <div
                   class="relative rounded-2xl border border-[var(--color-border)] overflow-hidden"
                   style={{
                     background: "var(--color-bg-subtle)",
                     "backdrop-filter": "blur(12px)",
                   }}
                 >
-                  <Box class="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+                  <div class="absolute inset-y-0 left-4 flex items-center pointer-events-none">
                     <svg
                       class="h-5 w-5"
                       style={{ color: "var(--color-text-faint)" }}
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
+                      aria-hidden="true"
                     >
                       <path
                         stroke-linecap="round"
@@ -275,23 +260,28 @@ export default function SupportPage(): JSX.Element {
                         d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                       />
                     </svg>
-                  </Box>
+                  </div>
                   <input
                     type="text"
                     placeholder="Search for answers..."
                     aria-label="Search support articles"
                     class="w-full bg-transparent py-4 pl-12 pr-4 outline-none text-sm"
-                    style={{ color: "var(--color-text)", "--tw-placeholder-color": "var(--color-text-faint)" } as JSX.CSSProperties}
+                    style={
+                      {
+                        color: "var(--color-text)",
+                        "--tw-placeholder-color": "var(--color-text-faint)",
+                      } as JSX.CSSProperties
+                    }
                   />
-                </Box>
-              </Box>
-            </Box>
-          </Container>
-        </Box>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
 
         {/* ── Quick Link Cards ────────────────────────────────────── */}
-        <Container size="full" padding="md" class="max-w-5xl pb-16">
-          <Box class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div class="mx-auto max-w-5xl px-6 pb-16">
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <For each={QUICK_LINKS}>
               {(link) => (
                 <A
@@ -315,7 +305,10 @@ export default function SupportPage(): JSX.Element {
                   >
                     {link.icon}
                   </div>
-                  <p class="text-sm font-semibold mb-1 transition-colors" style={{ color: "var(--color-text)" }}>
+                  <p
+                    class="text-sm font-semibold mb-1 transition-colors"
+                    style={{ color: "var(--color-text)" }}
+                  >
                     {link.title}
                   </p>
                   <p class="text-xs leading-relaxed" style={{ color: "var(--color-text-muted)" }}>
@@ -324,12 +317,12 @@ export default function SupportPage(): JSX.Element {
                 </A>
               )}
             </For>
-          </Box>
-        </Container>
+          </div>
+        </div>
 
         {/* ── FAQ Section ─────────────────────────────────────────── */}
-        <Container size="full" padding="md" class="max-w-3xl pb-16">
-          <Box class="text-center mb-10">
+        <div class="mx-auto max-w-3xl px-6 pb-16">
+          <div class="text-center mb-10">
             <Badge variant="info" size="sm">
               FAQ
             </Badge>
@@ -337,12 +330,11 @@ export default function SupportPage(): JSX.Element {
               Frequently asked questions
             </h2>
             <p class="mt-2 text-sm" style={{ color: "var(--color-text-muted)" }}>
-              Quick answers to the most common questions about the
-              platform
+              Quick answers to the most common questions about the platform
             </p>
-          </Box>
+          </div>
 
-          <Box
+          <div
             class="rounded-2xl border border-[var(--color-border)] px-6"
             style={{
               background: "var(--color-bg-subtle)",
@@ -350,26 +342,24 @@ export default function SupportPage(): JSX.Element {
             }}
           >
             <For each={FAQ_ITEMS}>
-              {(item, index) => (
-                <FAQAccordion item={item} index={index()} />
-              )}
+              {(item, index) => <FAQAccordion item={item} index={index()} />}
             </For>
-          </Box>
-        </Container>
+          </div>
+        </div>
 
         {/* ── Contact Form ────────────────────────────────────────── */}
-        <Container size="full" padding="md" class="max-w-3xl pb-16">
-          <Box class="text-center mb-10">
+        <div class="mx-auto max-w-3xl px-6 pb-16">
+          <div class="text-center mb-10">
             <h2 class="text-2xl font-bold" style={{ color: "var(--color-text)" }}>
               Send us a message
             </h2>
             <p class="mt-2 text-sm" style={{ color: "var(--color-text-muted)" }}>
-              Cannot find what you need? Our team typically responds
-              within 5 minutes during business hours
+              Cannot find what you need? Our team typically responds within 5 minutes during
+              business hours
             </p>
-          </Box>
+          </div>
 
-          <Box
+          <div
             class="rounded-2xl border border-[var(--color-border)] p-8"
             style={{
               background: "var(--color-bg-subtle)",
@@ -379,24 +369,26 @@ export default function SupportPage(): JSX.Element {
             <Show
               when={!submitted()}
               fallback={
-                <Box class="py-12 text-center">
-                  <Box class="text-4xl mb-4">{"\u2705"}</Box>
+                <div class="py-12 text-center">
+                  <div class="text-4xl mb-4">{"\u2705"}</div>
                   <h3 class="text-lg font-semibold mb-2" style={{ color: "var(--color-text)" }}>
                     Message sent
                   </h3>
                   <p class="text-sm mb-6" style={{ color: "var(--color-text-muted)" }}>
-                    We received your message and will respond shortly.
-                    Check your inbox.
+                    We received your message and will respond shortly. Check your inbox.
                   </p>
                   <button
                     type="button"
                     class="rounded-xl px-5 py-2.5 text-sm transition-colors"
-                    style={{ background: "var(--color-bg-elevated)", color: "var(--color-text-secondary)" }}
+                    style={{
+                      background: "var(--color-bg-elevated)",
+                      color: "var(--color-text-secondary)",
+                    }}
                     onClick={() => setSubmitted(false)}
                   >
                     Send another message
                   </button>
-                </Box>
+                </div>
               }
             >
               <form
@@ -420,9 +412,7 @@ export default function SupportPage(): JSX.Element {
                       type="text"
                       placeholder="Your name"
                       value={name()}
-                      onInput={(e) =>
-                        setName(e.currentTarget.value)
-                      }
+                      onInput={(e) => setName(e.currentTarget.value)}
                       required
                       class="w-full rounded-xl border border-[var(--color-border)] px-4 py-3 text-sm outline-none transition-colors"
                       style={{ background: "var(--color-bg-subtle)", color: "var(--color-text)" }}
@@ -443,9 +433,7 @@ export default function SupportPage(): JSX.Element {
                       type="email"
                       placeholder="you@example.com"
                       value={email()}
-                      onInput={(e) =>
-                        setEmail(e.currentTarget.value)
-                      }
+                      onInput={(e) => setEmail(e.currentTarget.value)}
                       required
                       class="w-full rounded-xl border border-[var(--color-border)] px-4 py-3 text-sm outline-none transition-colors"
                       style={{ background: "var(--color-bg-subtle)", color: "var(--color-text)" }}
@@ -465,9 +453,7 @@ export default function SupportPage(): JSX.Element {
                   <select
                     id="support-subject"
                     value={subject()}
-                    onChange={(e) =>
-                      setSubject(e.currentTarget.value as SupportCategory)
-                    }
+                    onChange={(e) => setSubject(e.currentTarget.value as SupportCategory)}
                     class="w-full rounded-xl border border-[var(--color-border)] px-4 py-3 text-sm outline-none transition-colors appearance-none"
                     style={{
                       background: "var(--color-bg-elevated)",
@@ -479,9 +465,7 @@ export default function SupportPage(): JSX.Element {
                     }}
                   >
                     <For each={SUBJECT_OPTIONS}>
-                      {(opt) => (
-                        <option value={opt.value}>{opt.label}</option>
-                      )}
+                      {(opt) => <option value={opt.value}>{opt.label}</option>}
                     </For>
                   </select>
                 </div>
@@ -499,9 +483,7 @@ export default function SupportPage(): JSX.Element {
                     id="support-message"
                     placeholder="Describe what you need. The more detail, the faster the answer."
                     value={message()}
-                    onInput={(e) =>
-                      setMessage(e.currentTarget.value)
-                    }
+                    onInput={(e) => setMessage(e.currentTarget.value)}
                     required
                     rows={6}
                     class="w-full rounded-xl border border-[var(--color-border)] px-4 py-3 text-sm outline-none transition-colors resize-none"
@@ -518,9 +500,7 @@ export default function SupportPage(): JSX.Element {
                     color: "var(--color-text)",
                   }}
                 >
-                  {submitting()
-                    ? "Sending..."
-                    : "Send Message"}
+                  {submitting() ? "Sending..." : "Send Message"}
                 </button>
 
                 <Show when={errorText()}>
@@ -538,30 +518,29 @@ export default function SupportPage(): JSX.Element {
                 </Show>
               </form>
             </Show>
-          </Box>
-        </Container>
+          </div>
+        </div>
 
         {/* ── Community Section ───────────────────────────────────── */}
-        <Container size="full" padding="md" class="max-w-5xl pb-20">
-          <Box
+        <div class="mx-auto max-w-5xl px-6 pb-20">
+          <div
             class="rounded-2xl border border-[var(--color-border)] p-10"
             style={{
               background: "color-mix(in oklab, var(--color-primary) 5%, var(--color-bg))",
               "backdrop-filter": "blur(12px)",
             }}
           >
-            <Box class="text-center mb-8">
+            <div class="text-center mb-8">
               <h2 class="text-2xl font-bold" style={{ color: "var(--color-text)" }}>
                 Join the community
               </h2>
               <p class="mt-2 text-sm max-w-lg mx-auto" style={{ color: "var(--color-text-muted)" }}>
-                Connect with thousands of developers building the next
-                generation of AI-powered applications. Get help, share
-                ideas, and contribute to the platform.
+                Connect with thousands of developers building the next generation of AI-powered
+                applications. Get help, share ideas, and contribute to the platform.
               </p>
-            </Box>
+            </div>
 
-            <Box class="grid grid-cols-1 gap-4 sm:grid-cols-2 max-w-lg mx-auto">
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 max-w-lg mx-auto">
               {/* Discord */}
               <a
                 href="https://discord.gg/crontech"
@@ -572,18 +551,24 @@ export default function SupportPage(): JSX.Element {
               >
                 <div
                   class="flex h-10 w-10 items-center justify-center rounded-xl shrink-0"
-                  style={{ background: "color-mix(in oklab, var(--color-primary) 15%, transparent)" }}
+                  style={{
+                    background: "color-mix(in oklab, var(--color-primary) 15%, transparent)",
+                  }}
                 >
                   <svg
                     class="h-5 w-5"
                     viewBox="0 0 24 24"
                     fill="rgb(88,101,242)"
+                    aria-hidden="true"
                   >
                     <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z" />
                   </svg>
                 </div>
                 <div>
-                  <span class="block text-sm font-semibold transition-colors" style={{ color: "var(--color-text)" }}>
+                  <span
+                    class="block text-sm font-semibold transition-colors"
+                    style={{ color: "var(--color-text)" }}
+                  >
                     Discord
                   </span>
                   <span class="block text-xs" style={{ color: "var(--color-text-faint)" }}>
@@ -608,12 +593,16 @@ export default function SupportPage(): JSX.Element {
                     class="h-5 w-5"
                     viewBox="0 0 24 24"
                     style={{ fill: "var(--color-text)" }}
+                    aria-hidden="true"
                   >
                     <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
                   </svg>
                 </div>
                 <div>
-                  <span class="block text-sm font-semibold transition-colors" style={{ color: "var(--color-text)" }}>
+                  <span
+                    class="block text-sm font-semibold transition-colors"
+                    style={{ color: "var(--color-text)" }}
+                  >
                     GitHub
                   </span>
                   <span class="block text-xs" style={{ color: "var(--color-text-faint)" }}>
@@ -621,10 +610,10 @@ export default function SupportPage(): JSX.Element {
                   </span>
                 </div>
               </a>
-            </Box>
-          </Box>
-        </Container>
-      </Box>
+            </div>
+          </div>
+        </div>
+      </div>
     </>
   );
 }

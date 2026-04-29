@@ -8,11 +8,7 @@
 
 import type { JSX } from "solid-js";
 import { SEOHead } from "../../../components/SEOHead";
-import {
-  DocsArticle,
-  Callout,
-  KeyList,
-} from "../../../components/docs/DocsArticle";
+import { Callout, DocsArticle, KeyList } from "../../../components/docs/DocsArticle";
 
 export default function ApiReferenceIndex(): JSX.Element {
   return (
@@ -32,39 +28,33 @@ export default function ApiReferenceIndex(): JSX.Element {
         nextStep={{
           label: "Auth procedures",
           href: "/docs/api-reference/auth",
-          description:
-            "Passkeys, Google OAuth, email + password, CSRF, and session lifecycle.",
+          description: "Passkeys, Google OAuth, email + password, CSRF, and session lifecycle.",
         }}
       >
         <p>
-          Crontech is one tRPC app. Every request from the dashboard,
-          the CLI, or a customer-built client lands on a single{" "}
-          <code>appRouter</code> mounted at <code>/trpc/*</code>. Each
-          subsystem lives under its own namespace (<code>auth.*</code>,{" "}
-          <code>projects.*</code>, <code>ai.siteBuilder.*</code>, and so
-          on), so you only import the slices you need and the TypeScript
-          compiler enforces the shape end-to-end.
+          Crontech is one tRPC app. Every request from the dashboard, the CLI, or a customer-built
+          client lands on a single <code>appRouter</code> mounted at <code>/trpc/*</code>. Each
+          subsystem lives under its own namespace (<code>auth.*</code>, <code>projects.*</code>,{" "}
+          <code>ai.siteBuilder.*</code>, and so on), so you only import the slices you need and the
+          TypeScript compiler enforces the shape end-to-end.
         </p>
 
         <p>
-          This page is the table of contents. Each link below goes to a
-          dedicated article that lists the live procedures, their Zod
-          input schemas, and whether the path is fully shipped or still
-          gated behind a feature flag.
+          This page is the table of contents. Each link below goes to a dedicated article that lists
+          the live procedures, their Zod input schemas, and whether the path is fully shipped or
+          still gated behind a feature flag.
         </p>
 
         <Callout tone="info" title="How to read these articles">
           Every procedure referenced in this category is grepable in{" "}
-          <code>apps/api/src/trpc/procedures/</code>. If an article lists
-          a procedure that isn't there, that's a doc bug — file it and
-          we'll fix it within the day.
+          <code>apps/api/src/trpc/procedures/</code>. If an article lists a procedure that isn't
+          there, that's a doc bug — file it and we'll fix it within the day.
         </Callout>
 
         <h2>How the tRPC app is organised</h2>
         <p>
-          The router surface is grouped into seven families. Anything
-          not in this list is either internal plumbing (health probe,
-          CSRF token) or still behind a launch flag:
+          The router surface is grouped into seven families. Anything not in this list is either
+          internal plumbing (health probe, CSRF token) or still behind a launch flag:
         </p>
 
         <KeyList
@@ -104,10 +94,9 @@ export default function ApiReferenceIndex(): JSX.Element {
 
         <h2>Calling the API from the browser</h2>
         <p>
-          The web app uses a typed tRPC client generated directly from{" "}
-          <code>AppRouter</code>. A call looks like this — the procedure
-          path, the input object, and the inferred return type all come
-          from the server:
+          The web app uses a typed tRPC client generated directly from <code>AppRouter</code>. A
+          call looks like this — the procedure path, the input object, and the inferred return type
+          all come from the server:
         </p>
 
         <pre
@@ -134,19 +123,15 @@ const created = await trpc.projects.create.mutate({
         </pre>
 
         <p>
-          There is no REST surface to mirror. tRPC speaks JSON over HTTP
-          under the hood and the browser client handles the wire
-          format for you. If you need to integrate from a language that
-          doesn't have a tRPC client, every procedure is reachable as
-          a plain POST to <code>/trpc/&lt;path&gt;</code> — the input
-          goes in <code>{`{"json": ...}`}</code> and the output comes
-          back the same way.
+          There is no REST surface to mirror. tRPC speaks JSON over HTTP under the hood and the
+          browser client handles the wire format for you. If you need to integrate from a language
+          that doesn't have a tRPC client, every procedure is reachable as a plain POST to{" "}
+          <code>/trpc/&lt;path&gt;</code> — the input goes in <code>{`{"json": ...}`}</code> and the
+          output comes back the same way.
         </p>
 
         <h2>Authentication model</h2>
-        <p>
-          Procedures are one of three kinds:
-        </p>
+        <p>Procedures are one of three kinds:</p>
         <KeyList
           items={[
             {
@@ -168,17 +153,15 @@ const created = await trpc.projects.create.mutate({
         />
 
         <Callout tone="note">
-          CSRF tokens are fetched via{" "}
-          <code>auth.csrfToken</code> and sent back on every mutation.
-          The token is bound to the session and rotates on login — you
-          do not need to store it long-term.
+          CSRF tokens are fetched via <code>auth.csrfToken</code> and sent back on every mutation.
+          The token is bound to the session and rotates on login — you do not need to store it
+          long-term.
         </Callout>
 
         <h2>Where to go next</h2>
         <p>
-          Start with auth, then projects — that covers the full sign-up
-          to first-deploy path. The AI and support articles are useful
-          when you're wiring a customer-facing product on top of the
+          Start with auth, then projects — that covers the full sign-up to first-deploy path. The AI
+          and support articles are useful when you're wiring a customer-facing product on top of the
           platform rather than hosting your own.
         </p>
 
@@ -191,8 +174,7 @@ const created = await trpc.projects.create.mutate({
             },
             {
               term: "/docs/api-reference/projects",
-              description:
-                "list, getById, create, update, delete, addDomain, env vars, deploy.",
+              description: "list, getById, create, update, delete, addDomain, env vars, deploy.",
             },
             {
               term: "/docs/api-reference/billing",

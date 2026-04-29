@@ -5,7 +5,7 @@
 // headline copy, keeps a live search box, and wires a "Register" path
 // — without booting a SolidStart runtime.
 
-import { describe, test, expect } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 

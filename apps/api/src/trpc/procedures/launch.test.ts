@@ -1,16 +1,16 @@
-// launch.status — admin-only probe for the LaunchChecklist HUD.
+﻿// launch.status — admin-only probe for the LaunchChecklist HUD.
 // Verifies:
 //   1. Non-admin calls are rejected (FORBIDDEN).
 //   2. Admin calls return the expected shape.
 //   3. Each boolean reflects whether the env var is non-empty.
 //   4. Actual secret values are NEVER returned in the response.
 
-import { describe, test, expect, afterEach } from "bun:test";
+import { afterEach, describe, expect, test } from "bun:test";
+import { db, scopedDb, sessions, users } from "@back-to-the-future/db";
 import { eq } from "drizzle-orm";
-import { db, users, sessions, scopedDb } from "@back-to-the-future/db";
-import { appRouter } from "../router";
 import { createSession } from "../../auth/session";
 import type { TRPCContext } from "../context";
+import { appRouter } from "../router";
 
 function ctxFor(userId: string, sessionToken: string): TRPCContext {
   return {
@@ -18,6 +18,7 @@ function ctxFor(userId: string, sessionToken: string): TRPCContext {
     userId,
     sessionToken,
     csrfToken: null,
+    serviceKey: null,
     scopedDb: scopedDb(db, userId),
   };
 }
@@ -26,7 +27,7 @@ async function createUser(role: "admin" | "viewer"): Promise<string> {
   const id = crypto.randomUUID();
   await db.insert(users).values({
     id,
-    email: `launch-${role}-${Date.now()}-${crypto.randomUUID().replace(/-/g, '').slice(0, 6)}@example.com`,
+    email: `launch-${role}-${Date.now()}-${crypto.randomUUID().replace(/-/g, "").slice(0, 6)}@example.com`,
     displayName: `Launch Test ${role}`,
     role,
   });
@@ -102,18 +103,18 @@ describe("launch.status admin probe", () => {
     const token = await createSession(userId, db);
     const caller = appRouter.createCaller(ctxFor(userId, token));
 
-    const saved = process.env["STRIPE_PRO_PRICE_ID"];
+    const saved = process.env.STRIPE_PRO_PRICE_ID;
 
-    process.env["STRIPE_PRO_PRICE_ID"] = "";
+    process.env.STRIPE_PRO_PRICE_ID = "";
     let res = await caller.launch.status();
     expect(res.secrets.STRIPE_PRO_PRICE_ID).toBe(false);
 
-    process.env["STRIPE_PRO_PRICE_ID"] = "price_sentinel_canary";
+    process.env.STRIPE_PRO_PRICE_ID = "price_sentinel_canary";
     res = await caller.launch.status();
     expect(res.secrets.STRIPE_PRO_PRICE_ID).toBe(true);
 
-    if (saved === undefined) delete process.env["STRIPE_PRO_PRICE_ID"];
-    else process.env["STRIPE_PRO_PRICE_ID"] = saved;
+    if (saved === undefined) process.env.STRIPE_PRO_PRICE_ID = undefined;
+    else process.env.STRIPE_PRO_PRICE_ID = saved;
   });
 
   test("response NEVER contains a raw secret value", async () => {
@@ -122,16 +123,16 @@ describe("launch.status admin probe", () => {
     const token = await createSession(userId, db);
     const caller = appRouter.createCaller(ctxFor(userId, token));
 
-    const saved = process.env["JWT_SECRET"];
-    const sentinel = "SECRET_SHOULD_NEVER_LEAK_" + Date.now();
-    process.env["JWT_SECRET"] = sentinel;
+    const saved = process.env.JWT_SECRET;
+    const sentinel = `SECRET_SHOULD_NEVER_LEAK_${Date.now()}`;
+    process.env.JWT_SECRET = sentinel;
 
     const res = await caller.launch.status();
     const json = JSON.stringify(res);
     expect(json.includes(sentinel)).toBe(false);
     expect(res.secrets.JWT_SECRET).toBe(true);
 
-    if (saved === undefined) delete process.env["JWT_SECRET"];
-    else process.env["JWT_SECRET"] = saved;
+    if (saved === undefined) process.env.JWT_SECRET = undefined;
+    else process.env.JWT_SECRET = saved;
   });
 });

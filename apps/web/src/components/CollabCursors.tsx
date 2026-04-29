@@ -2,9 +2,9 @@
 // Renders remote user cursors, selections, and presence indicators.
 // Shows who's online, what they're doing, and where they're looking.
 
+import { Badge, Stack, Text } from "@back-to-the-future/ui";
 import { For, Show, createMemo } from "solid-js";
 import type { JSX } from "solid-js";
-import { Text, Badge, Stack } from "@back-to-the-future/ui";
 
 // ── Types ────────────────────────────────────────────────────────────
 
@@ -49,10 +49,8 @@ function RemoteCursor(props: RemoteCursorProps): JSX.Element {
         fill="none"
         style={{ filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.3))" }}
       >
-        <path
-          d="M0 0L16 12L8 12L4 20L0 0Z"
-          fill={props.user.color}
-        />
+        <title>User cursor</title>
+        <path d="M0 0L16 12L8 12L4 20L0 0Z" fill={props.user.color} />
       </svg>
       {/* User name label */}
       <div
@@ -123,9 +121,7 @@ interface PresenceBarProps {
 }
 
 export function PresenceBar(props: PresenceBarProps): JSX.Element {
-  const otherUsers = createMemo(() =>
-    props.users.filter((u) => u.id !== props.currentUserId),
-  );
+  const otherUsers = createMemo(() => props.users.filter((u) => u.id !== props.currentUserId));
 
   return (
     <Stack direction="horizontal" gap="sm" align="center" class="presence-bar">
@@ -149,9 +145,7 @@ export function PresenceBar(props: PresenceBarProps): JSX.Element {
                   "box-shadow": `0 0 0 2px ${user.color}33`,
                 }}
               />
-              <Text variant="caption">
-                {user.isAI ? `🤖 ${user.name}` : user.name}
-              </Text>
+              <Text variant="caption">{user.isAI ? `🤖 ${user.name}` : user.name}</Text>
             </div>
           )}
         </For>
@@ -163,11 +157,7 @@ export function PresenceBar(props: PresenceBarProps): JSX.Element {
         </Text>
       </Show>
 
-      <Badge
-        variant="info"
-        size="sm"
-        label={`${props.users.length} online`}
-      />
+      <Badge variant="info" size="sm" label={`${props.users.length} online`} />
     </Stack>
   );
 }

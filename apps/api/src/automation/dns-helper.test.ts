@@ -8,8 +8,8 @@
 //   4. Serial bumps exactly once per call.
 
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { and, eq } from "drizzle-orm";
 import { db, dnsRecords, dnsZones } from "@back-to-the-future/db";
+import { and, eq } from "drizzle-orm";
 import { upsertSubdomainRecord } from "./dns-helper";
 
 const ZONE_NAME = "crontech.ai";
@@ -107,10 +107,7 @@ describe("upsertSubdomainRecord", () => {
       now: () => later,
     });
 
-    const rows = await db
-      .select()
-      .from(dnsRecords)
-      .where(eq(dnsRecords.name, "acme.crontech.ai"));
+    const rows = await db.select().from(dnsRecords).where(eq(dnsRecords.name, "acme.crontech.ai"));
     expect(rows).toHaveLength(1);
     const row = rows[0];
     expect(row?.id).toBe("rec-existing");
@@ -123,10 +120,7 @@ describe("upsertSubdomainRecord", () => {
 
     await upsertSubdomainRecord("acme", "45.76.21.235");
 
-    const [after] = await db
-      .select()
-      .from(dnsZones)
-      .where(eq(dnsZones.id, zone.id));
+    const [after] = await db.select().from(dnsZones).where(eq(dnsZones.id, zone.id));
     expect(after?.serial).toBe(101);
   });
 
@@ -146,10 +140,7 @@ describe("upsertSubdomainRecord", () => {
 
     await upsertSubdomainRecord("acme", "2.2.2.2");
 
-    const [after] = await db
-      .select()
-      .from(dnsZones)
-      .where(eq(dnsZones.id, zone.id));
+    const [after] = await db.select().from(dnsZones).where(eq(dnsZones.id, zone.id));
     expect(after?.serial).toBe(8);
   });
 
@@ -169,10 +160,7 @@ describe("upsertSubdomainRecord", () => {
     expect(rows).toHaveLength(1);
     expect(rows[0]?.content).toBe("9.9.9.9");
 
-    const [after] = await db
-      .select()
-      .from(dnsZones)
-      .where(eq(dnsZones.id, zone.id));
+    const [after] = await db.select().from(dnsZones).where(eq(dnsZones.id, zone.id));
     expect(after?.serial).toBe(2);
   });
 });

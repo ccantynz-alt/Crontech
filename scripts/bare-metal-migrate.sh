@@ -25,10 +25,10 @@
 #   export OLD_REPO_DIR="/opt/crontech"
 #   export OLD_GLUECRON_DIR="/opt/gluecron" # if present; leave empty to skip
 #   export OLD_REPOS_DIR="/data/repos"      # if present; leave empty to skip
-#   export POSTGRES_SOURCE_URL="postgres://user:pass@host:5432/db"
+#   export POSTGRES_SOURCE_URL="postgres://user:pass@host:5432/db" # secrets-ok — example placeholder in usage comment
 #         # where to pg_dump from. For fresh gluecron w/ no data yet, set
 #         # POSTGRES_SOURCE_URL="" and the dump step is skipped.
-#   export NEW_PG_CRONTECH_URL="postgres://crontech:<pw>@${NEW_HOST}:5432/crontech"
+#   export NEW_PG_CRONTECH_URL="postgres://crontech:<pw>@${NEW_HOST}:5432/crontech" # secrets-ok — example placeholder in usage comment
 #         # only needed if you want the script to verify the target is reachable.
 #   bash scripts/bare-metal-migrate.sh
 #

@@ -1,15 +1,19 @@
-import { For, Show, Suspense, createSignal, lazy, onMount } from "solid-js";
-import type { JSX } from "solid-js";
-import { useSearchParams, useNavigate } from "@solidjs/router";
-import { SEOHead } from "../components/SEOHead";
-import { Badge, Box, Button, Card, Input, Stack, Text } from "@back-to-the-future/ui";
-import { ProtectedRoute } from "../components/ProtectedRoute";
-import type { ComponentNode } from "../collab/collaborative-doc";
 import type { PageLayout } from "@back-to-the-future/ai-core";
 import type { ComputeTier } from "@back-to-the-future/ai-core";
+import { Badge, Button, Card, Input, Stack, Text } from "@back-to-the-future/ui";
+import { useNavigate, useSearchParams } from "@solidjs/router";
+import { For, Show, Suspense, createSignal, lazy, onMount } from "solid-js";
+import type { JSX } from "solid-js";
+import type { ComponentNode } from "../collab/collaborative-doc";
+import { GhostMode } from "../components/GhostMode";
+import type { GhostResult } from "../components/GhostMode";
 import { PageLayoutRenderer } from "../components/PageLayoutRenderer";
+import { ProtectedRoute } from "../components/ProtectedRoute";
+import { SEOHead } from "../components/SEOHead";
+import { VoicePill } from "../components/VoicePill";
+import { computeTier, detectAndSetTier, tierReason } from "../lib/ai-client";
 import { trpc } from "../lib/trpc";
-import { computeTier, tierReason, detectAndSetTier } from "../lib/ai-client";
+import { useInterimMorph } from "../lib/use-interim-morph";
 
 // CollaborativeBuilder drags in yjs + y-websocket (~70KB raw). The
 // builder route only renders it when a room is joined (`isCollaborative`),
@@ -35,12 +39,12 @@ function ChatBubble(props: { message: ChatMessage }): JSX.Element {
   const isUser = (): boolean => props.message.role === "user";
 
   return (
-    <Box class={`chat-bubble ${isUser() ? "chat-bubble-user" : "chat-bubble-assistant"}`}>
+    <div class={`chat-bubble ${isUser() ? "chat-bubble-user" : "chat-bubble-assistant"}`}>
       <Text variant="caption" weight="semibold" class="chat-role">
         {isUser() ? "You" : "Composer"}
       </Text>
       <Text variant="body">{props.message.content}</Text>
-    </Box>
+    </div>
   );
 }
 
@@ -107,11 +111,10 @@ function ComputeTierPill(props: {
   reason: string;
   cost: string;
 }): JSX.Element {
-  const colors = (): { bg: string; border: string; dot: string } =>
-    tierColor(props.tier);
+  const colors = (): { bg: string; border: string; dot: string } => tierColor(props.tier);
   return (
-    <Box
-      aria-label={props.reason}
+    <div
+      title={props.reason}
       style={{
         display: "flex",
         "align-items": "center",
@@ -122,7 +125,7 @@ function ComputeTierPill(props: {
         border: `1px solid ${colors().border}`,
       }}
     >
-      <Box
+      <div
         style={{
           width: "8px",
           height: "8px",
@@ -137,7 +140,7 @@ function ComputeTierPill(props: {
       <Text variant="caption" weight="semibold">
         {props.cost}
       </Text>
-    </Box>
+    </div>
   );
 }
 
@@ -147,17 +150,25 @@ function ComputeTierPill(props: {
 // human being: prompt in, validated component tree out, rendered by
 // real SolidJS primitives at ~60fps with zero hallucinated markup.
 
-function PreviewPanel(props: { layout: PageLayout | null }): JSX.Element {
-  const [device, setDevice] = createSignal<"desktop" | "tablet" | "mobile">(
-    "desktop",
-  );
+function PreviewPanel(props: {
+  layout: PageLayout | null;
+  isSpeculating?: boolean | undefined;
+  /** When true, interactive elements get data-ghost-id for GhostMode DOM lookup */
+  enableGhostIds?: boolean | undefined;
+}): JSX.Element {
+  const [device, setDevice] = createSignal<"desktop" | "tablet" | "mobile">("desktop");
   return (
     <Card class="preview-panel" padding="none">
       <Stack direction="vertical" gap="none" class="preview-inner">
-        <Box class="preview-toolbar">
-          <Text variant="caption" weight="semibold">
-            Live Preview ({device()})
-          </Text>
+        <div class="preview-toolbar">
+          <Stack direction="horizontal" gap="sm" align="center">
+            <Text variant="caption" weight="semibold">
+              Live Preview ({device()})
+            </Text>
+            <Show when={props.isSpeculating}>
+              <Badge variant="warning" size="sm" label="Speculating…" />
+            </Show>
+          </Stack>
           <Stack direction="horizontal" gap="xs">
             <Button variant="ghost" size="sm" onClick={() => setDevice("desktop")}>
               Desktop
@@ -169,10 +180,16 @@ function PreviewPanel(props: { layout: PageLayout | null }): JSX.Element {
               Mobile
             </Button>
           </Stack>
-        </Box>
-        <Box class={`preview-canvas preview-canvas-${device()}`}>
+        </div>
+        <div
+          class={`preview-canvas preview-canvas-${device()}`}
+          style={
+            props.isSpeculating ? { opacity: "0.7", transition: "opacity 150ms ease" } : undefined
+          }
+        >
           <PageLayoutRenderer
             layout={props.layout}
+            enableGhostIds={props.enableGhostIds}
             fallback={
               <Stack
                 direction="vertical"
@@ -184,13 +201,13 @@ function PreviewPanel(props: { layout: PageLayout | null }): JSX.Element {
                   Preview Area
                 </Text>
                 <Text variant="body" class="text-muted">
-                  Describe the UI you want and the composer will render it
-                  here from validated components.
+                  Describe the UI you want and the composer will render it here from validated
+                  components.
                 </Text>
               </Stack>
             }
           />
-        </Box>
+        </div>
       </Stack>
     </Card>
   );
@@ -200,7 +217,7 @@ function PreviewPanel(props: { layout: PageLayout | null }): JSX.Element {
 
 function ConnectionStatus(props: { connected: boolean }): JSX.Element {
   return (
-    <Box
+    <div
       style={{
         display: "flex",
         "align-items": "center",
@@ -213,7 +230,7 @@ function ConnectionStatus(props: { connected: boolean }): JSX.Element {
         border: `1px solid ${props.connected ? "color-mix(in oklab, var(--color-success) 30%, transparent)" : "color-mix(in oklab, var(--color-danger) 30%, transparent)"}`,
       }}
     >
-      <Box
+      <div
         style={{
           width: "8px",
           height: "8px",
@@ -221,10 +238,8 @@ function ConnectionStatus(props: { connected: boolean }): JSX.Element {
           background: props.connected ? "var(--color-success)" : "var(--color-danger)",
         }}
       />
-      <Text variant="caption">
-        {props.connected ? "Connected" : "Disconnected"}
-      </Text>
-    </Box>
+      <Text variant="caption">{props.connected ? "Connected" : "Disconnected"}</Text>
+    </div>
   );
 }
 
@@ -242,7 +257,7 @@ export default function BuilderPage(): JSX.Element {
   const isCollaborative = (): boolean => false;
 
   // Generate a user id/name for the session
-  const userId = `user-${crypto.randomUUID().replace(/-/g, '').slice(0, 7)}`;
+  const userId = `user-${crypto.randomUUID().replace(/-/g, "").slice(0, 7)}`;
   const userName = "Builder User";
 
   const [messages, setMessages] = createSignal<ChatMessage[]>([
@@ -258,10 +273,43 @@ export default function BuilderPage(): JSX.Element {
   const [isGenerating, setIsGenerating] = createSignal(false);
   const [collabConnected] = createSignal(false);
   const [_componentTree, setComponentTree] = createSignal<ComponentNode[]>([]);
-  const [currentLayout, setCurrentLayout] = createSignal<PageLayout | null>(
-    null,
-  );
+  const [currentLayout, setCurrentLayout] = createSignal<PageLayout | null>(null);
   const [lastSource, setLastSource] = createSignal<"ai" | "stub" | null>(null);
+
+  // ── Ghost Mode ────────────────────────────────────────────────────
+  // Toggled via the "Ghost Mode" button in the builder header.
+  // When active, an AI agent cursor walks every interactive element
+  // in the current layout, simulates clicks, and reports pass/fail.
+  const [ghostActive, setGhostActive] = createSignal(false);
+  const [ghostSummary, setGhostSummary] = createSignal<string | null>(null);
+
+  function handleGhostComplete(results: GhostResult[]): void {
+    setGhostActive(false);
+    const passed = results.filter((r) => r.status === "ok").length;
+    const total = results.length;
+    setGhostSummary(`Ghost walk complete: ${passed}/${total} passed`);
+    // Auto-clear the summary after 4 seconds
+    setTimeout(() => setGhostSummary(null), 4000);
+  }
+
+  function toggleGhostMode(): void {
+    if (ghostActive()) {
+      setGhostActive(false);
+      setGhostSummary(null);
+    } else if (currentLayout() !== null) {
+      setGhostSummary(null);
+      setGhostActive(true);
+    }
+  }
+
+  // ── Interim Morph — live layout speculation while the user speaks ──
+  // useInterimMorph debounces interim transcripts at 400 ms and calls
+  // the site builder agent speculatively so the preview morphs before
+  // the sentence finishes. The final transcript fires an authoritative
+  // generation that supersedes any in-flight speculation.
+  const interimMorph = useInterimMorph((layout) => {
+    setCurrentLayout(layout);
+  });
 
   // Detect device capabilities on mount so the tier pill shows the
   // right tier before the user generates anything.
@@ -315,13 +363,10 @@ export default function BuilderPage(): JSX.Element {
           : `Preview stub rendered (${componentCount} component${componentCount === 1 ? "" : "s"}). Configure OPENAI_API_KEY for real AI generation.`;
 
       setMessages((prev) =>
-        prev.map((m) =>
-          m.id === assistantId ? { ...m, content: sourceLabel } : m,
-        ),
+        prev.map((m) => (m.id === assistantId ? { ...m, content: sourceLabel } : m)),
       );
     } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Site builder request failed";
+      const message = err instanceof Error ? err.message : "Site builder request failed";
       setMessages((prev) =>
         prev.map((m) =>
           m.id === assistantId
@@ -345,7 +390,7 @@ export default function BuilderPage(): JSX.Element {
   };
 
   function handleShare(): void {
-    const newRoomId = `room-${Date.now()}-${crypto.randomUUID().replace(/-/g, '').slice(0, 4)}`;
+    const newRoomId = `room-${Date.now()}-${crypto.randomUUID().replace(/-/g, "").slice(0, 4)}`;
     navigate(`/builder?room=${newRoomId}`);
   }
 
@@ -359,12 +404,14 @@ export default function BuilderPage(): JSX.Element {
   }
 
   const builderContent = (
-    <Box class="builder-layout">
-      <Box class="builder-chat">
+    <div class="builder-layout">
+      <div class="builder-chat">
         <Stack direction="vertical" gap="none" class="builder-chat-inner">
-          <Box class="builder-chat-header">
+          <div class="builder-chat-header">
             <Stack direction="horizontal" gap="sm" align="center" justify="between">
-              <Text variant="h3" weight="bold">Component Composer</Text>
+              <Text variant="h3" weight="bold">
+                Component Composer
+              </Text>
               <Stack direction="horizontal" gap="sm" align="center">
                 <ComputeTierPill
                   tier={computeTier()}
@@ -385,21 +432,32 @@ export default function BuilderPage(): JSX.Element {
                 <Show when={isCollaborative()}>
                   <Badge variant="success" size="sm" label="Collaborative" />
                 </Show>
+                {/* Ghost Mode toggle — disabled until a layout exists */}
+                <Button
+                  variant={ghostActive() ? "primary" : "ghost"}
+                  size="sm"
+                  onClick={toggleGhostMode}
+                  disabled={currentLayout() === null}
+                >
+                  Ghost Mode
+                </Button>
               </Stack>
             </Stack>
-          </Box>
-          <Box class="builder-chat-messages">
-            <For each={messages()}>
-              {(msg) => <ChatBubble message={msg} />}
-            </For>
+          </div>
+          <div class="builder-chat-messages">
+            <For each={messages()}>{(msg) => <ChatBubble message={msg} />}</For>
             <Show when={isGenerating()}>
-              <Box class="chat-bubble chat-bubble-assistant">
-                <Text variant="caption" weight="semibold" class="chat-role">Composer</Text>
-                <Text variant="body" class="text-muted">Composing validated components...</Text>
-              </Box>
+              <div class="chat-bubble chat-bubble-assistant">
+                <Text variant="caption" weight="semibold" class="chat-role">
+                  Composer
+                </Text>
+                <Text variant="body" class="text-muted">
+                  Composing validated components...
+                </Text>
+              </div>
             </Show>
-          </Box>
-          <Box class="builder-chat-input">
+          </div>
+          <div class="builder-chat-input">
             <Stack direction="horizontal" gap="sm" align="end">
               <Input
                 placeholder="Describe the UI you want to generate..."
@@ -420,13 +478,43 @@ export default function BuilderPage(): JSX.Element {
                 Send
               </Button>
             </Stack>
-          </Box>
+          </div>
         </Stack>
-      </Box>
-      <Box class="builder-preview">
-        <PreviewPanel layout={currentLayout()} />
-      </Box>
-    </Box>
+      </div>
+      <div class="builder-preview">
+        <PreviewPanel
+          layout={currentLayout()}
+          isSpeculating={interimMorph.isSpeculating()}
+          enableGhostIds={ghostActive()}
+        />
+      </div>
+      {/* Builder-specific VoicePill: interim transcript triggers speculative
+          layout generation; final transcript fires the authoritative pass.
+          Positioned bottom-right by VoicePill's own fixed style; the global
+          VoiceGlobal pill is hidden on the builder route via `hidden` prop so
+          the two pills do not stack. */}
+      <VoicePill
+        onTranscript={interimMorph.onFinalTranscript}
+        onInterimTranscript={interimMorph.onInterimTranscript}
+      />
+      {/* Ghost Mode overlay — fixed-position, renders above everything */}
+      <GhostMode layout={currentLayout()} active={ghostActive()} onComplete={handleGhostComplete} />
+      {/* Ghost walk summary toast */}
+      <Show when={ghostSummary() !== null}>
+        <div
+          style={{
+            position: "fixed",
+            bottom: "260px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            "z-index": "99997",
+            "pointer-events": "none",
+          }}
+        >
+          <Badge variant="success" size="md" label={ghostSummary() ?? ""} />
+        </div>
+      </Show>
+    </div>
   );
 
   return (
@@ -436,13 +524,10 @@ export default function BuilderPage(): JSX.Element {
         description="Generate validated SolidJS components from a prompt. Compose with Crontech's three-tier compute fabric — client GPU, edge, or cloud — and copy the result straight into your project."
         path="/builder"
       />
-      <Show
-        when={isCollaborative()}
-        fallback={builderContent}
-      >
+      <Show when={isCollaborative()} fallback={builderContent}>
         <Suspense fallback={builderContent}>
           <CollaborativeBuilder
-            roomId={roomId()!}
+            roomId={roomId() ?? ""}
             userId={userId}
             userName={userName}
             onTreeChange={handleTreeChange}

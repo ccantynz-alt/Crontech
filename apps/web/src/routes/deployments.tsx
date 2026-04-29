@@ -1,15 +1,15 @@
-import { createMemo, createResource, createSignal, For, Show } from "solid-js";
-import type { JSX } from "solid-js";
+import { Button } from "@back-to-the-future/ui";
 import { A } from "@solidjs/router";
-import { Box, Button, Container, Stack, Text } from "@back-to-the-future/ui";
-import { SEOHead } from "../components/SEOHead";
+import { For, Show, createMemo, createResource, createSignal } from "solid-js";
+import type { JSX } from "solid-js";
 import {
-  DeploymentCard,
   type Deployment,
+  DeploymentCard,
   type DeploymentStatus,
 } from "../components/DeploymentCard";
-import { trpc } from "../lib/trpc";
+import { SEOHead } from "../components/SEOHead";
 import { useOptimisticMutation } from "../lib/optimistic";
+import { trpc } from "../lib/trpc";
 
 // ── BLK-009 — live deployments list ──────────────────────────────────
 //
@@ -68,10 +68,7 @@ function toIso(value: Date | string | null | undefined): string {
   return value;
 }
 
-function rowToDeployment(
-  row: DeploymentListRow,
-  project: ProjectSummary,
-): Deployment {
+function rowToDeployment(row: DeploymentListRow, project: ProjectSummary): Deployment {
   const status = toCardStatus(row.status);
   const durationSeconds =
     row.duration && row.duration > 0 ? Math.round(row.duration / 1_000) : null;
@@ -161,9 +158,7 @@ interface ProjectGroup {
   readonly deployments: ReadonlyArray<Deployment>;
 }
 
-function groupByProject(
-  deployments: ReadonlyArray<Deployment>,
-): ReadonlyArray<ProjectGroup> {
+function groupByProject(deployments: ReadonlyArray<Deployment>): ReadonlyArray<ProjectGroup> {
   const map = new Map<string, Deployment[]>();
   for (const d of deployments) {
     const bucket = map.get(d.projectSlug);
@@ -184,9 +179,7 @@ function groupByProject(
 export default function DeploymentsPage(): JSX.Element {
   const [filter, setFilter] = createSignal<StatusFilter>("all");
 
-  const [loaded, { refetch }] = createResource<DeploymentsLoad | null>(
-    loadDeployments,
-  );
+  const [loaded, { refetch }] = createResource<DeploymentsLoad | null>(loadDeployments);
 
   const repoConnected = (): boolean => {
     const data = loaded();
@@ -201,19 +194,13 @@ export default function DeploymentsPage(): JSX.Element {
     return deployments().filter((d) => d.status === current);
   });
 
-  const projectGroups = createMemo<ReadonlyArray<ProjectGroup>>(() =>
-    groupByProject(filtered()),
-  );
+  const projectGroups = createMemo<ReadonlyArray<ProjectGroup>>(() => groupByProject(filtered()));
 
   const totalDeployments = (): number => deployments().length;
-  const liveCount = (): number =>
-    deployments().filter((d) => d.status === "live").length;
+  const liveCount = (): number => deployments().filter((d) => d.status === "live").length;
   const activeCount = (): number =>
     deployments().filter(
-      (d) =>
-        d.status === "building" ||
-        d.status === "deploying" ||
-        d.status === "queued",
+      (d) => d.status === "building" || d.status === "deploying" || d.status === "queued",
     ).length;
 
   function handleConnectRepo(): void {
@@ -254,12 +241,10 @@ export default function DeploymentsPage(): JSX.Element {
       void refetch();
     },
     commit: ({ id }) =>
-      trpc.deployments.cancel
-        .mutate({ deploymentId: id })
-        .finally(() => {
-          cancelMap.delete(id);
-          void refetch();
-        }),
+      trpc.deployments.cancel.mutate({ deploymentId: id }).finally(() => {
+        cancelMap.delete(id);
+        void refetch();
+      }),
     undoable: 30_000,
     message: ({ name }) => `Cancelling deployment for ${name}`,
     errorMessage: ({ name }) => `Failed to cancel deployment for ${name}`,
@@ -291,83 +276,65 @@ export default function DeploymentsPage(): JSX.Element {
         description="Git-push-to-deploy pipeline. Edge-native builds, streamed logs, instant rollback."
         path="/deployments"
       />
-      <Box
+      <div
         class="min-h-screen"
         style={{ background: "var(--color-bg)", color: "var(--color-text)" }}
       >
-        <Container size="full" padding="md" class="max-w-6xl py-12">
+        <div class="mx-auto max-w-6xl px-6 py-12">
           {/* Header */}
-          <Stack direction="vertical" gap="lg" class="mb-10 md:flex-row md:items-start md:justify-between">
-            <Box class="max-w-2xl">
-              <Box
+          <div class="mb-10 flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
+            <div class="max-w-2xl">
+              <div
                 class="mb-3 inline-flex items-center gap-2 rounded-full px-3 py-1"
                 style={{
                   border: "1px solid var(--color-border)",
                   background: "var(--color-bg-elevated)",
                 }}
               >
-                <Box
+                <span
                   class="h-1.5 w-1.5 rounded-full"
                   style={{
                     background: "var(--color-success)",
                     "box-shadow": "0 0 8px rgba(74,222,128,0.6)",
                   }}
                 />
-                <Text
-                  as="span"
-                  variant="caption"
+                <span
                   class="text-[10px] font-semibold uppercase tracking-widest"
                   style={{ color: "var(--color-text-muted)" }}
                 >
                   BLK-009 · deploy pipeline
-                </Text>
-              </Box>
-              <Text
-                variant="h1"
-                class="text-4xl font-bold tracking-tight"
-                style={{ color: "var(--color-text)" }}
-              >
+                </span>
+              </div>
+              <h1 class="text-4xl font-bold tracking-tight" style={{ color: "var(--color-text)" }}>
                 Deployments
-              </Text>
-              <Text
-                variant="body"
-                class="mt-3 text-base"
-                style={{ color: "var(--color-text-muted)" }}
-              >
-                Every push is built in an isolated edge container, streamed to
-                your browser as it runs, and published to the Cloudflare edge
-                the moment the build succeeds.
-              </Text>
-            </Box>
+              </h1>
+              <p class="mt-3 text-base" style={{ color: "var(--color-text-muted)" }}>
+                Every push is built in an isolated edge container, streamed to your browser as it
+                runs, and published to the Cloudflare edge the moment the build succeeds.
+              </p>
+            </div>
 
-            <Stack direction="horizontal" gap="sm" class="flex-shrink-0">
+            <div class="flex flex-shrink-0 gap-2">
               <Show when={!repoConnected()}>
                 <Button variant="primary" size="lg" onClick={handleConnectRepo}>
                   Connect GitHub repo
                 </Button>
               </Show>
               <Show when={repoConnected()}>
-                <Button
-                  variant="outline"
-                  size="md"
-                  onClick={handleConnectRepo}
-                >
+                <Button variant="outline" size="md" onClick={handleConnectRepo}>
                   Connect another repo
                 </Button>
               </Show>
-            </Stack>
-          </Stack>
+            </div>
+          </div>
 
           {/* Stats row */}
           <Show when={repoConnected() && totalDeployments() > 0}>
-            <Box class="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
-              <StatTile
-                label="Total deployments"
-                value={totalDeployments().toString()}
-              />
+            <div class="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <StatTile label="Total deployments" value={totalDeployments().toString()} />
               <StatTile label="Live now" value={liveCount().toString()} />
               <StatTile label="In progress" value={activeCount().toString()} />
-            </Box>
+            </div>
           </Show>
 
           {/* Filter chips */}
@@ -386,10 +353,7 @@ export default function DeploymentsPage(): JSX.Element {
           </Show>
 
           {/* Main content */}
-          <Show
-            when={repoConnected()}
-            fallback={<EmptyState onConnect={handleConnectRepo} />}
-          >
+          <Show when={repoConnected()} fallback={<EmptyState onConnect={handleConnectRepo} />}>
             <Show
               when={filtered().length > 0}
               fallback={<NoMatchingDeployments filter={filter()} />}
@@ -399,16 +363,10 @@ export default function DeploymentsPage(): JSX.Element {
                   {(group) => (
                     <section>
                       <div class="mb-4 flex items-baseline justify-between">
-                        <h2
-                          class="text-lg font-semibold"
-                          style={{ color: "var(--color-text)" }}
-                        >
+                        <h2 class="text-lg font-semibold" style={{ color: "var(--color-text)" }}>
                           {group.name}
                         </h2>
-                        <span
-                          class="text-xs"
-                          style={{ color: "var(--color-text-faint)" }}
-                        >
+                        <span class="text-xs" style={{ color: "var(--color-text-faint)" }}>
                           {group.deployments.length} deployment
                           {group.deployments.length === 1 ? "" : "s"}
                         </span>
@@ -443,9 +401,7 @@ export default function DeploymentsPage(): JSX.Element {
             }}
           >
             <div class="flex flex-wrap items-center justify-between gap-3">
-              <span>
-                Need to manage secrets, preview environments, or custom domains?
-              </span>
+              <span>Need to manage secrets, preview environments, or custom domains?</span>
               <div class="flex gap-2">
                 <A
                   href="/settings"
@@ -470,8 +426,8 @@ export default function DeploymentsPage(): JSX.Element {
               </div>
             </div>
           </div>
-        </Container>
-      </Box>
+        </div>
+      </div>
     </>
   );
 }
@@ -498,10 +454,7 @@ function StatTile(props: StatTileProps): JSX.Element {
       >
         {props.label}
       </span>
-      <div
-        class="mt-1 text-2xl font-bold tracking-tight"
-        style={{ color: "var(--color-text)" }}
-      >
+      <div class="mt-1 text-2xl font-bold tracking-tight" style={{ color: "var(--color-text)" }}>
         {props.value}
       </div>
     </div>
@@ -521,15 +474,9 @@ function FilterChip(props: FilterChipProps): JSX.Element {
       class="rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors"
       onClick={props.onActivate}
       style={{
-        background: props.active
-          ? "var(--color-primary-light)"
-          : "var(--color-bg-elevated)",
-        color: props.active
-          ? "var(--color-primary-text)"
-          : "var(--color-text-muted)",
-        border: `1px solid ${
-          props.active ? "var(--color-primary)" : "var(--color-border)"
-        }`,
+        background: props.active ? "var(--color-primary-light)" : "var(--color-bg-elevated)",
+        color: props.active ? "var(--color-primary-text)" : "var(--color-text-muted)",
+        border: `1px solid ${props.active ? "var(--color-primary)" : "var(--color-border)"}`,
       }}
       aria-pressed={props.active}
     >
@@ -561,18 +508,12 @@ function EmptyState(props: EmptyStateProps): JSX.Element {
       >
         <span class="text-2xl">▲</span>
       </div>
-      <h2
-        class="mt-5 text-xl font-semibold"
-        style={{ color: "var(--color-text)" }}
-      >
+      <h2 class="mt-5 text-xl font-semibold" style={{ color: "var(--color-text)" }}>
         No deployments yet
       </h2>
-      <p
-        class="mx-auto mt-2 max-w-md text-sm"
-        style={{ color: "var(--color-text-muted)" }}
-      >
-        Connect a repo to start deploying. Every push to a configured branch
-        triggers a fresh edge build with streamed logs.
+      <p class="mx-auto mt-2 max-w-md text-sm" style={{ color: "var(--color-text-muted)" }}>
+        Connect a repo to start deploying. Every push to a configured branch triggers a fresh edge
+        build with streamed logs.
       </p>
       <div class="mt-6 flex justify-center">
         <Button variant="primary" size="lg" onClick={props.onConnect}>
@@ -587,9 +528,7 @@ interface NoMatchingDeploymentsProps {
   readonly filter: StatusFilter;
 }
 
-function NoMatchingDeployments(
-  props: NoMatchingDeploymentsProps,
-): JSX.Element {
+function NoMatchingDeployments(props: NoMatchingDeploymentsProps): JSX.Element {
   return (
     <div
       class="rounded-2xl p-8 text-center"

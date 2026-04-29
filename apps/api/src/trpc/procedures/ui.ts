@@ -22,11 +22,11 @@
 // is configured, falling back to the deterministic composer when
 // not. Same contract, same return shape — wired in a future session.
 
-import { z } from "zod";
+import { uiComponents } from "@back-to-the-future/db";
 import { TRPCError } from "@trpc/server";
 import { and, eq } from "drizzle-orm";
-import { router, protectedProcedure } from "../init";
-import { uiComponents } from "@back-to-the-future/db";
+import { z } from "zod";
+import { protectedProcedure, router } from "../init";
 
 // ── Schemas ───────────────────────────────────────────────────
 
@@ -39,23 +39,9 @@ const ComponentNameSchema = z
     "Component name must start with a letter and contain only letters, numbers, underscores, or hyphens.",
   );
 
-const CategorySchema = z.enum([
-  "layout",
-  "input",
-  "display",
-  "navigation",
-  "feedback",
-  "media",
-]);
+const CategorySchema = z.enum(["layout", "input", "display", "navigation", "feedback", "media"]);
 
-const PropTypeSchema = z.enum([
-  "string",
-  "number",
-  "boolean",
-  "object",
-  "array",
-  "enum",
-]);
+const PropTypeSchema = z.enum(["string", "number", "boolean", "object", "array", "enum"]);
 
 const PropDescriptorSchema = z.object({
   name: z.string().min(1).max(64),
@@ -118,7 +104,7 @@ const ValidateInputSchema = z.object({ tree: ComponentTreeNodeSchema });
 // ── Helpers ───────────────────────────────────────────────────
 
 function newComponentId(): string {
-  return `uic_${Date.now().toString(36)}_${crypto.randomUUID().replace(/-/g, '').slice(0, 8)}`;
+  return `uic_${Date.now().toString(36)}_${crypto.randomUUID().replace(/-/g, "").slice(0, 8)}`;
 }
 
 function parseDescriptor(raw: string): ComponentDescriptor {
@@ -135,11 +121,7 @@ function parseDescriptor(raw: string): ComponentDescriptor {
 
 export interface ValidationIssue {
   readonly path: string;
-  readonly code:
-    | "unknown_component"
-    | "missing_required_prop"
-    | "unknown_prop"
-    | "wrong_prop_type";
+  readonly code: "unknown_component" | "missing_required_prop" | "unknown_prop" | "wrong_prop_type";
   readonly message: string;
 }
 
@@ -228,9 +210,7 @@ interface CatalogRow {
   readonly descriptor: ComponentDescriptor;
 }
 
-function buildCatalogMap(
-  rows: readonly CatalogRow[],
-): Map<string, ComponentDescriptor> {
+function buildCatalogMap(rows: readonly CatalogRow[]): Map<string, ComponentDescriptor> {
   const map = new Map<string, ComponentDescriptor>();
   for (const row of rows) {
     map.set(row.name, row.descriptor);
@@ -286,106 +266,92 @@ export const uiRouter = router({
    * always parse it through ComponentDescriptorSchema to absorb
    * drift.
    */
-  register: protectedProcedure
-    .input(RegisterInputSchema)
-    .mutation(async ({ ctx, input }) => {
-      const existing = await ctx.db
-        .select()
-        .from(uiComponents)
-        .where(eq(uiComponents.name, input.name))
-        .limit(1);
-      if (existing[0]) {
-        return existing[0];
-      }
+  register: protectedProcedure.input(RegisterInputSchema).mutation(async ({ ctx, input }) => {
+    const existing = await ctx.db
+      .select()
+      .from(uiComponents)
+      .where(eq(uiComponents.name, input.name))
+      .limit(1);
+    if (existing[0]) {
+      return existing[0];
+    }
 
-      const id = newComponentId();
-      const now = new Date();
-      await ctx.db.insert(uiComponents).values({
-        id,
-        name: input.name,
-        category: input.category,
-        description: input.description,
-        descriptorJson: JSON.stringify(input.descriptor),
-        registeredBy: ctx.userId,
-        isActive: true,
-        createdAt: now,
-        updatedAt: now,
+    const id = newComponentId();
+    const now = new Date();
+    await ctx.db.insert(uiComponents).values({
+      id,
+      name: input.name,
+      category: input.category,
+      description: input.description,
+      descriptorJson: JSON.stringify(input.descriptor),
+      registeredBy: ctx.userId,
+      isActive: true,
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    const inserted = await ctx.db
+      .select()
+      .from(uiComponents)
+      .where(eq(uiComponents.id, id))
+      .limit(1);
+    const row = inserted[0];
+    if (!row) {
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to read back inserted component.",
       });
-
-      const inserted = await ctx.db
-        .select()
-        .from(uiComponents)
-        .where(eq(uiComponents.id, id))
-        .limit(1);
-      const row = inserted[0];
-      if (!row) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to read back inserted component.",
-        });
-      }
-      return row;
-    }),
+    }
+    return row;
+  }),
 
   /**
    * List every component in the catalog. Optionally filter by
    * category. Inactive components are excluded by default.
    */
-  list: protectedProcedure
-    .input(ListInputSchema.optional())
-    .query(async ({ ctx, input }) => {
-      const category = input?.category;
-      const includeInactive = input?.includeInactive ?? false;
+  list: protectedProcedure.input(ListInputSchema.optional()).query(async ({ ctx, input }) => {
+    const category = input?.category;
+    const includeInactive = input?.includeInactive ?? false;
 
-      const whereClauses = [];
-      if (!includeInactive) {
-        whereClauses.push(eq(uiComponents.isActive, true));
-      }
-      if (category !== undefined) {
-        whereClauses.push(eq(uiComponents.category, category));
-      }
+    const whereClauses = [];
+    if (!includeInactive) {
+      whereClauses.push(eq(uiComponents.isActive, true));
+    }
+    if (category !== undefined) {
+      whereClauses.push(eq(uiComponents.category, category));
+    }
 
-      if (whereClauses.length === 0) {
-        return ctx.db.select().from(uiComponents);
-      }
-      if (whereClauses.length === 1) {
-        return ctx.db
-          .select()
-          .from(uiComponents)
-          .where(whereClauses[0]);
-      }
-      return ctx.db
-        .select()
-        .from(uiComponents)
-        .where(and(...whereClauses));
-    }),
+    if (whereClauses.length === 0) {
+      return ctx.db.select().from(uiComponents);
+    }
+    if (whereClauses.length === 1) {
+      return ctx.db.select().from(uiComponents).where(whereClauses[0]);
+    }
+    return ctx.db
+      .select()
+      .from(uiComponents)
+      .where(and(...whereClauses));
+  }),
 
   /**
    * Fetch a single component by name. Throws NOT_FOUND if the
    * component is missing OR has been deregistered (isActive=false).
    */
-  getByName: protectedProcedure
-    .input(GetByNameInputSchema)
-    .query(async ({ ctx, input }) => {
-      const rows = await ctx.db
-        .select()
-        .from(uiComponents)
-        .where(
-          and(
-            eq(uiComponents.name, input.name),
-            eq(uiComponents.isActive, true),
-          ),
-        )
-        .limit(1);
-      const row = rows[0];
-      if (!row) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: `Component "${input.name}" is not registered.`,
-        });
-      }
-      return row;
-    }),
+  getByName: protectedProcedure.input(GetByNameInputSchema).query(async ({ ctx, input }) => {
+    const rows = await ctx.db
+      .select()
+      .from(uiComponents)
+      .where(and(eq(uiComponents.name, input.name), eq(uiComponents.isActive, true)))
+      .limit(1);
+    const row = rows[0];
+    if (!row) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: `Component "${input.name}" is not registered.`,
+      });
+    }
+    return row;
+  }),
 
   /**
    * Soft-delete a component. The row stays in the DB (for audit) but
@@ -395,27 +361,25 @@ export const uiRouter = router({
    * old row is active. For v0 the deregister is truly terminal; v1
    * may add a `reregister` procedure if product flows need it.
    */
-  deregister: protectedProcedure
-    .input(DeregisterInputSchema)
-    .mutation(async ({ ctx, input }) => {
-      const rows = await ctx.db
-        .select()
-        .from(uiComponents)
-        .where(eq(uiComponents.name, input.name))
-        .limit(1);
-      const row = rows[0];
-      if (!row) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: `Component "${input.name}" is not registered.`,
-        });
-      }
-      await ctx.db
-        .update(uiComponents)
-        .set({ isActive: false, updatedAt: new Date() })
-        .where(eq(uiComponents.id, row.id));
-      return { ok: true as const, name: input.name };
-    }),
+  deregister: protectedProcedure.input(DeregisterInputSchema).mutation(async ({ ctx, input }) => {
+    const rows = await ctx.db
+      .select()
+      .from(uiComponents)
+      .where(eq(uiComponents.name, input.name))
+      .limit(1);
+    const row = rows[0];
+    if (!row) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: `Component "${input.name}" is not registered.`,
+      });
+    }
+    await ctx.db
+      .update(uiComponents)
+      .set({ isActive: false, updatedAt: new Date() })
+      .where(eq(uiComponents.id, row.id));
+    return { ok: true as const, name: input.name };
+  }),
 
   /**
    * Validate a component tree against the catalog. Walks every node,
@@ -428,28 +392,23 @@ export const uiRouter = router({
    * trees before rendering them. AI-generated trees MUST pass
    * validate() before hitting any rendering pipeline.
    */
-  validate: protectedProcedure
-    .input(ValidateInputSchema)
-    .query(async ({ ctx, input }) => {
-      const rows = await ctx.db
-        .select()
-        .from(uiComponents)
-        .where(eq(uiComponents.isActive, true));
-      const catalog = buildCatalogMap(
-        rows.map((r) => ({
-          name: r.name,
-          category: r.category as z.infer<typeof CategorySchema>,
-          descriptor: parseDescriptor(r.descriptorJson),
-        })),
-      );
+  validate: protectedProcedure.input(ValidateInputSchema).query(async ({ ctx, input }) => {
+    const rows = await ctx.db.select().from(uiComponents).where(eq(uiComponents.isActive, true));
+    const catalog = buildCatalogMap(
+      rows.map((r) => ({
+        name: r.name,
+        category: r.category as z.infer<typeof CategorySchema>,
+        descriptor: parseDescriptor(r.descriptorJson),
+      })),
+    );
 
-      const issues: ValidationIssue[] = [];
-      validateNode(input.tree, catalog, "$", issues);
-      return {
-        valid: issues.length === 0,
-        issues,
-      };
-    }),
+    const issues: ValidationIssue[] = [];
+    validateNode(input.tree, catalog, "$", issues);
+    return {
+      valid: issues.length === 0,
+      issues,
+    };
+  }),
 
   /**
    * Compose a component tree from an intent string. v0 is
@@ -465,63 +424,59 @@ export const uiRouter = router({
    * so Zoobicon can plug into compose() right now without waiting
    * for the AI path.
    */
-  compose: protectedProcedure
-    .input(ComposeInputSchema)
-    .mutation(async ({ ctx, input }) => {
-      const whereClauses = [eq(uiComponents.isActive, true)];
-      if (input.category !== undefined) {
-        whereClauses.push(eq(uiComponents.category, input.category));
-      }
-      const rows = await ctx.db
-        .select()
-        .from(uiComponents)
-        .where(and(...whereClauses));
+  compose: protectedProcedure.input(ComposeInputSchema).mutation(async ({ ctx, input }) => {
+    const whereClauses = [eq(uiComponents.isActive, true)];
+    if (input.category !== undefined) {
+      whereClauses.push(eq(uiComponents.category, input.category));
+    }
+    const rows = await ctx.db
+      .select()
+      .from(uiComponents)
+      .where(and(...whereClauses));
 
-      if (rows.length === 0) {
-        throw new TRPCError({
-          code: "PRECONDITION_FAILED",
-          message:
-            "Cannot compose: catalog is empty. Register components with ui.register before calling compose.",
-        });
-      }
+    if (rows.length === 0) {
+      throw new TRPCError({
+        code: "PRECONDITION_FAILED",
+        message:
+          "Cannot compose: catalog is empty. Register components with ui.register before calling compose.",
+      });
+    }
 
-      const limit = input.maxComponents ?? 6;
-      const picked = rows.slice(0, limit).map((r) => ({
-        name: r.name,
-        descriptor: parseDescriptor(r.descriptorJson),
+    const limit = input.maxComponents ?? 6;
+    const picked = rows.slice(0, limit).map((r) => ({
+      name: r.name,
+      descriptor: parseDescriptor(r.descriptorJson),
+    }));
+
+    // Prefer a registered "Stack" layout component as the root. If
+    // none exists, emit a synthetic "Root" node — the validator will
+    // flag it as unknown_component, which is the correct signal to
+    // register one.
+    const stackRow = rows.find((r) => r.name === "Stack" && r.category === "layout");
+
+    const children: ComponentTreeNode[] = picked
+      .filter((p) => !(stackRow && p.name === "Stack"))
+      .map((p) => ({
+        component: p.name,
+        props: defaultPropsFor(p.descriptor),
       }));
 
-      // Prefer a registered "Stack" layout component as the root. If
-      // none exists, emit a synthetic "Root" node — the validator will
-      // flag it as unknown_component, which is the correct signal to
-      // register one.
-      const stackRow = rows.find(
-        (r) => r.name === "Stack" && r.category === "layout",
-      );
+    const tree: ComponentTreeNode = stackRow
+      ? {
+          component: "Stack",
+          props: defaultPropsFor(parseDescriptor(stackRow.descriptorJson)),
+          children,
+        }
+      : {
+          component: "Root",
+          children,
+        };
 
-      const children: ComponentTreeNode[] = picked
-        .filter((p) => !(stackRow && p.name === "Stack"))
-        .map((p) => ({
-          component: p.name,
-          props: defaultPropsFor(p.descriptor),
-        }));
-
-      const tree: ComponentTreeNode = stackRow
-        ? {
-            component: "Stack",
-            props: defaultPropsFor(parseDescriptor(stackRow.descriptorJson)),
-            children,
-          }
-        : {
-            component: "Root",
-            children,
-          };
-
-      return {
-        tree,
-        intent: input.intent,
-        componentCount: children.length + (stackRow ? 1 : 0),
-        method: "deterministic" as const,
-      };
-    }),
+    return {
+      tree,
+      intent: input.intent,
+      componentCount: children.length + (stackRow ? 1 : 0),
+      method: "deterministic" as const,
+    };
+  }),
 });

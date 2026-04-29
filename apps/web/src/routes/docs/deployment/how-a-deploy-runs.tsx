@@ -10,12 +10,7 @@
 
 import type { JSX } from "solid-js";
 import { SEOHead } from "../../../components/SEOHead";
-import {
-  DocsArticle,
-  Steps,
-  Callout,
-  KeyList,
-} from "../../../components/docs/DocsArticle";
+import { Callout, DocsArticle, KeyList, Steps } from "../../../components/docs/DocsArticle";
 
 export default function HowADeployRunsArticle(): JSX.Element {
   return (
@@ -40,17 +35,14 @@ export default function HowADeployRunsArticle(): JSX.Element {
         }}
       >
         <p>
-          A Crontech deploy is not a magic black box. The pipeline has
-          seven numbered stages, each of which writes a structured log
-          line as it starts. If you are ever looking at a stuck
-          deployment, the log stream on the deployments page tells you
-          exactly which stage the system is on.
+          A Crontech deploy is not a magic black box. The pipeline has seven numbered stages, each
+          of which writes a structured log line as it starts. If you are ever looking at a stuck
+          deployment, the log stream on the deployments page tells you exactly which stage the
+          system is on.
         </p>
 
         <h2>Stage 1 — Trigger</h2>
-        <p>
-          A deploy starts one of three ways:
-        </p>
+        <p>A deploy starts one of three ways:</p>
 
         <KeyList
           items={[
@@ -73,76 +65,60 @@ export default function HowADeployRunsArticle(): JSX.Element {
         />
 
         <p>
-          Whichever trigger fired, the result is the same: a row in the{" "}
-          <code>deployments</code> table with a fresh UUID, a commit
-          SHA, a branch name, and a status of <code>queued</code>. The
-          deployment id is then handed to the build runner's in-process
-          queue.
+          Whichever trigger fired, the result is the same: a row in the <code>deployments</code>{" "}
+          table with a fresh UUID, a commit SHA, a branch name, and a status of <code>queued</code>.
+          The deployment id is then handed to the build runner's in-process queue.
         </p>
 
         <Callout tone="note">
-          The queue drains serially on a single worker today. A second
-          deploy for the same project waits behind the first. If the
-          same deployment id is somehow enqueued twice, an in-memory
-          concurrency guard rejects the duplicate before any work
-          starts.
+          The queue drains serially on a single worker today. A second deploy for the same project
+          waits behind the first. If the same deployment id is somehow enqueued twice, an in-memory
+          concurrency guard rejects the duplicate before any work starts.
         </Callout>
 
         <h2>Stage 2 — Workspace preparation</h2>
         <p>
-          The runner starts by transitioning the deployment to{" "}
-          <code>building</code>, stamping <code>startedAt</code>, and
-          writing a{" "}
-          <code>[build-runner] starting build</code> event log. Then it
-          prepares an isolated workspace.
+          The runner starts by transitioning the deployment to <code>building</code>, stamping{" "}
+          <code>startedAt</code>, and writing a <code>[build-runner] starting build</code> event
+          log. Then it prepares an isolated workspace.
         </p>
 
         <Steps>
           <li>
-            The path <code>/tmp/crontech-build/&lt;deploymentId&gt;</code>{" "}
-            is wiped (in case a previous interrupted build left
-            remnants) and re-created empty.
+            The path <code>/tmp/crontech-build/&lt;deploymentId&gt;</code> is wiped (in case a
+            previous interrupted build left remnants) and re-created empty.
           </li>
           <li>
-            The deployment id is validated against a strict allow-list
-            before it touches the filesystem. A malformed id (anything
-            outside <code>[a-zA-Z0-9_.-]</code>, or longer than 64
-            chars) is rejected before any path resolution runs.
+            The deployment id is validated against a strict allow-list before it touches the
+            filesystem. A malformed id (anything outside <code>[a-zA-Z0-9_.-]</code>, or longer than
+            64 chars) is rejected before any path resolution runs.
           </li>
           <li>
-            The resolved workspace path is verified to live inside the
-            sandbox root. This defends against{" "}
-            <code>../</code> path-injection attempts from upstream.
+            The resolved workspace path is verified to live inside the sandbox root. This defends
+            against <code>../</code> path-injection attempts from upstream.
           </li>
         </Steps>
 
         <h2>Stage 3 — Shallow git clone</h2>
         <p>
-          The runner runs{" "}
-          <code>git clone --depth 1 --branch &lt;branch&gt;</code>{" "}
-          directly on the host into the workspace directory. This is
-          the one and only stage where code from your repository is
-          fetched without the sandbox — git clone over TLS does not
-          execute customer code, so it's safe to run on the host, and
-          running it outside the sandbox lets the next stages mount the
-          cloned tree cleanly.
+          The runner runs <code>git clone --depth 1 --branch &lt;branch&gt;</code> directly on the
+          host into the workspace directory. This is the one and only stage where code from your
+          repository is fetched without the sandbox — git clone over TLS does not execute customer
+          code, so it's safe to run on the host, and running it outside the sandbox lets the next
+          stages mount the cloned tree cleanly.
         </p>
 
         <Callout tone="info">
-          <code>--depth 1</code> keeps the clone cheap even for repos
-          with long histories. If your build genuinely needs the full
-          history (for example, a build-time version stamp derived from{" "}
-          <code>git describe</code>), open an issue — we are tracking
-          a per-project override.
+          <code>--depth 1</code> keeps the clone cheap even for repos with long histories. If your
+          build genuinely needs the full history (for example, a build-time version stamp derived
+          from <code>git describe</code>), open an issue — we are tracking a per-project override.
         </Callout>
 
         <h2>Stage 4 — Sandboxed install</h2>
         <p>
-          This is the stage where your code first has a chance to
-          execute (npm postinstall scripts, native module build steps,
-          the usual). The runner never executes any of it on the host.{" "}
-          <code>bun install --frozen-lockfile</code> runs inside a
-          locked-down Docker container:
+          This is the stage where your code first has a chance to execute (npm postinstall scripts,
+          native module build steps, the usual). The runner never executes any of it on the host.{" "}
+          <code>bun install --frozen-lockfile</code> runs inside a locked-down Docker container:
         </p>
 
         <KeyList
@@ -176,95 +152,80 @@ export default function HowADeployRunsArticle(): JSX.Element {
         />
 
         <p>
-          Every stdout and stderr line from inside the container is
-          captured, scrubbed for secret-shaped patterns, and written
-          into <code>deployment_logs</code> as it arrives. You see the
-          lines in the dashboard stream before the install finishes.
+          Every stdout and stderr line from inside the container is captured, scrubbed for
+          secret-shaped patterns, and written into <code>deployment_logs</code> as it arrives. You
+          see the lines in the dashboard stream before the install finishes.
         </p>
 
         <h2>Stage 5 — Sandboxed build</h2>
         <p>
           The build command runs inside the same sandbox profile with{" "}
-          <code>NODE_ENV=production</code> set. By default this is{" "}
-          <code>bun run build</code>; if your project defined a custom
-          build command in the deploy wizard, the runner splits it on
+          <code>NODE_ENV=production</code> set. By default this is <code>bun run build</code>; if
+          your project defined a custom build command in the deploy wizard, the runner splits it on
           whitespace and uses that instead.
         </p>
         <p>
-          The sandbox runner carries a wall-clock timeout equal to the
-          remaining budget from the 10-minute whole-deploy cap. If
-          either <code>bun install</code> or the build runs long, the
-          container is killed with <code>SIGKILL</code> and the deploy
-          fails with a clear "exceeded timeout" event log — it is
-          never left to drift.
+          The sandbox runner carries a wall-clock timeout equal to the remaining budget from the
+          10-minute whole-deploy cap. If either <code>bun install</code> or the build runs long, the
+          container is killed with <code>SIGKILL</code> and the deploy fails with a clear "exceeded
+          timeout" event log — it is never left to drift.
         </p>
 
         <Callout tone="warn">
-          The sandbox requires Docker on the build host. The
-          orchestrator box ships with it pre-installed; if you ever
-          self-host the runner elsewhere, the runner will fail loudly
-          on the first sandboxed step rather than silently falling
-          back to host execution.
+          The sandbox requires Docker on the build host. The orchestrator box ships with it
+          pre-installed; if you ever self-host the runner elsewhere, the runner will fail loudly on
+          the first sandboxed step rather than silently falling back to host execution.
         </Callout>
 
         <h2>Stage 6 — Orchestrator hand-off</h2>
         <p>
-          A successful build transitions the deployment to{" "}
-          <code>deploying</code> and hands off to the orchestrator via
-          an HTTP call. The orchestrator takes the built artefact,
-          publishes it to Cloudflare Workers using Wrangler, runs a
-          health check, and returns the container id and health status.
+          A successful build transitions the deployment to <code>deploying</code> and hands off to
+          the orchestrator via an HTTP call. The orchestrator takes the built artefact, publishes it
+          to Cloudflare Workers using Wrangler, runs a health check, and returns the container id
+          and health status.
         </p>
         <p>
           In the same stage, the runner upserts the DNS A record for{" "}
-          <code>&lt;slug&gt;.crontech.ai</code>. DNS is a best-effort
-          step — if the upsert fails, the deploy still succeeds (the
-          platform's wildcard record already covers the default case),
-          and the failure is captured as an event log so operators can
-          follow up.
+          <code>&lt;slug&gt;.crontech.ai</code>. DNS is a best-effort step — if the upsert fails,
+          the deploy still succeeds (the platform's wildcard record already covers the default
+          case), and the failure is captured as an event log so operators can follow up.
         </p>
 
         <h2>Stage 7 — Finalisation</h2>
         <p>
-          Once the orchestrator reports healthy, the runner does the
-          clean-up pass in one transaction:
+          Once the orchestrator reports healthy, the runner does the clean-up pass in one
+          transaction:
         </p>
 
         <Steps>
           <li>
-            Every previous live deployment for the project is flipped
-            to <code>isCurrent: false</code> (in a single update
-            statement, before the new row is marked current — otherwise
-            the filter would match the row we just wrote).
+            Every previous live deployment for the project is flipped to{" "}
+            <code>isCurrent: false</code> (in a single update statement, before the new row is
+            marked current — otherwise the filter would match the row we just wrote).
           </li>
           <li>
-            The new deployment is transitioned to <code>live</code>,
-            with <code>deployUrl</code>, <code>buildDuration</code>,
-            total <code>duration</code>, <code>completedAt</code>, and{" "}
+            The new deployment is transitioned to <code>live</code>, with <code>deployUrl</code>,{" "}
+            <code>buildDuration</code>, total <code>duration</code>, <code>completedAt</code>, and{" "}
             <code>isCurrent: true</code> all set.
           </li>
           <li>
-            A row is written into <code>build_minutes_usage</code> for
-            metered billing. This is best-effort — a failure here never
-            marks the deploy failed; the usage reporter reconciles
-            later.
+            A row is written into <code>build_minutes_usage</code> for metered billing. This is
+            best-effort — a failure here never marks the deploy failed; the usage reporter
+            reconciles later.
           </li>
           <li>
-            A final event log is written:{" "}
-            <code>[build-runner] deployment live at &lt;url&gt;</code>.
+            A final event log is written: <code>[build-runner] deployment live at &lt;url&gt;</code>
+            .
           </li>
         </Steps>
 
         <h2>What failure looks like</h2>
         <p>
-          Every stage can fail. When one does, the runner catches the
-          error, writes a{" "}
-          <code>[build-runner] FAILED: &lt;message&gt;</code> event
-          log, transitions the deployment to <code>failed</code>,
-          records the error message on the row, and runs the workspace
-          cleanup. The failing stage's last stdout/stderr lines are
-          still in the log stream, so you can diagnose without
-          re-running.
+          Every stage can fail. When one does, the runner catches the error, writes a{" "}
+          <code>[build-runner] FAILED: &lt;message&gt;</code> event log, transitions the deployment
+          to <code>failed</code>, records the error message on the row, and runs the workspace
+          cleanup. The failing stage's last stdout/stderr lines are still in the log stream, so you
+          can diagnose without re-running.
         </p>
 
         <KeyList
@@ -321,14 +282,10 @@ export default function HowADeployRunsArticle(): JSX.Element {
 
         <h2>You know the pipeline.</h2>
         <p>
-          The next two articles in this category cover the two levers
-          you'll reach for most often: environment variables and
-          custom domains. After that, the{" "}
-          <a href="/docs/getting-started/connect-github">
-            Connect GitHub
-          </a>{" "}
-          article is still your reference for the repository side of
-          the wiring.
+          The next two articles in this category cover the two levers you'll reach for most often:
+          environment variables and custom domains. After that, the{" "}
+          <a href="/docs/getting-started/connect-github">Connect GitHub</a> article is still your
+          reference for the repository side of the wiring.
         </p>
       </DocsArticle>
     </>

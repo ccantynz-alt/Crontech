@@ -34,13 +34,13 @@
 // ── Polite tone ──────────────────────────────────────────────────────
 // No competitor names anywhere in user-facing messages.
 
-import { z } from "zod";
-import { TRPCError } from "@trpc/server";
-import { getTableName, is, sql as drizzleSql } from "drizzle-orm";
-import { SQLiteTable } from "drizzle-orm/sqlite-core";
-import { router, adminProcedure } from "../init";
 import * as dbExports from "@back-to-the-future/db";
 import { createNeonClient } from "@back-to-the-future/db";
+import { TRPCError } from "@trpc/server";
+import { sql as drizzleSql, getTableName, is } from "drizzle-orm";
+import { SQLiteTable } from "drizzle-orm/sqlite-core";
+import { z } from "zod";
+import { adminProcedure, router } from "../init";
 
 // ── Allow-list built once from the Drizzle schema ───────────────────
 
@@ -164,7 +164,7 @@ function requireTursoTable(name: string): TursoTableEntry {
 }
 
 function neonAvailable(): boolean {
-  return Boolean(process.env["NEON_DATABASE_URL"]);
+  return Boolean(process.env.NEON_DATABASE_URL);
 }
 
 async function listNeonTableNames(): Promise<string[]> {
@@ -185,9 +185,9 @@ async function neonRowCount(table: string): Promise<number> {
   const { sql } = createNeonClient();
   // Safe: identifier has been regex-validated AND is the value already
   // returned from information_schema (round-tripped allow-list).
-  const rows = (await sql.query(
-    `SELECT COUNT(*)::bigint AS c FROM "${table}"`,
-  )) as Array<{ c: string | number }>;
+  const rows = (await sql.query(`SELECT COUNT(*)::bigint AS c FROM "${table}"`)) as Array<{
+    c: string | number;
+  }>;
   const first = rows[0];
   if (!first) return 0;
   return Number(first.c);
@@ -206,56 +206,54 @@ function warnMasked(db: "turso" | "neon", table: string, masked: string[]): void
 
 export const dbInspectorRouter = router({
   /** List every Turso table + every Neon table with row counts. */
-  listTables: adminProcedure
-    .output(ListTablesOutputSchema)
-    .query(async ({ ctx }) => {
-      // Turso: count every known table via the typed Drizzle pipeline.
-      const tursoSummaries: Array<{ name: string; rowCount: number }> = [];
-      for (const entry of TURSO_TABLES.values()) {
-        try {
-          const rows = await ctx.db
-            .select({ c: drizzleSql<number>`count(*)` })
-            .from(entry.drizzleTable);
-          const first = rows[0];
-          tursoSummaries.push({
-            name: entry.name,
-            rowCount: Number(first?.c ?? 0),
-          });
-        } catch {
-          // A missing physical table (e.g. migration drift) should not
-          // kill the whole listing — surface a 0 row count so the UI
-          // still renders and the operator can investigate.
-          tursoSummaries.push({ name: entry.name, rowCount: 0 });
-        }
+  listTables: adminProcedure.output(ListTablesOutputSchema).query(async ({ ctx }) => {
+    // Turso: count every known table via the typed Drizzle pipeline.
+    const tursoSummaries: Array<{ name: string; rowCount: number }> = [];
+    for (const entry of TURSO_TABLES.values()) {
+      try {
+        const rows = await ctx.db
+          .select({ c: drizzleSql<number>`count(*)` })
+          .from(entry.drizzleTable);
+        const first = rows[0];
+        tursoSummaries.push({
+          name: entry.name,
+          rowCount: Number(first?.c ?? 0),
+        });
+      } catch {
+        // A missing physical table (e.g. migration drift) should not
+        // kill the whole listing — surface a 0 row count so the UI
+        // still renders and the operator can investigate.
+        tursoSummaries.push({ name: entry.name, rowCount: 0 });
       }
-      tursoSummaries.sort((a, b) => a.name.localeCompare(b.name));
+    }
+    tursoSummaries.sort((a, b) => a.name.localeCompare(b.name));
 
-      // Neon: only attempt when NEON_DATABASE_URL is present.
-      const neonSummaries: Array<{ name: string; rowCount: number }> = [];
-      const configured = neonAvailable();
-      if (configured) {
-        try {
-          const names = await listNeonTableNames();
-          for (const name of names) {
-            try {
-              const count = await neonRowCount(name);
-              neonSummaries.push({ name, rowCount: count });
-            } catch {
-              neonSummaries.push({ name, rowCount: 0 });
-            }
+    // Neon: only attempt when NEON_DATABASE_URL is present.
+    const neonSummaries: Array<{ name: string; rowCount: number }> = [];
+    const configured = neonAvailable();
+    if (configured) {
+      try {
+        const names = await listNeonTableNames();
+        for (const name of names) {
+          try {
+            const count = await neonRowCount(name);
+            neonSummaries.push({ name, rowCount: count });
+          } catch {
+            neonSummaries.push({ name, rowCount: 0 });
           }
-        } catch {
-          // Introspection itself failed — fall through with an empty
-          // list. The UI shows a polite empty state.
         }
+      } catch {
+        // Introspection itself failed — fall through with an empty
+        // list. The UI shows a polite empty state.
       }
+    }
 
-      return {
-        turso: tursoSummaries,
-        neon: neonSummaries,
-        neonConfigured: configured,
-      };
-    }),
+    return {
+      turso: tursoSummaries,
+      neon: neonSummaries,
+      neonConfigured: configured,
+    };
+  }),
 
   /** Describe one table — columns, types, and row count. */
   describeTable: adminProcedure
@@ -376,10 +374,7 @@ export const dbInspectorRouter = router({
     .query(async ({ ctx, input }) => {
       // Defence-in-depth clamp (Zod already caps these, but we belt-and-
       // brace in the body too — the safety doctrine calls for both).
-      const pageSize = Math.min(
-        Math.max(1, Math.floor(input.pageSize)),
-        MAX_PAGE_SIZE,
-      );
+      const pageSize = Math.min(Math.max(1, Math.floor(input.pageSize)), MAX_PAGE_SIZE);
       const page = Math.max(1, Math.floor(input.page));
       const offset = Math.min((page - 1) * pageSize, MAX_TOTAL_ROWS);
       const effectiveLimit = Math.min(pageSize, MAX_TOTAL_ROWS - offset);
@@ -450,10 +445,10 @@ export const dbInspectorRouter = router({
       // The identifier has been validated + round-tripped through the
       // information_schema allow-list above, so it is safe to quote and
       // interpolate. Values (limit/offset) go through parameterisation.
-      const rawRows = (await sql.query(
-        `SELECT * FROM "${input.table}" LIMIT $1 OFFSET $2`,
-        [effectiveLimit, offset],
-      )) as Array<Record<string, unknown>>;
+      const rawRows = (await sql.query(`SELECT * FROM "${input.table}" LIMIT $1 OFFSET $2`, [
+        effectiveLimit,
+        offset,
+      ])) as Array<Record<string, unknown>>;
 
       const secretKeys = new Set<string>();
       for (const row of rawRows) {

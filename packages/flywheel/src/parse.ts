@@ -32,7 +32,7 @@ function extractText(message: unknown): string {
   // is either a string or an array of { type: "text" | "tool_use" |
   // "tool_result", text?, name?, content? } parts.
   const m = message as Record<string, unknown>;
-  const content = m["content"];
+  const content = m.content;
 
   if (typeof content === "string") return content;
   if (Array.isArray(content)) {
@@ -44,12 +44,12 @@ function extractText(message: unknown): string {
       }
       if (part && typeof part === "object") {
         const p = part as Record<string, unknown>;
-        const text = p["text"];
+        const text = p.text;
         if (typeof text === "string") {
           parts.push(text);
           continue;
         }
-        const inner = p["content"];
+        const inner = p.content;
         if (typeof inner === "string") {
           parts.push(inner);
           continue;
@@ -57,7 +57,7 @@ function extractText(message: unknown): string {
         if (Array.isArray(inner)) {
           for (const seg of inner) {
             if (seg && typeof seg === "object") {
-              const segText = (seg as Record<string, unknown>)["text"];
+              const segText = (seg as Record<string, unknown>).text;
               if (typeof segText === "string") parts.push(segText);
             }
           }
@@ -72,13 +72,13 @@ function extractText(message: unknown): string {
 function extractToolName(message: unknown): string | null {
   if (!message || typeof message !== "object") return null;
   const m = message as Record<string, unknown>;
-  const content = m["content"];
+  const content = m.content;
   if (Array.isArray(content)) {
     for (const part of content) {
       if (part && typeof part === "object") {
         const p = part as Record<string, unknown>;
-        if (p["type"] === "tool_use" && typeof p["name"] === "string") {
-          return p["name"];
+        if (p.type === "tool_use" && typeof p.name === "string") {
+          return p.name;
         }
       }
     }
@@ -91,12 +91,12 @@ function classifyRole(raw: RawTurn): TurnRole | null {
   if (t === "user") {
     // Claude Code marks tool_result messages as user-role too; detect.
     const m = raw.message as Record<string, unknown> | undefined;
-    if (m && Array.isArray(m["content"])) {
-      const hasToolResult = (m["content"] as unknown[]).some(
+    if (m && Array.isArray(m.content)) {
+      const hasToolResult = (m.content as unknown[]).some(
         (p) =>
           p !== null &&
           typeof p === "object" &&
-          (p as Record<string, unknown>)["type"] === "tool_result",
+          (p as Record<string, unknown>).type === "tool_result",
       );
       if (hasToolResult) return "tool_result";
     }
@@ -104,12 +104,10 @@ function classifyRole(raw: RawTurn): TurnRole | null {
   }
   if (t === "assistant") {
     const m = raw.message as Record<string, unknown> | undefined;
-    if (m && Array.isArray(m["content"])) {
-      const hasToolUse = (m["content"] as unknown[]).some(
+    if (m && Array.isArray(m.content)) {
+      const hasToolUse = (m.content as unknown[]).some(
         (p) =>
-          p !== null &&
-          typeof p === "object" &&
-          (p as Record<string, unknown>)["type"] === "tool_use",
+          p !== null && typeof p === "object" && (p as Record<string, unknown>).type === "tool_use",
       );
       if (hasToolUse) return "tool_use";
     }

@@ -1,6 +1,6 @@
+import { Badge, Card, Separator, Stack, Text } from "@back-to-the-future/ui";
 import { For } from "solid-js";
 import type { JSX } from "solid-js";
-import { Stack, Text, Card, Badge, Separator } from "@back-to-the-future/ui";
 import { SEOHead } from "../../components/SEOHead";
 
 /* ------------------------------------------------------------------ */
@@ -248,17 +248,16 @@ export default function AIDisclosurePage(): JSX.Element {
               Our Commitment to AI Transparency
             </Text>
             <Text variant="body">
-              Crontech is an AI-native platform. AI is not a bolt-on feature — it
-              is woven into every layer of the architecture, from client-side
-              inference running on your GPU to edge-deployed intelligence to
-              cloud-scale processing. We believe that depth of integration demands
-              an equal depth of transparency.
+              Crontech is an AI-native platform. AI is not a bolt-on feature — it is woven into
+              every layer of the architecture, from client-side inference running on your GPU to
+              edge-deployed intelligence to cloud-scale processing. We believe that depth of
+              integration demands an equal depth of transparency.
             </Text>
             <Text variant="body">
-              This page explains exactly how AI operates within Crontech: what it
-              does, where it runs, what data it touches, what it does not do, and
-              how you stay in control. No vague language. No hand-waving. If you
-              have a question this page does not answer, contact us at{" "}
+              This page explains exactly how AI operates within Crontech: what it does, where it
+              runs, what data it touches, what it does not do, and how you stay in control. No vague
+              language. No hand-waving. If you have a question this page does not answer, contact us
+              at{" "}
               <Text variant="code" class="text-muted">
                 ai@crontech.dev
               </Text>{" "}
@@ -275,9 +274,8 @@ export default function AIDisclosurePage(): JSX.Element {
             How AI Powers Crontech
           </Text>
           <Text variant="body">
-            AI participates in the following areas of the platform. Each
-            capability is designed to augment your work — never to replace your
-            judgment or act without your awareness.
+            AI participates in the following areas of the platform. Each capability is designed to
+            augment your work — never to replace your judgment or act without your awareness.
           </Text>
           <Stack direction="vertical" gap="sm">
             <For each={aiCapabilities}>
@@ -285,7 +283,7 @@ export default function AIDisclosurePage(): JSX.Element {
                 <Card padding="md">
                   <Stack direction="vertical" gap="xs">
                     <Text variant="h4" weight="semibold">
-                      {cap.icon}{" "}{cap.title}
+                      {cap.icon} {cap.title}
                     </Text>
                     <Text variant="body">{cap.description}</Text>
                   </Stack>
@@ -303,26 +301,21 @@ export default function AIDisclosurePage(): JSX.Element {
             Three-Tier Compute Model
           </Text>
           <Text variant="body">
-            Crontech automatically routes AI workloads across three compute tiers
-            based on model size, device capability, and latency requirements. The
-            platform always selects the most private, most cost-effective tier
-            that can fulfill your request.
+            Crontech automatically routes AI workloads across three compute tiers based on model
+            size, device capability, and latency requirements. The platform always selects the most
+            private, most cost-effective tier that can fulfill your request.
           </Text>
           <Stack direction="vertical" gap="sm">
             <For each={computeTiers}>
               {(tier) => (
                 <Card
                   padding="lg"
-                  class={
-                    tier.highlight
-                      ? "border-2 border-green-500/40 bg-green-950/10"
-                      : ""
-                  }
+                  class={tier.highlight ? "border-2 border-green-500/40 bg-green-950/10" : ""}
                 >
                   <Stack direction="vertical" gap="sm">
                     <Stack direction="horizontal" gap="sm" align="center">
                       <Text variant="h3" weight="bold">
-                        {tier.icon}{" "}{tier.name}
+                        {tier.icon} {tier.name}
                       </Text>
                       <Badge variant={tier.badgeVariant} size="sm">
                         {tier.badge}
@@ -364,10 +357,9 @@ export default function AIDisclosurePage(): JSX.Element {
                 Automatic Fallback Chain
               </Text>
               <Text variant="body">
-                If your device cannot handle a request, the edge picks it up.
-                If the edge cannot handle it, the cloud picks it up. If the
-                cloud is overloaded, the request is queued — never dropped.
-                You always get a result.
+                If your device cannot handle a request, the edge picks it up. If the edge cannot
+                handle it, the cloud picks it up. If the cloud is overloaded, the request is queued
+                — never dropped. You always get a result.
               </Text>
             </Stack>
           </Card>
@@ -386,7 +378,7 @@ export default function AIDisclosurePage(): JSX.Element {
                 <Card padding="md">
                   <Stack direction="vertical" gap="xs">
                     <Text variant="h4" weight="semibold">
-                      {commitment.icon}{" "}{commitment.title}
+                      {commitment.icon} {commitment.title}
                     </Text>
                     <Text variant="body">{commitment.description}</Text>
                   </Stack>
@@ -404,8 +396,8 @@ export default function AIDisclosurePage(): JSX.Element {
             AI Limitations & Responsibilities
           </Text>
           <Text variant="body">
-            We are committed to honesty about what AI can and cannot do. The
-            following limitations apply to all AI features on the platform.
+            We are committed to honesty about what AI can and cannot do. The following limitations
+            apply to all AI features on the platform.
           </Text>
           <Card padding="md">
             <Stack direction="vertical" gap="xs">
@@ -448,8 +440,8 @@ export default function AIDisclosurePage(): JSX.Element {
             User Controls
           </Text>
           <Text variant="body">
-            You are always in control of how AI interacts with your account and
-            data. The following controls are available in your account Settings.
+            You are always in control of how AI interacts with your account and data. The following
+            controls are available in your account Settings.
           </Text>
           <Stack direction="vertical" gap="sm">
             <For each={userControls}>
@@ -475,8 +467,8 @@ export default function AIDisclosurePage(): JSX.Element {
             Regulatory Compliance
           </Text>
           <Text variant="body">
-            Crontech maintains compliance with leading AI governance frameworks
-            and prepares proactively for emerging regulations.
+            Crontech maintains compliance with leading AI governance frameworks and prepares
+            proactively for emerging regulations.
           </Text>
           <Card padding="md">
             <Stack direction="vertical" gap="xs">
@@ -501,123 +493,99 @@ export default function AIDisclosurePage(): JSX.Element {
           <Card padding="md">
             <Stack direction="vertical" gap="xs">
               <Text variant="body">
-                DRAFT &mdash; requires attorney review. Nothing on this AI
-                Transparency & Disclosure page waives, diminishes, or
-                otherwise limits any protection, disclaimer, limitation of
-                liability, indemnification, class-action waiver,
-                binding-arbitration clause, AS-IS / AS-AVAILABLE
-                disclaimer, no-consequential-damages exclusion,
-                governing-law choice, export-controls clause, 18+ age
-                requirement, or 30-day notice provision set forth in the
-                Terms of Service. All such Terms of Service provisions
-                apply with full force to your use of AI features.
+                DRAFT &mdash; requires attorney review. Nothing on this AI Transparency & Disclosure
+                page waives, diminishes, or otherwise limits any protection, disclaimer, limitation
+                of liability, indemnification, class-action waiver, binding-arbitration clause,
+                AS-IS / AS-AVAILABLE disclaimer, no-consequential-damages exclusion, governing-law
+                choice, export-controls clause, 18+ age requirement, or 30-day notice provision set
+                forth in the Terms of Service. All such Terms of Service provisions apply with full
+                force to your use of AI features.
               </Text>
               <Text variant="body">
-                AI Output Disclaimer. Reaffirming the AI Limitations
-                section above: AI features are informational only. They
-                are not legal, medical, financial, tax, engineering, or
-                safety-critical advice. You are solely responsible for
-                reviewing, verifying, and validating AI output before
-                acting on it.
+                AI Output Disclaimer. Reaffirming the AI Limitations section above: AI features are
+                informational only. They are not legal, medical, financial, tax, engineering, or
+                safety-critical advice. You are solely responsible for reviewing, verifying, and
+                validating AI output before acting on it.
               </Text>
               <Text variant="body">
-                Liability Cap. Total aggregate liability arising from AI
-                output or AI-feature operation is capped per the Terms of
-                Service at the greater of (a) fees paid in the twelve (12)
-                months preceding the claim or (b) one hundred U.S. dollars
-                ($100), subject to the lower $50 cap during any beta or
-                early access phase per the Beta Disclaimer.
+                Liability Cap. Total aggregate liability arising from AI output or AI-feature
+                operation is capped per the Terms of Service at the greater of (a) fees paid in the
+                twelve (12) months preceding the claim or (b) one hundred U.S. dollars ($100),
+                subject to the lower $50 cap during any beta or early access phase per the Beta
+                Disclaimer.
               </Text>
               <Text variant="body">
-                No Consequential Damages. Crontech is not liable for lost
-                profits, lost revenue, lost data, lost goodwill, business
-                interruption, or any indirect, incidental, special,
-                consequential, exemplary, or punitive damages arising
-                from AI output or AI-feature failures, even if advised of
-                the possibility.
+                No Consequential Damages. Crontech is not liable for lost profits, lost revenue,
+                lost data, lost goodwill, business interruption, or any indirect, incidental,
+                special, consequential, exemplary, or punitive damages arising from AI output or
+                AI-feature failures, even if advised of the possibility.
               </Text>
               <Text variant="body">
-                AS-IS / AS-AVAILABLE. All AI features &mdash; client-side,
-                edge, cloud, and any combination thereof &mdash; are
-                provided AS-IS and AS-AVAILABLE without warranties of any
-                kind, express, implied, or statutory, including
-                merchantability, fitness for a particular purpose,
-                non-infringement, accuracy, or uninterrupted operation.
+                AS-IS / AS-AVAILABLE. All AI features &mdash; client-side, edge, cloud, and any
+                combination thereof &mdash; are provided AS-IS and AS-AVAILABLE without warranties
+                of any kind, express, implied, or statutory, including merchantability, fitness for
+                a particular purpose, non-infringement, accuracy, or uninterrupted operation.
               </Text>
               <Text variant="body">
-                Customer Indemnification. You agree to indemnify, defend,
-                and hold harmless Crontech for any claim arising from (a)
-                your use of AI features; (b) AI output you publish,
-                distribute, or rely on; (c) third-party intellectual
-                property claims relating to AI output; and (d) your
-                violation of the Terms of Service or applicable law.
-                Crontech does not indemnify for intellectual property
-                claims arising from AI-generated output.
+                Customer Indemnification. You agree to indemnify, defend, and hold harmless Crontech
+                for any claim arising from (a) your use of AI features; (b) AI output you publish,
+                distribute, or rely on; (c) third-party intellectual property claims relating to AI
+                output; and (d) your violation of the Terms of Service or applicable law. Crontech
+                does not indemnify for intellectual property claims arising from AI-generated
+                output.
               </Text>
               <Text variant="body">
-                Unilateral Suspension and Termination. Crontech reserves
-                the right to suspend or terminate access to AI features,
-                unilaterally, for any reason or no reason, with notice
-                where reasonably practicable, including for suspected
-                abuse, safety incidents, or third-party model-provider
-                changes.
+                Unilateral Suspension and Termination. Crontech reserves the right to suspend or
+                terminate access to AI features, unilaterally, for any reason or no reason, with
+                notice where reasonably practicable, including for suspected abuse, safety
+                incidents, or third-party model-provider changes.
               </Text>
               <Text variant="body">
-                Reverse Engineering Prohibited. You may not reverse
-                engineer, decompile, disassemble, or otherwise attempt to
-                derive the model weights, safety filters, routing logic,
-                or internal architecture of the AI systems, except where
-                such prohibition is unenforceable under applicable law.
-                You may not use AI features or their output to train or
-                develop competing AI models without express written
-                consent (see AUP Section 3.4).
+                Reverse Engineering Prohibited. You may not reverse engineer, decompile,
+                disassemble, or otherwise attempt to derive the model weights, safety filters,
+                routing logic, or internal architecture of the AI systems, except where such
+                prohibition is unenforceable under applicable law. You may not use AI features or
+                their output to train or develop competing AI models without express written consent
+                (see AUP Section 3.4).
               </Text>
               <Text variant="body">
-                Force Majeure. Force majeure events (including third-party
-                AI model provider outages, changes to model availability,
-                and changes to model licensing terms imposed by upstream
-                providers) are excluded from Crontech's liability.
+                Force Majeure. Force majeure events (including third-party AI model provider
+                outages, changes to model availability, and changes to model licensing terms imposed
+                by upstream providers) are excluded from Crontech's liability.
               </Text>
               <Text variant="body">
-                Severability and Entire Agreement. If any provision of
-                this page is unenforceable, the remainder remains in full
-                force. This page, together with the Terms of Service and
-                incorporated policies, constitutes the entire agreement
-                with respect to AI transparency and AI-feature usage.
+                Severability and Entire Agreement. If any provision of this page is unenforceable,
+                the remainder remains in full force. This page, together with the Terms of Service
+                and incorporated policies, constitutes the entire agreement with respect to AI
+                transparency and AI-feature usage.
               </Text>
               <Text variant="body">
-                Binding Individual Arbitration and Class-Action Waiver.
-                Disputes relating to AI features or AI output are subject
-                to the binding individual arbitration clause and
-                class-action waiver in the Terms of Service (AAA or JAMS),
-                including the 30-day opt-out and small-claims carve-out.
+                Binding Individual Arbitration and Class-Action Waiver. Disputes relating to AI
+                features or AI output are subject to the binding individual arbitration clause and
+                class-action waiver in the Terms of Service (AAA or JAMS), including the 30-day
+                opt-out and small-claims carve-out.
               </Text>
               <Text variant="body">
-                Governing Law: New Zealand. We intend that this AI
-                disclosure be governed by the laws of New Zealand, subject
-                to mandatory local law and to the US-specific carve-outs
-                advised by counsel. Counsel to confirm against EU AI Act
-                obligations that are non-waivable.
+                Governing Law: New Zealand. We intend that this AI disclosure be governed by the
+                laws of New Zealand, subject to mandatory local law and to the US-specific
+                carve-outs advised by counsel. Counsel to confirm against EU AI Act obligations that
+                are non-waivable.
               </Text>
               <Text variant="body">
-                Export Controls / US Sanctions. Access to and use of AI
-                features is subject to the export-controls and
-                US-sanctions representation in the Terms of Service. AI
-                features may be further restricted in jurisdictions where
-                upstream model providers' licensing terms prohibit
-                availability.
+                Export Controls / US Sanctions. Access to and use of AI features is subject to the
+                export-controls and US-sanctions representation in the Terms of Service. AI features
+                may be further restricted in jurisdictions where upstream model providers' licensing
+                terms prohibit availability.
               </Text>
               <Text variant="body">
-                Age Requirement: 18+. You must be at least eighteen (18)
-                years of age to use AI features.
+                Age Requirement: 18+. You must be at least eighteen (18) years of age to use AI
+                features.
               </Text>
               <Text variant="body">
-                30-Day Notice for Terms Changes. We intend to provide at
-                least thirty (30) days' notice for any material change to
-                this AI disclosure or to the AI feature set. Changes
-                driven by upstream model-provider actions beyond our
-                reasonable control may take effect sooner; we will
-                disclose as promptly as practicable.
+                30-Day Notice for Terms Changes. We intend to provide at least thirty (30) days'
+                notice for any material change to this AI disclosure or to the AI feature set.
+                Changes driven by upstream model-provider actions beyond our reasonable control may
+                take effect sooner; we will disclose as promptly as practicable.
               </Text>
             </Stack>
           </Card>
@@ -632,16 +600,15 @@ export default function AIDisclosurePage(): JSX.Element {
               Contact
             </Text>
             <Text variant="body">
-              For questions specifically about AI usage, data handling, model
-              transparency, or anything covered on this page, reach us at:
+              For questions specifically about AI usage, data handling, model transparency, or
+              anything covered on this page, reach us at:
             </Text>
             <Text variant="h4" weight="semibold">
               ai@crontech.dev
             </Text>
             <Text variant="body" class="text-muted">
-              We commit to responding within 5 business days. If your question
-              reveals a gap in this disclosure, we will update this page and
-              notify you.
+              We commit to responding within 5 business days. If your question reveals a gap in this
+              disclosure, we will update this page and notify you.
             </Text>
           </Stack>
         </Card>

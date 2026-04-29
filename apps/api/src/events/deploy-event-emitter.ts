@@ -130,10 +130,7 @@ interface WirePayload {
   errorSummary?: string;
 }
 
-async function postEvent(
-  payload: WirePayload,
-  deps: EmitDeps,
-): Promise<void> {
+async function postEvent(payload: WirePayload, deps: EmitDeps): Promise<void> {
   const env = readEnv(deps);
   if (!env) return;
 
@@ -164,9 +161,7 @@ async function postEvent(
     }
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    console.warn(
-      `[deploy-event-emitter] ${payload.event} POST threw: ${message}`,
-    );
+    console.warn(`[deploy-event-emitter] ${payload.event} POST threw: ${message}`);
   }
 }
 

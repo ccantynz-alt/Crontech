@@ -2,6 +2,7 @@
 // Creates AI providers based on compute tier and environment config.
 // Supports OpenAI-compatible endpoints AND Anthropic natively.
 
+import { createAnthropic } from "@ai-sdk/anthropic";
 // TODO(BLK-020 Phase B): this module still imports `@ai-sdk/openai`,
 // `@ai-sdk/anthropic`, and `ai`'s `LanguageModel` type because the
 // returned value is consumed by `streamText`, `generateObject`,
@@ -10,8 +11,7 @@
 // native vendor SDKs means reimplementing tool-call loops, multi-step
 // agents, and schema-validated object generation. That is Phase B
 // scope, tracked separately so Phase A can ship now.
-import { createOpenAI, type OpenAIProviderSettings } from "@ai-sdk/openai";
-import { createAnthropic } from "@ai-sdk/anthropic";
+import { type OpenAIProviderSettings, createOpenAI } from "@ai-sdk/openai";
 import type { LanguageModel } from "ai";
 import type { ComputeTier } from "./compute-tier";
 
@@ -20,7 +20,11 @@ import type { ComputeTier } from "./compute-tier";
 export const ANTHROPIC_MODELS = {
   "claude-opus-4-7": { name: "Claude Opus 4.7", inputCostPer1M: 15, outputCostPer1M: 75 },
   "claude-sonnet-4-6": { name: "Claude Sonnet 4.6", inputCostPer1M: 3, outputCostPer1M: 15 },
-  "claude-haiku-4-5-20251001": { name: "Claude Haiku 4.5", inputCostPer1M: 0.80, outputCostPer1M: 4 },
+  "claude-haiku-4-5-20251001": {
+    name: "Claude Haiku 4.5",
+    inputCostPer1M: 0.8,
+    outputCostPer1M: 4,
+  },
 } as const;
 
 export type AnthropicModelId = keyof typeof ANTHROPIC_MODELS;
@@ -112,9 +116,7 @@ export function readProviderEnv(): AIProviderEnv {
  *
  * Handles `exactOptionalPropertyTypes` by only including defined values.
  */
-function createProviderFromConfig(
-  config: AIProviderConfig,
-): ReturnType<typeof createOpenAI> {
+function createProviderFromConfig(config: AIProviderConfig): ReturnType<typeof createOpenAI> {
   const settings: OpenAIProviderSettings = {
     apiKey: config.apiKey,
   };
@@ -130,9 +132,7 @@ function createProviderFromConfig(
 /**
  * Creates an Anthropic provider instance.
  */
-function createAnthropicFromConfig(
-  config: AnthropicProviderConfig,
-): LanguageModel {
+function createAnthropicFromConfig(config: AnthropicProviderConfig): LanguageModel {
   const provider = createAnthropic({ apiKey: config.apiKey });
   return provider(config.model);
 }
@@ -146,10 +146,7 @@ function createAnthropicFromConfig(
  *   - Edge tier always uses the lighter OpenAI-compatible model
  *   - Client tier falls back to edge (browser-side handled by WebLLM)
  */
-export function getModelForTier(
-  tier: ComputeTier,
-  providerEnv?: AIProviderEnv,
-): LanguageModel {
+export function getModelForTier(tier: ComputeTier, providerEnv?: AIProviderEnv): LanguageModel {
   const config = providerEnv ?? readProviderEnv();
 
   switch (tier) {
@@ -187,9 +184,7 @@ export function getModelForTier(
  *   - If explicit AI_FALLBACK_ vars are set, those take precedence
  *   - Returns undefined if no fallback is available
  */
-export function getFallbackModel(
-  providerEnv?: AIProviderEnv,
-): LanguageModel | undefined {
+export function getFallbackModel(providerEnv?: AIProviderEnv): LanguageModel | undefined {
   const config = providerEnv ?? readProviderEnv();
 
   // Explicit fallback config takes priority
@@ -227,10 +222,7 @@ export function getDefaultModel(providerEnv?: AIProviderEnv): LanguageModel {
  * Used by the internal chat interface where the user supplies their
  * own Anthropic API key.
  */
-export function getAnthropicModel(
-  apiKey: string,
-  modelId?: string,
-): LanguageModel {
+export function getAnthropicModel(apiKey: string, modelId?: string): LanguageModel {
   const provider = createAnthropic({ apiKey });
   return provider(modelId ?? "claude-sonnet-4-6");
 }
@@ -256,10 +248,18 @@ export function hasAnthropicProvider(): boolean {
 // ── Automatic Failover ───────────────────────────────────────────
 
 const RETRYABLE_PATTERNS = [
-  "429", "rate limit", "too many requests",
-  "500", "internal server error",
-  "503", "service unavailable", "overloaded",
-  "timed out", "timeout", "ECONNRESET", "ECONNREFUSED",
+  "429",
+  "rate limit",
+  "too many requests",
+  "500",
+  "internal server error",
+  "503",
+  "service unavailable",
+  "overloaded",
+  "timed out",
+  "timeout",
+  "ECONNRESET",
+  "ECONNREFUSED",
 ];
 
 export function isRetryableError(err: Error | { status?: number; message: string }): boolean {
@@ -301,11 +301,7 @@ export async function routeAICall<T>(
  * Estimate cost in microdollars for a given model and token counts.
  * Returns cost in microdollars (1/1,000,000 of a dollar) for precision.
  */
-export function estimateCost(
-  modelId: string,
-  inputTokens: number,
-  outputTokens: number,
-): number {
+export function estimateCost(modelId: string, inputTokens: number, outputTokens: number): number {
   const modelInfo = ANTHROPIC_MODELS[modelId as AnthropicModelId];
   if (!modelInfo) return 0;
   const inputCost = (inputTokens / 1_000_000) * modelInfo.inputCostPer1M;

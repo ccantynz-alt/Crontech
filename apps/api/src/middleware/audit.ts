@@ -7,7 +7,7 @@
 
 import { createMiddleware } from "hono/factory";
 import type { AuthEnv } from "../auth/middleware";
-import { writeAudit, type AuditEntry } from "../automation/audit-log";
+import { type AuditEntry, writeAudit } from "../automation/audit-log";
 import { middleware as tMiddleware } from "../trpc/init";
 
 // ── Hono Middleware ─────────────────────────────────────────────────
@@ -79,12 +79,11 @@ export function auditMiddleware(action: string) {
 /**
  * Map an action string to the AuditEntry action enum.
  */
-function mapActionToVerb(
-  action: string,
-): AuditEntry["action"] {
+function mapActionToVerb(action: string): AuditEntry["action"] {
   const lower = action.toLowerCase();
   if (lower.includes("delete") || lower.includes("remove")) return "DELETE";
-  if (lower.includes("update") || lower.includes("change") || lower.includes("toggle")) return "UPDATE";
+  if (lower.includes("update") || lower.includes("change") || lower.includes("toggle"))
+    return "UPDATE";
   if (
     lower.includes("read") ||
     lower.includes("get") ||

@@ -3,14 +3,10 @@
 // Replaces LangGraph-style patterns with production-grade agent definitions.
 // Each agent has typed tools, instructions, and compute tier routing.
 
+import { ComponentCatalog, type ComponentName, ComponentSchema } from "@back-to-the-future/schemas";
 import { Agent } from "@mastra/core/agent";
 import { createTool } from "@mastra/core/tools";
 import { z } from "zod";
-import {
-  ComponentSchema,
-  ComponentCatalog,
-  type ComponentName,
-} from "@back-to-the-future/schemas";
 
 // ── Mastra Tools ────────────────────────────────────────────────────
 
@@ -21,9 +17,7 @@ export const searchContentTool = createTool({
   inputSchema: z.object({
     query: z.string().describe("The search query"),
     limit: z.number().int().min(1).max(50).default(10),
-    contentType: z
-      .enum(["all", "page", "component", "document", "media"])
-      .default("all"),
+    contentType: z.enum(["all", "page", "component", "document", "media"]).default("all"),
   }),
   execute: async (input) => {
     // Placeholder — will wire to Qdrant when available
@@ -42,13 +36,9 @@ export const searchContentTool = createTool({
 
 export const generateComponentTool = createTool({
   id: "generate-component",
-  description:
-    "Generate a validated UI component configuration from the catalog. " +
-    `Available: ${Object.keys(ComponentCatalog).join(", ")}.`,
+  description: `Generate a validated UI component configuration from the catalog. Available: ${Object.keys(ComponentCatalog).join(", ")}.`,
   inputSchema: z.object({
-    componentName: z.enum(
-      Object.keys(ComponentCatalog) as [ComponentName, ...ComponentName[]],
-    ),
+    componentName: z.enum(Object.keys(ComponentCatalog) as [ComponentName, ...ComponentName[]]),
     description: z.string(),
     context: z.string().optional(),
   }),
@@ -57,7 +47,9 @@ export const generateComponentTool = createTool({
     error: z.string().nullable(),
     component: ComponentSchema.nullable(),
   }),
-  execute: async (input): Promise<{
+  execute: async (
+    input,
+  ): Promise<{
     success: boolean;
     error: string | null;
     component: z.infer<typeof ComponentSchema> | null;
@@ -77,8 +69,7 @@ export const generateComponentTool = createTool({
 
 export const analyzeCodeTool = createTool({
   id: "analyze-code",
-  description:
-    "Analyze code for quality, security, and performance issues.",
+  description: "Analyze code for quality, security, and performance issues.",
   inputSchema: z.object({
     code: z.string(),
     language: z
@@ -91,7 +82,11 @@ export const analyzeCodeTool = createTool({
     const issues: Array<{ severity: string; message: string; category: string }> = [];
 
     if (/:\s*any\b/.test(input.code)) {
-      issues.push({ severity: "error", message: "Usage of `any` type detected.", category: "quality" });
+      issues.push({
+        severity: "error",
+        message: "Usage of `any` type detected.",
+        category: "quality",
+      });
     }
     if (/@ts-ignore/.test(input.code)) {
       issues.push({ severity: "error", message: "@ts-ignore detected.", category: "quality" });
@@ -199,17 +194,49 @@ function getComponentDefaults(
   const name = description.toLowerCase().replace(/\s+/g, "-") || "field";
 
   const defaults: Record<ComponentName, Record<string, unknown>> = {
-    Button: { component: "Button", props: { variant: "primary", size: "md", disabled: false, loading: false, label } },
-    Input: { component: "Input", props: { type: "text", placeholder: label, name, required: false, disabled: false } },
+    Button: {
+      component: "Button",
+      props: { variant: "primary", size: "md", disabled: false, loading: false, label },
+    },
+    Input: {
+      component: "Input",
+      props: { type: "text", placeholder: label, name, required: false, disabled: false },
+    },
     Card: { component: "Card", props: { title: label, padding: "md" } },
-    Stack: { component: "Stack", props: { direction: "vertical", gap: "md", align: "stretch", justify: "start" } },
-    Text: { component: "Text", props: { content: label, variant: "body", weight: "normal", align: "left" } },
+    Stack: {
+      component: "Stack",
+      props: { direction: "vertical", gap: "md", align: "stretch", justify: "start" },
+    },
+    Text: {
+      component: "Text",
+      props: { content: label, variant: "body", weight: "normal", align: "left" },
+    },
     Modal: { component: "Modal", props: { title: label, size: "md", open: false } },
     Badge: { component: "Badge", props: { variant: "default", size: "md", label } },
     Alert: { component: "Alert", props: { variant: "info", title: label } },
-    Avatar: { component: "Avatar", props: { initials: label.slice(0, 2).toUpperCase(), size: "md" } },
-    Tabs: { component: "Tabs", props: { items: [{ id: "tab-1", label: "Tab 1" }, { id: "tab-2", label: "Tab 2" }] } },
-    Select: { component: "Select", props: { options: [{ value: "1", label: "Option 1" }, { value: "2", label: "Option 2" }], placeholder: label } },
+    Avatar: {
+      component: "Avatar",
+      props: { initials: label.slice(0, 2).toUpperCase(), size: "md" },
+    },
+    Tabs: {
+      component: "Tabs",
+      props: {
+        items: [
+          { id: "tab-1", label: "Tab 1" },
+          { id: "tab-2", label: "Tab 2" },
+        ],
+      },
+    },
+    Select: {
+      component: "Select",
+      props: {
+        options: [
+          { value: "1", label: "Option 1" },
+          { value: "2", label: "Option 2" },
+        ],
+        placeholder: label,
+      },
+    },
     Textarea: { component: "Textarea", props: { placeholder: label, rows: 3, resize: "vertical" } },
     Spinner: { component: "Spinner", props: { size: "md" } },
     Tooltip: { component: "Tooltip", props: { content: label, position: "top" } },

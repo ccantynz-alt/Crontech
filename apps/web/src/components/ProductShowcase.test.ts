@@ -84,8 +84,7 @@ describe("ProductShowcase — smoke", () => {
 
   test("copy is polite and names no competitors", () => {
     const src = readFileSync(COMPONENT_PATH, "utf-8").toLowerCase();
-    const fromCodes = (...codes: number[]): string =>
-      String.fromCharCode(...codes);
+    const fromCodes = (...codes: number[]): string => String.fromCharCode(...codes);
     // Banned competitor names are assembled from char codes so this
     // guard itself does not ship the names in source.
     const bannedNames = [

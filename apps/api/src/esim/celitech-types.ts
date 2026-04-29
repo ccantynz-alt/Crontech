@@ -51,9 +51,7 @@ export const CelitechDestinationsResponseSchema = z
   })
   .passthrough();
 
-export type CelitechDestinationsResponse = z.infer<
-  typeof CelitechDestinationsResponseSchema
->;
+export type CelitechDestinationsResponse = z.infer<typeof CelitechDestinationsResponseSchema>;
 
 // ── Packages ──────────────────────────────────────────────────────────
 // GET /packages?destination=US returns a flat list of buyable plans.
@@ -79,9 +77,7 @@ export const CelitechPackagesResponseSchema = z
   })
   .passthrough();
 
-export type CelitechPackagesResponse = z.infer<
-  typeof CelitechPackagesResponseSchema
->;
+export type CelitechPackagesResponse = z.infer<typeof CelitechPackagesResponseSchema>;
 
 // ── Flattened package shape (our domain object) ───────────────────────
 // This is what callers of the client actually consume. The field names
@@ -112,9 +108,7 @@ export const CelitechPurchaseRequestSchema = z.object({
   networkBrand: z.string().optional(),
 });
 
-export type CelitechPurchaseRequest = z.infer<
-  typeof CelitechPurchaseRequestSchema
->;
+export type CelitechPurchaseRequest = z.infer<typeof CelitechPurchaseRequestSchema>;
 
 /** Install bundle fields contained in a purchase record. */
 export const CelitechInstallFieldsSchema = z
@@ -158,9 +152,7 @@ export const CelitechPurchaseResponseSchema = z
   })
   .passthrough();
 
-export type CelitechPurchaseResponse = z.infer<
-  typeof CelitechPurchaseResponseSchema
->;
+export type CelitechPurchaseResponse = z.infer<typeof CelitechPurchaseResponseSchema>;
 
 export const CelitechPurchaseListResponseSchema = z
   .object({
@@ -168,9 +160,7 @@ export const CelitechPurchaseListResponseSchema = z
   })
   .passthrough();
 
-export type CelitechPurchaseListResponse = z.infer<
-  typeof CelitechPurchaseListResponseSchema
->;
+export type CelitechPurchaseListResponse = z.infer<typeof CelitechPurchaseListResponseSchema>;
 
 // ── Install info (QR + LPA) — domain shape ────────────────────────────
 // Normalised install bundle surfaced to the router. Fields are nullable

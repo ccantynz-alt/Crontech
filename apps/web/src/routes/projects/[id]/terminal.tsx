@@ -1,11 +1,11 @@
+import { Badge, Button } from "@back-to-the-future/ui";
 import { Title } from "@solidjs/meta";
-import { A, useParams, useNavigate } from "@solidjs/router";
+import { A, useNavigate, useParams } from "@solidjs/router";
 import { Show, createSignal, onMount } from "solid-js";
 import type { JSX } from "solid-js";
-import { Badge, Box, Button, Stack, Text } from "@back-to-the-future/ui";
 import { ProtectedRoute } from "../../../components/ProtectedRoute";
-import { Terminal } from "../../../components/Terminal";
 import { SEOHead } from "../../../components/SEOHead";
+import { Terminal } from "../../../components/Terminal";
 import { trpc } from "../../../lib/trpc";
 import { useQuery } from "../../../lib/use-trpc";
 
@@ -31,9 +31,10 @@ function TerminalPage(): JSX.Element {
   // itself still works, we just show a degraded header.
   const projectQuery = useQuery(
     () =>
-      trpc.projects.getById
-        .query({ projectId: projectId() })
-        .catch(() => null) as Promise<ProjectMeta | null>,
+      trpc.projects.getById.query({ projectId: projectId() }).catch((e: unknown) => {
+        console.warn("[terminal] project fetch failed:", e);
+        return null;
+      }) as Promise<ProjectMeta | null>,
     { key: ["projects"] },
   );
 
@@ -86,70 +87,95 @@ function TerminalPage(): JSX.Element {
       />
       <Title>{`Terminal - ${project().name} | Crontech`}</Title>
 
-      <Stack direction="vertical" gap="none" class="h-screen" style={{ background: "var(--color-bg)" }}>
+      <div class="flex flex-col h-screen" style={{ background: "var(--color-bg)" }}>
         {/* Header */}
-        <Box
-          as="header"
+        <header
           class="flex items-center justify-between px-4 py-2.5 border-b border-[var(--color-border)] shrink-0"
           style={{ background: "var(--color-bg-subtle)" }}
         >
           {/* Left section */}
-          <Stack direction="horizontal" gap="sm" align="center">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate(-1)}
-              aria-label="Go back"
-            >
-              <Text as="span" class="mr-1">&larr;</Text>
+          <div class="flex items-center gap-3">
+            <Button variant="ghost" size="sm" onClick={() => navigate(-1)} aria-label="Go back">
+              <span class="mr-1">&larr;</span>
               Back
             </Button>
 
-            <Box class="h-5 w-px bg-[var(--color-border)]" />
+            <div class="h-5 w-px bg-[var(--color-border)]" />
 
-            <Stack direction="horizontal" gap="xs" align="center">
-              <Text as="span" weight="semibold" class="text-sm" style={{ color: "var(--color-text)" }}>{project().name}</Text>
+            <div class="flex items-center gap-2">
+              <span class="text-sm font-semibold" style={{ color: "var(--color-text)" }}>
+                {project().name}
+              </span>
               <Show when={project().framework}>
                 <Badge variant="default">{project().framework}</Badge>
               </Show>
               <Show when={project().runtime}>
                 <Badge variant="default">{project().runtime}</Badge>
               </Show>
-            </Stack>
-          </Stack>
+            </div>
+          </div>
 
           {/* Right section */}
-          <Stack direction="horizontal" gap="xs" align="center">
+          <div class="flex items-center gap-2">
             <Button
               variant="ghost"
               size="sm"
               onClick={toggleFullscreen}
               aria-label={isFullscreen() ? "Exit fullscreen" : "Enter fullscreen"}
             >
-              <Show when={!isFullscreen()} fallback={
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M5 1H1v4M15 1h-4M1 11v4h4M11 15h4v-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                </svg>
-              }>
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M1 6V1h5M10 1h5v5M15 10v5h-5M6 15H1v-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+              <Show
+                when={!isFullscreen()}
+                fallback={
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 16 16"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M5 1H1v4M15 1h-4M1 11v4h4M11 15h4v-4"
+                      stroke="currentColor"
+                      stroke-width="1.5"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                }
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M1 6V1h5M10 1h5v5M15 10v5h-5M6 15H1v-5"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
                 </svg>
               </Show>
             </Button>
 
-            <A href={`/dashboard`}>
+            <A href={"/dashboard"}>
               <Button variant="ghost" size="sm">
                 Dashboard
               </Button>
             </A>
-          </Stack>
-        </Box>
+          </div>
+        </header>
 
         {/* Terminal fills remaining space */}
-        <Box class="flex-1 min-h-0">
+        <div class="flex-1 min-h-0">
           <Terminal projectId={projectId()} />
-        </Box>
-      </Stack>
+        </div>
+      </div>
     </ProtectedRoute>
   );
 }

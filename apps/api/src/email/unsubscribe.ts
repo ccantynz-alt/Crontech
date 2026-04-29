@@ -6,17 +6,17 @@
  * GET  /api/resubscribe?token=xxx  — re-subscribe
  */
 
-import { Hono } from "hono";
-import { eq } from "drizzle-orm";
 import { db, emailPreferences, users } from "@back-to-the-future/db";
+import { eq } from "drizzle-orm";
+import { Hono } from "hono";
 import {
+  type UnsubscribableEmailType,
   decodeUnsubscribeToken,
   generateUnsubscribeToken,
-  type UnsubscribableEmailType,
 } from "./templates";
 
-const BRAND_NAME = process.env["SITE_NAME"] ?? "Crontech";
-const PUBLIC_URL = process.env["PUBLIC_URL"] ?? "http://localhost:3000";
+const BRAND_NAME = process.env.SITE_NAME ?? "Crontech";
+const PUBLIC_URL = process.env.PUBLIC_URL ?? "http://localhost:3000";
 
 export const unsubscribeRoutes = new Hono();
 
@@ -35,15 +35,13 @@ async function setEmailPreference(
     .where(eq(emailPreferences.userId, userId))
     .limit(1);
 
-  const columnName =
-    emailType === "weeklyDigest" ? "weeklyDigest" : "collaborationInvite";
+  const columnName = emailType === "weeklyDigest" ? "weeklyDigest" : "collaborationInvite";
 
   if (existing[0]) {
     await db
       .update(emailPreferences)
       .set({
-        [columnName === "weeklyDigest" ? "weeklyDigest" : "collaborationInvite"]:
-          enabled,
+        [columnName === "weeklyDigest" ? "weeklyDigest" : "collaborationInvite"]: enabled,
         updatedAt: new Date(),
       })
       .where(eq(emailPreferences.userId, userId));
@@ -52,8 +50,7 @@ async function setEmailPreference(
       id: crypto.randomUUID(),
       userId,
       weeklyDigest: emailType === "weeklyDigest" ? enabled : true,
-      collaborationInvite:
-        emailType === "collaborationInvite" ? enabled : true,
+      collaborationInvite: emailType === "collaborationInvite" ? enabled : true,
       updatedAt: new Date(),
     });
   }
@@ -94,7 +91,10 @@ unsubscribeRoutes.get("/unsubscribe", async (c) => {
   const token = c.req.query("token");
   if (!token) {
     return c.html(
-      htmlPage("Invalid Link", "<h1>Invalid Link</h1><p>The unsubscribe link is missing or malformed.</p>"),
+      htmlPage(
+        "Invalid Link",
+        "<h1>Invalid Link</h1><p>The unsubscribe link is missing or malformed.</p>",
+      ),
       400,
     );
   }
@@ -102,7 +102,10 @@ unsubscribeRoutes.get("/unsubscribe", async (c) => {
   const decoded = decodeUnsubscribeToken(token);
   if (!decoded) {
     return c.html(
-      htmlPage("Invalid Link", "<h1>Invalid Link</h1><p>The unsubscribe token is invalid or expired.</p>"),
+      htmlPage(
+        "Invalid Link",
+        "<h1>Invalid Link</h1><p>The unsubscribe token is invalid or expired.</p>",
+      ),
       400,
     );
   }
@@ -116,7 +119,10 @@ unsubscribeRoutes.get("/unsubscribe", async (c) => {
 
   if (!userRow[0]) {
     return c.html(
-      htmlPage("User Not Found", "<h1>User Not Found</h1><p>We could not find an account for this token.</p>"),
+      htmlPage(
+        "User Not Found",
+        "<h1>User Not Found</h1><p>We could not find an account for this token.</p>",
+      ),
       404,
     );
   }
@@ -128,9 +134,7 @@ unsubscribeRoutes.get("/unsubscribe", async (c) => {
   const resubUrl = `${PUBLIC_URL}/api/resubscribe?token=${resubToken}`;
 
   const emailLabel =
-    decoded.emailType === "weeklyDigest"
-      ? "weekly digest"
-      : "collaboration invite";
+    decoded.emailType === "weeklyDigest" ? "weekly digest" : "collaboration invite";
 
   return c.html(
     htmlPage(
@@ -155,7 +159,7 @@ unsubscribeRoutes.post("/unsubscribe", async (c) => {
   if (!token) {
     try {
       const body = await c.req.parseBody();
-      token = typeof body["token"] === "string" ? body["token"] : undefined;
+      token = typeof body.token === "string" ? body.token : undefined;
     } catch {
       // body parse failed, continue with no token
     }
@@ -183,7 +187,10 @@ unsubscribeRoutes.get("/resubscribe", async (c) => {
   const token = c.req.query("token");
   if (!token) {
     return c.html(
-      htmlPage("Invalid Link", "<h1>Invalid Link</h1><p>The re-subscribe link is missing or malformed.</p>"),
+      htmlPage(
+        "Invalid Link",
+        "<h1>Invalid Link</h1><p>The re-subscribe link is missing or malformed.</p>",
+      ),
       400,
     );
   }
@@ -199,9 +206,7 @@ unsubscribeRoutes.get("/resubscribe", async (c) => {
   await setEmailPreference(decoded.userId, decoded.emailType, true);
 
   const emailLabel =
-    decoded.emailType === "weeklyDigest"
-      ? "weekly digest"
-      : "collaboration invite";
+    decoded.emailType === "weeklyDigest" ? "weekly digest" : "collaboration invite";
 
   return c.html(
     htmlPage(

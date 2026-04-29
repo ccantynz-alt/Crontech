@@ -2,24 +2,18 @@
 // Wraps the builder with collaboration features: live cursors,
 // presence bar, editing indicators, and Yjs document sync.
 
-import {
-  createSignal,
-  onMount,
-  onCleanup,
-  Show,
-  For,
-} from "solid-js";
+import { Stack, Text } from "@back-to-the-future/ui";
+import { For, Show, createSignal, onCleanup, onMount } from "solid-js";
 import type { JSX } from "solid-js";
-import { Box, Stack, Text } from "@back-to-the-future/ui";
+import { createAIParticipant } from "../collab/ai-participant";
 import {
-  CollaborativeDocument,
   type AwarenessState,
+  CollaborativeDocument,
   type ComponentNode,
 } from "../collab/collaborative-doc";
+import { createCollabRoom, getRandomColor } from "../collab/yjs-provider";
 import { CollaborativeCursors } from "./CollaborativeCursors";
 import { PresenceBar } from "./PresenceBar";
-import { createAIParticipant } from "../collab/ai-participant";
-import { createCollabRoom, getRandomColor } from "../collab/yjs-provider";
 
 // ── Types ────────────────────────────────────────────────────────────
 
@@ -131,8 +125,8 @@ export function CollaborativeBuilder(props: CollaborativeBuilderProps): JSX.Elem
     let aiX = 200;
     let aiY = 200;
     const aiInterval = setInterval(() => {
-      aiX += (crypto.getRandomValues(new Uint32Array(1))[0]! / 0x100000000) * 40 - 20;
-      aiY += (crypto.getRandomValues(new Uint32Array(1))[0]! / 0x100000000) * 40 - 20;
+      aiX += ((crypto.getRandomValues(new Uint32Array(1))[0] ?? 0) / 0x100000000) * 40 - 20;
+      aiY += ((crypto.getRandomValues(new Uint32Array(1))[0] ?? 0) / 0x100000000) * 40 - 20;
       aiX = Math.max(50, Math.min(800, aiX));
       aiY = Math.max(50, Math.min(600, aiY));
       aiAgent.moveCursor(aiX, aiY);
@@ -146,9 +140,9 @@ export function CollaborativeBuilder(props: CollaborativeBuilderProps): JSX.Elem
   }
 
   return (
-    <Box style={{ position: "relative", width: "100%", height: "100%" }}>
+    <div style={{ position: "relative", width: "100%", height: "100%" }}>
       {/* Presence bar at top */}
-      <Box style={{ padding: "8px 12px" }}>
+      <div style={{ padding: "8px 12px" }}>
         <PresenceBar
           remoteUsers={remoteUsers}
           currentUserId={props.userId}
@@ -157,15 +151,15 @@ export function CollaborativeBuilder(props: CollaborativeBuilderProps): JSX.Elem
           connected={connected}
           onInviteAI={handleInviteAI}
         />
-      </Box>
+      </div>
 
       {/* Editing indicators */}
       <Show when={editingIndicators().length > 0}>
-        <Box style={{ padding: "4px 12px" }}>
+        <div style={{ padding: "4px 12px" }}>
           <Stack direction="horizontal" gap="sm">
             <For each={editingIndicators()}>
               {(indicator) => (
-                <Box
+                <div
                   style={{
                     display: "flex",
                     "align-items": "center",
@@ -177,7 +171,7 @@ export function CollaborativeBuilder(props: CollaborativeBuilderProps): JSX.Elem
                     "font-size": "11px",
                   }}
                 >
-                  <Box
+                  <div
                     style={{
                       width: "6px",
                       height: "6px",
@@ -188,11 +182,11 @@ export function CollaborativeBuilder(props: CollaborativeBuilderProps): JSX.Elem
                   <Text variant="caption">
                     {indicator.isAI ? `AI: ${indicator.userName}` : indicator.userName} is editing
                   </Text>
-                </Box>
+                </div>
               )}
             </For>
           </Stack>
-        </Box>
+        </div>
       </Show>
 
       {/* Builder content with cursor overlay */}
@@ -202,11 +196,8 @@ export function CollaborativeBuilder(props: CollaborativeBuilderProps): JSX.Elem
         onMouseMove={handleMouseMove}
       >
         {props.children}
-        <CollaborativeCursors
-          remoteUsers={remoteUsers}
-          currentUserId={props.userId}
-        />
+        <CollaborativeCursors remoteUsers={remoteUsers} currentUserId={props.userId} />
       </div>
-    </Box>
+    </div>
   );
 }

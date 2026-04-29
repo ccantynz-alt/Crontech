@@ -38,7 +38,7 @@ class FakeEventSource {
   readonly CONNECTING = 0 as const;
   readonly OPEN = 1 as const;
   readonly CLOSED = 2 as const;
-  readyState: number = 0;
+  readyState = 0;
   onopen: ((evt: Event) => void) | null = null;
   onerror: ((evt: Event) => void) | null = null;
   onmessage: ((evt: MessageEvent) => void) | null = null;
@@ -52,7 +52,7 @@ class FakeEventSource {
 
   addEventListener(type: string, cb: Listener): void {
     if (!this.listeners.has(type)) this.listeners.set(type, new Set());
-    this.listeners.get(type)!.add(cb);
+    this.listeners.get(type)?.add(cb);
   }
 
   removeEventListener(type: string, cb: Listener): void {
@@ -87,6 +87,12 @@ class FakeEventSource {
   }
 }
 
+function lastEs(): FakeEventSource {
+  const es = FakeEventSource.last;
+  if (!es) throw new Error("FakeEventSource.last is null — EventSource was not constructed");
+  return es;
+}
+
 // ── Tests ───────────────────────────────────────────────────────────
 
 describe("useDeploymentLogStream", () => {
@@ -113,7 +119,7 @@ describe("useDeploymentLogStream", () => {
         eventSourceCtor: FakeEventSource as unknown as typeof EventSource,
       });
       expect(FakeEventSource.last).not.toBeNull();
-      expect(FakeEventSource.last!.url).toBe(
+      expect(FakeEventSource.last?.url).toBe(
         "http://test.local/api/deployments/dpl-1/logs/stream?token=tkn",
       );
       expect(hook.status()).toBe("connecting");
@@ -129,7 +135,7 @@ describe("useDeploymentLogStream", () => {
         token: "tkn",
         eventSourceCtor: FakeEventSource as unknown as typeof EventSource,
       });
-      const es = FakeEventSource.last!;
+      const es = lastEs();
       es.emitOpen();
       expect(hook.status()).toBe("open");
 
@@ -165,7 +171,7 @@ describe("useDeploymentLogStream", () => {
         token: "tkn",
         eventSourceCtor: FakeEventSource as unknown as typeof EventSource,
       });
-      const es = FakeEventSource.last!;
+      const es = lastEs();
       es.emitOpen();
       es.emit("status", { status: "building" });
       expect(hook.deployment().phase).toBe("building");
@@ -188,7 +194,7 @@ describe("useDeploymentLogStream", () => {
         token: "tkn",
         eventSourceCtor: FakeEventSource as unknown as typeof EventSource,
       });
-      const es = FakeEventSource.last!;
+      const es = lastEs();
       es.emitOpen();
       es.emit("log", "{not valid json");
       es.emit("log", { line: "after-bad", stream: "stdout" });
@@ -207,7 +213,7 @@ describe("useDeploymentLogStream", () => {
         token: "tkn",
         eventSourceCtor: FakeEventSource as unknown as typeof EventSource,
       });
-      const es = FakeEventSource.last!;
+      const es = lastEs();
       es.emitOpen();
       hook.close();
       expect(hook.status()).toBe("closed");

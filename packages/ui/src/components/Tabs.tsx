@@ -1,4 +1,4 @@
-import { type JSX, For, splitProps, createSignal } from "solid-js";
+import { For, type JSX, createSignal, splitProps } from "solid-js";
 
 export interface TabItem {
   id: string;
@@ -15,16 +15,9 @@ export interface TabsProps {
 }
 
 export function Tabs(props: TabsProps): JSX.Element {
-  const [local, rest] = splitProps(props, [
-    "items",
-    "defaultTab",
-    "class",
-    "onChange",
-  ]);
+  const [local, rest] = splitProps(props, ["items", "defaultTab", "class", "onChange"]);
 
-  const [activeTab, setActiveTab] = createSignal(
-    local.defaultTab ?? local.items[0]?.id ?? "",
-  );
+  const [activeTab, setActiveTab] = createSignal(local.defaultTab ?? local.items[0]?.id ?? "");
 
   const handleTabClick = (tabId: string): void => {
     setActiveTab(tabId);
@@ -55,6 +48,7 @@ export function Tabs(props: TabsProps): JSX.Element {
         <For each={local.items}>
           {(tab, index) => (
             <button
+              type="button"
               class={`tab-trigger ${activeTab() === tab.id ? "tab-active" : ""}`}
               role="tab"
               aria-selected={activeTab() === tab.id}

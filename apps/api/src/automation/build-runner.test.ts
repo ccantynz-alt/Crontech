@@ -5,22 +5,16 @@
 // pipeline is broken.
 
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { eq } from "drizzle-orm";
-import {
-  db,
-  deploymentLogs,
-  deployments,
-  projects,
-  users,
-} from "@back-to-the-future/db";
+import { db, deploymentLogs, deployments, projects, users } from "@back-to-the-future/db";
 import type { SandboxResult, SandboxSpec } from "@back-to-the-future/orchestrator/sandbox";
+import { eq } from "drizzle-orm";
 import {
   type BuildFs,
   type DeployFn,
   type RunBuildOptions,
   type SandboxRunFn,
-  type SpawnedProcess,
   type SpawnFn,
+  type SpawnedProcess,
   _getInFlightForTests,
   _resetQueueForTests,
   runBuild,
@@ -87,10 +81,7 @@ function makeFakeProcess(opts: FakeProcessOptions = {}): SpawnedProcess {
   };
 }
 
-function recordingSpawn(
-  scripts: FakeProcessOptions[],
-  calls: SpawnCall[],
-): SpawnFn {
+function recordingSpawn(scripts: FakeProcessOptions[], calls: SpawnCall[]): SpawnFn {
   let i = 0;
   return (cmd, options) => {
     const entry: SpawnCall = { cmd };
@@ -117,10 +108,7 @@ interface FakeSandboxRun {
   timedOut?: boolean;
 }
 
-function recordingSandbox(
-  scripts: FakeSandboxRun[],
-  calls: SandboxCall[],
-): SandboxRunFn {
+function recordingSandbox(scripts: FakeSandboxRun[], calls: SandboxCall[]): SandboxRunFn {
   let i = 0;
   return async (spec: SandboxSpec, onLogLine): Promise<SandboxResult> => {
     const entry: SandboxCall = {
@@ -186,7 +174,8 @@ async function seedProjectAndDeployment(overrides: {
     userId,
     name: `Project ${projectId}`,
     slug,
-    repoUrl: overrides.repoUrl === undefined ? "https://github.com/acme/demo.git" : overrides.repoUrl,
+    repoUrl:
+      overrides.repoUrl === undefined ? "https://github.com/acme/demo.git" : overrides.repoUrl,
     repoBranch: overrides.repoBranch ?? "main",
     buildCommand: overrides.buildCommand === undefined ? "bun run build" : overrides.buildCommand,
     status: "active",
@@ -248,10 +237,7 @@ describe("runBuild", () => {
 
     const spawnCalls: SpawnCall[] = [];
     // Only clone is spawned on host — install + build run in the sandbox.
-    const spawn = recordingSpawn(
-      [{ stdoutLines: ["Cloning into 'demo'..."] }],
-      spawnCalls,
-    );
+    const spawn = recordingSpawn([{ stdoutLines: ["Cloning into 'demo'..."] }], spawnCalls);
     const sandboxCalls: SandboxCall[] = [];
     const sandboxRun = recordingSandbox(
       [
@@ -263,10 +249,7 @@ describe("runBuild", () => {
     const fs = fakeFs();
     const deploy = okDeploy();
 
-    const result = await runBuild(
-      deploymentId,
-      baseOptions({ spawn, sandboxRun, deploy, fs }),
-    );
+    const result = await runBuild(deploymentId, baseOptions({ spawn, sandboxRun, deploy, fs }));
 
     expect(result.status).toBe("live");
     expect(result.deployUrl).toBe(`https://${seeded.slug}.crontech.ai`);
@@ -278,7 +261,7 @@ describe("runBuild", () => {
     expect(spawnCalls[0]?.cmd[0]).toBe("git");
     expect(spawnCalls[0]?.cmd).toContain("--depth");
     expect(spawnCalls[0]?.cmd).toContain("--branch");
-    expect(spawnCalls[0]?.cmd[spawnCalls[0]!.cmd.length - 1]).toMatch(
+    expect(spawnCalls[0]?.cmd[spawnCalls[0]?.cmd.length - 1]).toMatch(
       /\/tmp\/crontech-build-test\//,
     );
 
@@ -290,7 +273,11 @@ describe("runBuild", () => {
     expect(sandboxCalls[1]?.env).toEqual({ NODE_ENV: "production" });
 
     // DB row was flipped to live and got the deploy URL.
-    const [row] = await db.select().from(deployments).where(eq(deployments.id, deploymentId)).limit(1);
+    const [row] = await db
+      .select()
+      .from(deployments)
+      .where(eq(deployments.id, deploymentId))
+      .limit(1);
     expect(row?.status).toBe("live");
     expect(row?.deployUrl).toBe(`https://${seeded.slug}.crontech.ai`);
     expect(row?.isCurrent).toBe(true);
@@ -340,7 +327,11 @@ describe("runBuild", () => {
     expect(calls.length).toBe(1); // stopped at clone
     expect(sandboxCalls.length).toBe(0); // never entered sandbox
 
-    const [row] = await db.select().from(deployments).where(eq(deployments.id, deploymentId)).limit(1);
+    const [row] = await db
+      .select()
+      .from(deployments)
+      .where(eq(deployments.id, deploymentId))
+      .limit(1);
     expect(row?.status).toBe("failed");
     expect(row?.errorMessage).toMatch(/clone failed/);
 
@@ -412,10 +403,7 @@ describe("runBuild", () => {
     const seeded = await seedProjectAndDeployment({ deploymentId });
 
     const spawn = recordingSpawn([{ exitCode: 0 }], []);
-    const sandboxRun = recordingSandbox(
-      [{ exitCode: 0 }, { exitCode: 0 }],
-      [],
-    );
+    const sandboxRun = recordingSandbox([{ exitCode: 0 }, { exitCode: 0 }], []);
     const deploy: DeployFn = async () => {
       throw new Error("orchestrator 500: caddy dead");
     };
@@ -428,7 +416,11 @@ describe("runBuild", () => {
     expect(result.status).toBe("failed");
     expect(result.errorMessage).toMatch(/orchestrator 500/);
 
-    const [row] = await db.select().from(deployments).where(eq(deployments.id, deploymentId)).limit(1);
+    const [row] = await db
+      .select()
+      .from(deployments)
+      .where(eq(deployments.id, deploymentId))
+      .limit(1);
     expect(row?.status).toBe("failed");
 
     await cleanup(deploymentId, seeded.projectId, seeded.userId);
@@ -537,10 +529,7 @@ describe("runBuild", () => {
     const spawnCalls: SpawnCall[] = [];
     const spawn = recordingSpawn([{ exitCode: 0 }], spawnCalls);
     const sandboxCalls: SandboxCall[] = [];
-    const sandboxRun = recordingSandbox(
-      [{ exitCode: 0 }, { exitCode: 0 }],
-      sandboxCalls,
-    );
+    const sandboxRun = recordingSandbox([{ exitCode: 0 }, { exitCode: 0 }], sandboxCalls);
 
     const result = await runBuild(
       deploymentId,
@@ -559,10 +548,7 @@ describe("runBuild", () => {
     const spawnCalls: SpawnCall[] = [];
     const spawn = recordingSpawn([{ exitCode: 0 }], spawnCalls);
     const sandboxCalls: SandboxCall[] = [];
-    const sandboxRun = recordingSandbox(
-      [{ exitCode: 0 }, { exitCode: 0 }],
-      sandboxCalls,
-    );
+    const sandboxRun = recordingSandbox([{ exitCode: 0 }, { exitCode: 0 }], sandboxCalls);
 
     const result = await runBuild(
       deploymentId,
@@ -591,10 +577,7 @@ describe("runBuild", () => {
     const seeded = await seedProjectAndDeployment({ deploymentId });
 
     const spawn = recordingSpawn([{ exitCode: 0 }], []);
-    const sandboxRun = recordingSandbox(
-      [{ exitCode: 137, timedOut: true }],
-      [],
-    );
+    const sandboxRun = recordingSandbox([{ exitCode: 137, timedOut: true }], []);
 
     const result = await runBuild(
       deploymentId,

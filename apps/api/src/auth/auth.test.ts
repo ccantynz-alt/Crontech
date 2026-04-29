@@ -1,8 +1,8 @@
-import { describe, test, expect, beforeEach, afterEach } from "bun:test";
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import { credentials, db, sessions, users } from "@back-to-the-future/db";
 import { eq } from "drizzle-orm";
-import { db, users, sessions, credentials } from "@back-to-the-future/db";
-import { createSession, validateSession, deleteSession } from "./session";
-import { generateCsrfToken, validateCsrfToken, cleanupExpiredCsrfTokens } from "./csrf";
+import { cleanupExpiredCsrfTokens, generateCsrfToken, validateCsrfToken } from "./csrf";
+import { createSession, deleteSession, validateSession } from "./session";
 
 // ── Helpers ──────────────────────────────────────────────────────────
 
@@ -47,14 +47,12 @@ describe("Session Management", () => {
   test("createSession creates a session in the database", async () => {
     const token = await createSession(testUserId, db);
 
-    const result = await db
-      .select()
-      .from(sessions)
-      .where(eq(sessions.token, token))
-      .limit(1);
+    const result = await db.select().from(sessions).where(eq(sessions.token, token)).limit(1);
 
     expect(result.length).toBe(1);
-    const session = result[0]!;
+    const session = result.at(0);
+    expect(session).toBeDefined();
+    if (!session) return;
     expect(session.userId).toBe(testUserId);
     expect(session.token).toBe(token);
     expect(session.expiresAt).toBeInstanceOf(Date);
@@ -78,10 +76,7 @@ describe("Session Management", () => {
 
     // Manually expire the session by setting expiresAt to the past
     const pastDate = new Date(Date.now() - 1000);
-    await db
-      .update(sessions)
-      .set({ expiresAt: pastDate })
-      .where(eq(sessions.token, token));
+    await db.update(sessions).set({ expiresAt: pastDate }).where(eq(sessions.token, token));
 
     const userId = await validateSession(token, db);
     expect(userId).toBeNull();
@@ -199,10 +194,7 @@ describe("Protected Procedure Access", () => {
 
     // Expire the session
     const pastDate = new Date(Date.now() - 1000);
-    await db
-      .update(sessions)
-      .set({ expiresAt: pastDate })
-      .where(eq(sessions.token, token));
+    await db.update(sessions).set({ expiresAt: pastDate }).where(eq(sessions.token, token));
 
     const userId = await validateSession(token, db);
     expect(userId).toBeNull();

@@ -3,15 +3,15 @@
 // emitter lives in @back-to-the-future/theatre and is called from
 // producers (ingest, voice, deploy, migration).
 
-import { z } from "zod";
-import { TRPCError } from "@trpc/server";
 import {
-  listRuns as listTheatreRuns,
   getRun as getTheatreRun,
-  tailLogs as tailTheatreLogs,
+  listRuns as listTheatreRuns,
   requestCancel,
+  tailLogs as tailTheatreLogs,
 } from "@back-to-the-future/theatre";
-import { router, protectedProcedure, adminProcedure } from "../init";
+import { TRPCError } from "@trpc/server";
+import { z } from "zod";
+import { adminProcedure, protectedProcedure, router } from "../init";
 
 export const theatreRouter = router({
   /** Recent runs across all kinds (deploy, ingest, voice, etc.). */
@@ -43,12 +43,7 @@ export const theatreRouter = router({
       }),
     )
     .query(async ({ ctx, input }) => {
-      const logs = await tailTheatreLogs(
-        ctx.db,
-        input.runId,
-        input.sinceSeq,
-        input.limit,
-      );
+      const logs = await tailTheatreLogs(ctx.db, input.runId, input.sinceSeq, input.limit);
       return logs;
     }),
 

@@ -71,7 +71,8 @@ class SmartRouter {
       });
     }
 
-    const stat = this.stats.get(from)!;
+    const stat = this.stats.get(from);
+    if (!stat) return;
     stat.visits++;
 
     const currentCount = stat.transitions.get(to) ?? 0;
@@ -81,7 +82,7 @@ class SmartRouter {
   /**
    * Predict the most likely next routes from the current page.
    */
-  predictNextRoutes(currentPath: string, limit: number = 3): PrefetchPrediction[] {
+  predictNextRoutes(currentPath: string, limit = 3): PrefetchPrediction[] {
     const stat = this.stats.get(currentPath);
     if (!stat || stat.visits === 0) return [];
 
@@ -93,9 +94,7 @@ class SmartRouter {
       });
     }
 
-    return predictions
-      .sort((a, b) => b.probability - a.probability)
-      .slice(0, limit);
+    return predictions.sort((a, b) => b.probability - a.probability).slice(0, limit);
   }
 
   /**

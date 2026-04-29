@@ -1,7 +1,6 @@
 import { Title } from "@solidjs/meta";
-import { createSignal, For, Show, onMount } from "solid-js";
+import { For, Show, createSignal, onMount } from "solid-js";
 import type { JSX } from "solid-js";
-import { Box, Stack, Text } from "@back-to-the-future/ui";
 import { trpc } from "../lib/trpc";
 
 // ── Types ────────────────────────────────────────────────────────────
@@ -35,7 +34,12 @@ interface ModelInfo {
 const MODELS: ModelInfo[] = [
   { id: "claude-sonnet-4-6", name: "Claude Sonnet 4.6", inputCostPer1M: 3, outputCostPer1M: 15 },
   { id: "claude-opus-4-7", name: "Claude Opus 4.7", inputCostPer1M: 15, outputCostPer1M: 75 },
-  { id: "claude-haiku-4-5-20251001", name: "Claude Haiku 4.5", inputCostPer1M: 0.80, outputCostPer1M: 4 },
+  {
+    id: "claude-haiku-4-5-20251001",
+    name: "Claude Haiku 4.5",
+    inputCostPer1M: 0.8,
+    outputCostPer1M: 4,
+  },
 ];
 
 // ── Helpers ──────────────────────────────────────────────────────────
@@ -70,9 +74,18 @@ function escapeHtml(raw: string): string {
 
 function renderContent(content: string): string {
   return escapeHtml(content)
-    .replace(/```(\w*)\n([\s\S]*?)```/g, '<pre class="my-3 overflow-x-auto rounded-xl p-4" style="background:var(--color-bg-inset);border:1px solid var(--color-border)"><code class="text-xs leading-relaxed" style="color:var(--color-primary-light)">$2</code></pre>')
-    .replace(/`([^`]+)`/g, '<code class="rounded px-1.5 py-0.5 text-xs" style="background:var(--color-bg-muted);color:var(--color-primary-light)">$1</code>')
-    .replace(/\*\*(.+?)\*\*/g, '<strong class="font-semibold" style="color:var(--color-text)">$1</strong>')
+    .replace(
+      /```(\w*)\n([\s\S]*?)```/g,
+      '<pre class="my-3 overflow-x-auto rounded-xl p-4" style="background:var(--color-bg-inset);border:1px solid var(--color-border)"><code class="text-xs leading-relaxed" style="color:var(--color-primary-light)">$2</code></pre>',
+    )
+    .replace(
+      /`([^`]+)`/g,
+      '<code class="rounded px-1.5 py-0.5 text-xs" style="background:var(--color-bg-muted);color:var(--color-primary-light)">$1</code>',
+    )
+    .replace(
+      /\*\*(.+?)\*\*/g,
+      '<strong class="font-semibold" style="color:var(--color-text)">$1</strong>',
+    )
     .replace(/\n/g, "<br/>");
 }
 
@@ -115,7 +128,15 @@ function ConversationItem(props: {
           class="shrink-0 rounded-md p-1 transition-colors hover:bg-[color-mix(in_oklab,var(--color-danger)_10%,transparent)] hover:text-[var(--color-danger)]"
           style={{ color: "var(--color-text-faint)" }}
         >
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg
+            width="12"
+            height="12"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            aria-hidden="true"
+          >
             <path d="M18 6L6 18M6 6l12 12" />
           </svg>
         </button>
@@ -134,9 +155,7 @@ function MessageBubble(props: { message: ChatMessage }): JSX.Element {
       <div
         class="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-xs font-bold"
         style={{
-          background: isUser()
-            ? "var(--color-primary)"
-            : "var(--color-bg-elevated)",
+          background: isUser() ? "var(--color-primary)" : "var(--color-bg-elevated)",
           color: isUser() ? "var(--color-primary-text)" : "var(--color-text)",
         }}
       >
@@ -144,17 +163,20 @@ function MessageBubble(props: { message: ChatMessage }): JSX.Element {
       </div>
 
       <div class={`flex max-w-[80%] flex-col gap-1.5 ${isUser() ? "items-end" : ""}`}>
-        <Show when={isUser()} fallback={
-          <div
-            class="chat-content rounded-2xl px-4 py-3 text-sm leading-relaxed"
-            style={{
-              background: "var(--color-bg-muted)",
-              border: "1px solid var(--color-border)",
-              color: "var(--color-text-secondary)",
-            }}
-            innerHTML={renderContent(props.message.content)}
-          />
-        }>
+        <Show
+          when={isUser()}
+          fallback={
+            <div
+              class="chat-content rounded-2xl px-4 py-3 text-sm leading-relaxed"
+              style={{
+                background: "var(--color-bg-muted)",
+                border: "1px solid var(--color-border)",
+                color: "var(--color-text-secondary)",
+              }}
+              innerHTML={renderContent(props.message.content)}
+            />
+          }
+        >
           <div
             class="chat-content rounded-2xl px-4 py-3 text-sm leading-relaxed"
             style={{
@@ -170,13 +192,18 @@ function MessageBubble(props: { message: ChatMessage }): JSX.Element {
           <Show when={props.message.model}>
             <span
               class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider"
-              style={{ background: "var(--color-bg-elevated)", color: "var(--color-primary-light)" }}
+              style={{
+                background: "var(--color-bg-elevated)",
+                color: "var(--color-primary-light)",
+              }}
             >
               {props.message.model}
             </span>
           </Show>
           <Show when={props.message.outputTokens}>
-            <span class="text-[10px]" style={{ color: "var(--color-text-faint)" }}>{props.message.outputTokens} tokens</span>
+            <span class="text-[10px]" style={{ color: "var(--color-text-faint)" }}>
+              {props.message.outputTokens} tokens
+            </span>
           </Show>
           <span class="text-[10px]" style={{ color: "var(--color-text-faint)" }}>
             {props.message.createdAt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
@@ -228,7 +255,7 @@ export default function ChatPage(): JSX.Element {
         headers: { Authorization: `Bearer ${getSessionToken() ?? ""}` },
       });
       if (status.ok) {
-        const data = await status.json() as { configured: boolean };
+        const data = (await status.json()) as { configured: boolean };
         setHasApiKey(data.configured);
       }
     } catch {
@@ -303,9 +330,7 @@ export default function ChatPage(): JSX.Element {
       // Auto-title from first message
       const title = text.slice(0, 60) + (text.length > 60 ? "..." : "");
       await trpc.chat.updateConversation.mutate({ id: convId, title });
-      setConversations((prev) =>
-        prev.map((c) => (c.id === convId ? { ...c, title } : c)),
-      );
+      setConversations((prev) => prev.map((c) => (c.id === convId ? { ...c, title } : c)));
     }
 
     // Add user message
@@ -351,7 +376,7 @@ export default function ChatPage(): JSX.Element {
       });
 
       if (!response.ok) {
-        const err = await response.json() as { error: string; hint?: string };
+        const err = (await response.json()) as { error: string; hint?: string };
         throw new Error(err.hint ?? err.error);
       }
 
@@ -382,7 +407,9 @@ export default function ChatPage(): JSX.Element {
       setStreamContent("");
 
       // Rough token estimate (4 chars ~ 1 token)
-      const estimatedInputTokens = Math.ceil(history.reduce((acc, m) => acc + m.content.length, 0) / 4);
+      const estimatedInputTokens = Math.ceil(
+        history.reduce((acc, m) => acc + m.content.length, 0) / 4,
+      );
       const estimatedOutputTokens = Math.ceil(fullContent.length / 4);
       setSessionTokens((prev) => prev + estimatedInputTokens + estimatedOutputTokens);
 
@@ -395,7 +422,6 @@ export default function ChatPage(): JSX.Element {
         inputTokens: estimatedInputTokens,
         outputTokens: estimatedOutputTokens,
       });
-
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Stream failed";
       setError(msg);
@@ -414,35 +440,44 @@ export default function ChatPage(): JSX.Element {
   };
 
   const currentModel = (): ModelInfo => {
-    return MODELS.find((m) => m.id === selectedModel()) ?? MODELS[0] as ModelInfo;
+    return MODELS.find((m) => m.id === selectedModel()) ?? (MODELS[0] as ModelInfo);
   };
 
   return (
-    <Box class="flex h-screen" style={{ background: "var(--color-bg)" }}>
+    <div class="flex h-screen" style={{ background: "var(--color-bg)" }}>
       <Title>Chat - Crontech</Title>
 
       {/* ── Left Sidebar: Conversations ─────────────────────────── */}
-      <Box
+      <div
         class="flex w-72 shrink-0 flex-col"
-        style={{ background: "var(--color-bg-subtle)", "border-right": "1px solid var(--color-border)" }}
+        style={{
+          background: "var(--color-bg-subtle)",
+          "border-right": "1px solid var(--color-border)",
+        }}
       >
         {/* Header */}
-        <Box class="px-5 py-4" style={{ "border-bottom": "1px solid var(--color-border)" }}>
-          <Stack direction="horizontal" justify="between" align="center">
-            <Stack direction="horizontal" gap="sm" align="center">
-              <Box
+        <div class="px-5 py-4" style={{ "border-bottom": "1px solid var(--color-border)" }}>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div
                 class="flex h-10 w-10 items-center justify-center rounded-xl"
                 style={{ background: "var(--color-bg-elevated)" }}
               >
-                <Text as="span" variant="caption" class="text-lg" style={{ color: "var(--color-primary-light)" }}>&#9889;</Text>
-              </Box>
-              <Box>
-                <Text variant="h1" class="text-base font-bold" style={{ color: "var(--color-text)" }}>Claude Chat</Text>
-                <Text variant="body" class="text-[10px]" style={{ color: "var(--color-text-faint)" }}>Anthropic API Direct</Text>
-              </Box>
-            </Stack>
-          </Stack>
-        </Box>
+                <span class="text-lg" style={{ color: "var(--color-primary-light)" }}>
+                  &#9889;
+                </span>
+              </div>
+              <div>
+                <h1 class="text-base font-bold" style={{ color: "var(--color-text)" }}>
+                  Claude Chat
+                </h1>
+                <p class="text-[10px]" style={{ color: "var(--color-text-faint)" }}>
+                  Anthropic API Direct
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
 
         {/* New Chat Button */}
         <div class="px-4 py-3" style={{ "border-bottom": "1px solid var(--color-border)" }}>
@@ -456,7 +491,15 @@ export default function ChatPage(): JSX.Element {
               border: "1px dashed var(--color-border)",
             }}
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              aria-hidden="true"
+            >
               <path d="M12 5v14M5 12h14" />
             </svg>
             New Conversation
@@ -465,12 +508,17 @@ export default function ChatPage(): JSX.Element {
 
         {/* Conversation List */}
         <div class="flex-1 overflow-y-auto px-3 py-2">
-          <Show when={conversations().length > 0} fallback={
-            <div class="flex flex-col items-center gap-2 py-12 text-center">
-              <span class="text-2xl opacity-30">&#128172;</span>
-              <span class="text-xs" style={{ color: "var(--color-text-faint)" }}>No conversations yet</span>
-            </div>
-          }>
+          <Show
+            when={conversations().length > 0}
+            fallback={
+              <div class="flex flex-col items-center gap-2 py-12 text-center">
+                <span class="text-2xl opacity-30">&#128172;</span>
+                <span class="text-xs" style={{ color: "var(--color-text-faint)" }}>
+                  No conversations yet
+                </span>
+              </div>
+            }
+          >
             <div class="flex flex-col gap-0.5">
               <For each={conversations()}>
                 {(conv) => (
@@ -488,38 +536,63 @@ export default function ChatPage(): JSX.Element {
 
         {/* Session Stats */}
         <div class="px-5 py-4" style={{ "border-top": "1px solid var(--color-border)" }}>
-          <span class="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--color-text-faint)" }}>Session</span>
+          <span
+            class="text-[10px] font-semibold uppercase tracking-widest"
+            style={{ color: "var(--color-text-faint)" }}
+          >
+            Session
+          </span>
           <div class="mt-2 grid grid-cols-2 gap-3">
             <div class="flex flex-col gap-0.5">
-              <span class="text-[10px]" style={{ color: "var(--color-text-faint)" }}>Tokens</span>
-              <span class="text-sm font-bold" style={{ color: "var(--color-primary-light)" }}>{sessionTokens().toLocaleString()}</span>
+              <span class="text-[10px]" style={{ color: "var(--color-text-faint)" }}>
+                Tokens
+              </span>
+              <span class="text-sm font-bold" style={{ color: "var(--color-primary-light)" }}>
+                {sessionTokens().toLocaleString()}
+              </span>
             </div>
             <div class="flex flex-col gap-0.5">
-              <span class="text-[10px]" style={{ color: "var(--color-text-faint)" }}>Model</span>
-              <span class="truncate text-xs font-medium" style={{ color: "var(--color-text-secondary)" }}>{currentModel().name}</span>
+              <span class="text-[10px]" style={{ color: "var(--color-text-faint)" }}>
+                Model
+              </span>
+              <span
+                class="truncate text-xs font-medium"
+                style={{ color: "var(--color-text-secondary)" }}
+              >
+                {currentModel().name}
+              </span>
             </div>
           </div>
         </div>
-      </Box>
+      </div>
 
       {/* ── Center: Chat Interface ────────────────────────────── */}
       <div class="flex flex-1 flex-col overflow-hidden">
         {/* Chat Header */}
         <div
           class="flex items-center justify-between px-6 py-3"
-          style={{ background: "var(--color-bg-subtle)", "border-bottom": "1px solid var(--color-border)" }}
+          style={{
+            background: "var(--color-bg-subtle)",
+            "border-bottom": "1px solid var(--color-border)",
+          }}
         >
           <div class="flex items-center gap-3">
             <span class="text-sm font-semibold" style={{ color: "var(--color-text)" }}>
               {activeConvId()
-                ? conversations().find((c) => c.id === activeConvId())?.title ?? "Chat"
+                ? (conversations().find((c) => c.id === activeConvId())?.title ?? "Chat")
                 : "New Chat"}
             </span>
             <span
               class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider"
-              style={{ background: "var(--color-bg-elevated)", color: "var(--color-primary-light)" }}
+              style={{
+                background: "var(--color-bg-elevated)",
+                color: "var(--color-primary-light)",
+              }}
             >
-              <span class="h-1.5 w-1.5 rounded-full" style={{ background: "var(--color-primary-light)" }} />
+              <span
+                class="h-1.5 w-1.5 rounded-full"
+                style={{ background: "var(--color-primary-light)" }}
+              />
               Anthropic
             </span>
           </div>
@@ -537,7 +610,9 @@ export default function ChatPage(): JSX.Element {
             >
               <For each={MODELS}>
                 {(model) => (
-                  <option value={model.id} style={{ background: "var(--color-bg-elevated)" }}>{model.name}</option>
+                  <option value={model.id} style={{ background: "var(--color-bg-elevated)" }}>
+                    {model.name}
+                  </option>
                 )}
               </For>
             </select>
@@ -547,8 +622,12 @@ export default function ChatPage(): JSX.Element {
               class="rounded-lg px-3 py-1.5 text-[11px] font-medium transition-all duration-200"
               style={{
                 background: showSettings() ? "var(--color-bg-elevated)" : "var(--color-bg-inset)",
-                border: showSettings() ? "1px solid var(--color-primary-light)" : "1px solid var(--color-border)",
-                color: showSettings() ? "var(--color-primary-light)" : "var(--color-text-secondary)",
+                border: showSettings()
+                  ? "1px solid var(--color-primary-light)"
+                  : "1px solid var(--color-border)",
+                color: showSettings()
+                  ? "var(--color-primary-light)"
+                  : "var(--color-text-secondary)",
               }}
             >
               Settings
@@ -560,12 +639,20 @@ export default function ChatPage(): JSX.Element {
         <Show when={!hasApiKey()}>
           <div
             class="mx-6 mt-4 flex items-center gap-3 rounded-xl px-4 py-3"
-            style={{ background: "var(--color-bg-elevated)", border: "1px solid var(--color-border)" }}
+            style={{
+              background: "var(--color-bg-elevated)",
+              border: "1px solid var(--color-border)",
+            }}
           >
             <span style={{ color: "var(--color-primary-light)" }}>&#9888;</span>
             <div class="flex-1">
-              <span class="text-xs font-medium" style={{ color: "var(--color-text)" }}>No Anthropic API key configured</span>
-              <p class="text-[11px]" style={{ color: "var(--color-text-muted)" }}>Go to Settings &gt; AI Provider Keys to add your key, or set ANTHROPIC_API_KEY in your environment.</p>
+              <span class="text-xs font-medium" style={{ color: "var(--color-text)" }}>
+                No Anthropic API key configured
+              </span>
+              <p class="text-[11px]" style={{ color: "var(--color-text-muted)" }}>
+                Go to Settings &gt; AI Provider Keys to add your key, or set ANTHROPIC_API_KEY in
+                your environment.
+              </p>
             </div>
           </div>
         </Show>
@@ -574,20 +661,45 @@ export default function ChatPage(): JSX.Element {
         <Show when={error()}>
           <div
             class="mx-6 mt-4 flex items-center gap-3 rounded-xl px-4 py-3"
-            style={{ background: "var(--color-bg-elevated)", border: "1px solid var(--color-border-strong)" }}
+            style={{
+              background: "var(--color-bg-elevated)",
+              border: "1px solid var(--color-border-strong)",
+            }}
           >
             <span style={{ color: "var(--color-text-secondary)" }}>&#10060;</span>
-            <span class="flex-1 text-xs" style={{ color: "var(--color-text-secondary)" }}>{error()}</span>
-            <button type="button" onClick={() => setError(null)} class="text-xs" style={{ color: "var(--color-text-muted)" }}>Dismiss</button>
+            <span class="flex-1 text-xs" style={{ color: "var(--color-text-secondary)" }}>
+              {error()}
+            </span>
+            <button
+              type="button"
+              onClick={() => setError(null)}
+              class="text-xs"
+              style={{ color: "var(--color-text-muted)" }}
+            >
+              Dismiss
+            </button>
           </div>
         </Show>
 
         {/* System Prompt Panel */}
         <Show when={showSettings()}>
-          <div class="px-6 py-4" style={{ background: "var(--color-bg-subtle)", "border-bottom": "1px solid var(--color-border)" }}>
+          <div
+            class="px-6 py-4"
+            style={{
+              background: "var(--color-bg-subtle)",
+              "border-bottom": "1px solid var(--color-border)",
+            }}
+          >
             <div class="flex flex-col gap-2">
-              <label class="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--color-text-faint)" }}>System Prompt</label>
+              <label
+                for="system-prompt-textarea"
+                class="text-[10px] font-semibold uppercase tracking-widest"
+                style={{ color: "var(--color-text-faint)" }}
+              >
+                System Prompt
+              </label>
               <textarea
+                id="system-prompt-textarea"
                 value={systemPrompt()}
                 onInput={(e) => setSystemPrompt(e.currentTarget.value)}
                 rows={3}
@@ -613,15 +725,28 @@ export default function ChatPage(): JSX.Element {
                   class="flex h-20 w-20 items-center justify-center rounded-3xl"
                   style={{ background: "var(--color-bg-elevated)" }}
                 >
-                  <span class="text-4xl" style={{ color: "var(--color-primary-light)" }}>&#9889;</span>
+                  <span class="text-4xl" style={{ color: "var(--color-primary-light)" }}>
+                    &#9889;
+                  </span>
                 </div>
-                <h2 class="text-xl font-bold" style={{ color: "var(--color-text)" }}>Claude Chat</h2>
-                <p class="max-w-sm text-center text-sm" style={{ color: "var(--color-text-muted)" }}>
-                  Direct Anthropic API access. No subscriptions. Pay only for what you use. Your API key, your data, your control.
+                <h2 class="text-xl font-bold" style={{ color: "var(--color-text)" }}>
+                  Claude Chat
+                </h2>
+                <p
+                  class="max-w-sm text-center text-sm"
+                  style={{ color: "var(--color-text-muted)" }}
+                >
+                  Direct Anthropic API access. No subscriptions. Pay only for what you use. Your API
+                  key, your data, your control.
                 </p>
                 <div class="mt-4 flex flex-wrap justify-center gap-2">
-                  {["Help me architect a microservice", "Review this code for security issues", "Write a database migration"].map((prompt) => (
+                  {[
+                    "Help me architect a microservice",
+                    "Review this code for security issues",
+                    "Write a database migration",
+                  ].map((prompt) => (
                     <button
+                      key={prompt}
                       type="button"
                       onClick={() => {
                         setInput(prompt);
@@ -641,9 +766,7 @@ export default function ChatPage(): JSX.Element {
               </div>
             </Show>
 
-            <For each={messages()}>
-              {(msg) => <MessageBubble message={msg} />}
-            </For>
+            <For each={messages()}>{(msg) => <MessageBubble message={msg} />}</For>
 
             {/* Streaming indicator */}
             <Show when={isStreaming()}>
@@ -656,16 +779,41 @@ export default function ChatPage(): JSX.Element {
                 </div>
                 <div
                   class="max-w-[80%] rounded-2xl px-4 py-3"
-                  style={{ background: "var(--color-bg-muted)", border: "1px solid var(--color-border)" }}
+                  style={{
+                    background: "var(--color-bg-muted)",
+                    border: "1px solid var(--color-border)",
+                  }}
                 >
-                  <Show when={streamContent()} fallback={
-                    <div class="flex items-center gap-1.5">
-                      <div class="h-2 w-2 animate-pulse rounded-full" style={{ background: "var(--color-primary-light)" }} />
-                      <div class="h-2 w-2 animate-pulse rounded-full" style={{ background: "var(--color-primary-light)", "animation-delay": "0.2s" }} />
-                      <div class="h-2 w-2 animate-pulse rounded-full" style={{ background: "var(--color-primary-light)", "animation-delay": "0.4s" }} />
-                    </div>
-                  }>
-                    <div class="text-sm leading-relaxed" style={{ color: "var(--color-text-secondary)" }} innerHTML={renderContent(streamContent())} />
+                  <Show
+                    when={streamContent()}
+                    fallback={
+                      <div class="flex items-center gap-1.5">
+                        <div
+                          class="h-2 w-2 animate-pulse rounded-full"
+                          style={{ background: "var(--color-primary-light)" }}
+                        />
+                        <div
+                          class="h-2 w-2 animate-pulse rounded-full"
+                          style={{
+                            background: "var(--color-primary-light)",
+                            "animation-delay": "0.2s",
+                          }}
+                        />
+                        <div
+                          class="h-2 w-2 animate-pulse rounded-full"
+                          style={{
+                            background: "var(--color-primary-light)",
+                            "animation-delay": "0.4s",
+                          }}
+                        />
+                      </div>
+                    }
+                  >
+                    <div
+                      class="text-sm leading-relaxed"
+                      style={{ color: "var(--color-text-secondary)" }}
+                      innerHTML={renderContent(streamContent())}
+                    />
                   </Show>
                 </div>
               </div>
@@ -676,11 +824,20 @@ export default function ChatPage(): JSX.Element {
         </div>
 
         {/* Input Area */}
-        <div class="px-6 py-4" style={{ background: "var(--color-bg-subtle)", "border-top": "1px solid var(--color-border)" }}>
+        <div
+          class="px-6 py-4"
+          style={{
+            background: "var(--color-bg-subtle)",
+            "border-top": "1px solid var(--color-border)",
+          }}
+        >
           <div class="mx-auto max-w-3xl">
             <div
               class="flex items-end gap-3 rounded-2xl p-2 transition-all duration-200"
-              style={{ background: "var(--color-bg-inset)", border: "1px solid var(--color-border)" }}
+              style={{
+                background: "var(--color-bg-inset)",
+                border: "1px solid var(--color-border)",
+              }}
             >
               <textarea
                 ref={textareaRef}
@@ -699,7 +856,17 @@ export default function ChatPage(): JSX.Element {
                 class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-all duration-200 disabled:opacity-30"
                 style={{ background: "var(--color-primary)", color: "var(--color-primary-text)" }}
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
                   <path d="M22 2L11 13" />
                   <path d="M22 2L15 22L11 13L2 9L22 2Z" />
                 </svg>
@@ -716,6 +883,6 @@ export default function ChatPage(): JSX.Element {
           </div>
         </div>
       </div>
-    </Box>
+    </div>
   );
 }

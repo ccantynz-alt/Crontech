@@ -16,9 +16,9 @@
 import { createHash } from "node:crypto";
 
 import {
+  type AuditEntry,
   AuditEntrySchema,
   GENESIS_PREVIOUS_HASH,
-  type AuditEntry,
   type VerifyFailure,
   type VerifyResult,
 } from "./types";
@@ -40,9 +40,7 @@ export function canonicalJSON(value: unknown): string {
   }
   const obj = value as Record<string, unknown>;
   const keys = Object.keys(obj).sort();
-  const body = keys
-    .map((k) => `${JSON.stringify(k)}:${canonicalJSON(obj[k])}`)
-    .join(",");
+  const body = keys.map((k) => `${JSON.stringify(k)}:${canonicalJSON(obj[k])}`).join(",");
   return `{${body}}`;
 }
 
@@ -75,8 +73,7 @@ export function sealEntry(
   base: Omit<HashableEntry, "previousHash">,
   previousEntry: AuditEntry | null,
 ): AuditEntry {
-  const previousHash =
-    previousEntry === null ? GENESIS_PREVIOUS_HASH : previousEntry.entryHash;
+  const previousHash = previousEntry === null ? GENESIS_PREVIOUS_HASH : previousEntry.entryHash;
   const hashable: HashableEntry = { ...base, previousHash };
   const entryHash = computeEntryHash(hashable);
   return { ...hashable, entryHash, timestampToken: null };
@@ -144,11 +141,7 @@ export function verifyChain(entries: readonly AuditEntry[]): VerifyResult {
       });
     }
 
-    const {
-      entryHash: storedHash,
-      timestampToken: _ignored,
-      ...rest
-    } = entry;
+    const { entryHash: storedHash, timestampToken: _ignored, ...rest } = entry;
     void _ignored;
     const recomputed = computeEntryHash(rest);
     if (recomputed !== storedHash) {

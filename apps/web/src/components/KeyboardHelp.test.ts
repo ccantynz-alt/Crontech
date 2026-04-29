@@ -58,7 +58,7 @@ describe("KeyboardHelp.tsx — source smoke", () => {
   test("Esc closes the overlay", () => {
     const src = readFileSync(HELP_PATH, "utf-8");
     expect(src).toMatch(/keys:\s*"esc"/);
-    expect(src).toContain("aria-label=\"Close keyboard shortcuts\"");
+    expect(src).toContain('aria-label="Close keyboard shortcuts"');
   });
 
   test("groups shortcuts by page (Global / Navigation / Project view / Admin)", () => {
@@ -199,9 +199,7 @@ describe("eventToChord: key normalisation", () => {
   });
 
   test("Shift+Enter → `shift+enter` (Enter is non-printable)", () => {
-    expect(eventToChord(fake({ key: "Enter", shiftKey: true }))).toBe(
-      "shift+enter",
-    );
+    expect(eventToChord(fake({ key: "Enter", shiftKey: true }))).toBe("shift+enter");
   });
 });
 

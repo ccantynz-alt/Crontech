@@ -1,7 +1,7 @@
-import { describe, it, expect } from "bun:test";
+import { describe, expect, it } from "bun:test";
 import { classifyWithRules } from "./classifier";
-import { shouldEscalate, ESCALATION_KEYWORDS } from "./escalation-rules";
-import { searchKnowledgeBase, KNOWLEDGE_BASE } from "./knowledge-base";
+import { ESCALATION_KEYWORDS, shouldEscalate } from "./escalation-rules";
+import { KNOWLEDGE_BASE, searchKnowledgeBase } from "./knowledge-base";
 
 describe("classifier (rule fallback)", () => {
   it("classifies billing emails", () => {

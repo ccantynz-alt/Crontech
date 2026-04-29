@@ -5,9 +5,9 @@
 // internals are tested separately — here we only care that the helper
 // drives them correctly.
 
-import { describe, expect, test, beforeEach, afterEach } from "bun:test";
-import { useOptimisticMutation } from "./optimistic";
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { _resetUndoToasts } from "../components/UndoToast";
+import { useOptimisticMutation } from "./optimistic";
 
 beforeEach(() => {
   _resetUndoToasts();
@@ -21,9 +21,15 @@ describe("useOptimisticMutation", () => {
   test("apply runs immediately and commit fires after the undo window", async () => {
     const events: string[] = [];
     const mutate = useOptimisticMutation<{ id: string }>({
-      apply: () => { events.push("apply"); },
-      rollback: () => { events.push("rollback"); },
-      commit: async () => { events.push("commit"); },
+      apply: () => {
+        events.push("apply");
+      },
+      rollback: () => {
+        events.push("rollback");
+      },
+      commit: async () => {
+        events.push("commit");
+      },
       undoable: 25,
       message: "Removed",
     });
@@ -38,9 +44,15 @@ describe("useOptimisticMutation", () => {
   test("commit fires synchronously when undoable is 0", async () => {
     const events: string[] = [];
     const mutate = useOptimisticMutation<void>({
-      apply: () => { events.push("apply"); },
-      rollback: () => { events.push("rollback"); },
-      commit: async () => { events.push("commit"); },
+      apply: () => {
+        events.push("apply");
+      },
+      rollback: () => {
+        events.push("rollback");
+      },
+      commit: async () => {
+        events.push("commit");
+      },
     });
 
     await mutate(undefined);
@@ -50,8 +62,12 @@ describe("useOptimisticMutation", () => {
   test("rollback fires automatically when commit throws", async () => {
     const events: string[] = [];
     const mutate = useOptimisticMutation<void>({
-      apply: () => { events.push("apply"); },
-      rollback: () => { events.push("rollback"); },
+      apply: () => {
+        events.push("apply");
+      },
+      rollback: () => {
+        events.push("rollback");
+      },
       commit: async () => {
         events.push("commit");
         throw new Error("boom");
@@ -75,8 +91,12 @@ describe("useOptimisticMutation", () => {
     const id = enqueueUndo({
       message: "noop",
       durationMs: 30_000,
-      onUndo: () => { events.push("onUndo"); },
-      onTimeout: () => { events.push("onTimeout"); },
+      onUndo: () => {
+        events.push("onUndo");
+      },
+      onTimeout: () => {
+        events.push("onTimeout");
+      },
     });
     void undoFn;
     dismissUndo(id);
@@ -86,9 +106,15 @@ describe("useOptimisticMutation", () => {
     // Now exercise via the helper itself.
     events.length = 0;
     const mutate = useOptimisticMutation<{ id: string }>({
-      apply: () => { events.push("apply"); },
-      rollback: () => { events.push("rollback"); },
-      commit: async () => { events.push("commit"); },
+      apply: () => {
+        events.push("apply");
+      },
+      rollback: () => {
+        events.push("rollback");
+      },
+      commit: async () => {
+        events.push("commit");
+      },
       undoable: 30_000,
       message: "Removed",
     });
@@ -115,9 +141,15 @@ describe("useOptimisticMutation", () => {
     const messages: string[] = [];
     const events: string[] = [];
     const mutate = useOptimisticMutation<{ name: string }>({
-      apply: ({ name }) => { events.push(`apply:${name}`); },
-      rollback: ({ name }) => { events.push(`rollback:${name}`); },
-      commit: async ({ name }) => { events.push(`commit:${name}`); },
+      apply: ({ name }) => {
+        events.push(`apply:${name}`);
+      },
+      rollback: ({ name }) => {
+        events.push(`rollback:${name}`);
+      },
+      commit: async ({ name }) => {
+        events.push(`commit:${name}`);
+      },
       undoable: 10,
       message: ({ name }) => {
         messages.push(name);
@@ -134,8 +166,12 @@ describe("useOptimisticMutation — error path", () => {
   test("commit failure inside the undo window still rolls back", async () => {
     const events: string[] = [];
     const mutate = useOptimisticMutation<void>({
-      apply: () => { events.push("apply"); },
-      rollback: () => { events.push("rollback"); },
+      apply: () => {
+        events.push("apply");
+      },
+      rollback: () => {
+        events.push("rollback");
+      },
       commit: async () => {
         events.push("commit");
         throw new Error("server 500");
@@ -153,7 +189,9 @@ describe("useOptimisticMutation — error path", () => {
   test("rollback errors do not bubble out of the helper", async () => {
     const events: string[] = [];
     const mutate = useOptimisticMutation<void>({
-      apply: () => { events.push("apply"); },
+      apply: () => {
+        events.push("apply");
+      },
       rollback: () => {
         events.push("rollback");
         throw new Error("rollback failed");

@@ -6,14 +6,8 @@
 //
 // No theater. No mock data. If the memory is empty, the page says so.
 
-import {
-  createResource,
-  createSignal,
-  For,
-  Show,
-} from "solid-js";
+import { For, Show, createResource, createSignal } from "solid-js";
 import type { JSX } from "solid-js";
-import { Box, Text } from "@back-to-the-future/ui";
 import { SEOHead } from "../components/SEOHead";
 import { trpc } from "../lib/trpc";
 
@@ -110,21 +104,23 @@ export default function FlywheelPage(): JSX.Element {
   });
 
   return (
-    <Box style={{ "min-height": "100vh", background: "var(--color-bg)", color: "var(--color-text)" }}>
+    <div
+      style={{ "min-height": "100vh", background: "var(--color-bg)", color: "var(--color-text)" }}
+    >
       <SEOHead
         title="Flywheel Memory"
         description="Searchable memory across every Claude Code session on Crontech. Turn transcripts into institutional knowledge."
         path="/flywheel"
       />
 
-      <Box style={{ padding: "2rem", "max-width": "1400px", margin: "0 auto" }}>
-        <Text variant="h1" weight="bold" style={{ "font-size": "2rem", margin: "0 0 0.25rem" }}>
+      <div style={{ padding: "2rem", "max-width": "1400px", margin: "0 auto" }}>
+        <h1 style={{ "font-size": "2rem", "font-weight": "700", margin: "0 0 0.25rem" }}>
           Flywheel Memory
-        </Text>
-        <Text variant="body" style={{ color: "var(--color-text-muted)", margin: "0 0 2rem", "font-size": "0.9rem" }}>
-          Full-text search over every Claude Code session ingested from this repo.
-          Every transcript becomes institutional memory the next agent can act on.
-        </Text>
+        </h1>
+        <p style={{ color: "var(--color-text-muted)", margin: "0 0 2rem", "font-size": "0.9rem" }}>
+          Full-text search over every Claude Code session ingested from this repo. Every transcript
+          becomes institutional memory the next agent can act on.
+        </p>
 
         <div
           style={{
@@ -206,9 +202,7 @@ export default function FlywheelPage(): JSX.Element {
                       <span style={{ "font-size": "0.72rem", color: "var(--color-text-muted)" }}>
                         {formatWhen(s.startedAt)}
                       </span>
-                      <span
-                        style={{ "font-size": "0.72rem", color: "var(--color-text-faint)" }}
-                      >
+                      <span style={{ "font-size": "0.72rem", color: "var(--color-text-faint)" }}>
                         {s.turnCount} turns
                       </span>
                     </div>
@@ -281,9 +275,7 @@ export default function FlywheelPage(): JSX.Element {
                     color: "var(--color-text-secondary)",
                   }}
                 >
-                  {hits.loading
-                    ? "Searching…"
-                    : `${hits()?.length ?? 0} hit(s)`}
+                  {hits.loading ? "Searching…" : `${hits()?.length ?? 0} hit(s)`}
                 </div>
                 <div
                   style={{
@@ -319,9 +311,7 @@ export default function FlywheelPage(): JSX.Element {
                           }}
                         >
                           <span>
-                            <span style={{ color: roleColor(hit.turnRole) }}>
-                              {hit.turnRole}
-                            </span>
+                            <span style={{ color: roleColor(hit.turnRole) }}>{hit.turnRole}</span>
                             {" · "}
                             {hit.gitBranch ?? "—"}
                             {" · seq "}
@@ -366,8 +356,8 @@ export default function FlywheelPage(): JSX.Element {
                       "text-align": "center",
                     }}
                   >
-                    Select a session on the left — or a search hit above — to
-                    see the full transcript.
+                    Select a session on the left — or a search hit above — to see the full
+                    transcript.
                   </div>
                 }
               >
@@ -375,9 +365,7 @@ export default function FlywheelPage(): JSX.Element {
                   when={sessionDetail()}
                   fallback={
                     <div style={{ padding: "2rem", color: "var(--color-text-muted)" }}>
-                      {sessionDetail.loading
-                        ? "Loading transcript…"
-                        : "Transcript not found."}
+                      {sessionDetail.loading ? "Loading transcript…" : "Transcript not found."}
                     </div>
                   }
                 >
@@ -389,17 +377,13 @@ export default function FlywheelPage(): JSX.Element {
                           "border-bottom": "1px solid var(--color-border)",
                         }}
                       >
-                        <div
-                          style={{ "font-size": "0.72rem", color: "var(--color-text-muted)" }}
-                        >
+                        <div style={{ "font-size": "0.72rem", color: "var(--color-text-muted)" }}>
                           {formatWhen(detail().startedAt)}
                           {" · "}
                           {detail().gitBranch ?? "—"}
                           {" · "}
                           {detail().turnCount} turns
-                          {detail().compactCount > 0
-                            ? ` · ${detail().compactCount} compact`
-                            : ""}
+                          {detail().compactCount > 0 ? ` · ${detail().compactCount} compact` : ""}
                         </div>
                         <div
                           style={{
@@ -414,8 +398,7 @@ export default function FlywheelPage(): JSX.Element {
                       <div
                         style={{
                           padding: "1rem",
-                          "font-family":
-                            "ui-monospace, SFMono-Regular, Menlo, monospace",
+                          "font-family": "ui-monospace, SFMono-Regular, Menlo, monospace",
                           "font-size": "0.8rem",
                           "line-height": "1.55",
                           "max-height": "60vh",
@@ -465,7 +448,7 @@ export default function FlywheelPage(): JSX.Element {
             </div>
           </div>
         </div>
-      </Box>
-    </Box>
+      </div>
+    </div>
   );
 }

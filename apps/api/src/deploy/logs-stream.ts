@@ -20,15 +20,10 @@
 //   event: end           → {"status":"live"|"failed"|"rolled_back"|"cancelled"}
 //   event: error         → {"error":"..."}
 
+import { db as defaultDb, deploymentLogs, deployments, projects } from "@back-to-the-future/db";
+import { and, asc, eq, gt } from "drizzle-orm";
 import { Hono } from "hono";
 import { streamSSE } from "hono/streaming";
-import { and, asc, eq, gt } from "drizzle-orm";
-import {
-  deployments,
-  deploymentLogs,
-  projects,
-  db as defaultDb,
-} from "@back-to-the-future/db";
 import { validateSession } from "../auth/session";
 
 // ── Types ────────────────────────────────────────────────────────────
@@ -80,10 +75,9 @@ export function createLogsStreamApp(deps: LogsStreamDeps): Hono {
     // cannot set headers so browser clients always use the query param.
     const queryToken = c.req.query("token");
     const authHeader = c.req.header("Authorization");
-    const bearerToken =
-      authHeader && authHeader.startsWith("Bearer ")
-        ? authHeader.slice("Bearer ".length)
-        : null;
+    const bearerToken = authHeader?.startsWith("Bearer ")
+      ? authHeader.slice("Bearer ".length)
+      : null;
     const token = queryToken && queryToken.length > 0 ? queryToken : bearerToken;
     if (!token) {
       return c.json({ error: "Missing session token." }, 401);
@@ -261,8 +255,7 @@ export const deploymentLogsStreamApp = createLogsStreamApp({
 
 // ── Helpers ─────────────────────────────────────────────────────────
 
-const UUID_RE =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function isUuid(value: string): boolean {
   return UUID_RE.test(value);

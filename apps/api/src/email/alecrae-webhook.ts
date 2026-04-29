@@ -34,10 +34,7 @@ async function timingSafeEqualHex(a: string, b: string): Promise<boolean> {
   return diff === 0;
 }
 
-async function computeHmacSha256Hex(
-  secret: string,
-  payload: string,
-): Promise<string> {
+async function computeHmacSha256Hex(secret: string, payload: string): Promise<string> {
   const key = await crypto.subtle.importKey(
     "raw",
     new TextEncoder().encode(secret),
@@ -45,11 +42,7 @@ async function computeHmacSha256Hex(
     false,
     ["sign"],
   );
-  const sig = await crypto.subtle.sign(
-    "HMAC",
-    key,
-    new TextEncoder().encode(payload),
-  );
+  const sig = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(payload));
   return Array.from(new Uint8Array(sig))
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
@@ -59,13 +52,10 @@ const app = new Hono();
 
 app.post("/alecrae/webhook", async (c) => {
   const rawBody = await c.req.text();
-  const secret = process.env["ALECRAE_WEBHOOK_SECRET"];
+  const secret = process.env.ALECRAE_WEBHOOK_SECRET;
 
   if (secret) {
-    const providedSig =
-      c.req.header("x-alecrae-signature") ??
-      c.req.header("x-signature") ??
-      "";
+    const providedSig = c.req.header("x-alecrae-signature") ?? c.req.header("x-signature") ?? "";
     const normalisedSig = providedSig.replace(/^sha256=/i, "").trim();
     if (!normalisedSig) {
       return c.json({ error: "missing_signature" }, 401);
@@ -92,34 +82,23 @@ app.post("/alecrae/webhook", async (c) => {
     return c.json({ error: "invalid_json" }, 400);
   }
 
-  const event = typeof payload["event"] === "string" ? payload["event"] : "unknown";
-  const messageId =
-    typeof payload["message_id"] === "string" ? payload["message_id"] : "unknown";
-  const to = typeof payload["to"] === "string" ? payload["to"] : "unknown";
+  const event = typeof payload.event === "string" ? payload.event : "unknown";
+  const messageId = typeof payload.message_id === "string" ? payload.message_id : "unknown";
+  const to = typeof payload.to === "string" ? payload.to : "unknown";
   const timestamp =
-    typeof payload["timestamp"] === "number" || typeof payload["timestamp"] === "string"
-      ? String(payload["timestamp"])
+    typeof payload.timestamp === "number" || typeof payload.timestamp === "string"
+      ? String(payload.timestamp)
       : new Date().toISOString();
 
   // Known event names from AlecRae's onboarding checklist:
   //   delivered | bounced | complained | opened | clicked
-  const knownEvents = new Set([
-    "delivered",
-    "bounced",
-    "complained",
-    "opened",
-    "clicked",
-  ]);
+  const knownEvents = new Set(["delivered", "bounced", "complained", "opened", "clicked"]);
 
   if (!knownEvents.has(event)) {
-    console.warn(
-      `[alecrae-webhook] unrecognised event="${event}" message_id=${messageId}`,
-    );
+    console.warn(`[alecrae-webhook] unrecognised event="${event}" message_id=${messageId}`);
   }
 
-  log.info(
-    `[alecrae-webhook] event=${event} message_id=${messageId} to=${to} ts=${timestamp}`,
-  );
+  log.info(`[alecrae-webhook] event=${event} message_id=${messageId} to=${to} ts=${timestamp}`);
 
   // TODO: persist to email_events table once schema exists.
   // TODO: on bounced/complained, add to suppression list.

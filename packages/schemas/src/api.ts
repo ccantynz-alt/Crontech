@@ -38,9 +38,7 @@ export const PaginatedResponse = <T extends z.ZodType>(itemSchema: T) =>
 // ── Environment Variables Schema ───────────────────────────────────
 
 export const EnvSchema = z.object({
-  NODE_ENV: z
-    .enum(["development", "production", "test"])
-    .default("development"),
+  NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
   DATABASE_URL: z.string().url(),
   DATABASE_AUTH_TOKEN: z.string().min(1).optional(),
   API_PORT: z.coerce.number().int().default(3001),

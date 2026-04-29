@@ -97,9 +97,7 @@ function defaultRedisCommand(_clusterUrl: string): RedisCommand {
     // Production binding is supplied by the bare-metal cluster admin
     // service (out of scope for this control plane). The default is a
     // hard error so misconfigurations fail loud.
-    throw new Error(
-      "no redis admin transport configured — set MANAGED_DBS_REDIS_TRANSPORT",
-    );
+    throw new Error("no redis admin transport configured — set MANAGED_DBS_REDIS_TRANSPORT");
   };
 }
 
@@ -110,21 +108,21 @@ function main(): void {
 
   const provisioners = new Map<DbType, DbProvisioner>();
 
-  if (process.env["MANAGED_DBS_NEON_API_KEY"]) {
-    const baseUrl = process.env["MANAGED_DBS_NEON_BASE_URL"] ?? "https://console.neon.tech/api/v2";
-    const apiKey = process.env["MANAGED_DBS_NEON_API_KEY"] ?? "";
+  if (process.env.MANAGED_DBS_NEON_API_KEY) {
+    const baseUrl = process.env.MANAGED_DBS_NEON_BASE_URL ?? "https://console.neon.tech/api/v2";
+    const apiKey = process.env.MANAGED_DBS_NEON_API_KEY ?? "";
     provisioners.set(
       "postgres",
       new NeonProvisioner({ transport: defaultNeonTransport(baseUrl, apiKey) }),
     );
   }
-  if (process.env["MANAGED_DBS_REDIS_HOST"]) {
-    const host = process.env["MANAGED_DBS_REDIS_HOST"] ?? "127.0.0.1";
-    const port = Number(process.env["MANAGED_DBS_REDIS_PORT"] ?? "6379");
+  if (process.env.MANAGED_DBS_REDIS_HOST) {
+    const host = process.env.MANAGED_DBS_REDIS_HOST ?? "127.0.0.1";
+    const port = Number(process.env.MANAGED_DBS_REDIS_PORT ?? "6379");
     provisioners.set(
       "redis",
       new RedisLocalProvisioner({
-        command: defaultRedisCommand(`redis://${host}:${port}`),
+        command: defaultRedisCommand(`redis://${host}:${port}`), // secrets-ok — constructed from env vars, not hardcoded
         clusterHost: host,
         clusterPort: port,
       }),
@@ -134,7 +132,7 @@ function main(): void {
   const registry = new DatabaseRegistry({ masterKey, provisioners, audit });
   const app = createServer({ registry, authToken, audit });
 
-  const port = Number(process.env["MANAGED_DBS_PORT"] ?? "9120");
+  const port = Number(process.env.MANAGED_DBS_PORT ?? "9120");
   Bun.serve({ fetch: app.fetch, port, hostname: "127.0.0.1" });
   console.log(
     JSON.stringify({

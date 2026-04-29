@@ -48,7 +48,11 @@ export function emitDataChange(keys: string | string[], detail?: string): void {
   // Clean up dead connections
   for (const sub of dead) {
     subscribers.delete(sub);
-    try { sub.controller.abort(); } catch { /* already closed */ }
+    try {
+      sub.controller.abort();
+    } catch {
+      /* already closed */
+    }
   }
 }
 
@@ -110,7 +114,11 @@ liveUpdatesApp.get("/live-updates", async (c) => {
         clearInterval(keepAlive);
         subscribers.delete(sub);
         reader.releaseLock();
-        try { await writer.close(); } catch { /* already closed */ }
+        try {
+          await writer.close();
+        } catch {
+          /* already closed */
+        }
       }
     },
     async (_error, stream) => {

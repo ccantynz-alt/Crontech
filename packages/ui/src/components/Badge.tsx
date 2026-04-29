@@ -21,13 +21,12 @@ export function Badge(props: BadgeProps): JSX.Element {
   ]);
 
   return (
-    <span
+    <output
       class={`badge badge-${local.variant ?? "default"} badge-${local.size ?? "md"} ${local.class ?? ""}`}
       style={local.style}
-      role="status"
       {...rest}
     >
       {local.label ?? local.children}
-    </span>
+    </output>
   );
 }

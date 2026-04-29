@@ -10,38 +10,32 @@
  */
 
 import {
-  S3Client,
-  PutObjectCommand,
-  GetObjectCommand,
   DeleteObjectCommand,
+  GetObjectCommand,
   HeadObjectCommand,
+  PutObjectCommand,
+  S3Client,
 } from "@aws-sdk/client-s3";
 // ── Configuration ─────────────────────────────────────────────────────
 
-const R2_ACCOUNT_ID = process.env["R2_ACCOUNT_ID"];
-const R2_ACCESS_KEY_ID = process.env["R2_ACCESS_KEY_ID"];
-const R2_SECRET_ACCESS_KEY = process.env["R2_SECRET_ACCESS_KEY"];
-const R2_BUCKET_NAME = process.env["R2_BUCKET_NAME"] ?? "crontech-assets";
+const R2_ACCOUNT_ID = process.env.R2_ACCOUNT_ID;
+const R2_ACCESS_KEY_ID = process.env.R2_ACCESS_KEY_ID;
+const R2_SECRET_ACCESS_KEY = process.env.R2_SECRET_ACCESS_KEY;
+const R2_BUCKET_NAME = process.env.R2_BUCKET_NAME ?? "crontech-assets";
 
 // BLK-018 — Self-hosted object storage backend.
 // When `OBJECT_STORAGE_ENDPOINT` is set the storage layer talks to our own
 // MinIO cluster (services/object-storage/) instead of Cloudflare R2. The
 // S3 protocol is identical so the same client + presign code paths run on
 // both backends — only the endpoint and bucket name change.
-const OBJECT_STORAGE_ENDPOINT = process.env["OBJECT_STORAGE_ENDPOINT"];
-const OBJECT_STORAGE_REGION = process.env["OBJECT_STORAGE_REGION"] ?? "us-east-1";
-const OBJECT_STORAGE_ACCESS_KEY_ID =
-  process.env["OBJECT_STORAGE_ACCESS_KEY_ID"];
-const OBJECT_STORAGE_SECRET_ACCESS_KEY =
-  process.env["OBJECT_STORAGE_SECRET_ACCESS_KEY"];
-const OBJECT_STORAGE_BUCKET = process.env["OBJECT_STORAGE_BUCKET"];
+const OBJECT_STORAGE_ENDPOINT = process.env.OBJECT_STORAGE_ENDPOINT;
+const OBJECT_STORAGE_REGION = process.env.OBJECT_STORAGE_REGION ?? "us-east-1";
+const OBJECT_STORAGE_ACCESS_KEY_ID = process.env.OBJECT_STORAGE_ACCESS_KEY_ID;
+const OBJECT_STORAGE_SECRET_ACCESS_KEY = process.env.OBJECT_STORAGE_SECRET_ACCESS_KEY;
+const OBJECT_STORAGE_BUCKET = process.env.OBJECT_STORAGE_BUCKET;
 
 function isConfigured(): boolean {
-  if (
-    OBJECT_STORAGE_ENDPOINT &&
-    OBJECT_STORAGE_ACCESS_KEY_ID &&
-    OBJECT_STORAGE_SECRET_ACCESS_KEY
-  ) {
+  if (OBJECT_STORAGE_ENDPOINT && OBJECT_STORAGE_ACCESS_KEY_ID && OBJECT_STORAGE_SECRET_ACCESS_KEY) {
     return true;
   }
   return Boolean(R2_ACCOUNT_ID && R2_ACCESS_KEY_ID && R2_SECRET_ACCESS_KEY);
@@ -51,11 +45,7 @@ function isConfigured(): boolean {
 export type StorageBackend = "self-hosted" | "r2" | "none";
 
 export function getStorageBackend(): StorageBackend {
-  if (
-    OBJECT_STORAGE_ENDPOINT &&
-    OBJECT_STORAGE_ACCESS_KEY_ID &&
-    OBJECT_STORAGE_SECRET_ACCESS_KEY
-  ) {
+  if (OBJECT_STORAGE_ENDPOINT && OBJECT_STORAGE_ACCESS_KEY_ID && OBJECT_STORAGE_SECRET_ACCESS_KEY) {
     return "self-hosted";
   }
   if (R2_ACCOUNT_ID && R2_ACCESS_KEY_ID && R2_SECRET_ACCESS_KEY) {
@@ -107,8 +97,8 @@ export function getS3Client(): S3Client | null {
     region: "auto",
     endpoint: `https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
     credentials: {
-      accessKeyId: R2_ACCESS_KEY_ID!,
-      secretAccessKey: R2_SECRET_ACCESS_KEY!,
+      accessKeyId: R2_ACCESS_KEY_ID ?? "",
+      secretAccessKey: R2_SECRET_ACCESS_KEY ?? "",
     },
   });
   return _client;
@@ -202,10 +192,7 @@ export interface DownloadResult {
   contentLength: number | undefined;
 }
 
-export async function downloadFile(
-  tenantId: string,
-  key: string,
-): Promise<DownloadResult | null> {
+export async function downloadFile(tenantId: string, key: string): Promise<DownloadResult | null> {
   const client = getS3Client();
   if (!client) return null;
 
@@ -224,10 +211,7 @@ export async function downloadFile(
   };
 }
 
-export async function deleteFile(
-  tenantId: string,
-  key: string,
-): Promise<boolean> {
+export async function deleteFile(tenantId: string, key: string): Promise<boolean> {
   const client = getS3Client();
   if (!client) return false;
 
@@ -241,10 +225,7 @@ export async function deleteFile(
   return true;
 }
 
-export async function fileExists(
-  tenantId: string,
-  key: string,
-): Promise<boolean> {
+export async function fileExists(tenantId: string, key: string): Promise<boolean> {
   const client = getS3Client();
   if (!client) return false;
 
@@ -269,10 +250,7 @@ export interface FileMetadata {
   etag: string | undefined;
 }
 
-export async function getFileMetadata(
-  tenantId: string,
-  key: string,
-): Promise<FileMetadata | null> {
+export async function getFileMetadata(tenantId: string, key: string): Promise<FileMetadata | null> {
   const client = getS3Client();
   if (!client) return null;
 

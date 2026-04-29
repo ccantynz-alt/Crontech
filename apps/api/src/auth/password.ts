@@ -8,11 +8,11 @@
 // Password complexity: minimum 8 characters, at least one number,
 // at least one special character.
 
-import { z } from "zod";
-import { eq } from "drizzle-orm";
-import { TRPCError } from "@trpc/server";
-import { argon2id, argon2Verify } from "hash-wasm";
 import { users } from "@back-to-the-future/db";
+import { TRPCError } from "@trpc/server";
+import { eq } from "drizzle-orm";
+import { argon2Verify, argon2id } from "hash-wasm";
+import { z } from "zod";
 import { createSession } from "./session";
 
 // ── Password Validation Schema ──────────────────────────────────────
@@ -21,10 +21,7 @@ export const passwordSchema = z
   .string()
   .min(8, "Password must be at least 8 characters")
   .regex(/[0-9]/, "Password must include at least one number")
-  .regex(
-    /[^a-zA-Z0-9]/,
-    "Password must include at least one special character",
-  );
+  .regex(/[^a-zA-Z0-9]/, "Password must include at least one special character");
 
 export const registerWithPasswordSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -58,9 +55,7 @@ function checkLoginRateLimit(email: string): void {
 
   // Check if locked out
   if (attempt.lockedUntil && Date.now() < attempt.lockedUntil) {
-    const remainingSeconds = Math.ceil(
-      (attempt.lockedUntil - Date.now()) / 1000,
-    );
+    const remainingSeconds = Math.ceil((attempt.lockedUntil - Date.now()) / 1000);
     throw new TRPCError({
       code: "TOO_MANY_REQUESTS",
       message: `Too many login attempts. Try again in ${remainingSeconds} seconds.`,
@@ -97,7 +92,7 @@ function clearLoginAttempts(email: string): void {
 }
 
 // Periodic cleanup of expired entries
-setInterval(() => {
+export const _loginAttemptCleanupInterval = setInterval(() => {
   const now = Date.now();
   for (const [key, attempt] of loginAttempts) {
     if (
@@ -136,10 +131,7 @@ async function hashPassword(password: string): Promise<string> {
   });
 }
 
-async function verifyPassword(
-  password: string,
-  hash: string,
-): Promise<boolean> {
+async function verifyPassword(password: string, hash: string): Promise<boolean> {
   return argon2Verify({ password, hash });
 }
 
@@ -151,9 +143,7 @@ export interface PasswordStrength {
   suggestions: string[];
 }
 
-export function calculatePasswordStrength(
-  password: string,
-): PasswordStrength {
+export function calculatePasswordStrength(password: string): PasswordStrength {
   let score = 0;
   const suggestions: string[] = [];
 
@@ -204,11 +194,7 @@ export async function registerWithPassword(
   const { email, password, displayName } = input;
 
   // Check if user already exists
-  const existing = await database
-    .select()
-    .from(users)
-    .where(eq(users.email, email))
-    .limit(1);
+  const existing = await database.select().from(users).where(eq(users.email, email)).limit(1);
 
   const existingUser = existing[0];
   if (existingUser) {
@@ -269,11 +255,7 @@ export async function loginWithPassword(
   checkLoginRateLimit(email);
 
   // Find user by email
-  const result = await database
-    .select()
-    .from(users)
-    .where(eq(users.email, email))
-    .limit(1);
+  const result = await database.select().from(users).where(eq(users.email, email)).limit(1);
 
   const user = result[0];
   if (!user) {
@@ -290,14 +272,12 @@ export async function loginWithPassword(
     if (user.authProvider === "google") {
       throw new TRPCError({
         code: "UNAUTHORIZED",
-        message:
-          "This account uses Google sign-in. Please sign in with Google.",
+        message: "This account uses Google sign-in. Please sign in with Google.",
       });
     }
     throw new TRPCError({
       code: "UNAUTHORIZED",
-      message:
-        "This account uses passkey authentication. Please sign in with your passkey.",
+      message: "This account uses passkey authentication. Please sign in with your passkey.",
     });
   }
 

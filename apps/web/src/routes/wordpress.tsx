@@ -144,8 +144,7 @@ function BenefitCard(props: Benefit): JSX.Element {
           <div
             class="flex h-11 w-11 items-center justify-center rounded-xl text-[1.25rem]"
             style={{
-              background:
-                "linear-gradient(135deg, rgba(99,102,241,0.12), rgba(139,92,246,0.12))",
+              background: "linear-gradient(135deg, rgba(99,102,241,0.12), rgba(139,92,246,0.12))",
               border: "1px solid rgba(99,102,241,0.2)",
             }}
             aria-hidden="true"
@@ -161,24 +160,15 @@ function BenefitCard(props: Benefit): JSX.Element {
         </div>
 
         <div class="flex flex-col gap-2.5">
-          <h3
-            class="text-[1.125rem] font-bold tracking-tight"
-            style={{ color: "#0f172a" }}
-          >
+          <h3 class="text-[1.125rem] font-bold tracking-tight" style={{ color: "#0f172a" }}>
             {props.title}
           </h3>
-          <p
-            class="text-[0.9375rem] leading-[1.65]"
-            style={{ color: "#475569" }}
-          >
+          <p class="text-[0.9375rem] leading-[1.65]" style={{ color: "#475569" }}>
             {props.valueProp}
           </p>
         </div>
 
-        <p
-          class="mt-auto pt-2 text-[0.75rem] italic leading-[1.55]"
-          style={{ color: "#94a3b8" }}
-        >
+        <p class="mt-auto pt-2 text-[0.75rem] italic leading-[1.55]" style={{ color: "#94a3b8" }}>
           Measured on beta deployments — your mileage varies.
         </p>
       </div>
@@ -196,8 +186,7 @@ function AudienceTile(props: Audience): JSX.Element {
           <div
             class="flex h-11 w-11 items-center justify-center rounded-xl text-[1.25rem]"
             style={{
-              background:
-                "linear-gradient(135deg, rgba(139,92,246,0.12), rgba(167,139,250,0.12))",
+              background: "linear-gradient(135deg, rgba(139,92,246,0.12), rgba(167,139,250,0.12))",
               border: "1px solid rgba(139,92,246,0.2)",
             }}
             aria-hidden="true"
@@ -213,16 +202,10 @@ function AudienceTile(props: Audience): JSX.Element {
         </div>
 
         <div class="flex flex-col gap-2.5">
-          <h3
-            class="text-[1.125rem] font-bold tracking-tight"
-            style={{ color: "#0f172a" }}
-          >
+          <h3 class="text-[1.125rem] font-bold tracking-tight" style={{ color: "#0f172a" }}>
             {props.title}
           </h3>
-          <p
-            class="text-[0.9375rem] leading-[1.65]"
-            style={{ color: "#475569" }}
-          >
+          <p class="text-[0.9375rem] leading-[1.65]" style={{ color: "#475569" }}>
             {props.valueProp}
           </p>
         </div>
@@ -243,16 +226,10 @@ function StepRow(props: Step): JSX.Element {
         >
           Step {props.number}
         </span>
-        <h3
-          class="text-[1.125rem] font-bold tracking-tight"
-          style={{ color: "#0f172a" }}
-        >
+        <h3 class="text-[1.125rem] font-bold tracking-tight" style={{ color: "#0f172a" }}>
           {props.title}
         </h3>
-        <p
-          class="text-[0.9375rem] leading-[1.7]"
-          style={{ color: "#475569" }}
-        >
+        <p class="text-[0.9375rem] leading-[1.7]" style={{ color: "#475569" }}>
           {props.body}
         </p>
       </div>
@@ -287,17 +264,17 @@ export default function WordPress(): JSX.Element {
                 class="max-w-4xl text-[2.75rem] font-extrabold leading-[1.05] tracking-[-0.035em] sm:text-[3.5rem] lg:text-[4.5rem]"
                 style={{ color: "#f8fafc" }}
               >
-                Make your WordPress site{" "}
-                <span class="landing-gradient-text">3&times; faster</span> with AI.
+                Make your WordPress site <span class="landing-gradient-text">3&times; faster</span>{" "}
+                with AI.
               </h1>
 
               <p
                 class="mt-8 max-w-3xl text-[1.125rem] leading-[1.7] sm:text-[1.1875rem] lg:text-xl"
                 style={{ color: "rgba(248,250,252,0.78)" }}
               >
-                Crontech sits in front of any WordPress host &mdash; Kinsta, WP
-                Engine, SiteGround, whoever. Zero migration. Instant speed.
-                Your existing host stays exactly where it is.
+                Crontech sits in front of any WordPress host &mdash; Kinsta, WP Engine, SiteGround,
+                whoever. Zero migration. Instant speed. Your existing host stays exactly where it
+                is.
               </p>
 
               <div class="mt-12 flex flex-col items-center gap-4 sm:flex-row">
@@ -321,10 +298,7 @@ export default function WordPress(): JSX.Element {
           <div class="mx-auto max-w-[1120px] px-6 lg:px-8">
             <div class="mb-16 flex flex-col items-center text-center">
               <div class="landing-section-label">
-                <div
-                  class="h-1.5 w-1.5 rounded-full"
-                  style={{ background: "#6366f1" }}
-                />
+                <div class="h-1.5 w-1.5 rounded-full" style={{ background: "#6366f1" }} />
                 What you get
               </div>
               <h2
@@ -333,12 +307,9 @@ export default function WordPress(): JSX.Element {
               >
                 Three layers of speed, bolted onto your existing stack.
               </h2>
-              <p
-                class="mt-5 max-w-2xl text-[1.0625rem] leading-[1.7]"
-                style={{ color: "#64748b" }}
-              >
-                No migration. No rebuild. No new host. Just a measurable jump
-                in page speed, Core Web Vitals, and visitor retention.
+              <p class="mt-5 max-w-2xl text-[1.0625rem] leading-[1.7]" style={{ color: "#64748b" }}>
+                No migration. No rebuild. No new host. Just a measurable jump in page speed, Core
+                Web Vitals, and visitor retention.
               </p>
             </div>
 
@@ -362,10 +333,7 @@ export default function WordPress(): JSX.Element {
           <div class="mx-auto max-w-[1120px] px-6 lg:px-8">
             <div class="mb-16 flex flex-col items-center text-center">
               <div class="landing-section-label">
-                <div
-                  class="h-1.5 w-1.5 rounded-full"
-                  style={{ background: "#8b5cf6" }}
-                />
+                <div class="h-1.5 w-1.5 rounded-full" style={{ background: "#8b5cf6" }} />
                 Who it's for
               </div>
               <h2
@@ -374,13 +342,9 @@ export default function WordPress(): JSX.Element {
               >
                 Built for the 40% of the internet that runs on WordPress.
               </h2>
-              <p
-                class="mt-5 max-w-2xl text-[1.0625rem] leading-[1.7]"
-                style={{ color: "#64748b" }}
-              >
-                Whether you own one site, manage fifty client sites, or run a
-                WooCommerce store, the math is the same: faster pages, more
-                customers, less churn.
+              <p class="mt-5 max-w-2xl text-[1.0625rem] leading-[1.7]" style={{ color: "#64748b" }}>
+                Whether you own one site, manage fifty client sites, or run a WooCommerce store, the
+                math is the same: faster pages, more customers, less churn.
               </p>
             </div>
 
@@ -404,10 +368,7 @@ export default function WordPress(): JSX.Element {
           <div class="mx-auto max-w-[1120px] px-6 lg:px-8">
             <div class="mb-16 flex flex-col items-center text-center">
               <div class="landing-section-label">
-                <div
-                  class="h-1.5 w-1.5 rounded-full"
-                  style={{ background: "#818cf8" }}
-                />
+                <div class="h-1.5 w-1.5 rounded-full" style={{ background: "#818cf8" }} />
                 How it works
               </div>
               <h2
@@ -416,24 +377,15 @@ export default function WordPress(): JSX.Element {
               >
                 Three steps. Zero migration.
               </h2>
-              <p
-                class="mt-5 max-w-2xl text-[1.0625rem] leading-[1.7]"
-                style={{ color: "#64748b" }}
-              >
-                Your host stays untouched. Your database is never read. The
-                only thing that changes is how fast your pages arrive.
+              <p class="mt-5 max-w-2xl text-[1.0625rem] leading-[1.7]" style={{ color: "#64748b" }}>
+                Your host stays untouched. Your database is never read. The only thing that changes
+                is how fast your pages arrive.
               </p>
             </div>
 
             <div class="grid grid-cols-1 gap-5 md:grid-cols-3">
               <For each={steps}>
-                {(step) => (
-                  <StepRow
-                    number={step.number}
-                    title={step.title}
-                    body={step.body}
-                  />
-                )}
+                {(step) => <StepRow number={step.number} title={step.title} body={step.body} />}
               </For>
             </div>
 
@@ -443,8 +395,7 @@ export default function WordPress(): JSX.Element {
                 class="inline-flex items-center gap-2 text-[0.9375rem] font-semibold"
                 style={{ color: "#6366f1" }}
               >
-                Read the install guide (plugin coming soon){" "}
-                <span aria-hidden="true">&#8594;</span>
+                Read the install guide (plugin coming soon) <span aria-hidden="true">&#8594;</span>
               </A>
             </div>
           </div>
@@ -455,23 +406,19 @@ export default function WordPress(): JSX.Element {
           <div class="mx-auto max-w-[1120px] px-6 lg:px-8">
             <div class="max-w-3xl">
               <div class="landing-section-label">
-                <div
-                  class="h-1.5 w-1.5 rounded-full"
-                  style={{ background: "#8b5cf6" }}
-                />
+                <div class="h-1.5 w-1.5 rounded-full" style={{ background: "#8b5cf6" }} />
                 Partner, not replacement
               </div>
               <p
                 class="mt-6 text-[1.0625rem] leading-[1.8] sm:text-[1.125rem]"
                 style={{ color: "#334155" }}
               >
-                Crontech is not a WordPress host. We don&apos;t want to be one.
-                Your managed host is doing a job we have no interest in doing
-                &mdash; running the admin, storing the database, keeping PHP
-                patched. What we do is the piece your host was never built for:
-                a global AI performance layer that makes every public page on
-                your site faster without touching a single thing you already
-                have. Keep your host. Bolt us on the front.
+                Crontech is not a WordPress host. We don&apos;t want to be one. Your managed host is
+                doing a job we have no interest in doing &mdash; running the admin, storing the
+                database, keeping PHP patched. What we do is the piece your host was never built
+                for: a global AI performance layer that makes every public page on your site faster
+                without touching a single thing you already have. Keep your host. Bolt us on the
+                front.
               </p>
             </div>
           </div>
@@ -482,10 +429,7 @@ export default function WordPress(): JSX.Element {
           <div class="mx-auto max-w-[1120px] px-6 lg:px-8">
             <div class="mb-14 flex flex-col items-center text-center">
               <div class="landing-section-label">
-                <div
-                  class="h-1.5 w-1.5 rounded-full"
-                  style={{ background: "#818cf8" }}
-                />
+                <div class="h-1.5 w-1.5 rounded-full" style={{ background: "#818cf8" }} />
                 Common questions
               </div>
               <h2
@@ -506,10 +450,7 @@ export default function WordPress(): JSX.Element {
                     >
                       {faq.question}
                     </h3>
-                    <p
-                      class="mt-3 text-[0.9375rem] leading-[1.7]"
-                      style={{ color: "#475569" }}
-                    >
+                    <p class="mt-3 text-[0.9375rem] leading-[1.7]" style={{ color: "#475569" }}>
                       {faq.answer}
                     </p>
                   </div>
@@ -526,15 +467,13 @@ export default function WordPress(): JSX.Element {
               class="text-[2rem] font-bold tracking-tight sm:text-[2.5rem] lg:text-[3rem]"
               style={{ color: "#f8fafc" }}
             >
-              Speed up your{" "}
-              <span class="landing-gradient-text">WordPress</span> site.
+              Speed up your <span class="landing-gradient-text">WordPress</span> site.
             </h2>
             <p
               class="mt-6 text-[1.0625rem] leading-[1.7] sm:text-lg"
               style={{ color: "rgba(226,232,240,0.78)" }}
             >
-              Keep your host. Bolt Crontech on the front. Measure the
-              difference in a week.
+              Keep your host. Bolt Crontech on the front. Measure the difference in a week.
             </p>
             <div class="mt-12 flex flex-col items-center justify-center gap-4 sm:flex-row">
               <A href="/register?source=wordpress">

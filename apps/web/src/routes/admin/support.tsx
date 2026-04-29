@@ -1,18 +1,11 @@
+import { Badge, Button, Card, Spinner, Stack, Text } from "@back-to-the-future/ui";
 import { Title } from "@solidjs/meta";
-import { createSignal, createResource, Show, For, type JSX } from "solid-js";
 import { useNavigate } from "@solidjs/router";
-import {
-  Button,
-  Card,
-  Stack,
-  Text,
-  Badge,
-  Spinner,
-} from "@back-to-the-future/ui";
+import { For, type JSX, Show, createResource, createSignal } from "solid-js";
 import { AdminRoute } from "../../components/AdminRoute";
-import { useAuth } from "../../stores";
-import { trpc } from "../../lib/trpc";
 import { showToast } from "../../components/Toast";
+import { trpc } from "../../lib/trpc";
+import { useAuth } from "../../stores";
 
 type StatusFilter = "awaiting_review" | "escalated" | "all";
 
@@ -46,7 +39,9 @@ function AdminGuard(props: { children: JSX.Element }): JSX.Element {
         when={isAdmin()}
         fallback={
           <Stack direction="vertical" gap="md" class="page-padded">
-            <Text variant="h2" weight="bold">Access Denied</Text>
+            <Text variant="h2" weight="bold">
+              Access Denied
+            </Text>
             <Text variant="body" class="text-muted">
               You do not have permission to view this page. Admin role required.
             </Text>
@@ -192,7 +187,9 @@ export default function AdminSupportPage(): JSX.Element {
       <Title>Support Inbox - Crontech</Title>
       <Stack direction="vertical" gap="lg" class="page-padded">
         <Stack direction="vertical" gap="xs">
-          <Text variant="h1" weight="bold">Support Inbox</Text>
+          <Text variant="h1" weight="bold">
+            Support Inbox
+          </Text>
           <Text variant="body" class="text-muted">
             The 8% that needs human review. Approve, edit, escalate, or resolve.
           </Text>
@@ -206,7 +203,8 @@ export default function AdminSupportPage(): JSX.Element {
           >
             Awaiting review
             <Show when={(tickets() ?? []).length > 0 && filter() === "awaiting_review"}>
-              {" "}({(tickets() ?? []).length})
+              {" "}
+              ({(tickets() ?? []).length})
             </Show>
           </Button>
           <Button
@@ -228,11 +226,17 @@ export default function AdminSupportPage(): JSX.Element {
         <div class="support-inbox-grid">
           <Card padding="md">
             <Stack direction="vertical" gap="sm">
-              <Text variant="h4" weight="semibold">Tickets</Text>
+              <Text variant="h4" weight="semibold">
+                Tickets
+              </Text>
               <Show when={!tickets.loading} fallback={<Spinner />}>
                 <Show
                   when={(tickets() ?? []).length > 0}
-                  fallback={<Text variant="body" class="text-muted">No tickets in this view.</Text>}
+                  fallback={
+                    <Text variant="body" class="text-muted">
+                      No tickets in this view.
+                    </Text>
+                  }
                 >
                   <For each={tickets() as TicketRow[] | undefined}>
                     {(t) => (
@@ -250,7 +254,9 @@ export default function AdminSupportPage(): JSX.Element {
                               {t.category}
                             </Text>
                           </Stack>
-                          <Text variant="body" weight="semibold">{t.subject}</Text>
+                          <Text variant="body" weight="semibold">
+                            {t.subject}
+                          </Text>
                           <Text variant="caption" class="text-muted">
                             {t.fromEmail}
                           </Text>
@@ -299,7 +305,9 @@ export default function AdminSupportPage(): JSX.Element {
                 </Stack>
 
                 <Stack direction="vertical" gap="sm">
-                  <Text variant="h4" weight="semibold">Message thread</Text>
+                  <Text variant="h4" weight="semibold">
+                    Message thread
+                  </Text>
                   <For each={detail()?.messages ?? []}>
                     {(m) => (
                       <div
@@ -320,7 +328,9 @@ export default function AdminSupportPage(): JSX.Element {
 
                 <Show when={detail()?.ticket.aiDraft && detail()?.ticket.status !== "sent"}>
                   <Stack direction="vertical" gap="sm">
-                    <Text variant="h4" weight="semibold">AI draft response</Text>
+                    <Text variant="h4" weight="semibold">
+                      AI draft response
+                    </Text>
                     <Text variant="caption" class="text-muted">
                       Confidence: {detail()?.ticket.aiConfidence ?? 0}%
                     </Text>

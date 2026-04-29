@@ -16,35 +16,27 @@
 //   • Live-hitting the upstream in tests — the test file injects a fake.
 //   • SMS / domain / DNS work — orthogonal agents.
 
-import { z } from "zod";
+import { esimOrders } from "@back-to-the-future/db";
 import { TRPCError } from "@trpc/server";
 import { desc, eq } from "drizzle-orm";
-import { esimOrders } from "@back-to-the-future/db";
-import {
-  router,
-  publicProcedure,
-  protectedProcedure,
-  adminProcedure,
-} from "../init";
-import type { TRPCContext } from "../context";
+import { z } from "zod";
 import {
   CelitechClient,
+  type CelitechClientDeps,
+  type CelitechConfig,
   CelitechError,
   applyMarkup,
   configFromEnv,
   dollarsToMicrodollars,
   markupPercentFromEnv,
-  type CelitechClientDeps,
-  type CelitechConfig,
 } from "../../esim/celitech-client";
 import type { EsimPackageSummary } from "../../esim/celitech-types";
+import type { TRPCContext } from "../context";
+import { adminProcedure, protectedProcedure, publicProcedure, router } from "../init";
 
 // ── Client factory (dependency-injected for tests) ────────────────────
 
-type ClientFactory = (
-  config?: CelitechConfig,
-  deps?: CelitechClientDeps,
-) => CelitechClient;
+type ClientFactory = (config?: CelitechConfig, deps?: CelitechClientDeps) => CelitechClient;
 
 interface RouterTestHooks {
   clientFactory: ClientFactory | undefined;
@@ -83,7 +75,7 @@ function currentMarkupPercent(): number {
 // ── Helpers ───────────────────────────────────────────────────────────
 
 function newOrderId(): string {
-  return `esim_${Date.now().toString(36)}_${crypto.randomUUID().replace(/-/g, '').slice(0, 8)}`;
+  return `esim_${Date.now().toString(36)}_${crypto.randomUUID().replace(/-/g, "").slice(0, 8)}`;
 }
 
 function translateProviderError(err: unknown, fallbackMessage: string): never {
@@ -103,29 +95,20 @@ function translateProviderError(err: unknown, fallbackMessage: string): never {
 }
 
 /** True when `summary.countryCode` or any operator hint matches `code`. */
-function matchesCountry(
-  summary: EsimPackageSummary,
-  code: string | undefined,
-): boolean {
+function matchesCountry(summary: EsimPackageSummary, code: string | undefined): boolean {
   if (!code) return true;
   if (!summary.countryCode) return false;
   return summary.countryCode.toLowerCase() === code.toLowerCase();
 }
 
 /** True when `summary.type` equals the requested region classifier. */
-function matchesRegion(
-  summary: EsimPackageSummary,
-  region: string | undefined,
-): boolean {
+function matchesRegion(summary: EsimPackageSummary, region: string | undefined): boolean {
   if (!region) return true;
   return summary.type.toLowerCase() === region.toLowerCase();
 }
 
 /** Approximate data-size match — customers asking "5 GB" want ≥ 5 GB. */
-function matchesDataGb(
-  summary: EsimPackageSummary,
-  dataGb: number | undefined,
-): boolean {
+function matchesDataGb(summary: EsimPackageSummary, dataGb: number | undefined): boolean {
   if (dataGb === undefined) return true;
   if (summary.isUnlimited) return true;
   return summary.dataGb >= dataGb;
@@ -147,10 +130,7 @@ export interface PackageView {
   currency: "USD";
 }
 
-function toPackageView(
-  summary: EsimPackageSummary,
-  markupPercent: number,
-): PackageView {
+function toPackageView(summary: EsimPackageSummary, markupPercent: number): PackageView {
   const wholesaleMicrodollars = dollarsToMicrodollars(summary.priceUsd);
   const { retailMicrodollars, markupMicrodollars } = applyMarkup(
     wholesaleMicrodollars,
@@ -176,10 +156,7 @@ function toPackageView(
 // ── Input schemas ─────────────────────────────────────────────────────
 
 const ListPackagesInputSchema = z.object({
-  countryCode: z
-    .string()
-    .length(2, "Country must be an ISO-3166 two-letter code.")
-    .optional(),
+  countryCode: z.string().length(2, "Country must be an ISO-3166 two-letter code.").optional(),
   region: z.enum(["global", "local"]).optional(),
   dataGb: z.number().nonnegative().optional(),
 });
@@ -207,142 +184,135 @@ export const esimRouter = router({
    * volume. The client flattens the upstream catalogue so we can filter
    * per-package here.
    */
-  listPackages: publicProcedure
-    .input(ListPackagesInputSchema)
-    .query(async ({ input }) => {
-      const client = makeClient();
-      const markupPercent = currentMarkupPercent();
-      const filter: { countryCode?: string; region?: string; dataGb?: number } = {};
-      if (input.region) filter.region = input.region;
-      if (input.countryCode) filter.countryCode = input.countryCode;
-      if (input.dataGb !== undefined) filter.dataGb = input.dataGb;
-      try {
-        const summaries = await client.listPackages(filter);
-        const filtered = summaries
-          .filter(
-            (s) =>
-              matchesCountry(s, input.countryCode) &&
-              matchesRegion(s, input.region) &&
-              matchesDataGb(s, input.dataGb),
-          )
-          .map((s) => toPackageView(s, markupPercent));
-        return { packages: filtered };
-      } catch (err) {
-        translateProviderError(err, "Failed to list eSIM packages.");
-      }
-    }),
+  listPackages: publicProcedure.input(ListPackagesInputSchema).query(async ({ input }) => {
+    const client = makeClient();
+    const markupPercent = currentMarkupPercent();
+    const filter: { countryCode?: string; region?: string; dataGb?: number } = {};
+    if (input.region) filter.region = input.region;
+    if (input.countryCode) filter.countryCode = input.countryCode;
+    if (input.dataGb !== undefined) filter.dataGb = input.dataGb;
+    try {
+      const summaries = await client.listPackages(filter);
+      const filtered = summaries
+        .filter(
+          (s) =>
+            matchesCountry(s, input.countryCode) &&
+            matchesRegion(s, input.region) &&
+            matchesDataGb(s, input.dataGb),
+        )
+        .map((s) => toPackageView(s, markupPercent));
+      return { packages: filtered };
+    } catch (err) {
+      translateProviderError(err, "Failed to list eSIM packages.");
+    }
+  }),
 
   /** Public: fetch a single package's pricing + metadata. */
-  getPackage: publicProcedure
-    .input(GetPackageInputSchema)
-    .query(async ({ input }) => {
-      const client = makeClient();
-      const markupPercent = currentMarkupPercent();
-      try {
-        const summary = await client.getPackage(input.id);
-        if (!summary) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: `We could not find an eSIM package with id ${input.id}.`,
-          });
-        }
-        return toPackageView(summary, markupPercent);
-      } catch (err) {
-        translateProviderError(err, "Failed to fetch the eSIM package.");
+  getPackage: publicProcedure.input(GetPackageInputSchema).query(async ({ input }) => {
+    const client = makeClient();
+    const markupPercent = currentMarkupPercent();
+    try {
+      const summary = await client.getPackage(input.id);
+      if (!summary) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: `We could not find an eSIM package with id ${input.id}.`,
+        });
       }
-    }),
+      return toPackageView(summary, markupPercent);
+    } catch (err) {
+      translateProviderError(err, "Failed to fetch the eSIM package.");
+    }
+  }),
 
   /**
    * Admin-only: submit a purchase to the upstream provider, persist the
    * sale with wholesale + markup microdollars, and return the new row id.
    * The customer then calls `getInstallInfo` to collect their QR + LPA.
    */
-  purchase: adminProcedure
-    .input(PurchaseInputSchema)
-    .mutation(async ({ input, ctx }) => {
-      const client = makeClient();
-      const markupPercent = currentMarkupPercent();
+  purchase: adminProcedure.input(PurchaseInputSchema).mutation(async ({ input, ctx }) => {
+    const client = makeClient();
+    const markupPercent = currentMarkupPercent();
 
-      // 1. Look up the package so we persist the correct wholesale figure.
-      let summary: EsimPackageSummary | null;
-      try {
-        summary = await client.getPackage(input.packageId);
-      } catch (err) {
-        translateProviderError(err, "Failed to fetch the eSIM package before purchase.");
-      }
-      if (!summary) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: `We could not find an eSIM package with id ${input.packageId}.`,
-        });
-      }
+    // 1. Look up the package so we persist the correct wholesale figure.
+    let summary: EsimPackageSummary | null;
+    try {
+      summary = await client.getPackage(input.packageId);
+    } catch (err) {
+      translateProviderError(err, "Failed to fetch the eSIM package before purchase.");
+    }
+    if (!summary) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: `We could not find an eSIM package with id ${input.packageId}.`,
+      });
+    }
 
-      const wholesaleMicrodollars = dollarsToMicrodollars(summary.priceUsd);
-      const { retailMicrodollars, markupMicrodollars } = applyMarkup(
-        wholesaleMicrodollars,
-        markupPercent,
-      );
+    const wholesaleMicrodollars = dollarsToMicrodollars(summary.priceUsd);
+    const { retailMicrodollars, markupMicrodollars } = applyMarkup(
+      wholesaleMicrodollars,
+      markupPercent,
+    );
 
-      // 2. Place the purchase upstream.
-      let providerOrderId: string;
-      let iccid: string | null = null;
-      let lpaString: string | null = null;
-      let qrCodeDataUrl: string | null = null;
-      try {
-        const purchase = await client.createPurchase({
-          packageId: input.packageId,
-          quantity: 1,
-        });
-        providerOrderId = String(purchase.id);
-        const esim = purchase.esim;
-        if (esim) {
-          iccid = esim.iccid ?? null;
-          lpaString = esim.lpaString ?? esim.lpa ?? esim.activationCode ?? null;
-          qrCodeDataUrl = esim.qrCode ?? esim.qrCodeUrl ?? null;
-        } else {
-          iccid = purchase.iccid ?? null;
-          lpaString =
-            purchase.lpaString ?? purchase.lpa ?? purchase.activationCode ?? null;
-          qrCodeDataUrl = purchase.qrCode ?? purchase.qrCodeUrl ?? null;
-        }
-      } catch (err) {
-        translateProviderError(err, "The eSIM provider rejected the purchase.");
-      }
-
-      // 3. Persist the sale.
-      const now = new Date();
-      const row: typeof esimOrders.$inferInsert = {
-        id: newOrderId(),
-        userId: input.userId ?? ctx.userId,
+    // 2. Place the purchase upstream.
+    let providerOrderId: string;
+    let iccid: string | null = null;
+    let lpaString: string | null = null;
+    let qrCodeDataUrl: string | null = null;
+    try {
+      const purchase = await client.createPurchase({
         packageId: input.packageId,
-        providerOrderId,
-        countryCode: summary.countryCode,
-        dataGb: summary.dataGb,
-        validityDays: summary.validityDays,
-        costMicrodollars: wholesaleMicrodollars,
-        markupMicrodollars,
-        status: "active",
-        iccid,
-        lpaString,
-        qrCodeDataUrl,
-        purchasedAt: now,
-      };
-      await ctx.db.insert(esimOrders).values(row);
+        quantity: 1,
+      });
+      providerOrderId = String(purchase.id);
+      const esim = purchase.esim;
+      if (esim) {
+        iccid = esim.iccid ?? null;
+        lpaString = esim.lpaString ?? esim.lpa ?? esim.activationCode ?? null;
+        qrCodeDataUrl = esim.qrCode ?? esim.qrCodeUrl ?? null;
+      } else {
+        iccid = purchase.iccid ?? null;
+        lpaString = purchase.lpaString ?? purchase.lpa ?? purchase.activationCode ?? null;
+        qrCodeDataUrl = purchase.qrCode ?? purchase.qrCodeUrl ?? null;
+      }
+    } catch (err) {
+      translateProviderError(err, "The eSIM provider rejected the purchase.");
+    }
 
-      return {
-        id: row.id,
-        providerOrderId,
-        packageId: input.packageId,
-        customerEmail: input.customerEmail,
-        wholesaleMicrodollars,
-        retailMicrodollars,
-        markupMicrodollars,
-        markupPercent,
-        iccid,
-        lpaString,
-        qrCodeDataUrl,
-      };
-    }),
+    // 3. Persist the sale.
+    const now = new Date();
+    const row: typeof esimOrders.$inferInsert = {
+      id: newOrderId(),
+      userId: input.userId ?? ctx.userId,
+      packageId: input.packageId,
+      providerOrderId,
+      countryCode: summary.countryCode,
+      dataGb: summary.dataGb,
+      validityDays: summary.validityDays,
+      costMicrodollars: wholesaleMicrodollars,
+      markupMicrodollars,
+      status: "active",
+      iccid,
+      lpaString,
+      qrCodeDataUrl,
+      purchasedAt: now,
+    };
+    await ctx.db.insert(esimOrders).values(row);
+
+    return {
+      id: row.id,
+      providerOrderId,
+      packageId: input.packageId,
+      customerEmail: input.customerEmail,
+      wholesaleMicrodollars,
+      retailMicrodollars,
+      markupMicrodollars,
+      markupPercent,
+      iccid,
+      lpaString,
+      qrCodeDataUrl,
+    };
+  }),
 
   /**
    * Authenticated: list every eSIM order belonging to the caller, newest
@@ -374,66 +344,63 @@ export const esimRouter = router({
    * given order row. If the row is stale / missing the bundle, we refresh
    * from the provider and persist. Only the order's owner can read it.
    */
-  getInstallInfo: protectedProcedure
-    .input(InstallInfoInputSchema)
-    .query(async ({ input, ctx }) => {
-      const rows = await ctx.db
-        .select()
-        .from(esimOrders)
-        .where(eq(esimOrders.id, input.orderId))
-        .limit(1);
-      const row = rows[0];
-      if (!row) {
+  getInstallInfo: protectedProcedure.input(InstallInfoInputSchema).query(async ({ input, ctx }) => {
+    const rows = await ctx.db
+      .select()
+      .from(esimOrders)
+      .where(eq(esimOrders.id, input.orderId))
+      .limit(1);
+    const row = rows[0];
+    if (!row) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: `We could not find an eSIM order with id ${input.orderId}.`,
+      });
+    }
+    if (row.userId !== ctx.userId) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "You can only view install details for your own eSIMs.",
+      });
+    }
+
+    if (row.lpaString && row.qrCodeDataUrl) {
+      return {
+        orderId: row.id,
+        iccid: row.iccid,
+        lpaString: row.lpaString,
+        qrCodeDataUrl: row.qrCodeDataUrl,
+      };
+    }
+
+    const client = makeClient();
+    try {
+      const info = await client.getInstallInfo(row.providerOrderId);
+      if (!info) {
         throw new TRPCError({
           code: "NOT_FOUND",
-          message: `We could not find an eSIM order with id ${input.orderId}.`,
+          message: "The eSIM is still being provisioned. Please try again shortly.",
         });
       }
-      if (row.userId !== ctx.userId) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "You can only view install details for your own eSIMs.",
-        });
-      }
-
-      if (row.lpaString && row.qrCodeDataUrl) {
-        return {
-          orderId: row.id,
-          iccid: row.iccid,
-          lpaString: row.lpaString,
-          qrCodeDataUrl: row.qrCodeDataUrl,
-        };
-      }
-
-      const client = makeClient();
-      try {
-        const info = await client.getInstallInfo(row.providerOrderId);
-        if (!info) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message:
-              "The eSIM is still being provisioned. Please try again shortly.",
-          });
-        }
-        await ctx.db
-          .update(esimOrders)
-          .set({
-            iccid: info.iccid,
-            lpaString: info.lpaString,
-            qrCodeDataUrl: info.qrCodeDataUrl,
-            updatedAt: new Date(),
-          })
-          .where(eq(esimOrders.id, row.id));
-        return {
-          orderId: row.id,
+      await ctx.db
+        .update(esimOrders)
+        .set({
           iccid: info.iccid,
           lpaString: info.lpaString,
           qrCodeDataUrl: info.qrCodeDataUrl,
-        };
-      } catch (err) {
-        translateProviderError(err, "Failed to fetch the eSIM install info.");
-      }
-    }),
+          updatedAt: new Date(),
+        })
+        .where(eq(esimOrders.id, row.id));
+      return {
+        orderId: row.id,
+        iccid: info.iccid,
+        lpaString: info.lpaString,
+        qrCodeDataUrl: info.qrCodeDataUrl,
+      };
+    } catch (err) {
+      translateProviderError(err, "Failed to fetch the eSIM install info.");
+    }
+  }),
 });
 
 export type EsimRouter = typeof esimRouter;

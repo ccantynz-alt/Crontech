@@ -6,6 +6,8 @@ const { upgradeWebSocket, websocket: yjsWebsocket } = createBunWebSocket();
 
 // Room -> Y.Doc store
 const docs = new Map<string, Y.Doc>();
+let yjsMessageErrors = 0;
+export const getYjsMessageErrorCount = (): number => yjsMessageErrors;
 
 function getOrCreateDoc(roomId: string): Y.Doc {
   let doc = docs.get(roomId);
@@ -33,20 +35,31 @@ yjsWsApp.get(
         if (!roomConnections.has(roomId)) {
           roomConnections.set(roomId, new Set());
         }
-        roomConnections.get(roomId)!.add(raw);
+        roomConnections.get(roomId)?.add(raw);
 
         // Send initial state
         const state = Y.encodeStateAsUpdate(doc);
-        ws.send(new Uint8Array(state.buffer, state.byteOffset, state.byteLength) as Uint8Array<ArrayBuffer>);
+        ws.send(
+          new Uint8Array(
+            state.buffer,
+            state.byteOffset,
+            state.byteLength,
+          ) as Uint8Array<ArrayBuffer>,
+        );
       },
 
       onMessage(evt, ws) {
         try {
           const data = evt.data;
           if (data instanceof ArrayBuffer || data instanceof Uint8Array) {
-            const update = data instanceof Uint8Array
-              ? new Uint8Array(data.buffer, data.byteOffset, data.byteLength) as Uint8Array<ArrayBuffer>
-              : new Uint8Array(data);
+            const update =
+              data instanceof Uint8Array
+                ? (new Uint8Array(
+                    data.buffer,
+                    data.byteOffset,
+                    data.byteLength,
+                  ) as Uint8Array<ArrayBuffer>)
+                : new Uint8Array(data);
             Y.applyUpdate(doc, update);
 
             // Broadcast to other connections in the room
@@ -62,6 +75,7 @@ yjsWsApp.get(
           }
         } catch (err) {
           console.error(`[yjs] Error processing message for room ${roomId}:`, err);
+          yjsMessageErrors++;
         }
       },
 

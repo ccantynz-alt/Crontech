@@ -4,11 +4,11 @@
 
 import { z } from "zod";
 import {
+  type SearchHit,
   createQdrantClient,
   ensureCollection,
-  upsertVectors,
   searchSimilar,
-  type SearchHit,
+  upsertVectors,
 } from "../vector/qdrant";
 
 // ── Schemas ──────────────────────────────────────────────────────────
@@ -83,7 +83,7 @@ export class RAGPipeline {
   /**
    * Initialize the collection if it doesn't exist.
    */
-  async initialize(vectorSize: number = 1536): Promise<void> {
+  async initialize(vectorSize = 1536): Promise<void> {
     const client = this.getClient();
     await ensureCollection(client, this.collection, vectorSize);
   }
@@ -119,16 +119,14 @@ export class RAGPipeline {
     const parsed = docs.map((d) => ContentDocumentSchema.parse(d));
 
     // Embed all documents
-    const embeddings = await Promise.all(
-      parsed.map((d) => this.embedFn(d.content)),
-    );
+    const embeddings = await Promise.all(parsed.map((d) => this.embedFn(d.content)));
 
     const client = this.getClient();
     await upsertVectors(
       client,
       parsed.map((doc, i) => ({
         id: doc.id,
-        vector: embeddings[i]!,
+        vector: embeddings[i] ?? [],
         payload: {
           content: doc.content,
           ...doc.metadata,
@@ -171,19 +169,18 @@ export class RAGPipeline {
       const item: RAGResult["sources"][number] = {
         id: hit.id,
         score: hit.score,
-        snippet: truncate((hit.payload["content"] as string | undefined) ?? "", 500),
+        snippet: truncate((hit.payload.content as string | undefined) ?? "", 500),
       };
-      const title = hit.payload["title"];
+      const title = hit.payload.title;
       if (typeof title === "string") item.title = title;
-      const source = hit.payload["source"];
+      const source = hit.payload.source;
       if (typeof source === "string") item.source = source;
       return item;
     });
 
     // Assemble context string for LLM injection
     const contextParts = sources.map(
-      (s, i) =>
-        `[Source ${i + 1}${s.title ? `: ${s.title}` : ""}]\n${s.snippet}`,
+      (s, i) => `[Source ${i + 1}${s.title ? `: ${s.title}` : ""}]\n${s.snippet}`,
     );
     const context = contextParts.join("\n\n---\n\n");
 

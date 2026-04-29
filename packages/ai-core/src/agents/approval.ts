@@ -66,7 +66,7 @@ const APPROVAL_TTL_MS = 5 * 60 * 1000; // 5 minutes
 const pendingApprovals = new Map<string, ApprovalRequest>();
 
 // Cleanup expired approvals
-setInterval(() => {
+export const _approvalCleanupInterval = setInterval(() => {
   const now = Date.now();
   for (const [id, request] of pendingApprovals) {
     if (now > request.expiresAt && request.status === "pending") {
@@ -127,9 +127,7 @@ export function rejectRequest(requestId: string, rejectedBy: string): ApprovalRe
 }
 
 export function getPendingApprovals(sessionId?: string): ApprovalRequest[] {
-  const all = Array.from(pendingApprovals.values()).filter(
-    (r) => r.status === "pending",
-  );
+  const all = Array.from(pendingApprovals.values()).filter((r) => r.status === "pending");
   if (sessionId) return all.filter((r) => r.sessionId === sessionId);
   return all;
 }

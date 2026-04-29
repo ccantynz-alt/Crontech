@@ -2,7 +2,7 @@
 // Stub: product-scoped tenant management. Will be expanded when
 // multi-tenant provisioning lands.
 
-import { router, protectedProcedure } from "../init";
+import { protectedProcedure, router } from "../init";
 
 export const productTenantsRouter = router({
   list: protectedProcedure.query(() => {

@@ -3,9 +3,9 @@
  * classify -> escalate? -> find/create thread -> draft -> auto-send or queue.
  */
 
-import { eq, desc, and } from "drizzle-orm";
+import { db, supportMessages, supportTickets } from "@back-to-the-future/db";
+import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
-import { db, supportTickets, supportMessages } from "@back-to-the-future/db";
 import { sendEmail } from "../email/client";
 import { classifyEmail } from "./classifier";
 import { draftResponse } from "./drafter";
@@ -38,21 +38,24 @@ export interface AutoResponderResult {
 }
 
 function getThreshold(): number {
-  const raw = process.env["SUPPORT_AUTO_SEND_THRESHOLD"];
+  const raw = process.env.SUPPORT_AUTO_SEND_THRESHOLD;
   const n = raw ? Number.parseInt(raw, 10) : 85;
   return Number.isFinite(n) ? n : 85;
 }
 
 function getSupportFromAddress(): string {
-  return process.env["SUPPORT_EMAIL"] ?? "support@yourdomain.com";
+  return process.env.SUPPORT_EMAIL ?? "support@yourdomain.com";
 }
 
 function newId(prefix: string): string {
-  return `${prefix}_${Date.now().toString(36)}_${crypto.randomUUID().replace(/-/g, '').slice(0, 8)}`;
+  return `${prefix}_${Date.now().toString(36)}_${crypto.randomUUID().replace(/-/g, "").slice(0, 8)}`;
 }
 
 function normalizeSubject(subject: string): string {
-  return subject.replace(/^(re:|fwd:|fw:)\s*/gi, "").trim().toLowerCase();
+  return subject
+    .replace(/^(re:|fwd:|fw:)\s*/gi, "")
+    .trim()
+    .toLowerCase();
 }
 
 async function findExistingTicket(
@@ -61,26 +64,25 @@ async function findExistingTicket(
 ): Promise<{ id: string } | null> {
   const normalized = normalizeSubject(subject);
   const recent = await db
-    .select({ id: supportTickets.id, subject: supportTickets.subject, status: supportTickets.status })
+    .select({
+      id: supportTickets.id,
+      subject: supportTickets.subject,
+      status: supportTickets.status,
+    })
     .from(supportTickets)
     .where(eq(supportTickets.fromEmail, fromEmail))
     .orderBy(desc(supportTickets.createdAt))
     .limit(20);
 
   for (const t of recent) {
-    if (
-      normalizeSubject(t.subject) === normalized &&
-      t.status !== "resolved"
-    ) {
+    if (normalizeSubject(t.subject) === normalized && t.status !== "resolved") {
       return { id: t.id };
     }
   }
   return null;
 }
 
-export async function processInboundEmail(
-  email: InboundEmail,
-): Promise<AutoResponderResult> {
+export async function processInboundEmail(email: InboundEmail): Promise<AutoResponderResult> {
   const now = new Date();
   const fullText = `${email.subject}\n${email.body}`;
 
@@ -192,11 +194,7 @@ export async function processInboundEmail(
       .map((p) => `<p>${p.replace(/\n/g, "<br/>")}</p>`)
       .join("");
 
-    const sent = await sendEmail(
-      email.from,
-      `Re: ${email.subject.replace(/^re:\s*/i, "")}`,
-      html,
-    );
+    const sent = await sendEmail(email.from, `Re: ${email.subject.replace(/^re:\s*/i, "")}`, html);
 
     if (sent.success) {
       const sentAt = new Date();
@@ -248,10 +246,6 @@ export async function getAwaitingCount(): Promise<number> {
   const rows = await db
     .select({ id: supportTickets.id })
     .from(supportTickets)
-    .where(
-      and(
-        eq(supportTickets.status, "awaiting_review"),
-      ),
-    );
+    .where(and(eq(supportTickets.status, "awaiting_review")));
   return rows.length;
 }

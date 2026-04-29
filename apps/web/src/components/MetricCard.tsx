@@ -1,6 +1,5 @@
 import { createMemo } from "solid-js";
 import type { JSX } from "solid-js";
-import { Box, Stack, Text } from "@back-to-the-future/ui";
 
 // ── Types ────────────────────────────────────────────────────────────
 
@@ -39,14 +38,15 @@ function sparklinePath(values: number[], width: number, height: number): string 
   }));
 
   // Build smooth bezier path
-  const first = points[0]!;
+  const first = points[0] ?? { x: 0, y: 0 };
   let d = `M${first.x},${first.y}`;
 
+  const zero = { x: 0, y: 0 };
   for (let i = 0; i < points.length - 1; i++) {
-    const p0 = points[Math.max(0, i - 1)]!;
-    const p1 = points[i]!;
-    const p2 = points[i + 1]!;
-    const p3 = points[Math.min(points.length - 1, i + 2)]!;
+    const p0 = points[Math.max(0, i - 1)] ?? zero;
+    const p1 = points[i] ?? zero;
+    const p2 = points[i + 1] ?? zero;
+    const p3 = points[Math.min(points.length - 1, i + 2)] ?? zero;
 
     const tension = 0.3;
     const cp1x = p1.x + (p2.x - p0.x) * tension;
@@ -95,20 +95,18 @@ export function MetricCard(props: MetricCardProps): JSX.Element {
   );
 
   return (
-    <Box
+    <div
       class="group relative overflow-hidden rounded-2xl border border-[var(--color-border)] p-5 transition-all duration-300 hover:border-[var(--color-border-hover)]"
       style={{
         background: "var(--color-bg-elevated)",
       }}
     >
-
-      <Box class="relative z-10">
+      <div class="relative z-10">
         {/* Header row: label + sparkline */}
-        <Stack direction="horizontal" align="start" justify="between">
-          <Stack direction="vertical" gap="xs">
-            <Stack direction="horizontal" gap="xs" align="center">
-              <Text
-                as="span"
+        <div class="flex items-start justify-between">
+          <div class="flex flex-col gap-1">
+            <div class="flex items-center gap-2">
+              <span
                 class="inline-flex h-6 w-6 items-center justify-center rounded-md text-xs"
                 style={{
                   background: `${accentColor()}18`,
@@ -116,43 +114,42 @@ export function MetricCard(props: MetricCardProps): JSX.Element {
                 }}
               >
                 {props.icon ?? "\u{1F4CA}"}
-              </Text>
-              <Text as="span" weight="medium" class="text-xs uppercase tracking-widest text-[var(--color-text-muted)]">
+              </span>
+              <span class="text-xs font-medium uppercase tracking-widest text-[var(--color-text-muted)]">
                 {props.name}
-              </Text>
-            </Stack>
+              </span>
+            </div>
 
             {/* Value row */}
-            <Stack direction="horizontal" gap="xs" align="end" class="mt-2">
-              <Text as="span" weight="bold" class="text-3xl tracking-tight" style={{ color: "var(--color-text)" }}>
+            <div class="mt-2 flex items-baseline gap-2">
+              <span
+                class="text-3xl font-bold tracking-tight"
+                style={{ color: "var(--color-text)" }}
+              >
                 {props.value}
-              </Text>
-              <Text as="span" class="text-sm text-[var(--color-text-muted)]">{props.unit ?? ""}</Text>
-            </Stack>
+              </span>
+              <span class="text-sm text-[var(--color-text-muted)]">{props.unit ?? ""}</span>
+            </div>
 
             {/* Trend row */}
-            <Stack direction="horizontal" gap="xs" align="center" class="mt-1">
+            <div class="mt-1 flex items-center gap-1.5">
               {/* Trend arrow */}
-              <Text
-                as="span"
-                weight="semibold"
-                class="text-xs"
-                style={{ color: changeColor() }}
-              >
+              <span class="text-xs font-semibold" style={{ color: changeColor() }}>
                 {trendUp() ? "\u2191" : "\u2193"} {changeText()}
-              </Text>
-              <Text as="span" class="text-[10px] text-[var(--color-text-faint)]">vs prev period</Text>
-            </Stack>
-          </Stack>
+              </span>
+              <span class="text-[10px] text-[var(--color-text-faint)]">vs prev period</span>
+            </div>
+          </div>
 
           {/* Sparkline */}
-          <Box class="mt-1 shrink-0">
+          <div class="mt-1 shrink-0">
             <svg
               width={sparkWidth}
               height={sparkHeight}
               viewBox={`0 0 ${sparkWidth} ${sparkHeight}`}
               class="overflow-visible"
             >
+              <title>Metric trend</title>
               <defs>
                 <linearGradient id={sparkGradientId()} x1="0" x2="0" y1="0" y2="1">
                   <stop offset="0%" stop-color={accentColor()} stop-opacity="0.2" />
@@ -160,10 +157,7 @@ export function MetricCard(props: MetricCardProps): JSX.Element {
                 </linearGradient>
               </defs>
               {/* Area fill */}
-              <path
-                d={areaD()}
-                fill={`url(#${sparkGradientId()})`}
-              />
+              <path d={areaD()} fill={`url(#${sparkGradientId()})`} />
               {/* Line */}
               <path
                 d={lineD()}
@@ -173,20 +167,17 @@ export function MetricCard(props: MetricCardProps): JSX.Element {
                 stroke-linecap="round"
               />
             </svg>
-          </Box>
-        </Stack>
+          </div>
+        </div>
 
         {/* Status indicator dot */}
-        <Stack direction="horizontal" gap="xs" align="center" class="mt-3">
-          <Box
-            class="h-1.5 w-1.5 rounded-full"
-            style={{ background: accentColor() }}
-          />
-          <Text as="span" weight="medium" class="text-[10px] uppercase tracking-wider text-[var(--color-text-faint)]">
+        <div class="mt-3 flex items-center gap-2">
+          <div class="h-1.5 w-1.5 rounded-full" style={{ background: accentColor() }} />
+          <span class="text-[10px] font-medium uppercase tracking-wider text-[var(--color-text-faint)]">
             {props.status}
-          </Text>
-        </Stack>
-      </Box>
-    </Box>
+          </span>
+        </div>
+      </div>
+    </div>
   );
 }

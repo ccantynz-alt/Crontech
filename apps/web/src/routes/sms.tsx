@@ -13,9 +13,9 @@
 // Polite copy only. No competitor names. Dark Stripe-direction hero
 // to match the landing page aesthetic. Zero HTML — SolidJS JSX only.
 
-import { createSignal, For, Show, type JSX } from "solid-js";
-import { SEOHead } from "../components/SEOHead";
+import { For, type JSX, Show, createSignal } from "solid-js";
 import { Icon, type IconName } from "../components/Icon";
+import { SEOHead } from "../components/SEOHead";
 
 // ── Feature bullets ────────────────────────────────────────────────
 
@@ -139,36 +139,35 @@ export default function SmsPage(): JSX.Element {
               class="mx-auto mt-6 max-w-2xl text-base leading-relaxed sm:text-lg"
               style={{ color: "rgba(255,255,255,0.65)" }}
             >
-              A clean, predictable SMS API built into the Crontech platform.
-              Send, receive, rent numbers, and price every segment without
-              leaving your dashboard. Vendor integration is in the final
-              stretch — drop your email below and we'll let you know the
-              moment it ships.
+              A clean, predictable SMS API built into the Crontech platform. Send, receive, rent
+              numbers, and price every segment without leaving your dashboard. Vendor integration is
+              in the final stretch — drop your email below and we'll let you know the moment it
+              ships.
             </p>
           </div>
         </section>
 
         {/* ── Description ─────────────────────────────────────── */}
         <section class="mx-auto max-w-3xl px-6 pb-12">
-          <div class="space-y-5 text-base leading-[1.8]" style={{ color: "rgba(255,255,255,0.72)" }}>
+          <div
+            class="space-y-5 text-base leading-[1.8]"
+            style={{ color: "rgba(255,255,255,0.72)" }}
+          >
             <p>
-              Crontech SMS gives you the same capabilities most teams cobble
-              together from a legacy messaging vendor — outbound sends,
-              inbound webhooks, delivery receipts, number provisioning,
-              alphanumeric sender IDs — exposed as a single, typed API that
-              shares auth, audit logs, and billing with the rest of Crontech.
+              Crontech SMS gives you the same capabilities most teams cobble together from a legacy
+              messaging vendor — outbound sends, inbound webhooks, delivery receipts, number
+              provisioning, alphanumeric sender IDs — exposed as a single, typed API that shares
+              auth, audit logs, and billing with the rest of Crontech.
             </p>
             <p>
-              Pricing is segment-based and transparent. You see the exact
-              cost of a send before it's queued, volume discounts apply
-              automatically, and there is no surcharge for a dashboard or a
-              "success manager." If you don't send, you don't pay.
+              Pricing is segment-based and transparent. You see the exact cost of a send before it's
+              queued, volume discounts apply automatically, and there is no surcharge for a
+              dashboard or a "success manager." If you don't send, you don't pay.
             </p>
             <p>
-              We're holding the launch until the upstream carrier partner
-              finishes onboarding, so numbers are provisioned cleanly on day
-              one. Join the waitlist and we'll email you the moment the
-              gates open.
+              We're holding the launch until the upstream carrier partner finishes onboarding, so
+              numbers are provisioned cleanly on day one. Join the waitlist and we'll email you the
+              moment the gates open.
             </p>
           </div>
         </section>
@@ -221,26 +220,16 @@ export default function SmsPage(): JSX.Element {
               </button>
             </div>
             <Show when={error()}>
-              <p
-                class="mt-3 text-xs"
-                style={{ color: "#fca5a5" }}
-                role="alert"
-              >
+              <p class="mt-3 text-xs" style={{ color: "#fca5a5" }} role="alert">
                 {error()}
               </p>
             </Show>
             <Show when={submitted() && !error()}>
-              <p
-                class="mt-3 text-xs"
-                style={{ color: "#86efac" }}
-              >
+              <p class="mt-3 text-xs" style={{ color: "#86efac" }}>
                 Thanks — we'll email you the moment the SMS API is live.
               </p>
             </Show>
-            <p
-              class="mt-4 text-[11px] leading-relaxed"
-              style={{ color: "rgba(255,255,255,0.45)" }}
-            >
+            <p class="mt-4 text-[11px] leading-relaxed" style={{ color: "rgba(255,255,255,0.45)" }}>
               One email, only when it's live. No marketing list.
             </p>
           </form>
@@ -290,16 +279,10 @@ export default function SmsPage(): JSX.Element {
 
         {/* ── Preview snippet ─────────────────────────────────── */}
         <section class="mx-auto max-w-4xl px-6 pb-24">
-          <h2
-            class="text-2xl font-semibold tracking-tight"
-            style={{ color: "#f0f0f5" }}
-          >
+          <h2 class="text-2xl font-semibold tracking-tight" style={{ color: "#f0f0f5" }}>
             A glimpse of the API
           </h2>
-          <p
-            class="mt-2 text-sm"
-            style={{ color: "rgba(255,255,255,0.55)" }}
-          >
+          <p class="mt-2 text-sm" style={{ color: "rgba(255,255,255,0.55)" }}>
             Final shape may settle a hair before GA — but this is the plan.
           </p>
           <pre
@@ -308,8 +291,7 @@ export default function SmsPage(): JSX.Element {
               background: "rgba(8, 8, 14, 0.75)",
               border: "1px solid rgba(255,255,255,0.08)",
               color: "#e5e7eb",
-              "font-family":
-                "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+              "font-family": "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
             }}
           >
             <code>{SMS_SNIPPET}</code>

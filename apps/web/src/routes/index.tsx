@@ -1,10 +1,9 @@
-import { A } from "@solidjs/router";
-import { For, Show } from "solid-js";
+import { A, useNavigate } from "@solidjs/router";
+import { For, Show, createEffect } from "solid-js";
 import type { JSX } from "solid-js";
-import { Box, Container, Stack, Text } from "@back-to-the-future/ui";
-import { useAuth } from "../stores";
-import { SEOHead } from "../components/SEOHead";
 import { Icon, type IconName } from "../components/Icon";
+import { SEOHead } from "../components/SEOHead";
+import { useAuth } from "../stores";
 
 // ── Data ────────────────────────────────────────────────────────────
 
@@ -164,7 +163,8 @@ const family: FamilyProduct[] = [
   {
     name: "Gatetest",
     role: "CI & visual QA",
-    description: "Modern testing, visual regression, and accessibility checks — runs on the platform.",
+    description:
+      "Modern testing, visual regression, and accessibility checks — runs on the platform.",
     url: "https://gatetest.io",
   },
   {
@@ -179,11 +179,7 @@ const family: FamilyProduct[] = [
 
 function VerticalTile(props: VerticalPreview): JSX.Element {
   return (
-    <A
-      href="/solutions"
-      class="landing-card block p-5"
-      style={{ "text-decoration": "none" }}
-    >
+    <A href="/solutions" class="landing-card block p-5" style={{ "text-decoration": "none" }}>
       <div class="flex items-center gap-3">
         <div
           class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg"
@@ -196,16 +192,10 @@ function VerticalTile(props: VerticalPreview): JSX.Element {
           <Icon name={props.icon} size={16} />
         </div>
         <div class="flex min-w-0 flex-col">
-          <span
-            class="truncate text-sm font-semibold"
-            style={{ color: "#111827" }}
-          >
+          <span class="truncate text-sm font-semibold" style={{ color: "#111827" }}>
             {props.label}
           </span>
-          <span
-            class="truncate text-xs"
-            style={{ color: "#6b7280" }}
-          >
+          <span class="truncate text-xs" style={{ color: "#6b7280" }}>
             {props.blurb}
           </span>
         </div>
@@ -238,16 +228,10 @@ function PillarCard(props: Pillar): JSX.Element {
         </div>
 
         <div class="flex flex-col gap-2.5">
-          <h3
-            class="text-[1.125rem] font-bold tracking-tight"
-            style={{ color: "#111827" }}
-          >
+          <h3 class="text-[1.125rem] font-bold tracking-tight" style={{ color: "#111827" }}>
             {props.title}
           </h3>
-          <p
-            class="text-[0.9rem] leading-[1.7]"
-            style={{ color: "#4b5563" }}
-          >
+          <p class="text-[0.9rem] leading-[1.7]" style={{ color: "#4b5563" }}>
             {props.description}
           </p>
         </div>
@@ -289,16 +273,10 @@ function CapabilityCard(props: Capability): JSX.Element {
           <Icon name={props.icon} size={18} />
         </div>
         <div class="flex flex-col gap-1.5">
-          <h3
-            class="text-[1rem] font-semibold tracking-tight"
-            style={{ color: "#111827" }}
-          >
+          <h3 class="text-[1rem] font-semibold tracking-tight" style={{ color: "#111827" }}>
             {props.title}
           </h3>
-          <p
-            class="text-[0.875rem] leading-[1.65]"
-            style={{ color: "#6b7280" }}
-          >
+          <p class="text-[0.875rem] leading-[1.65]" style={{ color: "#6b7280" }}>
             {props.description}
           </p>
         </div>
@@ -317,16 +295,10 @@ function FamilyCard(props: FamilyProduct): JSX.Element {
         >
           {props.role}
         </span>
-        <h3
-          class="text-[1.125rem] font-bold tracking-tight"
-          style={{ color: "#f1f5f9" }}
-        >
+        <h3 class="text-[1.125rem] font-bold tracking-tight" style={{ color: "#f1f5f9" }}>
           {props.name}
         </h3>
-        <p
-          class="text-[0.875rem] leading-[1.65]"
-          style={{ color: "rgba(241,245,249,0.6)" }}
-        >
+        <p class="text-[0.875rem] leading-[1.65]" style={{ color: "rgba(241,245,249,0.6)" }}>
           {props.description}
         </p>
       </div>
@@ -378,10 +350,7 @@ function SectionHead(props: SectionHeadProps): JSX.Element {
         {props.title}
       </h2>
       <Show when={props.body}>
-        <p
-          class="mt-5 max-w-2xl text-[1.0625rem] leading-[1.75]"
-          style={{ color: bodyColor }}
-        >
+        <p class="mt-5 max-w-2xl text-[1.0625rem] leading-[1.75]" style={{ color: bodyColor }}>
           {props.body}
         </p>
       </Show>
@@ -393,6 +362,14 @@ function SectionHead(props: SectionHeadProps): JSX.Element {
 
 export default function Home(): JSX.Element {
   const auth = useAuth();
+  const navigate = useNavigate();
+
+  // Authenticated users skip the landing page entirely → command center.
+  createEffect(() => {
+    if (auth.isAuthenticated()) {
+      navigate("/admin/gate", { replace: true });
+    }
+  });
 
   return (
     <>
@@ -403,25 +380,23 @@ export default function Home(): JSX.Element {
       />
 
       {/* ── Hero ───────────────────────────────────────────────────── */}
-      <Box as="section" class="landing-hero">
-        <Container size="xl" padding="md" class="relative z-10 pb-16 pt-32 lg:pb-20 lg:pt-44">
-          <Box class="flex flex-col items-center text-center">
-
+      <section class="landing-hero">
+        <div class="relative z-10 mx-auto w-full max-w-[1120px] px-6 pb-16 pt-32 lg:px-8 lg:pb-20 lg:pt-44">
+          <div class="flex flex-col items-center text-center">
             {/* Badge */}
-            <Box class="landing-hero-badge mb-10">
+            <div class="landing-hero-badge mb-10">
               <span class="landing-hero-badge-dot" aria-hidden="true" />
               <span class="landing-hero-badge-text">
                 Now in early access &mdash; Powered by Claude
               </span>
-            </Box>
+            </div>
 
             {/* Headline — locked per docs/POSITIONING.md §3 */}
             <h1
               class="max-w-4xl text-[2.75rem] font-extrabold leading-[1.08] tracking-[-0.03em] sm:text-[3.5rem] lg:text-[4.5rem]"
               style={{ color: "#f1f5f9" }}
             >
-              The developer platform for the{" "}
-              <span class="landing-gradient-text">next decade</span>
+              The developer platform for the <span class="landing-gradient-text">next decade</span>
             </h1>
 
             {/* Subheading */}
@@ -429,26 +404,25 @@ export default function Home(): JSX.Element {
               class="mt-7 max-w-2xl text-[1.0625rem] leading-[1.8] sm:text-[1.125rem]"
               style={{ color: "rgba(241,245,249,0.65)" }}
             >
-              The AI-native platform for online stores, restaurants, creators,
-              agencies, SaaS founders, and every business that deserves a
-              better internet. Hosting, database, auth, AI, billing, email
-              &mdash; one product, zero ops.
+              The AI-native platform for online stores, restaurants, creators, agencies, SaaS
+              founders, and every business that deserves a better internet. Hosting, database, auth,
+              AI, billing, email &mdash; one product, zero ops.
             </p>
 
             {/* CTAs */}
-            <Box class="mt-12 flex flex-col items-center gap-4 sm:flex-row">
+            <div class="mt-12 flex flex-col items-center gap-4 sm:flex-row">
               <A href="/register" class="landing-hero-btn-primary-dark">
                 Start building
               </A>
               <A href="/docs" class="landing-hero-btn-outline-dark">
                 See the docs
               </A>
-            </Box>
+            </div>
 
             {/* Tech strip */}
-            <Box class="landing-tech-strip-wrap mt-14">
-              <Box class="landing-tech-strip-divider" aria-hidden="true" />
-              <Box class="landing-tech-strip">
+            <div class="landing-tech-strip-wrap mt-14">
+              <div class="landing-tech-strip-divider" aria-hidden="true" />
+              <div class="landing-tech-strip">
                 <For
                   each={[
                     "Claude-powered AI",
@@ -464,47 +438,43 @@ export default function Home(): JSX.Element {
                     "Type-safe end to end",
                   ]}
                 >
-                  {(signal) => (
-                    <span class="landing-tech-strip-item">{signal}</span>
-                  )}
+                  {(signal) => <span class="landing-tech-strip-item">{signal}</span>}
                 </For>
-              </Box>
-            </Box>
-          </Box>
-        </Container>
-      </Box>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* ── Stats strip ─────────────────────────────────────────────── */}
-      <Box as="section" class="landing-stats-section">
-        <Container size="xl" padding="md">
-          <Box class="landing-stats-grid">
+      <section class="landing-stats-section">
+        <div class="mx-auto w-full max-w-[1120px] px-6 lg:px-8">
+          <div class="landing-stats-grid">
             <For each={signals}>
               {(signal) => (
-                <Box class="landing-stat-cell">
+                <div class="landing-stat-cell">
                   <SignalBlock value={signal.value} label={signal.label} />
-                </Box>
+                </div>
               )}
             </For>
-          </Box>
-        </Container>
-      </Box>
+          </div>
+        </div>
+      </section>
 
       {/* ── Every business preview ───────────────────────────────────── */}
-      <Box
-        as="section"
+      <section
         class="py-28 lg:py-36"
         style={{
           background: "#ffffff",
           "border-top": "1px solid #e5e7eb",
         }}
       >
-        <Container size="xl" padding="md">
+        <div class="mx-auto w-full max-w-[1120px] px-6 lg:px-8">
           <SectionHead
             eyebrow="Who it's for"
             title={
               <>
-                One platform.{" "}
-                <span class="landing-gradient-text-dark">Every business.</span>
+                One platform. <span class="landing-gradient-text-dark">Every business.</span>
               </>
             }
             body="From online stores to nonprofits, Crontech powers the internet part so you can focus on your customers."
@@ -512,13 +482,11 @@ export default function Home(): JSX.Element {
 
           <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
             <For each={verticalPreviews}>
-              {(v) => (
-                <VerticalTile icon={v.icon} label={v.label} blurb={v.blurb} />
-              )}
+              {(v) => <VerticalTile icon={v.icon} label={v.label} blurb={v.blurb} />}
             </For>
           </div>
 
-          <Box class="mt-10 flex justify-center">
+          <div class="mt-10 flex justify-center">
             <A
               href="/solutions"
               class="text-sm font-semibold transition-colors"
@@ -526,13 +494,12 @@ export default function Home(): JSX.Element {
             >
               See all 10 verticals &#8594;
             </A>
-          </Box>
-        </Container>
-      </Box>
+          </div>
+        </div>
+      </section>
 
       {/* ── Three pillars ───────────────────────────────────────────── */}
-      <Box
-        as="section"
+      <section
         class="py-28 lg:py-40"
         style={{
           background: "#f9fafb",
@@ -540,14 +507,14 @@ export default function Home(): JSX.Element {
           "border-bottom": "1px solid #e5e7eb",
         }}
       >
-        <Container size="xl" padding="md">
+        <div class="mx-auto w-full max-w-[1120px] px-6 lg:px-8">
           <SectionHead
             eyebrow="Why Crontech"
             title="Three things we've built differently."
             body="AI-native from the first commit. Open to every business, not just developers. Running on the platform we're selling you."
           />
 
-          <Box class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
             <For each={pillars}>
               {(pillar) => (
                 <PillarCard
@@ -559,43 +526,38 @@ export default function Home(): JSX.Element {
                 />
               )}
             </For>
-          </Box>
-        </Container>
-      </Box>
+          </div>
+        </div>
+      </section>
 
       {/* ── Capabilities grid ───────────────────────────────────────── */}
-      <Box
-        as="section"
+      <section
         class="py-28 lg:py-40"
         style={{
           background: "#ffffff",
           "border-bottom": "1px solid #e5e7eb",
         }}
       >
-        <Container size="xl" padding="md">
+        <div class="mx-auto w-full max-w-[1120px] px-6 lg:px-8">
           <SectionHead
             eyebrow="Every layer"
             title="One product replaces many."
             body="Every capability a modern application needs, unified into one platform, one dashboard, one bill. No vendor stitching."
           />
 
-          <Box class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
             <For each={capabilities}>
               {(cap) => (
-                <CapabilityCard
-                  icon={cap.icon}
-                  title={cap.title}
-                  description={cap.description}
-                />
+                <CapabilityCard icon={cap.icon} title={cap.title} description={cap.description} />
               )}
             </For>
-          </Box>
-        </Container>
-      </Box>
+          </div>
+        </div>
+      </section>
 
       {/* ── The family / moat ───────────────────────────────────────── */}
-      <Box as="section" class="landing-moat-section py-28 lg:py-36">
-        <Container size="xl" padding="md">
+      <section class="landing-moat-section py-28 lg:py-36">
+        <div class="mx-auto w-full max-w-[1120px] px-6 lg:px-8">
           <SectionHead
             dark
             eyebrow="The moat"
@@ -604,24 +566,18 @@ export default function Home(): JSX.Element {
             body="Four products, one platform, all using each other. Most platforms can't say that. We can."
           />
 
-          <Box class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
             <For each={family}>
               {(p) => (
-                <FamilyCard
-                  name={p.name}
-                  role={p.role}
-                  description={p.description}
-                  url={p.url}
-                />
+                <FamilyCard name={p.name} role={p.role} description={p.description} url={p.url} />
               )}
             </For>
-          </Box>
-        </Container>
-      </Box>
+          </div>
+        </div>
+      </section>
 
       {/* ── Mission strip ───────────────────────────────────────────── */}
-      <Box
-        as="section"
+      <section
         class="py-24 lg:py-28"
         style={{
           background: "#ffffff",
@@ -629,46 +585,41 @@ export default function Home(): JSX.Element {
           "border-bottom": "1px solid #e5e7eb",
         }}
       >
-        <Container size="full" padding="md" class="max-w-[720px]">
-          <Box class="flex flex-col gap-4">
+        <div class="mx-auto w-full max-w-[720px] px-6 lg:px-8">
+          <div class="flex flex-col gap-4">
             <span
               class="text-[11px] font-semibold uppercase tracking-[0.18em]"
               style={{ color: "#6366f1" }}
             >
               The mission
             </span>
-            <p
-              class="text-[1.0625rem] leading-[1.85]"
-              style={{ color: "#374151" }}
-            >
-              We&apos;re building Crontech to make it cheap and fast for anyone
-              to start a business, employ people, and serve customers. The
-              internet should be open to everyone &mdash; not just the people
-              with engineering teams and enterprise contracts. If you&apos;re
+            <p class="text-[1.0625rem] leading-[1.85]" style={{ color: "#374151" }}>
+              We&apos;re building Crontech to make it cheap and fast for anyone to start a business,
+              employ people, and serve customers. The internet should be open to everyone &mdash;
+              not just the people with engineering teams and enterprise contracts. If you&apos;re
               here to build something, we&apos;re here to power it.
             </p>
-          </Box>
-        </Container>
-      </Box>
+          </div>
+        </div>
+      </section>
 
       {/* ── Bottom CTA ──────────────────────────────────────────────── */}
-      <Box as="section" class="landing-cta-section">
-        <Container size="full" padding="md" class="relative z-10 max-w-[880px] py-32 text-center lg:py-44">
+      <section class="landing-cta-section">
+        <div class="relative z-10 mx-auto w-full max-w-[880px] px-6 py-32 text-center lg:px-8 lg:py-44">
           <h2
             class="text-[1.875rem] font-bold tracking-tight sm:text-[2.25rem] lg:text-[2.75rem]"
             style={{ color: "#f1f5f9" }}
           >
-            Start with a sentence.{" "}
-            <span class="landing-gradient-text">Ship a business.</span>
+            Start with a sentence. <span class="landing-gradient-text">Ship a business.</span>
           </h2>
           <p
             class="mt-6 text-[1.0625rem] leading-[1.7] sm:text-lg"
             style={{ color: "rgba(241,245,249,0.65)" }}
           >
-            Describe what you&apos;re building in plain English. Claude drafts
-            the app, the database, the auth, the billing. You iterate.
+            Describe what you&apos;re building in plain English. Claude drafts the app, the
+            database, the auth, the billing. You iterate.
           </p>
-          <Box class="mt-12 flex flex-col items-center justify-center gap-4 sm:flex-row">
+          <div class="mt-12 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <A href="/builder" class="landing-hero-btn-primary-dark">
               Try the AI builder &#8594;
             </A>
@@ -684,9 +635,9 @@ export default function Home(): JSX.Element {
                 Open dashboard
               </A>
             </Show>
-          </Box>
-        </Container>
-      </Box>
+          </div>
+        </div>
+      </section>
     </>
   );
 }

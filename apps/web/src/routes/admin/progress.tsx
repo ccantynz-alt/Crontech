@@ -1,21 +1,21 @@
+import { Badge, Button, Stack, Text } from "@back-to-the-future/ui";
 import { Title } from "@solidjs/meta";
-import { createMemo, createResource, createSignal, For, Show, onCleanup, type JSX } from "solid-js";
 import { useNavigate } from "@solidjs/router";
-import { Box, Button, Container, Stack, Text, Badge } from "@back-to-the-future/ui";
+import { For, type JSX, Show, createMemo, createResource, createSignal, onCleanup } from "solid-js";
 import { AdminRoute } from "../../components/AdminRoute";
-import { useAuth } from "../../stores";
 import {
-  parseProgressTracker,
-  countByStatus,
-  totalEntries,
-  filterTracker,
-  commitUrl,
   type ProgressEntry,
   type ProgressFilters,
   type ProgressPriority,
   type ProgressStatus,
   type ProgressTracker,
+  commitUrl,
+  countByStatus,
+  filterTracker,
+  parseProgressTracker,
+  totalEntries,
 } from "../../lib/progress/schema";
+import { useAuth } from "../../stores";
 
 // ── Helpers ─────────────────────────────────────────────────────────
 
@@ -80,12 +80,7 @@ function priorityColor(priority: string): string {
   }
 }
 
-const ALL_STATUSES: readonly ProgressStatus[] = [
-  "completed",
-  "in_progress",
-  "pending",
-  "blocked",
-];
+const ALL_STATUSES: readonly ProgressStatus[] = ["completed", "in_progress", "pending", "blocked"];
 const ALL_PRIORITIES: readonly ProgressPriority[] = ["p0", "p1", "p2", "p3"];
 
 // ── Admin Guard ─────────────────────────────────────────────────────
@@ -137,9 +132,7 @@ function FilterPill(props: {
         "font-size": "12px",
         "font-weight": "600",
         cursor: "pointer",
-        border: props.active
-          ? `1px solid ${props.color}`
-          : "1px solid var(--color-border)",
+        border: props.active ? `1px solid ${props.color}` : "1px solid var(--color-border)",
         background: props.active ? `${props.color}22` : "var(--color-bg-subtle)",
         color: props.active ? props.color : "var(--color-text-secondary)",
         transition: "all 0.15s ease",
@@ -237,10 +230,7 @@ function EntryRow(props: {
         }}
       >
         <Show when={entry.commit}>
-          <Show
-            when={commitHref()}
-            fallback={<span>{entry.commit}</span>}
-          >
+          <Show when={commitHref()} fallback={<span>{entry.commit}</span>}>
             {(href) => (
               <a
                 href={href()}
@@ -282,9 +272,9 @@ function ProgressPage(): JSX.Element {
   const [selectedStatuses, setSelectedStatuses] = createSignal<ReadonlySet<ProgressStatus>>(
     new Set(),
   );
-  const [selectedPriorities, setSelectedPriorities] = createSignal<
-    ReadonlySet<ProgressPriority>
-  >(new Set());
+  const [selectedPriorities, setSelectedPriorities] = createSignal<ReadonlySet<ProgressPriority>>(
+    new Set(),
+  );
   const [search, setSearch] = createSignal("");
   const [within24h, setWithin24h] = createSignal(false);
   const [collapsed, setCollapsed] = createSignal<ReadonlySet<string>>(new Set());
@@ -347,7 +337,7 @@ function ProgressPage(): JSX.Element {
   return (
     <>
       <Title>Progress Tracker - Crontech Admin</Title>
-      <Box
+      <div
         style={{
           "min-height": "100vh",
           background: "linear-gradient(180deg, var(--color-bg-deep) 0%, var(--color-bg-base) 100%)",
@@ -355,9 +345,9 @@ function ProgressPage(): JSX.Element {
           padding: "32px 24px",
         }}
       >
-        <Container size="full" padding="none" class="max-w-[1100px]">
+        <div style={{ "max-width": "1100px", margin: "0 auto" }}>
           <Stack direction="vertical" gap="lg">
-            <Box>
+            <div>
               <Text variant="h1" weight="bold">
                 Crontech Master Game Plan
               </Text>
@@ -365,7 +355,7 @@ function ProgressPage(): JSX.Element {
                 Live tracker. Every strategic decision, roadmap item, and blocker from the CFO
                 lock-in session. Auto-refreshes every 30 seconds.
               </Text>
-            </Box>
+            </div>
 
             <Show
               when={tracker()}
@@ -432,7 +422,8 @@ function ProgressPage(): JSX.Element {
                         style={{
                           width: `${pct()}%`,
                           height: "100%",
-                          background: "linear-gradient(90deg, var(--color-success), var(--color-success-light))",
+                          background:
+                            "linear-gradient(90deg, var(--color-success), var(--color-success-light))",
                           transition: "width 0.6s ease",
                         }}
                       />
@@ -444,7 +435,8 @@ function ProgressPage(): JSX.Element {
                         padding: "12px 16px",
                         "border-radius": "8px",
                         background: "color-mix(in srgb, var(--color-accent) 8%, transparent)",
-                        border: "1px solid color-mix(in srgb, var(--color-accent) 30%, transparent)",
+                        border:
+                          "1px solid color-mix(in srgb, var(--color-accent) 30%, transparent)",
                       }}
                     >
                       <Text variant="caption" class="text-muted">
@@ -687,8 +679,8 @@ function ProgressPage(): JSX.Element {
               }}
             </Show>
           </Stack>
-        </Container>
-      </Box>
+        </div>
+      </div>
     </>
   );
 }

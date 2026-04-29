@@ -13,13 +13,13 @@
 import { smsMessages } from "@back-to-the-future/db";
 import type { db as defaultDb } from "@back-to-the-future/db";
 import {
+  type SinchClient,
   SinchError,
-  isValidE164,
-  segmentSms,
   applyMarkup,
   dollarsToMicrodollars,
+  isValidE164,
   markupPercentFromEnv,
-  type SinchClient,
+  segmentSms,
 } from "./sinch-client";
 
 export type DbClient = typeof defaultDb;
@@ -124,22 +124,14 @@ export interface SendSmsResult {
 // ── SendSmsError — polite, typed errors for the tRPC boundary ─────────
 
 export class SendSmsError extends Error {
-  public readonly kind:
-    | "invalid_phone"
-    | "rate_limited"
-    | "provider_error"
-    | "persistence_error";
+  public readonly kind: "invalid_phone" | "rate_limited" | "provider_error" | "persistence_error";
   public readonly retryAfterMs: number | undefined;
   public readonly providerStatus: number | undefined;
 
   constructor(
     message: string,
     options: {
-      kind:
-        | "invalid_phone"
-        | "rate_limited"
-        | "provider_error"
-        | "persistence_error";
+      kind: "invalid_phone" | "rate_limited" | "provider_error" | "persistence_error";
       retryAfterMs?: number | undefined;
       providerStatus?: number | undefined;
     },
@@ -168,10 +160,7 @@ export class SendSmsError extends Error {
  *   • 4xx from Sinch → NO retry; row persisted failed.
  *   • 2xx → row persisted with status "sent".
  */
-export async function sendSms(
-  input: SendSmsInput,
-  deps: SendSmsDeps,
-): Promise<SendSmsResult> {
+export async function sendSms(input: SendSmsInput, deps: SendSmsDeps): Promise<SendSmsResult> {
   const sleep = deps.sleep ?? defaultSleep;
   const retry = deps.retry ?? DEFAULT_RETRY_POLICY;
   const markupPercent = deps.markupPercent ?? markupPercentFromEnv();
@@ -180,16 +169,14 @@ export async function sendSms(
 
   // 1. E.164 validation at the boundary — never trust the caller.
   if (!isValidE164(input.from)) {
-    throw new SendSmsError(
-      "The `from` number must be in E.164 format, e.g. +14155551234.",
-      { kind: "invalid_phone" },
-    );
+    throw new SendSmsError("The `from` number must be in E.164 format, e.g. +14155551234.", {
+      kind: "invalid_phone",
+    });
   }
   if (!isValidE164(input.to)) {
-    throw new SendSmsError(
-      "The `to` number must be in E.164 format, e.g. +14155551234.",
-      { kind: "invalid_phone" },
-    );
+    throw new SendSmsError("The `to` number must be in E.164 format, e.g. +14155551234.", {
+      kind: "invalid_phone",
+    });
   }
 
   // 2. Rate limit.
@@ -277,18 +264,14 @@ export async function sendSms(
       if (err instanceof SinchError) {
         lastError = err;
         if (err.retryable && attempt < retry.maxAttempts) {
-          const delay = Math.min(
-            retry.baseDelayMs * 2 ** (attempt - 1),
-            retry.maxDelayMs,
-          );
+          const delay = Math.min(retry.baseDelayMs * 2 ** (attempt - 1), retry.maxDelayMs);
           await sleep(delay);
           continue;
         }
         break;
       }
       // Unknown error — do not retry.
-      lastError =
-        err instanceof Error ? err : new Error("Unknown SMS send failure.");
+      lastError = err instanceof Error ? err : new Error("Unknown SMS send failure.");
       break;
     }
   }
@@ -321,17 +304,14 @@ export async function sendSms(
     // If we can't even persist the failure, still surface the original.
   }
 
-  throw new SendSmsError(
-    lastError?.message ?? "The SMS carrier could not deliver the message.",
-    {
-      kind: "provider_error",
-      ...(lastError instanceof SinchError && lastError.status !== undefined
-        ? { providerStatus: lastError.status }
-        : {}),
-    },
-  );
+  throw new SendSmsError(lastError?.message ?? "The SMS carrier could not deliver the message.", {
+    kind: "provider_error",
+    ...(lastError instanceof SinchError && lastError.status !== undefined
+      ? { providerStatus: lastError.status }
+      : {}),
+  });
 }
 
 function newMessageId(): string {
-  return `sms_${Date.now().toString(36)}_${crypto.randomUUID().replace(/-/g, '').slice(0, 8)}`;
+  return `sms_${Date.now().toString(36)}_${crypto.randomUUID().replace(/-/g, "").slice(0, 8)}`;
 }

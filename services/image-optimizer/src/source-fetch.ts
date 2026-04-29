@@ -20,111 +20,94 @@ const DEFAULT_MAX_SOURCE_BYTES = 25 * 1024 * 1024; // 25 MiB
 const IMAGE_MIME = /^image\//iu;
 
 export interface FetchSourceOptions {
-	maxBytes?: number;
-	fetcher?: typeof fetch;
-	timeoutMs?: number;
+  maxBytes?: number;
+  fetcher?: typeof fetch;
+  timeoutMs?: number;
 }
 
 export async function fetchSource(
-	url: string,
-	opts: FetchSourceOptions = {},
+  url: string,
+  opts: FetchSourceOptions = {},
 ): Promise<SourceImage> {
-	const maxBytes = opts.maxBytes ?? DEFAULT_MAX_SOURCE_BYTES;
-	const fetcher = opts.fetcher ?? fetch;
-	const timeoutMs = opts.timeoutMs ?? 15_000;
+  const maxBytes = opts.maxBytes ?? DEFAULT_MAX_SOURCE_BYTES;
+  const fetcher = opts.fetcher ?? fetch;
+  const timeoutMs = opts.timeoutMs ?? 15_000;
 
-	const controller = new AbortController();
-	const timer = setTimeout(() => controller.abort(), timeoutMs);
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
 
-	let res: Response;
-	try {
-		res = await fetcher(url, { signal: controller.signal });
-	} catch (err) {
-		clearTimeout(timer);
-		throw new OptimizerError(
-			"SOURCE_NOT_FOUND",
-			`failed to fetch source: ${(err as Error).message}`,
-			502,
-		);
-	}
-	clearTimeout(timer);
+  let res: Response;
+  try {
+    res = await fetcher(url, { signal: controller.signal });
+  } catch (err) {
+    clearTimeout(timer);
+    throw new OptimizerError(
+      "SOURCE_NOT_FOUND",
+      `failed to fetch source: ${(err as Error).message}`,
+      502,
+    );
+  }
+  clearTimeout(timer);
 
-	if (res.status === 404) {
-		throw new OptimizerError(
-			"SOURCE_NOT_FOUND",
-			`source returned 404: ${url}`,
-			404,
-		);
-	}
-	if (!res.ok) {
-		throw new OptimizerError(
-			"SOURCE_NOT_FOUND",
-			`source returned ${res.status}: ${url}`,
-			502,
-		);
-	}
+  if (res.status === 404) {
+    throw new OptimizerError("SOURCE_NOT_FOUND", `source returned 404: ${url}`, 404);
+  }
+  if (!res.ok) {
+    throw new OptimizerError("SOURCE_NOT_FOUND", `source returned ${res.status}: ${url}`, 502);
+  }
 
-	const contentType = res.headers.get("content-type") ?? "";
-	if (!IMAGE_MIME.test(contentType)) {
-		throw new OptimizerError(
-			"SOURCE_NOT_IMAGE",
-			`source content-type is not an image: '${contentType}'`,
-			415,
-		);
-	}
+  const contentType = res.headers.get("content-type") ?? "";
+  if (!IMAGE_MIME.test(contentType)) {
+    throw new OptimizerError(
+      "SOURCE_NOT_IMAGE",
+      `source content-type is not an image: '${contentType}'`,
+      415,
+    );
+  }
 
-	const declaredLength = Number.parseInt(
-		res.headers.get("content-length") ?? "",
-		10,
-	);
-	if (Number.isFinite(declaredLength) && declaredLength > maxBytes) {
-		throw new OptimizerError(
-			"SOURCE_TOO_LARGE",
-			`source declared content-length ${declaredLength} exceeds cap ${maxBytes}`,
-			413,
-		);
-	}
+  const declaredLength = Number.parseInt(res.headers.get("content-length") ?? "", 10);
+  if (Number.isFinite(declaredLength) && declaredLength > maxBytes) {
+    throw new OptimizerError(
+      "SOURCE_TOO_LARGE",
+      `source declared content-length ${declaredLength} exceeds cap ${maxBytes}`,
+      413,
+    );
+  }
 
-	const reader = res.body?.getReader();
-	if (!reader) {
-		throw new OptimizerError(
-			"SOURCE_NOT_FOUND",
-			"source response has no body",
-			502,
-		);
-	}
+  const reader = res.body?.getReader();
+  if (!reader) {
+    throw new OptimizerError("SOURCE_NOT_FOUND", "source response has no body", 502);
+  }
 
-	const chunks: Uint8Array[] = [];
-	let total = 0;
-	while (true) {
-		const { done, value } = await reader.read();
-		if (done) break;
-		if (!value) continue;
-		total += value.byteLength;
-		if (total > maxBytes) {
-			await reader.cancel().catch(() => undefined);
-			throw new OptimizerError(
-				"SOURCE_TOO_LARGE",
-				`source exceeded max bytes ${maxBytes}`,
-				413,
-			);
-		}
-		chunks.push(value);
-	}
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    if (!value) continue;
+    total += value.byteLength;
+    if (total > maxBytes) {
+      await reader.cancel().catch((e: unknown) => {
+        console.warn("[source-fetch] reader cancel failed:", e);
+      });
+      throw new OptimizerError("SOURCE_TOO_LARGE", `source exceeded max bytes ${maxBytes}`, 413);
+    }
+    chunks.push(value);
+  }
 
-	const bytes = concatChunks(chunks, total);
-	const headerEtag = res.headers.get("etag")?.replace(/^W\//u, "").replace(/^"|"$/gu, "");
-	const etag = headerEtag && headerEtag.length > 0 ? headerEtag : hashBytes(bytes);
+  const bytes = concatChunks(chunks, total);
+  const headerEtag = res.headers.get("etag")?.replace(/^W\//u, "").replace(/^"|"$/gu, "");
+  const etag = headerEtag && headerEtag.length > 0 ? headerEtag : hashBytes(bytes);
 
-	return { bytes, contentType, etag };
+  return { bytes, contentType, etag };
 }
 
 function concatChunks(chunks: Uint8Array[], total: number): Uint8Array {
-	const out = new Uint8Array(total);
-	let offset = 0;
-	for (const chunk of chunks) {
-		out.set(chunk, offset);
-		offset += chunk.byteLength;
-	}
-	return out;
+  const out = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    out.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return out;
 }

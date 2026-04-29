@@ -50,10 +50,7 @@
 //   empty state. No synthetic data is invented anywhere.
 
 import { AsyncLocalStorage } from "node:async_hooks";
-import {
-  incrementProjectInflight,
-  decrementProjectInflight,
-} from "../telemetry";
+import { decrementProjectInflight, incrementProjectInflight } from "./inflight-state";
 
 // ── ALS frame shape ──────────────────────────────────────────────────
 interface ProjectAttributionFrame {
@@ -90,9 +87,9 @@ export function getCurrentProjectId(): string | undefined {
  *
  *     httpRequestCount.add(1, withProjectAttrs({ method, path }));
  */
-export function withProjectAttrs<
-  T extends Record<string, string | number | boolean>,
->(base: T): T & { project_id?: string } {
+export function withProjectAttrs<T extends Record<string, string | number | boolean>>(
+  base: T,
+): T & { project_id?: string } {
   const projectId = getCurrentProjectId();
   if (!projectId) return base;
   return { ...base, project_id: projectId };
@@ -150,10 +147,7 @@ type Next = () => Promise<void>;
  * when the downstream handler throws.
  */
 export function projectAttributionMiddleware() {
-  return async function projectAttribution(
-    c: MinimalHonoContext,
-    next: Next,
-  ): Promise<void> {
+  return async function projectAttribution(c: MinimalHonoContext, next: Next): Promise<void> {
     const fromHeader = c.req.header("x-project-id");
     const fromPath = extractProjectIdFromPath(c.req.path);
     const projectId = fromHeader ?? fromPath;
@@ -187,7 +181,7 @@ interface TrpcMiddlewareArgs {
 
 function readProjectIdFromInput(raw: unknown): string | undefined {
   if (!raw || typeof raw !== "object") return undefined;
-  const candidate = (raw as Record<string, unknown>)["projectId"];
+  const candidate = (raw as Record<string, unknown>).projectId;
   if (typeof candidate !== "string" || candidate.length === 0) {
     return undefined;
   }
@@ -198,9 +192,7 @@ function readProjectIdFromInput(raw: unknown): string | undefined {
  * Core projection of the tRPC middleware for testing purposes. The
  * real tRPC `middleware(fn)` wrapper is applied in `trpc/init.ts`.
  */
-export async function projectAttributionTrpcMiddleware(
-  args: TrpcMiddlewareArgs,
-): Promise<unknown> {
+export async function projectAttributionTrpcMiddleware(args: TrpcMiddlewareArgs): Promise<unknown> {
   // tRPC v11 exposes input as either a resolved value (`rawInput`) or
   // a lazy getter (`getRawInput`). Support both so this module is
   // robust across minor version drift. A parser error in `getRawInput`

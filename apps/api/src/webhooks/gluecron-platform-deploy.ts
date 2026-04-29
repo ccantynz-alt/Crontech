@@ -31,8 +31,8 @@
 
 import { Hono } from "hono";
 import { z } from "zod";
-import { timingSafeEqual } from "./gluecron-push";
 import { log } from "../log";
+import { timingSafeEqual } from "./gluecron-push";
 
 const PLATFORM_REPO = "ccantynz-alt/Crontech";
 const PLATFORM_BRANCH_ALLOWLIST = new Set(["Main", "main"]);
@@ -54,7 +54,7 @@ export type PlatformDeployPayload = z.infer<typeof PushPayloadSchema>;
 function extractBearer(header: string | undefined): string | null {
   if (!header) return null;
   const match = /^Bearer\s+(.+)$/i.exec(header.trim());
-  return match ? match[1]!.trim() : null;
+  return match ? (match[1]?.trim() ?? null) : null;
 }
 
 export interface GluecronPlatformDeployDeps {
@@ -109,17 +109,11 @@ function defaultTriggerDeploy(input: {
   })();
 }
 
-export function createGluecronPlatformDeployApp(
-  deps: GluecronPlatformDeployDeps = {},
-): Hono {
-  const getWebhookSecret =
-    deps.getWebhookSecret ??
-    (() => process.env["GLUECRON_WEBHOOK_SECRET"]);
-  const getAgentSecret =
-    deps.getAgentSecret ?? (() => process.env["DEPLOY_AGENT_SECRET"]);
+export function createGluecronPlatformDeployApp(deps: GluecronPlatformDeployDeps = {}): Hono {
+  const getWebhookSecret = deps.getWebhookSecret ?? (() => process.env.GLUECRON_WEBHOOK_SECRET);
+  const getAgentSecret = deps.getAgentSecret ?? (() => process.env.DEPLOY_AGENT_SECRET);
   const getAgentUrl =
-    deps.getAgentUrl ??
-    (() => `http://127.0.0.1:${process.env["DEPLOY_AGENT_PORT"] ?? 9091}`);
+    deps.getAgentUrl ?? (() => `http://127.0.0.1:${process.env.DEPLOY_AGENT_PORT ?? 9091}`);
   const triggerDeploy = deps.triggerDeploy ?? defaultTriggerDeploy;
 
   const app = new Hono();
@@ -129,10 +123,7 @@ export function createGluecronPlatformDeployApp(
     const secret = getWebhookSecret();
     const provided = extractBearer(c.req.header("Authorization"));
     if (!secret) {
-      return c.json(
-        { ok: false, error: "GLUECRON_WEBHOOK_SECRET not configured" },
-        503,
-      );
+      return c.json({ ok: false, error: "GLUECRON_WEBHOOK_SECRET not configured" }, 503);
     }
     if (!provided || !timingSafeEqual(provided, secret)) {
       return c.json({ ok: false, error: "unauthorized" }, 401);
@@ -182,10 +173,7 @@ export function createGluecronPlatformDeployApp(
     // ── 4. Trigger the deploy-agent ───────────────────────────────
     const agentSecret = getAgentSecret();
     if (!agentSecret) {
-      return c.json(
-        { ok: false, error: "DEPLOY_AGENT_SECRET not configured" },
-        503,
-      );
+      return c.json({ ok: false, error: "DEPLOY_AGENT_SECRET not configured" }, 503);
     }
     const agentUrl = getAgentUrl();
     triggerDeploy({ agentUrl, agentSecret, sha: payload.sha });

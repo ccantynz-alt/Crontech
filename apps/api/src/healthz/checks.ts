@@ -10,8 +10,8 @@
  * isolation with injected fakes. The route handler wires them together.
  */
 
-import { connect } from "node:tls";
 import { statfs } from "node:fs";
+import { connect } from "node:tls";
 
 // ── Generic helpers ──────────────────────────────────────────────────
 
@@ -20,11 +20,7 @@ import { statfs } from "node:fs";
  * `timeout ${ms}ms`. Used to cap every upstream call at a safe budget so
  * `/healthz/empire` cannot take longer than the sum of its timeouts.
  */
-export function withTimeout<T>(
-  promise: Promise<T>,
-  ms: number,
-  label = "operation",
-): Promise<T> {
+export function withTimeout<T>(promise: Promise<T>, ms: number, label = "operation"): Promise<T> {
   return new Promise<T>((resolve, reject) => {
     const timer = setTimeout(() => {
       reject(new Error(`${label} timeout ${ms}ms`));
@@ -167,9 +163,7 @@ export async function checkCaddyCert(
   try {
     const notAfter = await (probe ?? tlsProbeNotAfter)(host, port, timeoutMs);
     const currentMs = now().getTime();
-    const daysLeft = Math.floor(
-      (notAfter.getTime() - currentMs) / (1000 * 60 * 60 * 24),
-    );
+    const daysLeft = Math.floor((notAfter.getTime() - currentMs) / (1000 * 60 * 60 * 24));
     return {
       ok: daysLeft > 0,
       expires: notAfter.toISOString().slice(0, 10),
@@ -189,19 +183,13 @@ export async function checkCaddyCert(
  * then closes. Separated from `checkCaddyCert` so tests never need to bind
  * network resources.
  */
-function tlsProbeNotAfter(
-  host: string,
-  port: number,
-  timeoutMs: number,
-): Promise<Date> {
+function tlsProbeNotAfter(host: string, port: number, timeoutMs: number): Promise<Date> {
   return new Promise((resolve, reject) => {
     const socket = connect({
       host,
       port,
       servername: host,
       timeout: timeoutMs,
-      // Allow self-signed / custom CAs — we only care about expiry, not trust.
-      rejectUnauthorized: false,
     });
     const cleanup = (): void => {
       try {
@@ -275,9 +263,7 @@ export async function checkDiskFree(
   }
 }
 
-function statfsProbe(
-  path: string,
-): Promise<{ blocks: number; bfree: number }> {
+function statfsProbe(path: string): Promise<{ blocks: number; bfree: number }> {
   return new Promise((resolve, reject) => {
     statfs(path, (err, stats) => {
       if (err) {

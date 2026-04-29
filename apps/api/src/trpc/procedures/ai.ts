@@ -4,22 +4,23 @@
 // site_versions tables. This is the wire that connects the AI core
 // to the database and the eventual builder UI.
 
-import { z } from "zod";
+import {
+  type PageLayout,
+  PageLayoutSchema,
+  generatePageLayout,
+  readProviderEnv,
+} from "@back-to-the-future/ai-core";
+import { siteVersions, sites } from "@back-to-the-future/db";
 import { TRPCError } from "@trpc/server";
 import { and, desc, eq, sql } from "drizzle-orm";
-import { router, protectedProcedure } from "../init";
-import { sites, siteVersions } from "@back-to-the-future/db";
-import {
-  generatePageLayout,
-  PageLayoutSchema,
-  readProviderEnv,
-  type PageLayout,
-} from "@back-to-the-future/ai-core";
+import { z } from "zod";
+import { type PartialPageLayout, solveLayout, streamLayout } from "../../lib/constraint-solver";
+import { protectedProcedure, router } from "../init";
 
 // ── IDs ────────────────────────────────────────────────────────────────
 
 function newId(prefix: string): string {
-  return `${prefix}_${Date.now().toString(36)}_${crypto.randomUUID().replace(/-/g, '').slice(0, 8)}`;
+  return `${prefix}_${Date.now().toString(36)}_${crypto.randomUUID().replace(/-/g, "").slice(0, 8)}`;
 }
 
 // ── Provider Readiness ───────────────────────────────────────────────
@@ -70,8 +71,7 @@ function stubLayout(prompt: string): PageLayout {
           {
             component: "Text",
             props: {
-              content:
-                "Configure OPENAI_API_KEY to generate real AI layouts.",
+              content: "Configure OPENAI_API_KEY to generate real AI layouts.",
               variant: "caption",
               weight: "normal",
               align: "center",
@@ -124,131 +124,116 @@ export const siteBuilderRouter = router({
    * Falls back to a deterministic stub when no provider is
    * configured so the pipeline is testable without API keys.
    */
-  generate: protectedProcedure
-    .input(GenerateInputSchema)
-    .mutation(async ({ input }) => {
-      if (!hasCloudProvider()) {
-        return {
-          layout: stubLayout(input.prompt),
-          source: "stub" as const,
-        };
-      }
+  generate: protectedProcedure.input(GenerateInputSchema).mutation(async ({ input }) => {
+    if (!hasCloudProvider()) {
+      return {
+        layout: stubLayout(input.prompt),
+        source: "stub" as const,
+      };
+    }
 
-      try {
-        const layout = await generatePageLayout(input.prompt, {
-          computeTier: input.tier ?? "cloud",
-        });
-        return { layout, source: "ai" as const };
-      } catch (err) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message:
-            err instanceof Error
-              ? `Site builder failed: ${err.message}`
-              : "Site builder failed.",
-        });
-      }
-    }),
+    try {
+      const layout = await generatePageLayout(input.prompt, {
+        computeTier: input.tier ?? "cloud",
+      });
+      return { layout, source: "ai" as const };
+    } catch (err) {
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message:
+          err instanceof Error ? `Site builder failed: ${err.message}` : "Site builder failed.",
+      });
+    }
+  }),
 
   /**
    * Persist a newly generated layout as a site with version 1.
    */
-  save: protectedProcedure
-    .input(SaveInputSchema)
-    .mutation(async ({ ctx, input }) => {
-      const existing = await ctx.db
-        .select({ id: sites.id })
-        .from(sites)
-        .where(eq(sites.slug, input.slug))
-        .limit(1);
-      if (existing.length > 0) {
-        throw new TRPCError({
-          code: "CONFLICT",
-          message: `Slug "${input.slug}" is already taken.`,
-        });
-      }
-
-      const now = new Date();
-      const siteId = newId("site");
-      const versionId = newId("sv");
-
-      await ctx.db.insert(sites).values({
-        id: siteId,
-        userId: ctx.userId,
-        name: input.name,
-        slug: input.slug,
-        description: input.description ?? null,
-        status: "draft",
-        createdAt: now,
-        updatedAt: now,
+  save: protectedProcedure.input(SaveInputSchema).mutation(async ({ ctx, input }) => {
+    const existing = await ctx.db
+      .select({ id: sites.id })
+      .from(sites)
+      .where(eq(sites.slug, input.slug))
+      .limit(1);
+    if (existing.length > 0) {
+      throw new TRPCError({
+        code: "CONFLICT",
+        message: `Slug "${input.slug}" is already taken.`,
       });
+    }
 
-      await ctx.db.insert(siteVersions).values({
-        id: versionId,
-        siteId,
-        version: 1,
-        prompt: input.prompt ?? null,
-        layout: JSON.stringify(input.layout),
-        generatedBy: "ai",
-        createdAt: now,
-      });
+    const now = new Date();
+    const siteId = newId("site");
+    const versionId = newId("sv");
 
-      return { siteId, versionId, version: 1 };
-    }),
+    await ctx.db.insert(sites).values({
+      id: siteId,
+      userId: ctx.userId,
+      name: input.name,
+      slug: input.slug,
+      description: input.description ?? null,
+      status: "draft",
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    await ctx.db.insert(siteVersions).values({
+      id: versionId,
+      siteId,
+      version: 1,
+      prompt: input.prompt ?? null,
+      layout: JSON.stringify(input.layout),
+      generatedBy: "ai",
+      createdAt: now,
+    });
+
+    return { siteId, versionId, version: 1 };
+  }),
 
   /**
    * Append a new version to an existing site. Version number is
    * computed server-side by taking max(version) + 1.
    */
-  addVersion: protectedProcedure
-    .input(AddVersionInputSchema)
-    .mutation(async ({ ctx, input }) => {
-      const siteRows = await ctx.db
-        .select()
-        .from(sites)
-        .where(eq(sites.id, input.siteId))
-        .limit(1);
-      const site = siteRows[0];
-      if (!site) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Site not found.",
-        });
-      }
-      if (site.userId !== ctx.userId) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "You do not own this site.",
-        });
-      }
-
-      const maxRows = await ctx.db
-        .select({ max: sql<number>`max(${siteVersions.version})` })
-        .from(siteVersions)
-        .where(eq(siteVersions.siteId, input.siteId));
-      const currentMax = maxRows[0]?.max ?? 0;
-      const nextVersion = currentMax + 1;
-
-      const now = new Date();
-      const versionId = newId("sv");
-
-      await ctx.db.insert(siteVersions).values({
-        id: versionId,
-        siteId: input.siteId,
-        version: nextVersion,
-        prompt: input.prompt ?? null,
-        layout: JSON.stringify(input.layout),
-        generatedBy: input.generatedBy,
-        createdAt: now,
+  addVersion: protectedProcedure.input(AddVersionInputSchema).mutation(async ({ ctx, input }) => {
+    const siteRows = await ctx.db.select().from(sites).where(eq(sites.id, input.siteId)).limit(1);
+    const site = siteRows[0];
+    if (!site) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Site not found.",
       });
+    }
+    if (site.userId !== ctx.userId) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "You do not own this site.",
+      });
+    }
 
-      await ctx.db
-        .update(sites)
-        .set({ updatedAt: now })
-        .where(eq(sites.id, input.siteId));
+    const maxRows = await ctx.db
+      .select({ max: sql<number>`max(${siteVersions.version})` })
+      .from(siteVersions)
+      .where(eq(siteVersions.siteId, input.siteId));
+    const currentMax = maxRows[0]?.max ?? 0;
+    const nextVersion = currentMax + 1;
 
-      return { versionId, version: nextVersion };
-    }),
+    const now = new Date();
+    const versionId = newId("sv");
+
+    await ctx.db.insert(siteVersions).values({
+      id: versionId,
+      siteId: input.siteId,
+      version: nextVersion,
+      prompt: input.prompt ?? null,
+      layout: JSON.stringify(input.layout),
+      generatedBy: input.generatedBy,
+      createdAt: now,
+    });
+
+    await ctx.db.update(sites).set({ updatedAt: now }).where(eq(sites.id, input.siteId));
+
+    return { versionId, version: nextVersion };
+  }),
 
   /**
    * List all sites owned by the current user, most recently updated
@@ -303,10 +288,91 @@ export const siteBuilderRouter = router({
     }),
 });
 
+// ── Constraint Solver Router ───────────────────────────────────────────────
+// The constraint solver is the architectural moat: AI generates layouts
+// from the typed component catalog, so hallucinated props and unknown
+// components are structurally impossible — the Zod schema is the fence.
+
+const GenerateLayoutInputSchema = z.object({
+  intent: z.string().min(1).max(2_000),
+  existingLayout: PageLayoutSchema.optional(),
+  mode: z.enum(["create", "mutate"]).default("create"),
+});
+
+const GenerateLayoutStreamInputSchema = z.object({
+  intent: z.string().min(1).max(2_000),
+});
+
+const constraintSolverRouter = router({
+  /**
+   * Generate a page layout from a natural-language intent using the
+   * Constraint Solver. The AI is given the full typed component catalog
+   * as its only output grammar, so it is physically impossible for it to
+   * emit a component or prop that does not exist in the catalog. The
+   * output is additionally validated by `generateObject` + Zod before it
+   * reaches the caller.
+   *
+   * Use `mode: "mutate"` + `existingLayout` to modify an existing layout
+   * in-place while preserving as much structure as possible.
+   */
+  generateLayout: protectedProcedure
+    .input(GenerateLayoutInputSchema)
+    .mutation(async ({ input }): Promise<{ layout: PageLayout }> => {
+      try {
+        const layout = await solveLayout(input.intent, {
+          existingLayout: input.existingLayout,
+          mode: input.mode,
+        });
+        return { layout };
+      } catch (err) {
+        if (err instanceof TRPCError) throw err;
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message:
+            err instanceof Error
+              ? `Constraint solver failed: ${err.message}`
+              : "Constraint solver failed.",
+        });
+      }
+    }),
+
+  /**
+   * Streaming variant for voice-morph use cases where the client sends
+   * partial transcripts every ~400ms while the user is still speaking.
+   * Yields partial PageLayout objects as the model streams tokens.
+   *
+   * NOTE: To consume the async generator on the client you MUST switch
+   * from `httpBatchLink` to `httpBatchStreamLink` in apps/web/src/lib/trpc.ts.
+   * The current client uses `httpBatchLink` for non-streaming procedures —
+   * add `httpBatchStreamLink` as a split-link or dedicated transport link
+   * for `ai.constraintSolver.generateLayoutStream` when you wire the UI.
+   *
+   * The stream terminates naturally when the model finishes. Each yielded
+   * value is a partial object — treat undefined fields as "not yet generated."
+   */
+  generateLayoutStream: protectedProcedure
+    .input(GenerateLayoutStreamInputSchema)
+    .mutation(async function* ({ input }): AsyncGenerator<PartialPageLayout, void, unknown> {
+      try {
+        for await (const partial of streamLayout(input.intent)) {
+          yield partial;
+        }
+      } catch (err) {
+        if (err instanceof TRPCError) throw err;
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message:
+            err instanceof Error ? `Layout stream failed: ${err.message}` : "Layout stream failed.",
+        });
+      }
+    }),
+});
+
 // ── AI Router ─────────────────────────────────────────────────────────────
 // Nested so future AI surface areas (rag, chat, embeddings) can live
 // under the same `ai.*` namespace without polluting the root router.
 
 export const aiRouter = router({
   siteBuilder: siteBuilderRouter,
+  constraintSolver: constraintSolverRouter,
 });

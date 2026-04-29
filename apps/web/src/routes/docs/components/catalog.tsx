@@ -9,11 +9,7 @@
 
 import type { JSX } from "solid-js";
 import { SEOHead } from "../../../components/SEOHead";
-import {
-  DocsArticle,
-  Callout,
-  KeyList,
-} from "../../../components/docs/DocsArticle";
+import { Callout, DocsArticle, KeyList } from "../../../components/docs/DocsArticle";
 
 export default function ComponentsCatalogArticle(): JSX.Element {
   return (
@@ -37,9 +33,7 @@ export default function ComponentsCatalogArticle(): JSX.Element {
             "How Zod schemas plus the json-render renderer turn this catalog into something an AI agent can drive directly.",
         }}
       >
-        <p>
-          Everything below imports from a single package entry point:
-        </p>
+        <p>Everything below imports from a single package entry point:</p>
 
         <pre
           class="docs-pre"
@@ -60,10 +54,9 @@ export default function ComponentsCatalogArticle(): JSX.Element {
         </pre>
 
         <Callout tone="info">
-          There is no per-component import path. The library is small
-          enough to tree-shake cleanly from a single entry point, and
-          keeping imports flat makes the AI composable surface simpler —
-          one import, fifteen component names, nothing to guess.
+          There is no per-component import path. The library is small enough to tree-shake cleanly
+          from a single entry point, and keeping imports flat makes the AI composable surface
+          simpler — one import, fifteen component names, nothing to guess.
         </Callout>
 
         <h2>Layout primitives</h2>
@@ -95,7 +88,7 @@ export default function ComponentsCatalogArticle(): JSX.Element {
             {
               term: "Text",
               description:
-                "The only component that decides what tag to render. Props: variant (h1 | h2 | h3 | h4 | body | caption | code), optional as override (span | p | div | label | strong | …), weight (normal | medium | semibold | bold), align (left | center | right), size (xs | sm | md | lg). If you reach for a raw h2 anywhere, use Text variant=\"h2\" instead.",
+                'The only component that decides what tag to render. Props: variant (h1 | h2 | h3 | h4 | body | caption | code), optional as override (span | p | div | label | strong | …), weight (normal | medium | semibold | bold), align (left | center | right), size (xs | sm | md | lg). If you reach for a raw h2 anywhere, use Text variant="h2" instead.',
             },
           ]}
         />
@@ -144,7 +137,7 @@ export default function ComponentsCatalogArticle(): JSX.Element {
             {
               term: "Spinner",
               description:
-                "Loading indicator. Props: size (sm | md | lg). Rendered with role=status and aria-label=\"Loading\" — safe to drop in anywhere without worrying about accessibility.",
+                'Loading indicator. Props: size (sm | md | lg). Rendered with role=status and aria-label="Loading" — safe to drop in anywhere without worrying about accessibility.',
             },
             {
               term: "Tooltip",
@@ -178,8 +171,7 @@ export default function ComponentsCatalogArticle(): JSX.Element {
 
         <h2>A minimal composition</h2>
         <p>
-          A sign-up card assembled from five primitives, zero raw HTML
-          tags, and one import line:
+          A sign-up card assembled from five primitives, zero raw HTML tags, and one import line:
         </p>
 
         <pre
@@ -214,18 +206,16 @@ export function SignupCard() {
         </pre>
 
         <Callout tone="note">
-          Everything in this article is grep-checkable. If a prop name or
-          a variant doesn't match <code>packages/ui/src/components/</code>,
-          treat it as a doc bug and fix the article — the component file
-          is the source of truth.
+          Everything in this article is grep-checkable. If a prop name or a variant doesn't match{" "}
+          <code>packages/ui/src/components/</code>, treat it as a doc bug and fix the article — the
+          component file is the source of truth.
         </Callout>
 
         <h2>What's next for the catalog</h2>
         <p>
-          Richer primitives — DataTable, Drawer, Command, DatePicker —
-          are queued and ship one-at-a-time under the same three-gate
-          rule: Zod schema, json-render renderer entry, and test. The
-          moment each lands, it shows up here.
+          Richer primitives — DataTable, Drawer, Command, DatePicker — are queued and ship
+          one-at-a-time under the same three-gate rule: Zod schema, json-render renderer entry, and
+          test. The moment each lands, it shows up here.
         </p>
       </DocsArticle>
     </>

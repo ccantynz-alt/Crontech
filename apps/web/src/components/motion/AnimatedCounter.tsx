@@ -3,7 +3,7 @@
 // requestAnimationFrame with an ease-out curve for a restrained,
 // Stripe/Linear-style number roll. Honors prefers-reduced-motion.
 
-import { createSignal, onCleanup, onMount, type JSX } from "solid-js";
+import { type JSX, createSignal, onCleanup, onMount } from "solid-js";
 import { usePrefersReducedMotion } from "./reduced-motion";
 
 export interface AnimatedCounterProps {

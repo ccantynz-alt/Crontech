@@ -1,5 +1,5 @@
-import { For, createMemo, createSignal, onMount } from "solid-js";
 import { Badge, Button, Card, Stack, Text } from "@back-to-the-future/ui";
+import { For, createMemo, createSignal, onMount } from "solid-js";
 
 // ── Progress Tracker ───────────────────────────────────────────────
 // Shows the user how far they've come on the platform.
@@ -13,12 +13,35 @@ export interface ProgressStep {
 }
 
 const STEPS: ProgressStep[] = [
-  { id: "create-project", title: "Create your first project", description: "Pick a template or start from scratch.", reward: "Starter Badge" },
-  { id: "customize", title: "Customize a component", description: "Make it your own with a tweak or two." },
-  { id: "invite-collab", title: "Invite a collaborator", description: "Building is more fun together.", reward: "Team Player Badge" },
+  {
+    id: "create-project",
+    title: "Create your first project",
+    description: "Pick a template or start from scratch.",
+    reward: "Starter Badge",
+  },
+  {
+    id: "customize",
+    title: "Customize a component",
+    description: "Make it your own with a tweak or two.",
+  },
+  {
+    id: "invite-collab",
+    title: "Invite a collaborator",
+    description: "Building is more fun together.",
+    reward: "Team Player Badge",
+  },
   { id: "use-ai", title: "Use the AI assistant", description: "Let AI suggest improvements." },
-  { id: "publish", title: "Publish your site", description: "Take it live to the world.", reward: "Launcher Badge" },
-  { id: "share", title: "Share with someone", description: "Send the link to a friend or coworker." },
+  {
+    id: "publish",
+    title: "Publish your site",
+    description: "Take it live to the world.",
+    reward: "Launcher Badge",
+  },
+  {
+    id: "share",
+    title: "Share with someone",
+    description: "Send the link to a friend or coworker.",
+  },
 ];
 
 const MOTIVATIONS: string[] = [
@@ -138,7 +161,9 @@ export function ProgressTracker(): ReturnType<typeof Card> {
         {earnedRewards().length > 0 && (
           <Card padding="sm">
             <Stack direction="vertical" gap="sm" align="stretch" justify="start">
-              <Text variant="h4" weight="semibold">Badges Unlocked</Text>
+              <Text variant="h4" weight="semibold">
+                Badges Unlocked
+              </Text>
               <Stack direction="horizontal" gap="sm" align="center" justify="start">
                 <For each={earnedRewards()}>
                   {(r) => (

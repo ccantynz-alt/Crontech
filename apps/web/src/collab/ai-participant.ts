@@ -7,8 +7,8 @@ import type { CollabRoom, CollabUser } from "./yjs-provider";
 import {
   createCollabRoom,
   getRandomColor,
-  getSharedText,
   getSharedMap,
+  getSharedText,
   projectRoomId,
   updateCursorPosition,
 } from "./yjs-provider";
@@ -63,17 +63,17 @@ export function createAIParticipant(config: AIParticipantConfig): AIParticipant 
   });
 
   return {
-    insertText(text: string, position: number, field: string = "content") {
+    insertText(text: string, position: number, field = "content") {
       const yText = getSharedText(doc, field);
       yText.insert(position, text);
     },
 
-    deleteText(position: number, length: number, field: string = "content") {
+    deleteText(position: number, length: number, field = "content") {
       const yText = getSharedText(doc, field);
       yText.delete(position, length);
     },
 
-    replaceText(start: number, end: number, newText: string, field: string = "content") {
+    replaceText(start: number, end: number, newText: string, field = "content") {
       const yText = getSharedText(doc, field);
       doc.transact(() => {
         yText.delete(start, end - start);
@@ -90,7 +90,7 @@ export function createAIParticipant(config: AIParticipantConfig): AIParticipant 
       updateCursorPosition(awareness, { x, y });
     },
 
-    async processInstruction(instruction: string, field: string = "content") {
+    async processInstruction(instruction: string, field = "content") {
       const yText = getSharedText(doc, field);
       const currentText = yText.toString();
 
@@ -191,6 +191,6 @@ function humanizeAgentId(agentId: string): string {
   return agentId
     .split(/[-_]/g)
     .filter((w) => w.length > 0)
-    .map((w) => w[0]!.toUpperCase() + w.slice(1))
+    .map((w) => w[0]?.toUpperCase() + w.slice(1))
     .join(" ");
 }

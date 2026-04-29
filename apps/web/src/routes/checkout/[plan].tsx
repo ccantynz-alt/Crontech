@@ -1,8 +1,8 @@
 import { Title } from "@solidjs/meta";
-import { createEffect, createSignal, Show } from "solid-js";
-import type { JSX } from "solid-js";
 import { A, useNavigate, useParams } from "@solidjs/router";
 import { TRPCClientError } from "@trpc/client";
+import { Show, createEffect, createSignal } from "solid-js";
+import type { JSX } from "solid-js";
 import { trpc } from "../../lib/trpc";
 import { useAuth } from "../../stores";
 
@@ -23,9 +23,9 @@ import { useAuth } from "../../stores";
 // them to Stripe with the right price ID attached.
 
 type CheckoutState =
-  | { kind: "redirecting" }           // bouncing to register or Stripe
-  | { kind: "loading" }                // calling getPlans / createCheckoutSession
-  | { kind: "missing-price" }          // STRIPE_PRICE_* env var not set
+  | { kind: "redirecting" } // bouncing to register or Stripe
+  | { kind: "loading" } // calling getPlans / createCheckoutSession
+  | { kind: "missing-price" } // STRIPE_PRICE_* env var not set
   | { kind: "unknown-plan"; plan: string } // /checkout/foo — plan doesn't exist
   | { kind: "error"; message: string };
 
@@ -83,9 +83,7 @@ export default function CheckoutPlanPage(): JSX.Element {
     setState({ kind: "loading" });
     try {
       const plans = await trpc.billing.getPlans.query();
-      const match = (plans ?? []).find(
-        (p) => p.id.toLowerCase() === plan.toLowerCase(),
-      );
+      const match = (plans ?? []).find((p) => p.id.toLowerCase() === plan.toLowerCase());
       if (!match) {
         setState({ kind: "unknown-plan", plan });
         return;
@@ -164,15 +162,12 @@ export default function CheckoutPlanPage(): JSX.Element {
         </Show>
 
         <Show when={state().kind === "missing-price"}>
-          <h1
-            class="text-2xl font-bold tracking-tight"
-            style={{ color: "var(--color-text)" }}
-          >
+          <h1 class="text-2xl font-bold tracking-tight" style={{ color: "var(--color-text)" }}>
             {planLabel()} checkout isn't configured yet.
           </h1>
           <p class="mt-3 text-sm" style={{ color: "var(--color-text-muted)" }}>
-            Please contact support and we'll get you set up. In the meantime
-            you can head back and explore the other plans.
+            Please contact support and we'll get you set up. In the meantime you can head back and
+            explore the other plans.
           </p>
           <div class="mt-6 flex gap-3">
             <A
@@ -197,10 +192,7 @@ export default function CheckoutPlanPage(): JSX.Element {
         </Show>
 
         <Show when={state().kind === "unknown-plan"}>
-          <h1
-            class="text-2xl font-bold tracking-tight"
-            style={{ color: "var(--color-text)" }}
-          >
+          <h1 class="text-2xl font-bold tracking-tight" style={{ color: "var(--color-text)" }}>
             We couldn't find that plan.
           </h1>
           <p class="mt-3 text-sm" style={{ color: "var(--color-text-muted)" }}>
@@ -234,7 +226,10 @@ export default function CheckoutPlanPage(): JSX.Element {
                   <A
                     href="/pricing"
                     class="rounded-xl px-5 py-2.5 text-sm font-semibold"
-                    style={{ background: "var(--color-primary)", color: "var(--color-primary-text)" }}
+                    style={{
+                      background: "var(--color-primary)",
+                      color: "var(--color-primary-text)",
+                    }}
                   >
                     Back to pricing
                   </A>

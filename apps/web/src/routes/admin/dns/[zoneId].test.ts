@@ -4,13 +4,10 @@
 // covered at the tRPC layer + GateTest crawl modules (visual/a11y/links).
 
 import { describe, expect, test } from "bun:test";
-import { readFileSync, existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-const ROUTE_PATH = resolve(
-  import.meta.dir,
-  "./[zoneId].tsx",
-);
+const ROUTE_PATH = resolve(import.meta.dir, "./[zoneId].tsx");
 
 describe("admin/dns/[zoneId] — file presence", () => {
   test("route file exists at the documented path", () => {

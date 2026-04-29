@@ -8,18 +8,14 @@
 // after creating the deployment row, so the webhook path does not depend
 // on a logged-in user.
 
-import { z } from "zod";
+import { deploymentLogs, deployments, projects } from "@back-to-the-future/db";
 import { TRPCError } from "@trpc/server";
 import { and, asc, desc, eq } from "drizzle-orm";
-import {
-  deployments,
-  deploymentLogs,
-  projects,
-} from "@back-to-the-future/db";
-import { router, protectedProcedure } from "../init";
-import { emitDataChange } from "../../realtime/live-updates";
+import { z } from "zod";
 import { enqueueBuild } from "../../automation/build-runner";
+import { emitDataChange } from "../../realtime/live-updates";
 import type { TRPCContext } from "../context";
+import { protectedProcedure, router } from "../init";
 
 // ── Constants ────────────────────────────────────────────────────────
 
@@ -63,11 +59,7 @@ async function requireDeploymentAccess(
   deploymentId: string,
   userId: string,
 ): Promise<typeof deployments.$inferSelect> {
-  const rows = await db
-    .select()
-    .from(deployments)
-    .where(eq(deployments.id, deploymentId))
-    .limit(1);
+  const rows = await db.select().from(deployments).where(eq(deployments.id, deploymentId)).limit(1);
   const deployment = rows[0];
   if (!deployment) {
     throw new TRPCError({
@@ -93,24 +85,14 @@ const createInput = z.object({
   commitMessage: z.string().max(500).optional(),
   commitAuthor: z.string().max(200).optional(),
   branch: z.string().min(1).max(255).optional(),
-  triggeredBy: z
-    .enum(["manual", "webhook", "api", "scheduled"])
-    .optional(),
+  triggeredBy: z.enum(["manual", "webhook", "api", "scheduled"]).optional(),
 });
 
 const listInput = z.object({
   projectId: z.string().uuid(),
   limit: z.number().int().min(1).max(MAX_LIST_LIMIT).optional(),
   status: z
-    .enum([
-      "queued",
-      "building",
-      "deploying",
-      "live",
-      "failed",
-      "rolled_back",
-      "cancelled",
-    ])
+    .enum(["queued", "building", "deploying", "live", "failed", "rolled_back", "cancelled"])
     .optional(),
 });
 
@@ -131,55 +113,49 @@ const cancelInput = z.object({
 
 export const deploymentsRouter = router({
   /** Create a deployment record (status=queued) and enqueue the build. */
-  create: protectedProcedure
-    .input(createInput)
-    .mutation(async ({ ctx, input }) => {
-      const project = await requireProjectOwnership(
-        ctx.db,
-        input.projectId,
-        ctx.userId,
+  create: protectedProcedure.input(createInput).mutation(async ({ ctx, input }) => {
+    const project = await requireProjectOwnership(ctx.db, input.projectId, ctx.userId);
+
+    const id = generateId();
+    const now = new Date();
+    const values: typeof deployments.$inferInsert = {
+      id,
+      projectId: project.id,
+      userId: ctx.userId,
+      commitSha: input.commitSha ?? null,
+      commitMessage: input.commitMessage ?? null,
+      commitAuthor: input.commitAuthor ?? null,
+      branch: input.branch ?? project.repoBranch ?? "main",
+      status: "queued",
+      triggeredBy: input.triggeredBy ?? "manual",
+      isCurrent: false,
+      createdAt: now,
+    };
+    await ctx.db.insert(deployments).values(values);
+
+    // Fire-and-forget: the build runner drains its own queue on a
+    // long-lived Bun process. On Workers this is a no-op because the
+    // queue module is only booted when `typeof Bun !== "undefined"`.
+    try {
+      enqueueBuild(id);
+    } catch (err) {
+      console.warn(
+        `[deployments.create] enqueueBuild failed for ${id}:`,
+        err instanceof Error ? err.message : String(err),
       );
+    }
 
-      const id = generateId();
-      const now = new Date();
-      const values: typeof deployments.$inferInsert = {
-        id,
-        projectId: project.id,
-        userId: ctx.userId,
-        commitSha: input.commitSha ?? null,
-        commitMessage: input.commitMessage ?? null,
-        commitAuthor: input.commitAuthor ?? null,
-        branch: input.branch ?? project.repoBranch ?? "main",
-        status: "queued",
-        triggeredBy: input.triggeredBy ?? "manual",
-        isCurrent: false,
-        createdAt: now,
-      };
-      await ctx.db.insert(deployments).values(values);
+    emitDataChange(["projects", "deployments"], "deployment created");
 
-      // Fire-and-forget: the build runner drains its own queue on a
-      // long-lived Bun process. On Workers this is a no-op because the
-      // queue module is only booted when `typeof Bun !== "undefined"`.
-      try {
-        enqueueBuild(id);
-      } catch (err) {
-        console.warn(
-          `[deployments.create] enqueueBuild failed for ${id}:`,
-          err instanceof Error ? err.message : String(err),
-        );
-      }
-
-      emitDataChange(["projects", "deployments"], "deployment created");
-
-      return {
-        id,
-        projectId: project.id,
-        status: "queued" as const,
-        branch: values.branch ?? "main",
-        commitSha: values.commitSha,
-        createdAt: now,
-      };
-    }),
+    return {
+      id,
+      projectId: project.id,
+      status: "queued" as const,
+      branch: values.branch ?? "main",
+      commitSha: values.commitSha,
+      createdAt: now,
+    };
+  }),
 
   /** List deployments for a project (newest first). */
   list: protectedProcedure.input(listInput).query(async ({ ctx, input }) => {
@@ -187,10 +163,7 @@ export const deploymentsRouter = router({
 
     const limit = input.limit ?? DEFAULT_LIST_LIMIT;
     const where = input.status
-      ? and(
-          eq(deployments.projectId, input.projectId),
-          eq(deployments.status, input.status),
-        )
+      ? and(eq(deployments.projectId, input.projectId), eq(deployments.status, input.status))
       : eq(deployments.projectId, input.projectId);
 
     const rows = await ctx.db
@@ -222,71 +195,59 @@ export const deploymentsRouter = router({
   }),
 
   /** Get a single deployment including its log lines. */
-  getById: protectedProcedure
-    .input(getByIdInput)
-    .query(async ({ ctx, input }) => {
-      const deployment = await requireDeploymentAccess(
-        ctx.db,
-        input.deploymentId,
-        ctx.userId,
-      );
+  getById: protectedProcedure.input(getByIdInput).query(async ({ ctx, input }) => {
+    const deployment = await requireDeploymentAccess(ctx.db, input.deploymentId, ctx.userId);
 
-      const logLimit = input.logLimit ?? DEFAULT_LOG_LIMIT;
-      const logs = await ctx.db
-        .select({
-          id: deploymentLogs.id,
-          stream: deploymentLogs.stream,
-          line: deploymentLogs.line,
-          timestamp: deploymentLogs.timestamp,
-        })
-        .from(deploymentLogs)
-        .where(eq(deploymentLogs.deploymentId, deployment.id))
-        .orderBy(asc(deploymentLogs.timestamp))
-        .limit(logLimit);
+    const logLimit = input.logLimit ?? DEFAULT_LOG_LIMIT;
+    const logs = await ctx.db
+      .select({
+        id: deploymentLogs.id,
+        stream: deploymentLogs.stream,
+        line: deploymentLogs.line,
+        timestamp: deploymentLogs.timestamp,
+      })
+      .from(deploymentLogs)
+      .where(eq(deploymentLogs.deploymentId, deployment.id))
+      .orderBy(asc(deploymentLogs.timestamp))
+      .limit(logLimit);
 
-      return {
-        id: deployment.id,
-        projectId: deployment.projectId,
-        commitSha: deployment.commitSha,
-        commitMessage: deployment.commitMessage,
-        commitAuthor: deployment.commitAuthor,
-        branch: deployment.branch,
-        status: deployment.status,
-        triggeredBy: deployment.triggeredBy,
-        deployUrl: deployment.deployUrl,
-        url: deployment.url,
-        duration: deployment.duration,
-        buildDuration: deployment.buildDuration,
-        errorMessage: deployment.errorMessage,
-        isCurrent: deployment.isCurrent,
-        startedAt: deployment.startedAt,
-        completedAt: deployment.completedAt,
-        cancelRequestedAt: deployment.cancelRequestedAt,
-        createdAt: deployment.createdAt,
-        finishedAt: deployment.finishedAt,
-        logs,
-      };
-    }),
+    return {
+      id: deployment.id,
+      projectId: deployment.projectId,
+      commitSha: deployment.commitSha,
+      commitMessage: deployment.commitMessage,
+      commitAuthor: deployment.commitAuthor,
+      branch: deployment.branch,
+      status: deployment.status,
+      triggeredBy: deployment.triggeredBy,
+      deployUrl: deployment.deployUrl,
+      url: deployment.url,
+      duration: deployment.duration,
+      buildDuration: deployment.buildDuration,
+      errorMessage: deployment.errorMessage,
+      isCurrent: deployment.isCurrent,
+      startedAt: deployment.startedAt,
+      completedAt: deployment.completedAt,
+      cancelRequestedAt: deployment.cancelRequestedAt,
+      createdAt: deployment.createdAt,
+      finishedAt: deployment.finishedAt,
+      logs,
+    };
+  }),
 
   /** Lightweight poll endpoint — just the status fields, no logs. */
-  getStatus: protectedProcedure
-    .input(getStatusInput)
-    .query(async ({ ctx, input }) => {
-      const deployment = await requireDeploymentAccess(
-        ctx.db,
-        input.deploymentId,
-        ctx.userId,
-      );
-      return {
-        id: deployment.id,
-        status: deployment.status,
-        startedAt: deployment.startedAt,
-        completedAt: deployment.completedAt,
-        deployUrl: deployment.deployUrl ?? deployment.url ?? null,
-        errorMessage: deployment.errorMessage,
-        buildDuration: deployment.buildDuration,
-      };
-    }),
+  getStatus: protectedProcedure.input(getStatusInput).query(async ({ ctx, input }) => {
+    const deployment = await requireDeploymentAccess(ctx.db, input.deploymentId, ctx.userId);
+    return {
+      id: deployment.id,
+      status: deployment.status,
+      startedAt: deployment.startedAt,
+      completedAt: deployment.completedAt,
+      deployUrl: deployment.deployUrl ?? deployment.url ?? null,
+      errorMessage: deployment.errorMessage,
+      buildDuration: deployment.buildDuration,
+    };
+  }),
 
   /**
    * Cancel a queued or running deployment. Sets `cancelRequestedAt` so the
@@ -294,59 +255,47 @@ export const deploymentsRouter = router({
    * `cancelled` at the next step boundary. Returns 409 if the deployment is
    * already in a terminal state.
    */
-  cancel: protectedProcedure
-    .input(cancelInput)
-    .mutation(async ({ ctx, input }) => {
-      const deployment = await requireDeploymentAccess(
-        ctx.db,
-        input.deploymentId,
-        ctx.userId,
-      );
+  cancel: protectedProcedure.input(cancelInput).mutation(async ({ ctx, input }) => {
+    const deployment = await requireDeploymentAccess(ctx.db, input.deploymentId, ctx.userId);
 
-      const terminal = new Set([
-        "live",
-        "failed",
-        "rolled_back",
-        "cancelled",
-      ]);
-      if (terminal.has(deployment.status)) {
-        throw new TRPCError({
-          code: "CONFLICT",
-          message: `Deployment is already in a terminal state: ${deployment.status}`,
-        });
-      }
+    const terminal = new Set(["live", "failed", "rolled_back", "cancelled"]);
+    if (terminal.has(deployment.status)) {
+      throw new TRPCError({
+        code: "CONFLICT",
+        message: `Deployment is already in a terminal state: ${deployment.status}`,
+      });
+    }
 
-      const now = new Date();
-      // If still queued, flip straight to cancelled — no runner has started.
-      // If building/deploying, mark a cancel request so the runner notices
-      // between steps and transitions the row itself.
-      if (deployment.status === "queued") {
-        await ctx.db
-          .update(deployments)
-          .set({
-            status: "cancelled",
-            cancelRequestedAt: now,
-            completedAt: now,
-            finishedAt: now,
-          })
-          .where(eq(deployments.id, deployment.id));
-      } else {
-        await ctx.db
-          .update(deployments)
-          .set({ cancelRequestedAt: now })
-          .where(eq(deployments.id, deployment.id));
-      }
+    const now = new Date();
+    // If still queued, flip straight to cancelled — no runner has started.
+    // If building/deploying, mark a cancel request so the runner notices
+    // between steps and transitions the row itself.
+    if (deployment.status === "queued") {
+      await ctx.db
+        .update(deployments)
+        .set({
+          status: "cancelled",
+          cancelRequestedAt: now,
+          completedAt: now,
+          finishedAt: now,
+        })
+        .where(eq(deployments.id, deployment.id));
+    } else {
+      await ctx.db
+        .update(deployments)
+        .set({ cancelRequestedAt: now })
+        .where(eq(deployments.id, deployment.id));
+    }
 
-      emitDataChange(["deployments"], "deployment cancelled");
+    emitDataChange(["deployments"], "deployment cancelled");
 
-      return {
-        id: deployment.id,
-        status: deployment.status === "queued"
+    return {
+      id: deployment.id,
+      status:
+        deployment.status === "queued"
           ? ("cancelled" as const)
-          : (deployment.status as
-              | "building"
-              | "deploying"),
-        cancelRequestedAt: now,
-      };
-    }),
+          : (deployment.status as "building" | "deploying"),
+      cancelRequestedAt: now,
+    };
+  }),
 });

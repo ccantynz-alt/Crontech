@@ -1,7 +1,7 @@
-import { createSignal, Show } from "solid-js";
-import type { JSX } from "solid-js";
-import { useNavigate } from "@solidjs/router";
 import { Button, Card, Stack, Text } from "@back-to-the-future/ui";
+import { useNavigate } from "@solidjs/router";
+import { Show, createSignal } from "solid-js";
+import type { JSX } from "solid-js";
 
 // ── Storage ──────────────────────────────────────────────────────────
 
@@ -76,13 +76,19 @@ function OptionButton(props: OptionButtonProps): JSX.Element {
         "text-align": "left",
         border: props.selected ? "2px solid var(--color-primary)" : "2px solid var(--color-border)",
         "border-radius": "8px",
-        background: props.selected ? "var(--primary-bg, rgba(99, 102, 241, 0.1))" : "var(--color-bg-elevated)",
+        background: props.selected
+          ? "var(--primary-bg, rgba(99, 102, 241, 0.1))"
+          : "var(--color-bg-elevated)",
         cursor: "pointer",
         transition: "all 0.2s ease",
       }}
     >
-      <Text variant="body" weight="semibold">{props.label}</Text>
-      <Text variant="caption" class="text-muted">{props.description}</Text>
+      <Text variant="body" weight="semibold">
+        {props.label}
+      </Text>
+      <Text variant="caption" class="text-muted">
+        {props.description}
+      </Text>
     </button>
   );
 }
@@ -92,19 +98,22 @@ function OptionButton(props: OptionButtonProps): JSX.Element {
 function StepIndicator(props: { current: number; total: number }): JSX.Element {
   return (
     <Stack direction="horizontal" gap="xs" align="center">
-      {Array.from({ length: props.total }, (_, i) => (
-        <div
-          style={{
-            width: "8px",
-            height: "8px",
-            "border-radius": "50%",
-            background: i === props.current
-              ? "var(--color-primary)"
-              : "var(--color-border)",
-            transition: "background 0.2s ease",
-          }}
-        />
-      ))}
+      {Array.from({ length: props.total }, (_, stepIndex) => {
+        const dotKey = `step-dot-${props.total}-${stepIndex}`;
+        return (
+          <div
+            key={dotKey}
+            style={{
+              width: "8px",
+              height: "8px",
+              "border-radius": "50%",
+              background:
+                stepIndex === props.current ? "var(--color-primary)" : "var(--color-border)",
+              transition: "background 0.2s ease",
+            }}
+          />
+        );
+      })}
     </Stack>
   );
 }
@@ -124,7 +133,9 @@ export function OnboardingWizard(props: OnboardingWizardProps): JSX.Element {
 
   const [buildGoal, setBuildGoal] = createSignal<OnboardingPreferences["buildGoal"] | null>(null);
   const [stackPref, setStackPref] = createSignal<OnboardingPreferences["experience"] | null>(null);
-  const [firstAction, setFirstAction] = createSignal<OnboardingPreferences["firstAction"] | null>(null);
+  const [firstAction, setFirstAction] = createSignal<OnboardingPreferences["firstAction"] | null>(
+    null,
+  );
 
   const canProceed = (): boolean => {
     const s = step();
@@ -169,9 +180,9 @@ export function OnboardingWizard(props: OnboardingWizardProps): JSX.Element {
 
   const handleComplete = (): void => {
     const prefs: OnboardingPreferences = {
-      buildGoal: buildGoal()!,
-      experience: stackPref()!,
-      firstAction: firstAction()!,
+      buildGoal: buildGoal() ?? "webapp",
+      experience: stackPref() ?? "typescript",
+      firstAction: firstAction() ?? "explore",
     };
     setOnboardingComplete(prefs);
     setVisible(false);
@@ -216,7 +227,9 @@ export function OnboardingWizard(props: OnboardingWizardProps): JSX.Element {
             {/* Header */}
             <Stack direction="horizontal" align="center" class="onboarding-header">
               <Stack direction="vertical" gap="xs" style={{ flex: "1" }}>
-                <Text variant="h3" weight="bold">Welcome to Crontech</Text>
+                <Text variant="h3" weight="bold">
+                  Welcome to Crontech
+                </Text>
                 <Text variant="caption" class="text-muted">
                   Set up your developer environment.
                 </Text>
@@ -249,7 +262,9 @@ export function OnboardingWizard(props: OnboardingWizardProps): JSX.Element {
             {/* Step 1: Build Goal */}
             <Show when={step() === 0}>
               <Stack direction="vertical" gap="md">
-                <Text variant="h4" weight="semibold">What are you building?</Text>
+                <Text variant="h4" weight="semibold">
+                  What are you building?
+                </Text>
                 <OptionButton
                   label="Web App"
                   description="Full-stack web application with API, database, and auth."
@@ -274,7 +289,9 @@ export function OnboardingWizard(props: OnboardingWizardProps): JSX.Element {
             {/* Step 2: Stack Preferences */}
             <Show when={step() === 1}>
               <Stack direction="vertical" gap="md">
-                <Text variant="h4" weight="semibold">Your stack preferences</Text>
+                <Text variant="h4" weight="semibold">
+                  Your stack preferences
+                </Text>
                 <OptionButton
                   label="TypeScript"
                   description="SolidJS + Hono + tRPC. The default Crontech stack."
@@ -299,7 +316,9 @@ export function OnboardingWizard(props: OnboardingWizardProps): JSX.Element {
             {/* Step 3: Get Started */}
             <Show when={step() === 2}>
               <Stack direction="vertical" gap="md">
-                <Text variant="h4" weight="semibold">Get started</Text>
+                <Text variant="h4" weight="semibold">
+                  Get started
+                </Text>
                 <OptionButton
                   label="Create a project"
                   description="Set up your first project with a database and deploy target."
@@ -329,12 +348,7 @@ export function OnboardingWizard(props: OnboardingWizardProps): JSX.Element {
                 </Button>
               </Show>
               <div style={{ flex: "1" }} />
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={goNext}
-                disabled={!canProceed()}
-              >
+              <Button variant="primary" size="sm" onClick={goNext} disabled={!canProceed()}>
                 {step() === 2 ? "Get Started" : "Next"}
               </Button>
             </Stack>

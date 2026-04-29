@@ -126,7 +126,7 @@ async function runStep(
       queued = true;
     }
     await writeAudit({
-      actorId: (payload?.["userId"] as string) ?? "system",
+      actorId: (payload?.userId as string) ?? "system",
       action: "CREATE",
       resourceType: "provision_step",
       resourceId: name,

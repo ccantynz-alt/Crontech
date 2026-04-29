@@ -4,17 +4,17 @@
 // configures the build, creates the project, and kicks off a deploy.
 // Zero manual config. "Deploy anything in 30 seconds."
 
-import { z } from "zod";
+import { deployments, projects } from "@back-to-the-future/db";
 import { TRPCError } from "@trpc/server";
 import { eq } from "drizzle-orm";
-import { router, protectedProcedure } from "../init";
-import { projects, deployments } from "@back-to-the-future/db";
+import { z } from "zod";
 import {
+  type DetectedConfigSchema,
+  GitHubRepoUrlSchema,
   detectFramework,
   parseGitHubUrl,
-  DetectedConfigSchema,
-  GitHubRepoUrlSchema,
 } from "../../deploy/framework-detector";
+import { protectedProcedure, router } from "../init";
 
 // ── Helpers ─────────────────────────────────────────────────────────
 
@@ -31,7 +31,14 @@ function slugify(name: string): string {
 }
 
 const DB_FRAMEWORKS = [
-  "solidstart", "nextjs", "remix", "astro", "hono", "static", "docker", "other",
+  "solidstart",
+  "nextjs",
+  "remix",
+  "astro",
+  "hono",
+  "static",
+  "docker",
+  "other",
 ] as const;
 type DbFramework = (typeof DB_FRAMEWORKS)[number];
 
@@ -72,104 +79,127 @@ export const aiDeployRouter = router({
    * auto-detected configuration without creating anything in the DB.
    * Use this for the preview step before deploying.
    */
-  detectFramework: protectedProcedure
-    .input(DetectFrameworkInput)
-    .query(async ({ input }) => {
-      try {
-        const config = await detectFramework(input.repoUrl);
-        const parsed = parseGitHubUrl(input.repoUrl);
-        return {
-          ...config,
-          owner: parsed?.owner ?? "",
-          repo: parsed?.repo ?? "",
-        };
-      } catch (err) {
-        if (err instanceof Error) {
-          if (err.message.includes("not found")) {
-            throw new TRPCError({
-              code: "NOT_FOUND",
-              message: err.message,
-            });
-          }
-          if (err.message.includes("Access denied")) {
-            throw new TRPCError({
-              code: "FORBIDDEN",
-              message: err.message,
-            });
-          }
+  detectFramework: protectedProcedure.input(DetectFrameworkInput).query(async ({ input }) => {
+    try {
+      const config = await detectFramework(input.repoUrl);
+      const parsed = parseGitHubUrl(input.repoUrl);
+      return {
+        ...config,
+        owner: parsed?.owner ?? "",
+        repo: parsed?.repo ?? "",
+      };
+    } catch (err) {
+      if (err instanceof Error) {
+        if (err.message.includes("not found")) {
           throw new TRPCError({
-            code: "BAD_REQUEST",
+            code: "NOT_FOUND",
+            message: err.message,
+          });
+        }
+        if (err.message.includes("Access denied")) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
             message: err.message,
           });
         }
         throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Framework detection failed.",
+          code: "BAD_REQUEST",
+          message: err.message,
         });
       }
-    }),
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Framework detection failed.",
+      });
+    }
+  }),
 
   /**
    * Quick Deploy: detect framework, create project, create initial
    * deployment record — all in one call. The fastest path from repo
    * URL to deployed project.
    */
-  quickDeploy: protectedProcedure
-    .input(QuickDeployInput)
-    .mutation(async ({ ctx, input }) => {
-      // 1. Detect framework
-      let config: z.infer<typeof DetectedConfigSchema>;
-      try {
-        config = await detectFramework(input.repoUrl);
-      } catch (err) {
-        const message =
-          err instanceof Error ? err.message : "Framework detection failed.";
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: `Detection failed: ${message}`,
-        });
-      }
+  quickDeploy: protectedProcedure.input(QuickDeployInput).mutation(async ({ ctx, input }) => {
+    // 1. Detect framework
+    let config: z.infer<typeof DetectedConfigSchema>;
+    try {
+      config = await detectFramework(input.repoUrl);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Framework detection failed.";
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: `Detection failed: ${message}`,
+      });
+    }
 
-      const parsed = parseGitHubUrl(input.repoUrl);
-      if (!parsed) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Invalid GitHub URL.",
-        });
-      }
+    const parsed = parseGitHubUrl(input.repoUrl);
+    if (!parsed) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Invalid GitHub URL.",
+      });
+    }
 
-      // 2. Derive project name
-      const projectName = input.projectName ?? parsed.repo;
+    // 2. Derive project name
+    const projectName = input.projectName ?? parsed.repo;
 
-      // 3. Check for duplicate repo URL
-      const existing = await ctx.db
-        .select({ id: projects.id })
-        .from(projects)
-        .where(eq(projects.repoUrl, input.repoUrl))
-        .limit(1);
-      if (existing.length > 0) {
-        throw new TRPCError({
-          code: "CONFLICT",
-          message: "A project with this repository URL already exists.",
-        });
-      }
+    // 3. Check for duplicate repo URL
+    const existing = await ctx.db
+      .select({ id: projects.id })
+      .from(projects)
+      .where(eq(projects.repoUrl, input.repoUrl))
+      .limit(1);
+    if (existing.length > 0) {
+      throw new TRPCError({
+        code: "CONFLICT",
+        message: "A project with this repository URL already exists.",
+      });
+    }
 
-      // 4. Apply overrides
-      const finalBuild = input.buildCommand ?? config.buildCommand;
-      const finalInstall = input.installCommand ?? config.installCommand;
-      const finalRuntime = input.runtime ?? mapDetectedRuntime(config.runtime);
-      const finalPort = input.port ?? config.port;
-      const finalFramework = mapDetectedFramework(config.framework);
+    // 4. Apply overrides
+    const finalBuild = input.buildCommand ?? config.buildCommand;
+    const finalInstall = input.installCommand ?? config.installCommand;
+    const finalRuntime = input.runtime ?? mapDetectedRuntime(config.runtime);
+    const finalPort = input.port ?? config.port;
+    const finalFramework = mapDetectedFramework(config.framework);
 
-      // 5. Create project
-      const now = new Date();
-      const projectId = generateId();
+    // 5. Create project
+    const now = new Date();
+    const projectId = generateId();
 
-      await ctx.db.insert(projects).values({
+    await ctx.db.insert(projects).values({
+      id: projectId,
+      userId: ctx.userId,
+      name: projectName,
+      slug: slugify(projectName),
+      repoUrl: input.repoUrl,
+      framework: finalFramework,
+      buildCommand: finalBuild,
+      installCommand: finalInstall,
+      runtime: finalRuntime,
+      port: finalPort,
+      outputDir: config.outputDir,
+      status: "active",
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    // 6. Create initial deployment record
+    const deployId = generateId();
+
+    await ctx.db.insert(deployments).values({
+      id: deployId,
+      projectId,
+      userId: ctx.userId,
+      branch: "main",
+      status: "queued",
+      createdAt: now,
+    });
+
+    return {
+      project: {
         id: projectId,
-        userId: ctx.userId,
         name: projectName,
-        slug: slugify(projectName),
         repoUrl: input.repoUrl,
         framework: finalFramework,
         buildCommand: finalBuild,
@@ -177,40 +207,12 @@ export const aiDeployRouter = router({
         runtime: finalRuntime,
         port: finalPort,
         outputDir: config.outputDir,
-        status: "active",
-        createdAt: now,
-        updatedAt: now,
-      });
-
-      // 6. Create initial deployment record
-      const deployId = generateId();
-
-      await ctx.db.insert(deployments).values({
+      },
+      deployment: {
         id: deployId,
-        projectId,
-        userId: ctx.userId,
-        branch: "main",
-        status: "queued",
-        createdAt: now,
-      });
-
-      return {
-        project: {
-          id: projectId,
-          name: projectName,
-          repoUrl: input.repoUrl,
-          framework: finalFramework,
-          buildCommand: finalBuild,
-          installCommand: finalInstall,
-          runtime: finalRuntime,
-          port: finalPort,
-          outputDir: config.outputDir,
-        },
-        deployment: {
-          id: deployId,
-          status: "queued" as const,
-        },
-        detectedConfig: config,
-      };
-    }),
+        status: "queued" as const,
+      },
+      detectedConfig: config,
+    };
+  }),
 });

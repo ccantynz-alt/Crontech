@@ -5,40 +5,30 @@
  * validation, and presigned URL generation with a mock S3 client.
  */
 
-import { describe, test, expect } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import { scopedKey } from "./client";
 import {
-  validateFileSize,
-  validateContentType,
-  getMaxUploadSizeBytes,
   DEFAULT_ALLOWED_TYPES,
+  getMaxUploadSizeBytes,
+  validateContentType,
+  validateFileSize,
 } from "./middleware";
 
 // ── Tenant-scoped key tests ───────────────────────────────────────────
 
 describe("scopedKey", () => {
   test("prefixes key with tenantId", () => {
-    expect(scopedKey("tenant-123", "uploads/file.png")).toBe(
-      "tenant-123/uploads/file.png",
-    );
+    expect(scopedKey("tenant-123", "uploads/file.png")).toBe("tenant-123/uploads/file.png");
   });
 
   test("strips leading slashes from key", () => {
-    expect(scopedKey("tenant-123", "/uploads/file.png")).toBe(
-      "tenant-123/uploads/file.png",
-    );
-    expect(scopedKey("tenant-123", "///file.png")).toBe(
-      "tenant-123/file.png",
-    );
+    expect(scopedKey("tenant-123", "/uploads/file.png")).toBe("tenant-123/uploads/file.png");
+    expect(scopedKey("tenant-123", "///file.png")).toBe("tenant-123/file.png");
   });
 
   test("sanitises path traversal attempts", () => {
-    expect(scopedKey("tenant-123", "../../etc/passwd")).toBe(
-      "tenant-123/etc/passwd",
-    );
-    expect(scopedKey("tenant-123", "uploads/../../../secret")).toBe(
-      "tenant-123/uploads/secret",
-    );
+    expect(scopedKey("tenant-123", "../../etc/passwd")).toBe("tenant-123/etc/passwd");
+    expect(scopedKey("tenant-123", "uploads/../../../secret")).toBe("tenant-123/uploads/secret");
   });
 
   test("handles empty key", () => {
@@ -145,18 +135,19 @@ describe("getStorageBackend / getStorageClient — BLK-018", () => {
   // per-process so we use resetStorageClientForTesting() between cases.
 
   test("returns 'none' when nothing is configured", async () => {
-    const { getStorageBackend, getStorageClient, resetStorageClientForTesting } =
-      await import("./client");
+    const { getStorageBackend, getStorageClient, resetStorageClientForTesting } = await import(
+      "./client"
+    );
     const before = {
-      r2acc: process.env["R2_ACCOUNT_ID"],
-      r2ak: process.env["R2_ACCESS_KEY_ID"],
-      r2sk: process.env["R2_SECRET_ACCESS_KEY"],
-      ose: process.env["OBJECT_STORAGE_ENDPOINT"],
+      r2acc: process.env.R2_ACCOUNT_ID,
+      r2ak: process.env.R2_ACCESS_KEY_ID,
+      r2sk: process.env.R2_SECRET_ACCESS_KEY,
+      ose: process.env.OBJECT_STORAGE_ENDPOINT,
     };
-    delete process.env["R2_ACCOUNT_ID"];
-    delete process.env["R2_ACCESS_KEY_ID"];
-    delete process.env["R2_SECRET_ACCESS_KEY"];
-    delete process.env["OBJECT_STORAGE_ENDPOINT"];
+    process.env.R2_ACCOUNT_ID = undefined;
+    process.env.R2_ACCESS_KEY_ID = undefined;
+    process.env.R2_SECRET_ACCESS_KEY = undefined;
+    process.env.OBJECT_STORAGE_ENDPOINT = undefined;
     resetStorageClientForTesting();
     try {
       // The module reads env at import time so the in-process cache is
@@ -171,10 +162,10 @@ describe("getStorageBackend / getStorageClient — BLK-018", () => {
         expect(getStorageClient()).toBeNull();
       }
     } finally {
-      if (before.r2acc) process.env["R2_ACCOUNT_ID"] = before.r2acc;
-      if (before.r2ak) process.env["R2_ACCESS_KEY_ID"] = before.r2ak;
-      if (before.r2sk) process.env["R2_SECRET_ACCESS_KEY"] = before.r2sk;
-      if (before.ose) process.env["OBJECT_STORAGE_ENDPOINT"] = before.ose;
+      if (before.r2acc) process.env.R2_ACCOUNT_ID = before.r2acc;
+      if (before.r2ak) process.env.R2_ACCESS_KEY_ID = before.r2ak;
+      if (before.r2sk) process.env.R2_SECRET_ACCESS_KEY = before.r2sk;
+      if (before.ose) process.env.OBJECT_STORAGE_ENDPOINT = before.ose;
       resetStorageClientForTesting();
     }
   });

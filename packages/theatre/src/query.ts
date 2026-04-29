@@ -1,5 +1,5 @@
+import { buildLogs, buildRuns, buildSteps, type db } from "@back-to-the-future/db";
 import { and, asc, desc, eq, gt } from "drizzle-orm";
-import { buildLogs, buildRuns, buildSteps, db } from "@back-to-the-future/db";
 
 type Database = typeof db;
 
@@ -63,15 +63,8 @@ export async function listRuns(
   return rows;
 }
 
-export async function getRun(
-  database: Database,
-  runId: string,
-): Promise<RunDetail | null> {
-  const rows = await database
-    .select()
-    .from(buildRuns)
-    .where(eq(buildRuns.id, runId))
-    .limit(1);
+export async function getRun(database: Database, runId: string): Promise<RunDetail | null> {
+  const rows = await database.select().from(buildRuns).where(eq(buildRuns.id, runId)).limit(1);
   const run = rows[0];
   if (!run) return null;
 

@@ -1,7 +1,7 @@
-import { describe, test, expect } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import { existsSync, readFileSync, statSync } from "node:fs";
-import { resolve, join } from "node:path";
 import { readdirSync } from "node:fs";
+import { join, resolve } from "node:path";
 
 // ── Smoke Tests for Web App ─────────────────────────────────────────
 // These verify that the web app structure is correct and buildable.
@@ -22,11 +22,9 @@ describe("Smoke: Route files export default components", () => {
       // SolidStart API routes (inside routes/api/**) export HTTP method handlers
       // (GET, POST, PUT, DELETE, PATCH) instead — no default export exists.
       const hasDefaultExport =
-        content.includes("export default") ||
-        content.includes("export { default }");
-      const hasHttpMethodExport = /export\s+(?:async\s+)?function\s+(GET|POST|PUT|DELETE|PATCH|HEAD|OPTIONS)\b/.test(
-        content,
-      );
+        content.includes("export default") || content.includes("export { default }");
+      const hasHttpMethodExport =
+        /export\s+(?:async\s+)?function\s+(GET|POST|PUT|DELETE|PATCH|HEAD|OPTIONS)\b/.test(content);
       expect(hasDefaultExport || hasHttpMethodExport).toBe(true);
     });
   }

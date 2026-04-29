@@ -1,12 +1,7 @@
 import { randomUUID } from "node:crypto";
+import { buildLogs, buildRuns, buildSteps, type db } from "@back-to-the-future/db";
 import { eq } from "drizzle-orm";
-import { buildLogs, buildRuns, buildSteps, db } from "@back-to-the-future/db";
-import type {
-  LogStream,
-  RunHandle,
-  StartRunInput,
-  StepHandle,
-} from "./types";
+import type { LogStream, RunHandle, StartRunInput, StepHandle } from "./types";
 
 type Database = typeof db;
 
@@ -29,10 +24,7 @@ type Database = typeof db;
  * }
  * ```
  */
-export async function startRun(
-  database: Database,
-  input: StartRunInput,
-): Promise<RunHandle> {
+export async function startRun(database: Database, input: StartRunInput): Promise<RunHandle> {
   const id = randomUUID();
   const now = new Date();
 
@@ -97,10 +89,7 @@ export async function startRun(
 
   let stepCounter = 0;
 
-  async function step<T>(
-    name: string,
-    fn: (step: StepHandle) => Promise<T>,
-  ): Promise<T> {
+  async function step<T>(name: string, fn: (step: StepHandle) => Promise<T>): Promise<T> {
     stepCounter += 1;
     const stepId = randomUUID();
     const startedAt = new Date();
@@ -187,10 +176,7 @@ export async function startRun(
  * Mark a run for cancellation. The running producer is expected to poll
  * `isCancelRequested()` at safe checkpoints and exit cleanly.
  */
-export async function requestCancel(
-  database: Database,
-  runId: string,
-): Promise<void> {
+export async function requestCancel(database: Database, runId: string): Promise<void> {
   await database
     .update(buildRuns)
     .set({ cancelRequestedAt: new Date() })

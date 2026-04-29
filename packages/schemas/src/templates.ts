@@ -55,9 +55,18 @@ function hero(title: string, subtitle: string, cta: string): Component {
       justify: "center",
     },
     children: [
-      { component: "Text", props: { content: title, variant: "h1", weight: "bold", align: "center" } },
-      { component: "Text", props: { content: subtitle, variant: "body", weight: "normal", align: "center" } },
-      { component: "Button", props: { label: cta, variant: "primary", size: "lg", disabled: false, loading: false } },
+      {
+        component: "Text",
+        props: { content: title, variant: "h1", weight: "bold", align: "center" },
+      },
+      {
+        component: "Text",
+        props: { content: subtitle, variant: "body", weight: "normal", align: "center" },
+      },
+      {
+        component: "Button",
+        props: { label: cta, variant: "primary", size: "lg", disabled: false, loading: false },
+      },
     ],
   };
 }
@@ -67,7 +76,10 @@ function card(title: string, description: string): Component {
     component: "Card",
     props: { title, description, padding: "md" },
     children: [
-      { component: "Text", props: { content: description, variant: "body", weight: "normal", align: "left" } },
+      {
+        component: "Text",
+        props: { content: description, variant: "body", weight: "normal", align: "left" },
+      },
     ],
   };
 }
@@ -78,7 +90,8 @@ export const TEMPLATES: Template[] = [
   {
     id: "landing-startup",
     name: "Startup Landing Page",
-    description: "Clean hero, features grid, and call-to-action. Perfect for launching a new product.",
+    description:
+      "Clean hero, features grid, and call-to-action. Perfect for launching a new product.",
     category: "landing",
     preview: "/templates/landing-startup.png",
     tags: ["startup", "saas", "marketing", "hero"],
@@ -113,8 +126,26 @@ export const TEMPLATES: Template[] = [
         component: "Stack",
         props: { direction: "horizontal", gap: "sm", align: "center", justify: "center" },
         children: [
-          { component: "Button", props: { label: "App Store", variant: "outline", size: "lg", disabled: false, loading: false } },
-          { component: "Button", props: { label: "Google Play", variant: "outline", size: "lg", disabled: false, loading: false } },
+          {
+            component: "Button",
+            props: {
+              label: "App Store",
+              variant: "outline",
+              size: "lg",
+              disabled: false,
+              loading: false,
+            },
+          },
+          {
+            component: "Button",
+            props: {
+              label: "Google Play",
+              variant: "outline",
+              size: "lg",
+              disabled: false,
+              loading: false,
+            },
+          },
         ],
       },
     ],
@@ -135,9 +166,23 @@ export const TEMPLATES: Template[] = [
         props: { direction: "vertical", gap: "lg", align: "center", justify: "start" },
         children: [
           { component: "Avatar", props: { initials: "JD", size: "lg" } },
-          { component: "Text", props: { content: "Jane Doe", variant: "h1", weight: "bold", align: "center" } },
-          { component: "Text", props: { content: "Designer & Illustrator", variant: "body", weight: "medium", align: "center" } },
-          { component: "Badge", props: { label: "Available for hire", variant: "success", size: "md" } },
+          {
+            component: "Text",
+            props: { content: "Jane Doe", variant: "h1", weight: "bold", align: "center" },
+          },
+          {
+            component: "Text",
+            props: {
+              content: "Designer & Illustrator",
+              variant: "body",
+              weight: "medium",
+              align: "center",
+            },
+          },
+          {
+            component: "Badge",
+            props: { label: "Available for hire", variant: "success", size: "md" },
+          },
         ],
       },
       {
@@ -184,7 +229,10 @@ export const TEMPLATES: Template[] = [
     estimatedTime: "5 minutes",
     featured: true,
     componentTree: [
-      { component: "Text", props: { content: "Shop the Collection", variant: "h1", weight: "bold", align: "center" } },
+      {
+        component: "Text",
+        props: { content: "Shop the Collection", variant: "h1", weight: "bold", align: "center" },
+      },
       {
         component: "Stack",
         props: { direction: "horizontal", gap: "md", align: "stretch", justify: "center" },
@@ -194,7 +242,16 @@ export const TEMPLATES: Template[] = [
           card("Cap", "$19.99 — Adjustable strap."),
         ],
       },
-      { component: "Button", props: { label: "View Cart", variant: "primary", size: "lg", disabled: false, loading: false } },
+      {
+        component: "Button",
+        props: {
+          label: "View Cart",
+          variant: "primary",
+          size: "lg",
+          disabled: false,
+          loading: false,
+        },
+      },
     ],
   },
   {
@@ -207,10 +264,33 @@ export const TEMPLATES: Template[] = [
     difficulty: "beginner",
     estimatedTime: "2 minutes",
     componentTree: [
-      { component: "Text", props: { content: "Premium Headphones", variant: "h1", weight: "bold", align: "left" } },
-      { component: "Text", props: { content: "$249.00", variant: "h3", weight: "semibold", align: "left" } },
-      { component: "Text", props: { content: "Studio-quality sound with 30-hour battery life.", variant: "body", weight: "normal", align: "left" } },
-      { component: "Button", props: { label: "Add to Cart", variant: "primary", size: "lg", disabled: false, loading: false } },
+      {
+        component: "Text",
+        props: { content: "Premium Headphones", variant: "h1", weight: "bold", align: "left" },
+      },
+      {
+        component: "Text",
+        props: { content: "$249.00", variant: "h3", weight: "semibold", align: "left" },
+      },
+      {
+        component: "Text",
+        props: {
+          content: "Studio-quality sound with 30-hour battery life.",
+          variant: "body",
+          weight: "normal",
+          align: "left",
+        },
+      },
+      {
+        component: "Button",
+        props: {
+          label: "Add to Cart",
+          variant: "primary",
+          size: "lg",
+          disabled: false,
+          loading: false,
+        },
+      },
     ],
   },
   {
@@ -224,8 +304,19 @@ export const TEMPLATES: Template[] = [
     estimatedTime: "2 minutes",
     featured: true,
     componentTree: [
-      { component: "Text", props: { content: "My Blog", variant: "h1", weight: "bold", align: "center" } },
-      { component: "Text", props: { content: "Thoughts on tech, life, and everything in between.", variant: "body", weight: "normal", align: "center" } },
+      {
+        component: "Text",
+        props: { content: "My Blog", variant: "h1", weight: "bold", align: "center" },
+      },
+      {
+        component: "Text",
+        props: {
+          content: "Thoughts on tech, life, and everything in between.",
+          variant: "body",
+          weight: "normal",
+          align: "center",
+        },
+      },
       { component: "Separator", props: { orientation: "horizontal" } },
       {
         component: "Stack",
@@ -248,7 +339,10 @@ export const TEMPLATES: Template[] = [
     difficulty: "advanced",
     estimatedTime: "5 minutes",
     componentTree: [
-      { component: "Text", props: { content: "The Daily", variant: "h1", weight: "bold", align: "center" } },
+      {
+        component: "Text",
+        props: { content: "The Daily", variant: "h1", weight: "bold", align: "center" },
+      },
       {
         component: "Tabs",
         props: {
@@ -281,7 +375,15 @@ export const TEMPLATES: Template[] = [
     estimatedTime: "3 minutes",
     featured: true,
     componentTree: [
-      { component: "Text", props: { content: "Simple, Transparent Pricing", variant: "h1", weight: "bold", align: "center" } },
+      {
+        component: "Text",
+        props: {
+          content: "Simple, Transparent Pricing",
+          variant: "h1",
+          weight: "bold",
+          align: "center",
+        },
+      },
       {
         component: "Stack",
         props: { direction: "horizontal", gap: "md", align: "stretch", justify: "center" },
@@ -290,24 +392,75 @@ export const TEMPLATES: Template[] = [
             component: "Card",
             props: { title: "Starter", description: "$0/mo", padding: "lg" },
             children: [
-              { component: "Text", props: { content: "Perfect for trying things out.", variant: "body", weight: "normal", align: "left" } },
-              { component: "Button", props: { label: "Start Free", variant: "outline", size: "md", disabled: false, loading: false } },
+              {
+                component: "Text",
+                props: {
+                  content: "Perfect for trying things out.",
+                  variant: "body",
+                  weight: "normal",
+                  align: "left",
+                },
+              },
+              {
+                component: "Button",
+                props: {
+                  label: "Start Free",
+                  variant: "outline",
+                  size: "md",
+                  disabled: false,
+                  loading: false,
+                },
+              },
             ],
           },
           {
             component: "Card",
             props: { title: "Pro", description: "$29/mo", padding: "lg" },
             children: [
-              { component: "Text", props: { content: "For growing teams.", variant: "body", weight: "normal", align: "left" } },
-              { component: "Button", props: { label: "Go Pro", variant: "primary", size: "md", disabled: false, loading: false } },
+              {
+                component: "Text",
+                props: {
+                  content: "For growing teams.",
+                  variant: "body",
+                  weight: "normal",
+                  align: "left",
+                },
+              },
+              {
+                component: "Button",
+                props: {
+                  label: "Go Pro",
+                  variant: "primary",
+                  size: "md",
+                  disabled: false,
+                  loading: false,
+                },
+              },
             ],
           },
           {
             component: "Card",
             props: { title: "Enterprise", description: "Custom", padding: "lg" },
             children: [
-              { component: "Text", props: { content: "For large organizations.", variant: "body", weight: "normal", align: "left" } },
-              { component: "Button", props: { label: "Contact Sales", variant: "outline", size: "md", disabled: false, loading: false } },
+              {
+                component: "Text",
+                props: {
+                  content: "For large organizations.",
+                  variant: "body",
+                  weight: "normal",
+                  align: "left",
+                },
+              },
+              {
+                component: "Button",
+                props: {
+                  label: "Contact Sales",
+                  variant: "outline",
+                  size: "md",
+                  disabled: false,
+                  loading: false,
+                },
+              },
             ],
           },
         ],
@@ -324,7 +477,10 @@ export const TEMPLATES: Template[] = [
     difficulty: "advanced",
     estimatedTime: "5 minutes",
     componentTree: [
-      { component: "Text", props: { content: "Dashboard", variant: "h1", weight: "bold", align: "left" } },
+      {
+        component: "Text",
+        props: { content: "Dashboard", variant: "h1", weight: "bold", align: "left" },
+      },
       {
         component: "Stack",
         props: { direction: "horizontal", gap: "md", align: "stretch", justify: "start" },
@@ -357,11 +513,54 @@ export const TEMPLATES: Template[] = [
     difficulty: "beginner",
     estimatedTime: "1 minute",
     componentTree: [
-      { component: "Text", props: { content: "Get in Touch", variant: "h1", weight: "bold", align: "center" } },
-      { component: "Input", props: { name: "name", type: "text", label: "Your Name", placeholder: "Jane Doe", required: true, disabled: false } },
-      { component: "Input", props: { name: "email", type: "email", label: "Email", placeholder: "jane@example.com", required: true, disabled: false } },
-      { component: "Textarea", props: { name: "message", label: "Message", placeholder: "Tell us what's on your mind...", rows: 5, resize: "vertical", required: true, disabled: false } },
-      { component: "Button", props: { label: "Send Message", variant: "primary", size: "lg", disabled: false, loading: false } },
+      {
+        component: "Text",
+        props: { content: "Get in Touch", variant: "h1", weight: "bold", align: "center" },
+      },
+      {
+        component: "Input",
+        props: {
+          name: "name",
+          type: "text",
+          label: "Your Name",
+          placeholder: "Jane Doe",
+          required: true,
+          disabled: false,
+        },
+      },
+      {
+        component: "Input",
+        props: {
+          name: "email",
+          type: "email",
+          label: "Email",
+          placeholder: "jane@example.com",
+          required: true,
+          disabled: false,
+        },
+      },
+      {
+        component: "Textarea",
+        props: {
+          name: "message",
+          label: "Message",
+          placeholder: "Tell us what's on your mind...",
+          rows: 5,
+          resize: "vertical",
+          required: true,
+          disabled: false,
+        },
+      },
+      {
+        component: "Button",
+        props: {
+          label: "Send Message",
+          variant: "primary",
+          size: "lg",
+          disabled: false,
+          loading: false,
+        },
+      },
     ],
   },
   {
@@ -378,9 +577,37 @@ export const TEMPLATES: Template[] = [
         component: "Card",
         props: { title: "Welcome Back", description: "Sign in to continue", padding: "lg" },
         children: [
-          { component: "Input", props: { name: "email", type: "email", label: "Email", placeholder: "you@example.com", required: true, disabled: false } },
-          { component: "Input", props: { name: "password", type: "password", label: "Password", required: true, disabled: false } },
-          { component: "Button", props: { label: "Sign In", variant: "primary", size: "lg", disabled: false, loading: false } },
+          {
+            component: "Input",
+            props: {
+              name: "email",
+              type: "email",
+              label: "Email",
+              placeholder: "you@example.com",
+              required: true,
+              disabled: false,
+            },
+          },
+          {
+            component: "Input",
+            props: {
+              name: "password",
+              type: "password",
+              label: "Password",
+              required: true,
+              disabled: false,
+            },
+          },
+          {
+            component: "Button",
+            props: {
+              label: "Sign In",
+              variant: "primary",
+              size: "lg",
+              disabled: false,
+              loading: false,
+            },
+          },
         ],
       },
     ],

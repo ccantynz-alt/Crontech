@@ -8,8 +8,8 @@
  * whether a thrown error triggers failover.
  */
 
-import { SpanStatusCode, type Span } from "@opentelemetry/api";
 import { estimateCost } from "@back-to-the-future/ai-core";
+import { type Span, SpanStatusCode } from "@opentelemetry/api";
 import { aiInferenceLatency, aiTokensUsed } from "../../telemetry";
 import type { GatewayCache } from "./cache";
 import type { Provider, ProviderCaller } from "./providers";

@@ -9,12 +9,14 @@
 // Guest users see nothing — voice is an authenticated feature so the
 // server's protectedProcedure gate holds.
 
-import { Show, type JSX } from "solid-js";
-import { useNavigate, useLocation } from "@solidjs/router";
-import { VoicePill } from "./VoicePill";
-import { showToast } from "./Toast";
+import { useLocation, useNavigate } from "@solidjs/router";
+import { type JSX, Show } from "solid-js";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "../stores";
+// The builder route mounts its own VoicePill wired to useInterimMorph.
+// Suppress the global pill there so two pills never stack bottom-right.
+import { showToast } from "./Toast";
+import { VoicePill } from "./VoicePill";
 
 interface NavigateIntent {
   kind: "navigate";
@@ -96,7 +98,6 @@ export function VoiceGlobal(): JSX.Element {
           showToast(`Q: ${intent.question}`, "info", 5000);
           return;
         }
-        case "unknown":
         default: {
           showToast(`Didn't catch that: ${intent.reason}`, "warning", 4500);
           return;
@@ -108,8 +109,11 @@ export function VoiceGlobal(): JSX.Element {
     }
   }
 
+  const isBuilderRoute = (): boolean =>
+    location.pathname === "/builder" || location.pathname.startsWith("/builder/");
+
   return (
-    <Show when={auth.isAuthenticated()}>
+    <Show when={auth.isAuthenticated() && !isBuilderRoute()}>
       <VoicePill onTranscript={handleTranscript} />
     </Show>
   );

@@ -2,7 +2,15 @@ import type { JSX } from "solid-js";
 import { splitProps } from "solid-js";
 
 export interface ButtonProps extends JSX.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "default" | "primary" | "secondary" | "destructive" | "outline" | "ghost" | "link" | undefined;
+  variant?:
+    | "default"
+    | "primary"
+    | "secondary"
+    | "destructive"
+    | "outline"
+    | "ghost"
+    | "link"
+    | undefined;
   size?: "sm" | "md" | "lg" | "icon" | undefined;
   loading?: boolean | undefined;
 }

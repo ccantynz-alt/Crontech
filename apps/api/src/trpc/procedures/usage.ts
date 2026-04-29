@@ -9,24 +9,22 @@
  * All queries are filtered by the caller's userId — no cross-tenant reads.
  */
 
-import { z } from "zod";
+import { plans, subscriptions } from "@back-to-the-future/db";
 import { eq } from "drizzle-orm";
-import { subscriptions, plans } from "@back-to-the-future/db";
-import { router, protectedProcedure } from "../init";
+import { z } from "zod";
 import {
+  type PlanTier,
   USAGE_EVENT_TYPES,
+  type UsageEventType,
   checkUsageLimit,
   currentBillingMonth,
   getMonthlyUsage,
   getUsageHistory,
   getUsageLimits,
-  type PlanTier,
-  type UsageEventType,
 } from "../../billing/usage-meter";
+import { protectedProcedure, router } from "../init";
 
-const BillingMonth = z
-  .string()
-  .regex(/^\d{4}-\d{2}$/, "month must be in YYYY-MM format");
+const BillingMonth = z.string().regex(/^\d{4}-\d{2}$/, "month must be in YYYY-MM format");
 
 /**
  * Best-effort plan resolution. Reads the user's newest active subscription

@@ -49,13 +49,7 @@ export function isOpensrsSuccess(env: OpensrsEnvelope): boolean {
 // "taken" | "invalid" | "registered_other_registrar", domain: string }
 
 export const OpensrsLookupAttributesSchema = z.object({
-  status: z.enum([
-    "available",
-    "taken",
-    "invalid",
-    "registered_other_registrar",
-    "unknown",
-  ]),
+  status: z.enum(["available", "taken", "invalid", "registered_other_registrar", "unknown"]),
   domain: z.string().optional(),
   reason: z.string().optional(),
   email_address: z.string().optional(),

@@ -17,15 +17,12 @@
  *   → 404 repository not configured for auto-deploy on Crontech
  */
 
-import { Hono } from "hono";
-import { z } from "zod";
-import { eq } from "drizzle-orm";
 import { db as defaultDb } from "@back-to-the-future/db";
 import { tenantGitRepos } from "@back-to-the-future/db";
-import {
-  orchestratorDeploy,
-  type OrchestratorDeployInput,
-} from "../deploy/orchestrator-client";
+import { eq } from "drizzle-orm";
+import { Hono } from "hono";
+import { z } from "zod";
+import { type OrchestratorDeployInput, orchestratorDeploy } from "../deploy/orchestrator-client";
 import {
   classifyDeployError,
   emitDeployFailed,
@@ -64,7 +61,7 @@ export function timingSafeEqual(a: string, b: string): boolean {
 function extractBearer(header: string | undefined): string | null {
   if (!header) return null;
   const match = /^Bearer\s+(.+)$/i.exec(header.trim());
-  return match ? match[1]!.trim() : null;
+  return match ? (match[1]?.trim() ?? null) : null;
 }
 
 // ── Payload schema ──────────────────────────────────────────────────
@@ -95,9 +92,7 @@ export interface GluecronHookDeps {
 
 // ── Route factory ───────────────────────────────────────────────────
 
-export function createGluecronPushApp(
-  deps: GluecronHookDeps = {},
-): Hono {
+export function createGluecronPushApp(deps: GluecronHookDeps = {}): Hono {
   const db = deps.db ?? defaultDb;
   const deploy =
     deps.deploy ??
@@ -105,8 +100,7 @@ export function createGluecronPushApp(
       const result = await orchestratorDeploy(input);
       return { containerId: result.containerId };
     });
-  const getSecret =
-    deps.getSecret ?? (() => process.env["GLUECRON_WEBHOOK_SECRET"]);
+  const getSecret = deps.getSecret ?? (() => process.env.GLUECRON_WEBHOOK_SECRET);
 
   const app = new Hono();
 
@@ -173,9 +167,7 @@ export function createGluecronPushApp(
 
     // ── 5. Reuse tenant.deploy logic via shared helper ────────────
     const runtime =
-      config.runtime === "nextjs" || config.runtime === "bun"
-        ? config.runtime
-        : "bun";
+      config.runtime === "nextjs" || config.runtime === "bun" ? config.runtime : "bun";
     const envVarsParsed: Record<string, string> | undefined = (() => {
       if (!config.envVars) return undefined;
       try {
@@ -194,9 +186,7 @@ export function createGluecronPushApp(
     // GLUECRON_GIT_BASE_URL flips the clone origin from GitHub to Gluecron
     // the moment Gluecron's git hosting goes live — set it in .env and
     // nothing else needs to change.
-    const gitBase =
-      process.env["GLUECRON_GIT_BASE_URL"]?.replace(/\/$/, "") ??
-      "https://github.com";
+    const gitBase = process.env.GLUECRON_GIT_BASE_URL?.replace(/\/$/, "") ?? "https://github.com";
     const deployInput: OrchestratorDeployInput = {
       appName: config.appName,
       repoUrl: `${gitBase}/${payload.repository}.git`,
@@ -219,10 +209,7 @@ export function createGluecronPushApp(
     } catch (err) {
       const durationMs = Date.now() - deployStartedAt;
       const message = err instanceof Error ? err.message : "deploy failed";
-      console.warn(
-        `[gluecron-push] deploy trigger failed for ${payload.repository}:`,
-        message,
-      );
+      console.warn(`[gluecron-push] deploy trigger failed for ${payload.repository}:`, message);
       void emitDeployFailed({
         repository: payload.repository,
         sha: payload.sha,
@@ -231,10 +218,7 @@ export function createGluecronPushApp(
         errorSummary: message,
         durationMs,
       });
-      return c.json(
-        { ok: false, error: "deploy trigger failed", detail: message },
-        502,
-      );
+      return c.json({ ok: false, error: "deploy trigger failed", detail: message }, 502);
     }
 
     const durationMs = Date.now() - deployStartedAt;

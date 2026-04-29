@@ -2,8 +2,8 @@
 // Real-time, multi-user, multi-agent, conflict-free collaboration.
 // Uses Yjs CRDTs for automatic conflict resolution.
 
-import * as Y from "yjs";
 import { WebsocketProvider } from "y-websocket";
+import * as Y from "yjs";
 
 // ── Types ────────────────────────────────────────────────────────────
 
@@ -40,13 +40,23 @@ export interface CollabConfig {
 // ── Color Palette for Collaboration Cursors ──────────────────────────
 
 const CURSOR_COLORS = [
-  "#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4",
-  "#FFEAA7", "#DDA0DD", "#98D8C8", "#F7DC6F",
-  "#BB8FCE", "#85C1E9", "#F0B27A", "#82E0AA",
+  "#FF6B6B",
+  "#4ECDC4",
+  "#45B7D1",
+  "#96CEB4",
+  "#FFEAA7",
+  "#DDA0DD",
+  "#98D8C8",
+  "#F7DC6F",
+  "#BB8FCE",
+  "#85C1E9",
+  "#F0B27A",
+  "#82E0AA",
 ];
 
 export function getRandomColor(): string {
-  return CURSOR_COLORS[Math.floor(crypto.getRandomValues(new Uint32Array(1))[0]! / 0x100000000 * CURSOR_COLORS.length)]!;
+  const rand = crypto.getRandomValues(new Uint32Array(1))[0] ?? 0;
+  return CURSOR_COLORS[Math.floor((rand / 0x100000000) * CURSOR_COLORS.length)] ?? "#FFFFFF";
 }
 
 // ── Server URL Resolver ──────────────────────────────────────────────
@@ -121,21 +131,21 @@ export function createCollabRoom(config: CollabConfig): CollabRoom {
 /**
  * Gets or creates a shared text type for collaborative text editing.
  */
-export function getSharedText(doc: Y.Doc, name: string = "content"): Y.Text {
+export function getSharedText(doc: Y.Doc, name = "content"): Y.Text {
   return doc.getText(name);
 }
 
 /**
  * Gets or creates a shared map for collaborative key-value state.
  */
-export function getSharedMap(doc: Y.Doc, name: string = "state"): Y.Map<unknown> {
+export function getSharedMap(doc: Y.Doc, name = "state"): Y.Map<unknown> {
   return doc.getMap(name);
 }
 
 /**
  * Gets or creates a shared array for collaborative lists.
  */
-export function getSharedArray(doc: Y.Doc, name: string = "items"): Y.Array<unknown> {
+export function getSharedArray(doc: Y.Doc, name = "items"): Y.Array<unknown> {
   return doc.getArray(name);
 }
 
@@ -143,7 +153,7 @@ export function getSharedArray(doc: Y.Doc, name: string = "items"): Y.Array<unkn
  * Gets or creates a shared XML fragment for component tree collaboration.
  * Used by the collaborative website builder.
  */
-export function getSharedXML(doc: Y.Doc, name: string = "components"): Y.XmlFragment {
+export function getSharedXML(doc: Y.Doc, name = "components"): Y.XmlFragment {
   return doc.getXmlFragment(name);
 }
 
@@ -155,8 +165,8 @@ export function getSharedXML(doc: Y.Doc, name: string = "components"): Y.XmlFrag
 export function getConnectedUsers(awareness: WebsocketProvider["awareness"]): CollabUser[] {
   const users: CollabUser[] = [];
   for (const [, state] of awareness.getStates()) {
-    if (state["user"]) {
-      users.push(state["user"] as CollabUser);
+    if (state.user) {
+      users.push(state.user as CollabUser);
     }
   }
   return users;
@@ -175,15 +185,13 @@ export function updateCursorPosition(
 /**
  * Returns all active cursor positions from connected users.
  */
-export function getCursorPositions(
-  awareness: WebsocketProvider["awareness"],
-): CursorPosition[] {
+export function getCursorPositions(awareness: WebsocketProvider["awareness"]): CursorPosition[] {
   const cursors: CursorPosition[] = [];
   for (const [, state] of awareness.getStates()) {
-    if (state["cursor"] && state["user"]) {
+    if (state.cursor && state.user) {
       cursors.push({
-        ...(state["cursor"] as Omit<CursorPosition, "userId">),
-        userId: (state["user"] as CollabUser).id,
+        ...(state.cursor as Omit<CursorPosition, "userId">),
+        userId: (state.user as CollabUser).id,
       });
     }
   }

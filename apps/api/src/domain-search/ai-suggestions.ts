@@ -13,13 +13,10 @@
 // Output is strictly Zod-validated. On error or missing key we return
 // an empty array with a polite note — never throw.
 
-import { z } from "zod";
+import { getAnthropicModel, hasAnthropicProvider } from "@back-to-the-future/ai-core";
 import { generateObject } from "ai";
-import {
-  getAnthropicModel,
-  hasAnthropicProvider,
-} from "@back-to-the-future/ai-core";
 import type { LanguageModel } from "ai";
+import { z } from "zod";
 
 export const AiAlternativeSchema = z.object({
   domain: z.string().min(3).max(80),
@@ -70,7 +67,7 @@ function readAnthropicKey(): string | undefined {
     const proc = (globalThis as Record<string, unknown>)["process"] as
       | { env: Record<string, string | undefined> }
       | undefined;
-    return proc?.env["ANTHROPIC_API_KEY"];
+    return proc?.env.ANTHROPIC_API_KEY;
   } catch {
     return undefined;
   }
@@ -83,8 +80,8 @@ function readModelIdFromEnv(): string {
       | { env: Record<string, string | undefined> }
       | undefined;
     return (
-      proc?.env["DOMAIN_SEARCH_SUGGESTIONS_MODEL"] ??
-      proc?.env["DOMAIN_SEARCH_MODEL"] ??
+      proc?.env.DOMAIN_SEARCH_SUGGESTIONS_MODEL ??
+      proc?.env.DOMAIN_SEARCH_MODEL ??
       "claude-haiku-4-20250506"
     );
   } catch {
@@ -111,8 +108,7 @@ export async function generateBrandableAlternatives(
     if (!key || !hasAnthropicProvider()) {
       return {
         alternatives: [],
-        note:
-          "AI suggestions unavailable — ANTHROPIC_API_KEY not configured. Availability results still work.",
+        note: "AI suggestions unavailable — ANTHROPIC_API_KEY not configured. Availability results still work.",
       };
     }
     const modelId = opts.modelId ?? readModelIdFromEnv();
@@ -134,9 +130,7 @@ export async function generateBrandableAlternatives(
       temperature: 0.7,
     });
     // Sort by brandability descending — best ideas first.
-    const sorted = [...object.alternatives].sort(
-      (a, b) => b.brandability - a.brandability,
-    );
+    const sorted = [...object.alternatives].sort((a, b) => b.brandability - a.brandability);
     const trimmed = sorted.slice(0, max);
     const base: AiSuggestionResult = { alternatives: trimmed };
     if (object.note !== undefined) base.note = object.note;

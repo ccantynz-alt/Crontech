@@ -3,7 +3,7 @@
 // past it. Disabled on reduced-motion and on narrow viewports (mobile),
 // where parallax tends to feel more like seasickness than premium.
 
-import { createSignal, onCleanup, onMount, type JSX } from "solid-js";
+import { type JSX, createSignal, onCleanup, onMount } from "solid-js";
 import { usePrefersReducedMotion } from "./reduced-motion";
 
 export interface ParallaxSectionProps {

@@ -51,8 +51,8 @@ function makeErrorStub(err: unknown): Db {
 
 function getDb(): Db {
   if (_db) return _db;
-  const url = process.env["DATABASE_URL"] ?? "file:local.db";
-  const authToken = process.env["DATABASE_AUTH_TOKEN"];
+  const url = process.env.DATABASE_URL ?? "file:local.db";
+  const authToken = process.env.DATABASE_AUTH_TOKEN;
   try {
     _db = createClient(url, authToken);
     return _db;

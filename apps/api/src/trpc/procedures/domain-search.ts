@@ -16,12 +16,8 @@
 //     + Anthropic under the hood.
 
 import { z } from "zod";
-import { router, publicProcedure } from "../init";
-import {
-  searchDomains,
-  DEFAULT_TLDS,
-  type OrchestratorDeps,
-} from "../../domain-search";
+import { DEFAULT_TLDS, type OrchestratorDeps, searchDomains } from "../../domain-search";
+import { publicProcedure, router } from "../init";
 
 const LABEL_RE = /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?$/;
 const TLD_RE = /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?$/;
@@ -33,12 +29,15 @@ const SearchInputSchema = z.object({
     .max(80, "Search queries are limited to 80 characters.")
     .refine(
       (v) => {
-        const first = v.trim().toLowerCase().split(/[./\s]/)[0] ?? "";
+        const first =
+          v
+            .trim()
+            .toLowerCase()
+            .split(/[./\s]/)[0] ?? "";
         return first.length > 0 && LABEL_RE.test(first);
       },
       {
-        message:
-          "Use letters, digits, or hyphens only (e.g. \"fable\" or \"my-app\").",
+        message: 'Use letters, digits, or hyphens only (e.g. "fable" or "my-app").',
       },
     ),
   tlds: z
@@ -67,34 +66,32 @@ export function createDomainSearchRouter(deps: OrchestratorDeps = {}) {
      * optional AI-generated alternatives, and optional trademark
      * warnings (medium + high risk only).
      */
-    search: publicProcedure
-      .input(SearchInputSchema)
-      .query(async ({ input }) => {
-        const tlds = input.tlds ?? [...DEFAULT_TLDS];
-        const result = await searchDomains(
-          {
-            query: input.query,
-            tlds,
-            includeTrademark: input.includeTrademark,
-            includeAiSuggestions: input.includeAiSuggestions,
-          },
-          deps,
-        );
+    search: publicProcedure.input(SearchInputSchema).query(async ({ input }) => {
+      const tlds = input.tlds ?? [...DEFAULT_TLDS];
+      const result = await searchDomains(
+        {
+          query: input.query,
+          tlds,
+          includeTrademark: input.includeTrademark,
+          includeAiSuggestions: input.includeAiSuggestions,
+        },
+        deps,
+      );
 
-        return {
-          query: result.query,
-          label: result.label,
-          available: result.available,
-          takenCount: result.taken.length,
-          unknownCount: result.unknown.length,
-          suggestions: result.suggestions,
-          suggestionsNote: result.suggestionsNote,
-          trademarkWarnings: result.trademarkWarnings,
-          trademarkNote: result.trademarkNote,
-          cached: result.cached,
-          tldsChecked: tlds,
-        };
-      }),
+      return {
+        query: result.query,
+        label: result.label,
+        available: result.available,
+        takenCount: result.taken.length,
+        unknownCount: result.unknown.length,
+        suggestions: result.suggestions,
+        suggestionsNote: result.suggestionsNote,
+        trademarkWarnings: result.trademarkWarnings,
+        trademarkNote: result.trademarkNote,
+        cached: result.cached,
+        tldsChecked: tlds,
+      };
+    }),
 
     /**
      * Lightweight health probe for the domain-search subsystem.

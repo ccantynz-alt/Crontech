@@ -19,14 +19,18 @@ let bullmqAvailable: boolean | null = null;
 // Opaque handle to the BullMQ queue. We store the module's enqueue
 // function rather than the Queue object so we don't need bullmq type
 // declarations in apps/api.
-let bullmqEnqueue: ((name: string, data: Record<string, unknown>, opts: { jobId: string; attempts: number; backoff: { type: string; delay: number } }) => Promise<void>) | null = null;
+let bullmqEnqueue:
+  | ((
+      name: string,
+      data: Record<string, unknown>,
+      opts: { jobId: string; attempts: number; backoff: { type: string; delay: number } },
+    ) => Promise<void>)
+  | null = null;
 
 async function tryInitBullMQ(): Promise<boolean> {
   if (bullmqAvailable !== null) return bullmqAvailable;
   try {
-    const { getQueue, startWorker, dispatch } = await import(
-      "@back-to-the-future/queue"
-    );
+    const { getQueue, startWorker, dispatch } = await import("@back-to-the-future/queue");
     const q = getQueue();
     bullmqEnqueue = async (name, data, opts) => {
       await q.add(name, data, opts);
@@ -76,10 +80,7 @@ const MAX_RETRIES = 5;
 
 // In-memory fallback structures
 const queue = new Map<string, RetryJob>();
-const handlers = new Map<
-  JobType,
-  (payload: Record<string, unknown>) => Promise<void>
->();
+const handlers = new Map<JobType, (payload: Record<string, unknown>) => Promise<void>>();
 let timer: ReturnType<typeof setInterval> | null = null;
 let processed = 0;
 let failed = 0;
@@ -95,10 +96,7 @@ export function registerHandler(
 /**
  * Enqueue a job. Tries BullMQ first; falls back to in-memory.
  */
-export function enqueue(
-  type: JobType,
-  payload: Record<string, unknown>,
-): string {
+export function enqueue(type: JobType, payload: Record<string, unknown>): string {
   const id = crypto.randomUUID();
 
   // Attempt async BullMQ enqueue (fire-and-forget — the in-memory
@@ -118,11 +116,7 @@ export function enqueue(
   return id;
 }
 
-function addToInMemory(
-  id: string,
-  type: JobType,
-  payload: Record<string, unknown>,
-): void {
+function addToInMemory(id: string, type: JobType, payload: Record<string, unknown>): void {
   queue.set(id, {
     id,
     type,
@@ -141,8 +135,7 @@ export async function processQueue(): Promise<void> {
     const handler = handlers.get(job.type);
     if (!handler) {
       job.lastError = `No handler for ${job.type}`;
-      job.nextRunAt =
-        now + BACKOFF_MS[Math.min(job.attempts, BACKOFF_MS.length - 1)]!;
+      job.nextRunAt = now + (BACKOFF_MS[Math.min(job.attempts, BACKOFF_MS.length - 1)] ?? 0);
       job.attempts += 1;
       continue;
     }
@@ -175,8 +168,7 @@ export async function processQueue(): Promise<void> {
           result: "failure",
         });
       } else {
-        const delay =
-          BACKOFF_MS[Math.min(job.attempts - 1, BACKOFF_MS.length - 1)]!;
+        const delay = BACKOFF_MS[Math.min(job.attempts - 1, BACKOFF_MS.length - 1)] ?? 0;
         job.nextRunAt = Date.now() + delay;
       }
     }

@@ -10,13 +10,12 @@ export function Spinner(props: SpinnerProps): JSX.Element {
   const [local, rest] = splitProps(props, ["size", "class"]);
 
   return (
-    <div
+    <output
       class={`spinner spinner-${local.size ?? "md"} ${local.class ?? ""}`}
-      role="status"
       aria-label="Loading"
       {...rest}
     >
       <span class="spinner-visual" aria-hidden="true" />
-    </div>
+    </output>
   );
 }

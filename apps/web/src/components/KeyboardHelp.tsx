@@ -17,13 +17,12 @@
 
 import { For, Show, createSignal, onCleanup, onMount } from "solid-js";
 import type { JSX } from "solid-js";
-import { Box, Text } from "@back-to-the-future/ui";
 import {
+  type RegisteredShortcut,
+  type ShortcutGroup,
   groupShortcuts,
   listShortcuts,
   registerShortcut,
-  type RegisteredShortcut,
-  type ShortcutGroup,
 } from "../lib/keyboard";
 
 // ── Display ordering ────────────────────────────────────────────────
@@ -125,8 +124,11 @@ export function KeyboardHelp(): JSX.Element {
 
   return (
     <Show when={open()}>
-      <Box
+      <div
         onClick={close}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") close();
+        }}
         role="presentation"
         style={{
           position: "fixed",
@@ -139,9 +141,10 @@ export function KeyboardHelp(): JSX.Element {
           "padding-top": "8vh",
         }}
       >
-        <Box
+        <dialog
+          open
           onClick={(e) => e.stopPropagation()}
-          role="dialog"
+          onKeyDown={(e) => e.stopPropagation()}
           aria-modal="true"
           aria-labelledby="keyboard-help-title"
           style={{
@@ -153,10 +156,13 @@ export function KeyboardHelp(): JSX.Element {
             overflow: "hidden",
             display: "flex",
             "flex-direction": "column",
+            border: "none",
+            padding: "0",
+            margin: "0",
           }}
         >
           {/* ── Header ──────────────────────────────────────────── */}
-          <Box
+          <div
             style={{
               padding: "18px 22px",
               "border-bottom": "1px solid var(--color-border)",
@@ -166,8 +172,6 @@ export function KeyboardHelp(): JSX.Element {
               gap: "16px",
             }}
           >
-            {/* Keep native <h2> here so the `id` lands on a real element
-                that aria-labelledby on the parent dialog can reference. */}
             <h2
               id="keyboard-help-title"
               style={{
@@ -194,15 +198,14 @@ export function KeyboardHelp(): JSX.Element {
             >
               Esc
             </button>
-          </Box>
+          </div>
 
           {/* ── Body: grouped tables ────────────────────────────── */}
-          <Box style={{ "overflow-y": "auto", padding: "12px 22px 20px" }}>
+          <div style={{ "overflow-y": "auto", padding: "12px 22px 20px" }}>
             <Show
               when={snapshot().length > 0}
               fallback={
-                <Text
-                  variant="body"
+                <p
                   style={{
                     color: "var(--color-text-muted)",
                     "text-align": "center",
@@ -211,7 +214,7 @@ export function KeyboardHelp(): JSX.Element {
                   }}
                 >
                   No keyboard shortcuts registered yet on this page.
-                </Text>
+                </p>
               }
             >
               <For each={GROUP_ORDER}>
@@ -220,9 +223,8 @@ export function KeyboardHelp(): JSX.Element {
                   const items = grouped[group];
                   return (
                     <Show when={items.length > 0}>
-                      <Box as="section" style={{ "margin-top": "14px" }}>
-                        <Text
-                          variant="h3"
+                      <section style={{ "margin-top": "14px" }}>
+                        <h3
                           style={{
                             margin: "0 0 8px",
                             "font-size": "11px",
@@ -233,7 +235,7 @@ export function KeyboardHelp(): JSX.Element {
                           }}
                         >
                           {group}
-                        </Text>
+                        </h3>
                         <table
                           style={{
                             width: "100%",
@@ -268,8 +270,7 @@ export function KeyboardHelp(): JSX.Element {
                                       {(chord, i) => (
                                         <>
                                           <Show when={i() > 0}>
-                                            <Text
-                                              as="span"
+                                            <span
                                               style={{
                                                 margin: "0 6px",
                                                 color: "var(--color-text-muted)",
@@ -277,32 +278,28 @@ export function KeyboardHelp(): JSX.Element {
                                               }}
                                             >
                                               then
-                                            </Text>
+                                            </span>
                                           </Show>
                                           <For each={chordSegments(chord)}>
                                             {(seg, j) => (
                                               <>
                                                 <Show when={j() > 0}>
-                                                  <Text
-                                                    as="span"
+                                                  <span
                                                     style={{
                                                       margin: "0 4px",
-                                                      color:
-                                                        "var(--color-text-muted)",
+                                                      color: "var(--color-text-muted)",
                                                     }}
                                                   >
                                                     +
-                                                  </Text>
+                                                  </span>
                                                 </Show>
                                                 <kbd
                                                   style={{
                                                     display: "inline-block",
                                                     padding: "2px 8px",
                                                     "border-radius": "6px",
-                                                    border:
-                                                      "1px solid var(--color-border)",
-                                                    background:
-                                                      "var(--color-bg-subtle)",
+                                                    border: "1px solid var(--color-border)",
+                                                    background: "var(--color-bg-subtle)",
                                                     "font-family":
                                                       "ui-monospace, SFMono-Regular, Menlo, monospace",
                                                     "font-size": "12px",
@@ -325,16 +322,16 @@ export function KeyboardHelp(): JSX.Element {
                             </For>
                           </tbody>
                         </table>
-                      </Box>
+                      </section>
                     </Show>
                   );
                 }}
               </For>
             </Show>
-          </Box>
+          </div>
 
           {/* ── Footer hint ─────────────────────────────────────── */}
-          <Box
+          <div
             style={{
               padding: "10px 22px",
               "border-top": "1px solid var(--color-border)",
@@ -344,15 +341,15 @@ export function KeyboardHelp(): JSX.Element {
               "justify-content": "space-between",
             }}
           >
-            <Text as="span">
+            <span>
               Press <kbd>?</kbd> any time to reopen this list
-            </Text>
-            <Text as="span">
+            </span>
+            <span>
               <kbd>Esc</kbd> to close
-            </Text>
-          </Box>
-        </Box>
-      </Box>
+            </span>
+          </div>
+        </dialog>
+      </div>
     </Show>
   );
 }

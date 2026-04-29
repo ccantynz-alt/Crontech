@@ -1,33 +1,33 @@
 import {
-  generateRegistrationOptions,
-  verifyRegistrationResponse,
   generateAuthenticationOptions,
+  generateRegistrationOptions,
   verifyAuthenticationResponse,
+  verifyRegistrationResponse,
 } from "@simplewebauthn/server";
 import type {
-  GenerateRegistrationOptionsOpts,
   GenerateAuthenticationOptionsOpts,
-  VerifiedRegistrationResponse,
+  GenerateRegistrationOptionsOpts,
   VerifiedAuthenticationResponse,
-  VerifyRegistrationResponseOpts,
+  VerifiedRegistrationResponse,
   VerifyAuthenticationResponseOpts,
+  VerifyRegistrationResponseOpts,
 } from "@simplewebauthn/server";
 import type {
-  RegistrationResponseJSON,
   AuthenticationResponseJSON,
   AuthenticatorTransportFuture,
   PublicKeyCredentialCreationOptionsJSON,
   PublicKeyCredentialRequestOptionsJSON,
+  RegistrationResponseJSON,
 } from "@simplewebauthn/server";
 
 const RP_NAME = "Crontech";
 
 function getRpId(): string {
-  return process.env["WEBAUTHN_RP_ID"] ?? "localhost";
+  return process.env.WEBAUTHN_RP_ID ?? "localhost";
 }
 
 function getOrigin(): string {
-  return process.env["WEBAUTHN_ORIGIN"] ?? `http://${getRpId()}:3000`;
+  return process.env.WEBAUTHN_ORIGIN ?? `http://${getRpId()}:3000`;
 }
 
 export interface UserForRegistration {
@@ -42,9 +42,7 @@ export interface ExistingCredential {
   transports: string | null;
 }
 
-function parseTransports(
-  transports: string | null,
-): AuthenticatorTransportFuture[] | undefined {
+function parseTransports(transports: string | null): AuthenticatorTransportFuture[] | undefined {
   if (!transports) return undefined;
   try {
     return JSON.parse(transports) as AuthenticatorTransportFuture[];
@@ -140,10 +138,7 @@ export async function verifyAuthentication(
     expectedRPID: getRpId(),
     requireUserVerification: false,
     credential: {
-      ...buildCredentialDescriptor(
-        credential.credentialId,
-        credential.transports,
-      ),
+      ...buildCredentialDescriptor(credential.credentialId, credential.transports),
       publicKey: new Uint8Array(credential.publicKey),
       counter: credential.counter,
     },

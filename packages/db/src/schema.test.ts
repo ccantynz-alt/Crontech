@@ -1,21 +1,21 @@
-import { describe, test, expect } from "bun:test";
+import { describe, expect, test } from "bun:test";
+import { getTableColumns, getTableName } from "drizzle-orm";
 import {
-  users,
+  analyticsEvents,
+  apiKeys,
   auditLogs,
   credentials,
-  sessions,
-  plans,
-  subscriptions,
-  payments,
-  tenantProjects,
-  apiKeys,
-  userWebhooks,
   notifications,
-  supportTickets,
+  payments,
+  plans,
+  sessions,
+  subscriptions,
   supportMessages,
-  analyticsEvents,
+  supportTickets,
+  tenantProjects,
+  userWebhooks,
+  users,
 } from "./schema";
-import { getTableName, getTableColumns } from "drizzle-orm";
 
 // ── users table ──────────────────────────────────────────────────────
 
@@ -611,9 +611,19 @@ describe("analyticsEvents table schema", () => {
 describe("schema cross-table integrity", () => {
   test("all tables have an id primary key", () => {
     const tables = [
-      users, credentials, sessions, plans, subscriptions,
-      payments, tenantProjects, apiKeys, userWebhooks,
-      auditLogs, notifications, supportTickets, supportMessages,
+      users,
+      credentials,
+      sessions,
+      plans,
+      subscriptions,
+      payments,
+      tenantProjects,
+      apiKeys,
+      userWebhooks,
+      auditLogs,
+      notifications,
+      supportTickets,
+      supportMessages,
       analyticsEvents,
     ];
     for (const table of tables) {
@@ -625,8 +635,14 @@ describe("schema cross-table integrity", () => {
 
   test("all tables with userId have it as non-nullable (except supportTickets and analyticsEvents)", () => {
     const tablesWithRequiredUserId = [
-      credentials, sessions, subscriptions, payments,
-      tenantProjects, apiKeys, userWebhooks, notifications,
+      credentials,
+      sessions,
+      subscriptions,
+      payments,
+      tenantProjects,
+      apiKeys,
+      userWebhooks,
+      notifications,
     ];
     for (const table of tablesWithRequiredUserId) {
       const columns = getTableColumns(table);

@@ -1,15 +1,9 @@
 // ── AI Cache Tests (Hook 4) ───────────────────────────────────────────
 
-import { describe, test, expect, beforeEach } from "bun:test";
+import { beforeEach, describe, expect, test } from "bun:test";
+import { aiCache, db } from "@back-to-the-future/db";
 import { eq } from "drizzle-orm";
-import { db, aiCache } from "@back-to-the-future/db";
-import {
-  buildCacheKey,
-  cachedAICall,
-  lookupCache,
-  storeCache,
-  cleanupExpiredCache,
-} from "./cache";
+import { buildCacheKey, cachedAICall, cleanupExpiredCache, lookupCache, storeCache } from "./cache";
 
 describe("AI cache", () => {
   beforeEach(async () => {
@@ -57,10 +51,7 @@ describe("AI cache", () => {
     expect(result.cached).toBe(false);
     expect(result.value).toEqual({ answer: 4 });
 
-    const rows = await db
-      .select()
-      .from(aiCache)
-      .where(eq(aiCache.cacheKey, result.cacheKey));
+    const rows = await db.select().from(aiCache).where(eq(aiCache.cacheKey, result.cacheKey));
     expect(rows).toHaveLength(1);
     expect(rows[0]?.model).toBe("test-model");
   });
@@ -91,14 +82,8 @@ describe("AI cache", () => {
       callCount += 1;
       return { tenant: `call-${callCount}` };
     };
-    const a = await cachedAICall(
-      { model: "m", prompt: "shared", tenantId: "tenant-a" },
-      fn,
-    );
-    const b = await cachedAICall(
-      { model: "m", prompt: "shared", tenantId: "tenant-b" },
-      fn,
-    );
+    const a = await cachedAICall({ model: "m", prompt: "shared", tenantId: "tenant-a" }, fn);
+    const b = await cachedAICall({ model: "m", prompt: "shared", tenantId: "tenant-b" }, fn);
     expect(callCount).toBe(2);
     expect(a.cacheKey).not.toBe(b.cacheKey);
     expect(a.value).not.toEqual(b.value);
@@ -132,40 +117,21 @@ describe("AI cache", () => {
     // Flush all pending microtasks and macrotasks so the async hit-counter write completes.
     await new Promise<void>((resolve) => setImmediate(resolve));
 
-    const rows = await db
-      .select()
-      .from(aiCache)
-      .where(eq(aiCache.cacheKey, first.cacheKey));
+    const rows = await db.select().from(aiCache).where(eq(aiCache.cacheKey, first.cacheKey));
     expect(rows[0]?.hitCount).toBeGreaterThanOrEqual(2);
   });
 
   test("cleanupExpiredCache removes only stale rows", async () => {
-    await storeCache(
-      "fresh-key",
-      { model: "m", prompt: "fresh" },
-      { ok: true },
-      { ttlMs: 60_000 },
-    );
-    await storeCache(
-      "stale-key",
-      { model: "m", prompt: "stale" },
-      { ok: true },
-      { ttlMs: -1000 },
-    );
+    await storeCache("fresh-key", { model: "m", prompt: "fresh" }, { ok: true }, { ttlMs: 60_000 });
+    await storeCache("stale-key", { model: "m", prompt: "stale" }, { ok: true }, { ttlMs: -1000 });
 
     const removed = await cleanupExpiredCache();
     expect(removed).toBeGreaterThanOrEqual(1);
 
-    const fresh = await db
-      .select()
-      .from(aiCache)
-      .where(eq(aiCache.cacheKey, "fresh-key"));
+    const fresh = await db.select().from(aiCache).where(eq(aiCache.cacheKey, "fresh-key"));
     expect(fresh).toHaveLength(1);
 
-    const stale = await db
-      .select()
-      .from(aiCache)
-      .where(eq(aiCache.cacheKey, "stale-key"));
+    const stale = await db.select().from(aiCache).where(eq(aiCache.cacheKey, "stale-key"));
     expect(stale).toHaveLength(0);
   });
 });

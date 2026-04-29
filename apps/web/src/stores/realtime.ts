@@ -14,14 +14,18 @@ type ConnectionStatus = "disconnected" | "connecting" | "connected" | "error";
 
 interface RoomUser {
   userId: string;
-  metadata?: {
-    displayName?: string | undefined;
-    color?: string | undefined;
-  } | undefined;
-  presence?: {
-    status: "active" | "idle" | "away";
-    data?: Record<string, unknown> | undefined;
-  } | undefined;
+  metadata?:
+    | {
+        displayName?: string | undefined;
+        color?: string | undefined;
+      }
+    | undefined;
+  presence?:
+    | {
+        status: "active" | "idle" | "away";
+        data?: Record<string, unknown> | undefined;
+      }
+    | undefined;
 }
 
 interface CursorPosition {
@@ -57,7 +61,11 @@ interface RealtimeState {
   currentRoom: Accessor<string | null>;
   connect: (url: string) => void;
   disconnect: () => void;
-  joinRoom: (roomId: string, userId: string, metadata?: { displayName?: string; color?: string }) => void;
+  joinRoom: (
+    roomId: string,
+    userId: string,
+    metadata?: { displayName?: string; color?: string },
+  ) => void;
   leaveRoom: (userId: string) => void;
   sendCursorMove: (roomId: string, userId: string, x: number, y: number, target?: string) => void;
   updatePresence: (roomId: string, userId: string, status: "active" | "idle" | "away") => void;
@@ -161,10 +169,7 @@ export function RealtimeProvider(props: { children: JSX.Element }): JSX.Element 
             target: message.target,
             timestamp: Date.now(),
           };
-          setCursors((prev) => [
-            ...prev.filter((c) => c.userId !== cursor.userId),
-            cursor,
-          ]);
+          setCursors((prev) => [...prev.filter((c) => c.userId !== cursor.userId), cursor]);
           break;
         }
         case "presence_sync": {
@@ -172,7 +177,13 @@ export function RealtimeProvider(props: { children: JSX.Element }): JSX.Element 
           setRoomUsers((prev) =>
             prev.map((u) =>
               u.userId === userId
-                ? { ...u, presence: { status: message.status as "active" | "idle" | "away", data: message.data } }
+                ? {
+                    ...u,
+                    presence: {
+                      status: message.status as "active" | "idle" | "away",
+                      data: message.data,
+                    },
+                  }
                 : u,
             ),
           );
@@ -201,7 +212,7 @@ export function RealtimeProvider(props: { children: JSX.Element }): JSX.Element 
     if (!wsUrl) return;
     reconnectTimer = setTimeout((): void => {
       reconnectDelay = Math.min(reconnectDelay * 2, MAX_RECONNECT_DELAY_MS);
-      connect(wsUrl!);
+      if (wsUrl) connect(wsUrl);
     }, reconnectDelay);
   }
 

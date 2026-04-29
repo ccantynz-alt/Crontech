@@ -1,6 +1,6 @@
-import type { JSX } from "solid-js";
-import { useNavigate } from "@solidjs/router";
 import { Button, Card, Stack, Text } from "@back-to-the-future/ui";
+import { useNavigate } from "@solidjs/router";
+import type { JSX } from "solid-js";
 
 interface ErrorStateProps {
   title?: string;
@@ -21,12 +21,15 @@ export function ErrorState(props: ErrorStateProps): JSX.Element {
   return (
     <Card padding="lg" class="error-state-card">
       <Stack direction="vertical" gap="md" align="center">
-        <div class="error-state-icon" aria-hidden="true">!</div>
+        <div class="error-state-icon" aria-hidden="true">
+          !
+        </div>
         <Text variant="h3" weight="semibold" align="center">
           {props.title ?? "Something went sideways"}
         </Text>
         <Text variant="body" class="text-muted" align="center">
-          {props.message ?? "We hit a snag loading this page. It's not you — it's us. Try again in a moment."}
+          {props.message ??
+            "We hit a snag loading this page. It's not you — it's us. Try again in a moment."}
         </Text>
         <Stack direction="horizontal" gap="sm" justify="center">
           {props.onRetry ? (
@@ -59,11 +62,17 @@ export function EmptyState(props: EmptyStateProps): JSX.Element {
   return (
     <Card padding="lg" class="empty-state-card">
       <Stack direction="vertical" gap="md" align="center">
-        <div class="empty-state-icon" aria-hidden="true">{props.icon ?? "+"}</div>
-        <Text variant="h4" weight="semibold" align="center">{props.title}</Text>
-        <Text variant="body" class="text-muted" align="center">{props.message}</Text>
+        <div class="empty-state-icon" aria-hidden="true">
+          {props.icon ?? "+"}
+        </div>
+        <Text variant="h4" weight="semibold" align="center">
+          {props.title}
+        </Text>
+        <Text variant="body" class="text-muted" align="center">
+          {props.message}
+        </Text>
         {props.actionHref && props.actionLabel ? (
-          <Button variant="primary" onClick={() => navigate(props.actionHref!)}>
+          <Button variant="primary" onClick={() => navigate(props.actionHref ?? "")}>
             {props.actionLabel}
           </Button>
         ) : null}

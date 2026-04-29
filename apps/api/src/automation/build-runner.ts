@@ -1,3 +1,4 @@
+/// <reference types="@types/bun" />
 /**
  * BLK-009 Build Runner — real implementation.
  *
@@ -36,7 +37,6 @@
  *   injectable so tests never hit the real daemon.
  */
 
-import { and, eq } from "drizzle-orm";
 import {
   buildMinutesUsage,
   db as defaultDb,
@@ -45,14 +45,15 @@ import {
   projects,
 } from "@back-to-the-future/db";
 import {
-  runInSandbox,
   type SandboxResult,
   type SandboxSpec,
+  runInSandbox,
 } from "@back-to-the-future/orchestrator/sandbox";
+import { and, eq } from "drizzle-orm";
 import {
-  orchestratorDeploy,
   type OrchestratorDeployInput,
   type OrchestratorDeployResult,
+  orchestratorDeploy,
 } from "../deploy/orchestrator-client";
 import { upsertSubdomainRecord } from "./dns-helper";
 
@@ -94,10 +95,7 @@ export interface SpawnOptionsLike {
 }
 
 /** Signature injected via `RunBuildOptions.spawn` for testability. */
-export type SpawnFn = (
-  cmd: string[],
-  options?: SpawnOptionsLike,
-) => SpawnedProcess;
+export type SpawnFn = (cmd: string[], options?: SpawnOptionsLike) => SpawnedProcess;
 
 /** Filesystem operations the runner needs — injectable for tests. */
 export interface BuildFs {
@@ -106,9 +104,7 @@ export interface BuildFs {
 }
 
 /** Deployer handoff — defaults to the HTTP orchestrator client. */
-export type DeployFn = (
-  input: OrchestratorDeployInput,
-) => Promise<OrchestratorDeployResult>;
+export type DeployFn = (input: OrchestratorDeployInput) => Promise<OrchestratorDeployResult>;
 
 /**
  * Sandbox runner signature — matches `runInSandbox` from the orchestrator.
@@ -207,8 +203,7 @@ const defaultFs: BuildFs = {
 
 const defaultDeploy: DeployFn = (input) => orchestratorDeploy(input);
 
-const defaultSandboxRun: SandboxRunFn = (spec, onLogLine) =>
-  runInSandbox(spec, onLogLine);
+const defaultSandboxRun: SandboxRunFn = (spec, onLogLine) => runInSandbox(spec, onLogLine);
 
 // ── Internal helpers ─────────────────────────────────────────────────
 
@@ -247,11 +242,7 @@ async function loadDeployment(
   db: DbClient,
   deploymentId: string,
 ): Promise<typeof deployments.$inferSelect | null> {
-  const rows = await db
-    .select()
-    .from(deployments)
-    .where(eq(deployments.id, deploymentId))
-    .limit(1);
+  const rows = await db.select().from(deployments).where(eq(deployments.id, deploymentId)).limit(1);
   return rows[0] ?? null;
 }
 
@@ -259,18 +250,11 @@ async function loadProject(
   db: DbClient,
   projectId: string,
 ): Promise<typeof projects.$inferSelect | null> {
-  const rows = await db
-    .select()
-    .from(projects)
-    .where(eq(projects.id, projectId))
-    .limit(1);
+  const rows = await db.select().from(projects).where(eq(projects.id, projectId)).limit(1);
   return rows[0] ?? null;
 }
 
-async function isCancelled(
-  db: DbClient,
-  deploymentId: string,
-): Promise<boolean> {
+async function isCancelled(db: DbClient, deploymentId: string): Promise<boolean> {
   const rows = await db
     .select({
       cancelRequestedAt: deployments.cancelRequestedAt,
@@ -398,9 +382,7 @@ async function runSandboxStep(
 
   let logChain: Promise<unknown> = Promise.resolve();
   const onLogLine = (stream: "stdout" | "stderr", line: string): void => {
-    logChain = logChain.then(() =>
-      writeLog(db, deploymentId, { stream, line }, now()),
-    );
+    logChain = logChain.then(() => writeLog(db, deploymentId, { stream, line }, now()));
   };
 
   const spec: SandboxSpec = {
@@ -429,11 +411,7 @@ async function runSandboxStep(
  * sandbox always runs at least one iteration (a zero timeout would be
  * interpreted as "expire immediately").
  */
-function remainingTimeoutMs(
-  startTime: Date,
-  totalTimeoutMs: number,
-  now: () => Date,
-): number {
+function remainingTimeoutMs(startTime: Date, totalTimeoutMs: number, now: () => Date): number {
   const elapsed = now().getTime() - startTime.getTime();
   return Math.max(1, totalTimeoutMs - elapsed);
 }
@@ -557,12 +535,7 @@ export async function runBuild(
 
     if (!project.repoUrl) {
       const msg = "project.repoUrl is not configured";
-      await writeLog(
-        db,
-        deploymentId,
-        { stream: "event", line: `[build-runner] ${msg}` },
-        now(),
-      );
+      await writeLog(db, deploymentId, { stream: "event", line: `[build-runner] ${msg}` }, now());
       await updateStatus(db, deploymentId, "failed", {
         errorMessage: msg,
         completedAt: now(),
@@ -606,16 +579,7 @@ export async function runBuild(
       db,
       deploymentId,
       "clone",
-      [
-        "git",
-        "clone",
-        "--depth",
-        "1",
-        "--branch",
-        branch,
-        project.repoUrl,
-        workspaceDir,
-      ],
+      ["git", "clone", "--depth", "1", "--branch", branch, project.repoUrl, workspaceDir],
       {},
       trackedSpawn,
       now,
@@ -702,8 +666,7 @@ export async function runBuild(
     // helper itself swallows errors, but we wrap in try/catch for belt
     // + braces, and emit an event log so operators can see what
     // happened without trawling stderr.
-    const deployTargetIp =
-      process.env["DEPLOY_TARGET_IP"] ?? "45.76.21.235";
+    const deployTargetIp = process.env.DEPLOY_TARGET_IP ?? "45.76.21.235";
     try {
       await upsertSubdomainRecord(project.slug, deployTargetIp, { db });
       await writeLog(
@@ -716,8 +679,7 @@ export async function runBuild(
         now(),
       );
     } catch (dnsErr) {
-      const dnsMsg =
-        dnsErr instanceof Error ? dnsErr.message : String(dnsErr);
+      const dnsMsg = dnsErr instanceof Error ? dnsErr.message : String(dnsErr);
       await writeLog(
         db,
         deploymentId,
@@ -740,12 +702,7 @@ export async function runBuild(
     await db
       .update(deployments)
       .set({ isCurrent: false })
-      .where(
-        and(
-          eq(deployments.projectId, project.id),
-          eq(deployments.isCurrent, true),
-        ),
-      );
+      .where(and(eq(deployments.projectId, project.id), eq(deployments.isCurrent, true)));
 
     await updateStatus(db, deploymentId, "live", {
       deployUrl,
@@ -761,8 +718,7 @@ export async function runBuild(
     // Non-fatal: a failure here must never mark the deploy as failed.
     // Usage reporting to Stripe happens later via the usage-reporter.
     try {
-      const minutesUsed =
-        Math.max(0, buildDurationMs ?? totalDurationMs) / 60000;
+      const minutesUsed = Math.max(0, buildDurationMs ?? totalDurationMs) / 60000;
       await db.insert(buildMinutesUsage).values({
         id: crypto.randomUUID(),
         userId: project.userId,
@@ -797,9 +753,7 @@ export async function runBuild(
     };
   } catch (err) {
     const baseMessage = err instanceof Error ? err.message : String(err);
-    const message = timedOut
-      ? `build exceeded ${totalTimeoutMs}ms timeout`
-      : baseMessage;
+    const message = timedOut ? `build exceeded ${totalTimeoutMs}ms timeout` : baseMessage;
 
     // Every failure path: an `event` log, failed status, cleanup.
     try {

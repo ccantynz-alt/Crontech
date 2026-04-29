@@ -2,8 +2,8 @@
 // Creates sample projects, team members, and usage stats for new users
 // so they have something to play with from second one. Called on signup.
 
+import { randomBytes } from "node:crypto";
 import { TEMPLATES, type Template } from "@back-to-the-future/schemas";
-import { randomBytes } from "crypto";
 
 export interface SampleProject {
   id: string;
@@ -39,9 +39,21 @@ export interface SampleDataBundle {
 
 const PERSONAS: SamplePersona[] = [
   { id: "p1", name: "Avery Chen", email: "avery@example.com", role: "owner", avatarInitials: "AC" },
-  { id: "p2", name: "Jordan Patel", email: "jordan@example.com", role: "editor", avatarInitials: "JP" },
+  {
+    id: "p2",
+    name: "Jordan Patel",
+    email: "jordan@example.com",
+    role: "editor",
+    avatarInitials: "JP",
+  },
   { id: "p3", name: "Sam Rivera", email: "sam@example.com", role: "editor", avatarInitials: "SR" },
-  { id: "p4", name: "Taylor Kim", email: "taylor@example.com", role: "viewer", avatarInitials: "TK" },
+  {
+    id: "p4",
+    name: "Taylor Kim",
+    email: "taylor@example.com",
+    role: "viewer",
+    avatarInitials: "TK",
+  },
 ];
 
 function pickTemplate(id: string): Template {
@@ -54,7 +66,7 @@ function projectFromTemplate(id: string, name: string, description: string): Sam
   const t = pickTemplate(id);
   const now = new Date().toISOString();
   return {
-    id: `sample-${id}-${randomBytes(3).toString('hex')}`,
+    id: `sample-${id}-${randomBytes(3).toString("hex")}`,
     name,
     description,
     templateId: t.id,
@@ -66,7 +78,11 @@ function projectFromTemplate(id: string, name: string, description: string): Sam
 
 export function createSampleProjects(): SampleProject[] {
   return [
-    projectFromTemplate("landing-startup", "My First Landing Page", "A starter landing page to learn the ropes."),
+    projectFromTemplate(
+      "landing-startup",
+      "My First Landing Page",
+      "A starter landing page to learn the ropes.",
+    ),
     projectFromTemplate("portfolio-creative", "My Portfolio", "Show off your best work."),
     projectFromTemplate("blog-personal", "My Blog", "A simple blog to share your thoughts."),
   ];

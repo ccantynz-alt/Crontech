@@ -9,11 +9,11 @@ import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { eq } from "drizzle-orm";
 import { db } from "./client";
 import {
-  createDnsStore,
   type DnsRecord,
   type DnsZone,
   type RecordType,
   type ZoneStore,
+  createDnsStore,
 } from "./dns-store";
 import { dnsRecords, dnsZones } from "./schema";
 
@@ -77,7 +77,7 @@ beforeAll(async () => {
 
   await db.insert(dnsRecords).values([
     {
-      id: RECORD_IDS[0]!,
+      id: RECORD_IDS[0] ?? "",
       zoneId: ZONE_A_ID,
       name: ZONE_A_NAME,
       type: "A",
@@ -88,7 +88,7 @@ beforeAll(async () => {
       updatedAt: now,
     },
     {
-      id: RECORD_IDS[1]!,
+      id: RECORD_IDS[1] ?? "",
       zoneId: ZONE_A_ID,
       name: WWW_A,
       type: "A",
@@ -99,7 +99,7 @@ beforeAll(async () => {
       updatedAt: now,
     },
     {
-      id: RECORD_IDS[2]!,
+      id: RECORD_IDS[2] ?? "",
       zoneId: ZONE_A_ID,
       name: WWW_A,
       type: "AAAA",
@@ -110,7 +110,7 @@ beforeAll(async () => {
       updatedAt: now,
     },
     {
-      id: RECORD_IDS[3]!,
+      id: RECORD_IDS[3] ?? "",
       zoneId: ZONE_A_ID,
       name: ZONE_A_NAME,
       type: "MX",
@@ -121,7 +121,7 @@ beforeAll(async () => {
       updatedAt: now,
     },
     {
-      id: RECORD_IDS[4]!,
+      id: RECORD_IDS[4] ?? "",
       zoneId: ZONE_B_ID,
       name: WWW_B,
       type: "A",
@@ -240,17 +240,7 @@ describe("createDnsStore → ZoneStore", () => {
   test("RecordType union accepts every supported type", () => {
     // Compile-time exhaustiveness — if a type is removed from the union
     // this array will fail to type-check.
-    const all: RecordType[] = [
-      "A",
-      "AAAA",
-      "CNAME",
-      "MX",
-      "TXT",
-      "NS",
-      "SOA",
-      "SRV",
-      "CAA",
-    ];
+    const all: RecordType[] = ["A", "AAAA", "CNAME", "MX", "TXT", "NS", "SOA", "SRV", "CAA"];
     expect(all).toHaveLength(9);
   });
 });

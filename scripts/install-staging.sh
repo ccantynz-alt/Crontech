@@ -118,8 +118,8 @@ if [[ ! -f "$ENV_FILE" ]]; then
   [[ -f "$ENV_EXAMPLE" ]] || { echo "ERROR: $ENV_EXAMPLE missing" >&2; exit 1; }
   log "Generating $ENV_FILE from $ENV_EXAMPLE"
   cp "$ENV_EXAMPLE" "$ENV_FILE"
-  SESSION_SECRET="$(openssl rand -hex 32)"
-  JWT_SECRET="$(openssl rand -hex 32)"
+  SESSION_SECRET="$(openssl rand -hex 32)" # secrets-ok — generated dynamically, not hardcoded
+  JWT_SECRET="$(openssl rand -hex 32)" # secrets-ok — generated dynamically, not hardcoded
   ENCRYPTION_KEY="$(openssl rand -hex 32)"
   sed -i "s|^SESSION_SECRET=.*|SESSION_SECRET=${SESSION_SECRET}|" "$ENV_FILE"
   sed -i "s|^JWT_SECRET=.*|JWT_SECRET=${JWT_SECRET}|" "$ENV_FILE"

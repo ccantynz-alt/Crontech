@@ -1,55 +1,56 @@
 import { z } from "zod";
-import { router, publicProcedure } from "./init";
-import { usersRouter } from "./procedures/users";
+import { publicProcedure, router } from "./init";
+import { adminRouter } from "./procedures/admin";
+import { aiRouter } from "./procedures/ai";
+import { aiDeployRouter } from "./procedures/aiDeploy";
+import { analyticsRouter } from "./procedures/analytics";
+import { analyticsChartsRouter } from "./procedures/analytics-charts";
+import { apiKeysRouter } from "./procedures/apiKeys";
 import { auditRouter } from "./procedures/audit";
 import { authRouter } from "./procedures/auth";
 import { billingRouter } from "./procedures/billing";
-import { featureFlagsRouter } from "./procedures/featureFlags";
-import { collabRouter } from "./procedures/collab";
-import { emailRouter } from "./procedures/email";
-import { adminRouter } from "./procedures/admin";
-import { analyticsRouter } from "./procedures/analytics";
-import { analyticsChartsRouter } from "./procedures/analytics-charts";
-import { notificationsRouter } from "./procedures/notifications";
-import { tenantRouter } from "./procedures/tenant";
-import { apiKeysRouter } from "./procedures/apiKeys";
-import { webhooksRouter } from "./procedures/webhooks";
-import { supportRouter } from "./procedures/support";
-import { aiRouter } from "./procedures/ai";
 import { chatRouter } from "./procedures/chat";
-import { productsRouter } from "./procedures/products";
-import { productTenantsRouter } from "./procedures/productTenants";
-import { uiRouter } from "./procedures/ui";
-import { storageRouter } from "./procedures/storage";
-import { reposRouter } from "./procedures/repos";
-import { projectsRouter } from "./procedures/projects";
+import { collabRouter } from "./procedures/collab";
+import { commsRouter } from "./procedures/comms";
+import { creditsRouter } from "./procedures/credits";
+import { dbInspectorRouter } from "./procedures/db-inspector";
 import { deploymentsRouter } from "./procedures/deployments";
-import { importRouter } from "./procedures/importProject";
-import { aiDeployRouter } from "./procedures/aiDeploy";
-import { theatreRouter } from "./procedures/theatre";
-import { flywheelRouter } from "./procedures/flywheel";
-import { voiceRouter } from "./procedures/voice";
-import { launchRouter } from "./procedures/launch";
-import { usageRouter } from "./procedures/usage";
-import { dnsImportRouter } from "./procedures/dns-import";
 import { dnsRouter } from "./procedures/dns";
+import { dnsImportRouter } from "./procedures/dns-import";
 import { domainSearchRouter } from "./procedures/domain-search";
 import { domainsRouter } from "./procedures/domains";
+import { emailRouter } from "./procedures/email";
 import { esimRouter } from "./procedures/esim";
-import { smsRouter } from "./procedures/sms";
-import { dbInspectorRouter } from "./procedures/db-inspector";
+import { featureFlagsRouter } from "./procedures/featureFlags";
+import { flywheelRouter } from "./procedures/flywheel";
+import { gluecronRouter } from "./procedures/gluecron";
+import { importRouter } from "./procedures/importProject";
+import { launchRouter } from "./procedures/launch";
 import { metricsRouter } from "./procedures/metrics";
+import { notificationsRouter } from "./procedures/notifications";
+import { productTenantsRouter } from "./procedures/productTenants";
+import { productsRouter } from "./procedures/products";
+import { projectsRouter } from "./procedures/projects";
+import { reposRouter } from "./procedures/repos";
+import { smsRouter } from "./procedures/sms";
+import { storageRouter } from "./procedures/storage";
+import { supportRouter } from "./procedures/support";
+import { tenantRouter } from "./procedures/tenant";
+import { theatreRouter } from "./procedures/theatre";
+import { uiRouter } from "./procedures/ui";
+import { usageRouter } from "./procedures/usage";
+import { usersRouter } from "./procedures/users";
+import { voiceRouter } from "./procedures/voice";
+import { webhooksRouter } from "./procedures/webhooks";
 
 export const appRouter = router({
   health: publicProcedure.query(() => {
     return { status: "ok" as const };
   }),
 
-  hello: publicProcedure
-    .input(z.object({ name: z.string() }))
-    .query(({ input }) => {
-      return { greeting: `Hello, ${input.name}!` };
-    }),
+  hello: publicProcedure.input(z.object({ name: z.string() })).query(({ input }) => {
+    return { greeting: `Hello, ${input.name}!` };
+  }),
 
   users: usersRouter,
   audit: auditRouter,
@@ -90,6 +91,9 @@ export const appRouter = router({
   sms: smsRouter,
   dbInspector: dbInspectorRouter,
   metrics: metricsRouter,
+  gluecron: gluecronRouter,
+  comms: commsRouter,
+  credits: creditsRouter,
 });
 
 export type AppRouter = typeof appRouter;

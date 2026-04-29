@@ -16,32 +16,27 @@
 // the self-hosted DNS import (BLK-023) shipped separately. We don't
 // write DNS records from here — that's deliberate.
 
-import { z } from "zod";
+import { domainRegistrations } from "@back-to-the-future/db";
 import { TRPCError } from "@trpc/server";
 import { desc, eq } from "drizzle-orm";
-import { domainRegistrations } from "@back-to-the-future/db";
-import {
-  router,
-  publicProcedure,
-  protectedProcedure,
-  adminProcedure,
-} from "../init";
-import type { TRPCContext } from "../context";
+import { z } from "zod";
 import {
   OpensrsClient,
+  type OpensrsClientDeps,
+  type OpensrsConfig,
   OpensrsError,
   applyMarkup,
   configFromEnv,
   dollarsToMicrodollars,
   markupPercentFromEnv,
-  type OpensrsConfig,
-  type OpensrsClientDeps,
 } from "../../domains/opensrs-client";
 import {
-  ContactInfoSchema,
   type AvailabilityResult,
+  ContactInfoSchema,
   type PriceQuote,
 } from "../../domains/opensrs-types";
+import type { TRPCContext } from "../context";
+import { adminProcedure, protectedProcedure, publicProcedure, router } from "../init";
 
 // ── Client factory (dependency-injected for tests) ────────────────────
 // The router holds a single factory that tests can swap out by assigning
@@ -121,7 +116,7 @@ function parseExpiry(value: string | undefined): Date {
 }
 
 function newId(): string {
-  return `dom_${Date.now().toString(36)}_${crypto.randomUUID().replace(/-/g, '').slice(0, 8)}`;
+  return `dom_${Date.now().toString(36)}_${crypto.randomUUID().replace(/-/g, "").slice(0, 8)}`;
 }
 
 function translateOpensrsError(err: unknown, fallbackMessage: string): never {
@@ -209,24 +204,22 @@ export const domainsRouter = router({
               domain,
               available: false,
               status: "unknown",
-              reason:
-                err instanceof OpensrsError
-                  ? err.message
-                  : "Availability lookup failed.",
+              reason: err instanceof OpensrsError ? err.message : "Availability lookup failed.",
             };
           }
         }),
       );
 
-      const results = settled.map((r, idx): AvailabilityResult =>
-        r.status === "fulfilled"
-          ? r.value
-          : {
-              domain: domains[idx] ?? "",
-              available: false,
-              status: "unknown",
-              reason: "Availability lookup failed.",
-            },
+      const results = settled.map(
+        (r, idx): AvailabilityResult =>
+          r.status === "fulfilled"
+            ? r.value
+            : {
+                domain: domains[idx] ?? "",
+                available: false,
+                status: "unknown",
+                reason: "Availability lookup failed.",
+              },
       );
       return { results };
     }),
@@ -267,119 +260,113 @@ export const domainsRouter = router({
    * `domain_registrations` with both wholesale cost and our markup so
    * the revenue side can audit every sale without re-querying OpenSRS.
    */
-  register: adminProcedure
-    .input(RegisterInputSchema)
-    .mutation(async ({ input, ctx }) => {
-      const client = makeClient();
-      const customerId = input.userId ?? ctx.userId;
-      let wholesaleMicrodollars = 0;
-      let retailMicrodollars = 0;
-      let markupMicrodollars = 0;
-      const markupPercent = currentMarkupPercent();
+  register: adminProcedure.input(RegisterInputSchema).mutation(async ({ input, ctx }) => {
+    const client = makeClient();
+    const customerId = input.userId ?? ctx.userId;
+    let wholesaleMicrodollars = 0;
+    let retailMicrodollars = 0;
+    let markupMicrodollars = 0;
+    const markupPercent = currentMarkupPercent();
 
-      try {
-        const priceAttrs = await client.getPrice(input.domain, input.years);
-        wholesaleMicrodollars = dollarsToMicrodollars(priceAttrs.price);
-        const marked = applyMarkup(wholesaleMicrodollars, markupPercent);
-        retailMicrodollars = marked.retailMicrodollars;
-        markupMicrodollars = marked.markupMicrodollars;
-      } catch (err) {
-        translateOpensrsError(err, "Failed to fetch wholesale price before registering.");
-      }
+    try {
+      const priceAttrs = await client.getPrice(input.domain, input.years);
+      wholesaleMicrodollars = dollarsToMicrodollars(priceAttrs.price);
+      const marked = applyMarkup(wholesaleMicrodollars, markupPercent);
+      retailMicrodollars = marked.retailMicrodollars;
+      markupMicrodollars = marked.markupMicrodollars;
+    } catch (err) {
+      translateOpensrsError(err, "Failed to fetch wholesale price before registering.");
+    }
 
-      let opensrsHandle: string | undefined;
-      let expiresAt: Date;
-      try {
-        const regInput: Parameters<typeof client.register>[0] = {
-          domain: input.domain,
-          years: input.years,
-          contact: input.contactInfo,
-        };
-        if (input.nameservers !== undefined) {
-          regInput.nameservers = input.nameservers;
-        }
-        const attrs = await client.register(regInput);
-        const id = attrs.order_id ?? attrs.id;
-        opensrsHandle = id === undefined ? undefined : String(id);
-        expiresAt = parseExpiry(attrs.registration_expiration_date);
-      } catch (err) {
-        translateOpensrsError(err, "Domain registration failed at OpenSRS.");
-      }
-
-      const row: typeof domainRegistrations.$inferInsert = {
-        id: newId(),
-        userId: customerId,
+    let opensrsHandle: string | undefined;
+    let expiresAt: Date;
+    try {
+      const regInput: Parameters<typeof client.register>[0] = {
         domain: input.domain,
-        tld: extractTld(input.domain),
-        expiresAt,
-        autoRenew: input.autoRenew ?? false,
-        costMicrodollars: wholesaleMicrodollars,
-        markupMicrodollars,
-        status: "active",
+        years: input.years,
+        contact: input.contactInfo,
       };
-      if (opensrsHandle !== undefined) row.opensrsHandle = opensrsHandle;
+      if (input.nameservers !== undefined) {
+        regInput.nameservers = input.nameservers;
+      }
+      const attrs = await client.register(regInput);
+      const id = attrs.order_id ?? attrs.id;
+      opensrsHandle = id === undefined ? undefined : String(id);
+      expiresAt = parseExpiry(attrs.registration_expiration_date);
+    } catch (err) {
+      translateOpensrsError(err, "Domain registration failed at OpenSRS.");
+    }
 
-      await ctx.db.insert(domainRegistrations).values(row);
+    const row: typeof domainRegistrations.$inferInsert = {
+      id: newId(),
+      userId: customerId,
+      domain: input.domain,
+      tld: extractTld(input.domain),
+      expiresAt,
+      autoRenew: input.autoRenew ?? false,
+      costMicrodollars: wholesaleMicrodollars,
+      markupMicrodollars,
+      status: "active",
+    };
+    if (opensrsHandle !== undefined) row.opensrsHandle = opensrsHandle;
 
-      return {
-        id: row.id,
-        domain: input.domain,
-        opensrsHandle,
-        expiresAt: expiresAt.toISOString(),
-        wholesaleMicrodollars,
-        retailMicrodollars,
-        markupMicrodollars,
-        markupPercent,
-      };
-    }),
+    await ctx.db.insert(domainRegistrations).values(row);
+
+    return {
+      id: row.id,
+      domain: input.domain,
+      opensrsHandle,
+      expiresAt: expiresAt.toISOString(),
+      wholesaleMicrodollars,
+      retailMicrodollars,
+      markupMicrodollars,
+      markupPercent,
+    };
+  }),
 
   /**
    * Admin-only: renew a domain we've already registered for the caller.
    * Updates the persisted expiry so `listMyDomains` reflects it.
    */
-  renew: adminProcedure
-    .input(RenewInputSchema)
-    .mutation(async ({ input, ctx }) => {
-      const existing = await ctx.db
-        .select()
-        .from(domainRegistrations)
-        .where(eq(domainRegistrations.domain, input.domain))
-        .limit(1);
-      const row = existing[0];
-      if (!row) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: `We do not have a record of ${input.domain}. Register it first.`,
-        });
-      }
+  renew: adminProcedure.input(RenewInputSchema).mutation(async ({ input, ctx }) => {
+    const existing = await ctx.db
+      .select()
+      .from(domainRegistrations)
+      .where(eq(domainRegistrations.domain, input.domain))
+      .limit(1);
+    const row = existing[0];
+    if (!row) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: `We do not have a record of ${input.domain}. Register it first.`,
+      });
+    }
 
-      const client = makeClient();
-      let expiresAt: Date;
-      try {
-        const attrs = await client.renew({
-          domain: input.domain,
-          years: input.years,
-          ...(row.expiresAt
-            ? { currentExpiration: String(row.expiresAt.getFullYear()) }
-            : {}),
-          autoRenew: row.autoRenew,
-        });
-        expiresAt = parseExpiry(attrs.registration_expiration_date);
-      } catch (err) {
-        translateOpensrsError(err, "Domain renewal failed at OpenSRS.");
-      }
-
-      await ctx.db
-        .update(domainRegistrations)
-        .set({ expiresAt, updatedAt: new Date(), status: "active" })
-        .where(eq(domainRegistrations.id, row.id));
-
-      return {
-        id: row.id,
+    const client = makeClient();
+    let expiresAt: Date;
+    try {
+      const attrs = await client.renew({
         domain: input.domain,
-        expiresAt: expiresAt.toISOString(),
-      };
-    }),
+        years: input.years,
+        ...(row.expiresAt ? { currentExpiration: String(row.expiresAt.getFullYear()) } : {}),
+        autoRenew: row.autoRenew,
+      });
+      expiresAt = parseExpiry(attrs.registration_expiration_date);
+    } catch (err) {
+      translateOpensrsError(err, "Domain renewal failed at OpenSRS.");
+    }
+
+    await ctx.db
+      .update(domainRegistrations)
+      .set({ expiresAt, updatedAt: new Date(), status: "active" })
+      .where(eq(domainRegistrations.id, row.id));
+
+    return {
+      id: row.id,
+      domain: input.domain,
+      expiresAt: expiresAt.toISOString(),
+    };
+  }),
 
   /**
    * Authenticated: list every domain registered under the caller. The

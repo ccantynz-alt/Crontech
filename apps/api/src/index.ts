@@ -1,33 +1,37 @@
-import { Hono } from "hono";
-import { log } from "./log";
-import { cors } from "hono/cors";
+/// <reference types="@types/bun" />
+import {
+  approveRequest,
+  checkQdrantHealth,
+  getApprovalRequest,
+  getMCPResources,
+  getMCPTools,
+  getPendingApprovals,
+  handleMCPResourceRead,
+  handleMCPToolCall,
+  listComponents,
+  rejectRequest,
+} from "@back-to-the-future/ai-core";
+import { checkNeonHealth } from "@back-to-the-future/db/neon";
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
-import { appRouter } from "./trpc/router";
-import { createContext } from "./trpc/context";
-import { aiRoutes } from "./ai/routes";
+import { Hono } from "hono";
+import { cors } from "hono/cors";
 import { chatStreamRoutes } from "./ai/chat-stream";
 import { aiGatewayApp } from "./ai/gateway";
-import { wsApp, websocket, sseApp, theatreSseApp, yjsWsApp, liveUpdatesApp } from "./realtime";
-import { terminalApp } from "./terminal/handler";
-import { initTelemetry, httpRequestCount, httpRequestDuration, recordRequest, getMetrics } from "./telemetry";
-import {
-  projectAttributionMiddleware,
-  withProjectAttrs,
-} from "./telemetry/project-attribution";
+import { aiRoutes } from "./ai/routes";
 import { getAllFlags, isFeatureEnabled } from "./feature-flags";
-import { checkNeonHealth } from "@back-to-the-future/db/neon";
+import { log } from "./log";
+import { liveUpdatesApp, sseApp, theatreSseApp, websocket, wsApp, yjsWsApp } from "./realtime";
 import {
-  checkQdrantHealth,
-  getPendingApprovals,
-  getApprovalRequest,
-  approveRequest,
-  rejectRequest,
-  getMCPTools,
-  getMCPResources,
-  handleMCPToolCall,
-  handleMCPResourceRead,
-  listComponents,
-} from "@back-to-the-future/ai-core";
+  getMetrics,
+  httpRequestCount,
+  httpRequestDuration,
+  initTelemetry,
+  recordRequest,
+} from "./telemetry";
+import { projectAttributionMiddleware, withProjectAttrs } from "./telemetry/project-attribution";
+import { terminalApp } from "./terminal/handler";
+import { createContext } from "./trpc/context";
+import { appRouter } from "./trpc/router";
 
 // Initialize OpenTelemetry (no-op if OTEL_EXPORTER_OTLP_ENDPOINT not set).
 // Fire-and-forget: `initTelemetry()` is async because it lazy-imports the
@@ -38,35 +42,35 @@ initTelemetry().catch((err) => {
   console.warn("[telemetry] init failed:", err);
 });
 
-import { startQueue } from "./automation/retry-queue";
-import { startHealingLoop } from "./automation/self-heal";
-import { runDispatcher } from "./webhooks/dispatcher";
-import { gluecronPushApp } from "./webhooks/gluecron-push";
-import { gluecronPlatformDeployApp } from "./webhooks/gluecron-platform-deploy";
-import { inboundSmsApp } from "./sms/inbound";
-import { githubWebhookApp } from "./github/webhook";
-import { deploymentLogsStreamApp } from "./deploy/logs-stream";
-import { adminDeployApp } from "./deploy/admin-deploy";
-import { platformAutoDeployApp } from "./deploy/platform-auto-deploy";
-import { createEmpireHealthApp } from "./healthz/empire";
 import { db as defaultDb } from "@back-to-the-future/db";
 import {
-  startHealthMonitor,
   getCurrentHealth,
   getHealthHistory,
+  startHealthMonitor,
 } from "./automation/health-monitor";
+import { startQueue } from "./automation/retry-queue";
 import { getQueueStatus } from "./automation/retry-queue";
+import { startHealingLoop } from "./automation/self-heal";
+import { adminDeployApp } from "./deploy/admin-deploy";
+import { deploymentLogsStreamApp } from "./deploy/logs-stream";
+import { platformAutoDeployApp } from "./deploy/platform-auto-deploy";
+import { githubWebhookApp } from "./github/webhook";
+import { createEmpireHealthApp } from "./healthz/empire";
+import { inboundSmsApp } from "./sms/inbound";
+import { runDispatcher } from "./webhooks/dispatcher";
+import { gluecronPlatformDeployApp } from "./webhooks/gluecron-platform-deploy";
+import { gluecronPushApp } from "./webhooks/gluecron-push";
 
-import { securityHeaders } from "./middleware/security-headers";
-import { cacheControl } from "./middleware/cache-control";
-import { createRateLimiter, type KvNamespaceLike } from "./middleware/rate-limiter";
-import { csrf } from "./middleware/csrf";
-import { apiKeyAuthMiddleware } from "./middleware/api-key-auth";
-import { subdomainRouter } from "./middleware/subdomain";
 import { googleOAuthRoutes } from "./auth/google-oauth";
-import { unsubscribeRoutes } from "./email/unsubscribe";
 import { alecRaeWebhookApp } from "./email/alecrae-webhook";
+import { unsubscribeRoutes } from "./email/unsubscribe";
+import { apiKeyAuthMiddleware } from "./middleware/api-key-auth";
 import { withAudit } from "./middleware/audit";
+import { cacheControl } from "./middleware/cache-control";
+import { csrf } from "./middleware/csrf";
+import { type KvNamespaceLike, createRateLimiter } from "./middleware/rate-limiter";
+import { securityHeaders } from "./middleware/security-headers";
+import { subdomainRouter } from "./middleware/subdomain";
 
 const app = new Hono().basePath("/api");
 
@@ -86,7 +90,9 @@ const ALLOWED_ORIGINS = [
   "https://crontech.ai",
   "https://www.crontech.ai",
   // Cloudflare Pages preview/production URLs
-  ...(process.env.CORS_ORIGINS?.split(",").map((o) => o.trim()).filter(Boolean) ?? []),
+  ...(process.env.CORS_ORIGINS?.split(",")
+    .map((o) => o.trim())
+    .filter(Boolean) ?? []),
 ];
 app.use(
   "*",
@@ -100,7 +106,12 @@ app.use(
     },
     allowHeaders: ["Content-Type", "Authorization", "X-CSRF-Token", "X-Request-ID"],
     allowMethods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    exposeHeaders: ["X-RateLimit-Limit", "X-RateLimit-Remaining", "X-RateLimit-Reset", "X-Request-ID"],
+    exposeHeaders: [
+      "X-RateLimit-Limit",
+      "X-RateLimit-Remaining",
+      "X-RateLimit-Reset",
+      "X-Request-ID",
+    ],
     maxAge: 86400,
     credentials: true,
   }),
@@ -110,15 +121,20 @@ app.use(
 app.use("*", securityHeaders());
 // ── Cache-Control (prevent stale dynamic content) ───────────────────
 app.use("*", cacheControl());
-app.use("*", csrf({
-  allowedOrigins: [
-    "http://localhost:3000",
-    "http://localhost:3001",
-    "https://crontech.ai",
-    "https://www.crontech.ai",
-    ...(process.env.CORS_ORIGINS?.split(",").map((o) => o.trim()).filter(Boolean) ?? []),
-  ],
-}));
+app.use(
+  "*",
+  csrf({
+    allowedOrigins: [
+      "http://localhost:3000",
+      "http://localhost:3001",
+      "https://crontech.ai",
+      "https://www.crontech.ai",
+      ...(process.env.CORS_ORIGINS?.split(",")
+        .map((o) => o.trim())
+        .filter(Boolean) ?? []),
+    ],
+  }),
+);
 // Rate limiter: auto-selects Cloudflare KV when `RATE_LIMIT_KV` is bound to
 // the Worker env, otherwise falls back to the in-memory limiter. This lets the
 // same code run in `bun run dev` locally and on Cloudflare Workers in prod
@@ -139,17 +155,13 @@ app.use(
 app.use(
   "/api/auth/*",
   createRateLimiter(
-    rateLimitEnv
-      ? { windowMs: 60_000, max: 20, env: rateLimitEnv }
-      : { windowMs: 60_000, max: 20 },
+    rateLimitEnv ? { windowMs: 60_000, max: 20, env: rateLimitEnv } : { windowMs: 60_000, max: 20 },
   ),
 );
 app.use(
   "/api/ai/*",
   createRateLimiter(
-    rateLimitEnv
-      ? { windowMs: 60_000, max: 30, env: rateLimitEnv }
-      : { windowMs: 60_000, max: 30 },
+    rateLimitEnv ? { windowMs: 60_000, max: 30, env: rateLimitEnv } : { windowMs: 60_000, max: 30 },
   ),
 );
 // ── Rate limits for public read/approval/MCP surfaces ─────────────
@@ -160,17 +172,13 @@ app.use(
 app.use(
   "/api/approvals/*",
   createRateLimiter(
-    rateLimitEnv
-      ? { windowMs: 60_000, max: 60, env: rateLimitEnv }
-      : { windowMs: 60_000, max: 60 },
+    rateLimitEnv ? { windowMs: 60_000, max: 60, env: rateLimitEnv } : { windowMs: 60_000, max: 60 },
   ),
 );
 app.use(
   "/api/mcp/*",
   createRateLimiter(
-    rateLimitEnv
-      ? { windowMs: 60_000, max: 60, env: rateLimitEnv }
-      : { windowMs: 60_000, max: 60 },
+    rateLimitEnv ? { windowMs: 60_000, max: 60, env: rateLimitEnv } : { windowMs: 60_000, max: 60 },
   ),
 );
 app.use(
@@ -195,10 +203,7 @@ app.use("/api/ai/*", apiKeyAuthMiddleware);
 // attribute shape we always have.
 app.use("*", async (c, next) => {
   const start = performance.now();
-  httpRequestCount.add(
-    1,
-    withProjectAttrs({ method: c.req.method, path: c.req.path }),
-  );
+  httpRequestCount.add(1, withProjectAttrs({ method: c.req.method, path: c.req.path }));
   await next();
   const duration = performance.now() - start;
   httpRequestDuration.record(
@@ -256,17 +261,15 @@ app.get("/version", (c) => {
 
 // ── Extended Health Check (all services) ─────────────────────────────
 app.get("/health/full", async (c) => {
-  const [neon, qdrant] = await Promise.allSettled([
-    checkNeonHealth(),
-    checkQdrantHealth(),
-  ]);
+  const [neon, qdrant] = await Promise.allSettled([checkNeonHealth(), checkQdrantHealth()]);
 
   return c.json({
     status: "ok",
     timestamp: new Date().toISOString(),
     services: {
       neon: neon.status === "fulfilled" ? neon.value : { status: "error", error: "check failed" },
-      qdrant: qdrant.status === "fulfilled" ? qdrant.value : { status: "error", error: "check failed" },
+      qdrant:
+        qdrant.status === "fulfilled" ? qdrant.value : { status: "error", error: "check failed" },
     },
   });
 });
@@ -318,14 +321,14 @@ app.get("/approvals/:id", (c) => {
 });
 
 app.post("/approvals/:id/approve", async (c) => {
-  const body = await c.req.json() as { approvedBy?: string };
+  const body = (await c.req.json()) as { approvedBy?: string };
   const result = approveRequest(c.req.param("id"), body.approvedBy ?? "unknown");
   if (!result) return c.json({ error: "Request not found or expired" }, 404);
   return c.json(result);
 });
 
 app.post("/approvals/:id/reject", async (c) => {
-  const body = await c.req.json() as { rejectedBy?: string };
+  const body = (await c.req.json()) as { rejectedBy?: string };
   const result = rejectRequest(c.req.param("id"), body.rejectedBy ?? "unknown");
   if (!result) return c.json({ error: "Request not found or expired" }, 404);
   return c.json(result);
@@ -337,7 +340,7 @@ app.get("/mcp/resources", (c) => c.json({ resources: getMCPResources() }));
 app.get("/mcp/components", (c) => c.json(listComponents()));
 
 app.post("/mcp/tools/call", async (c) => {
-  const body = await c.req.json() as { name: string; arguments: Record<string, unknown> };
+  const body = (await c.req.json()) as { name: string; arguments: Record<string, unknown> };
   const result = handleMCPToolCall(body.name, body.arguments ?? {});
   return c.json({ result });
 });
@@ -374,7 +377,7 @@ app.post("/webhooks/stripe", async (c) => {
 // ── Inbound Email Webhook (Resend) ──────────────────────────────────
 app.post("/webhooks/inbound-email", async (c) => {
   try {
-    const secret = process.env["RESEND_INBOUND_SECRET"];
+    const secret = process.env.RESEND_INBOUND_SECRET;
     if (secret) {
       const provided =
         c.req.header("x-resend-signature") ??
@@ -393,14 +396,12 @@ app.post("/webhooks/inbound-email", async (c) => {
     };
 
     const from =
-      typeof body.from === "string"
-        ? body.from
-        : body.from?.email ?? "unknown@unknown";
+      typeof body.from === "string" ? body.from : (body.from?.email ?? "unknown@unknown");
     const to = Array.isArray(body.to)
-      ? body.to[0] ?? (process.env["SUPPORT_EMAIL"] ?? "support@crontech.ai")
+      ? (body.to[0] ?? process.env.SUPPORT_EMAIL ?? "support@crontech.ai")
       : typeof body.to === "string"
         ? body.to
-        : body.to?.email ?? (process.env["SUPPORT_EMAIL"] ?? "support@crontech.ai");
+        : (body.to?.email ?? process.env.SUPPORT_EMAIL ?? "support@crontech.ai");
     const subject = body.subject ?? "(no subject)";
     const text = body.text ?? body.html ?? "";
 
@@ -557,7 +558,9 @@ if (typeof Bun !== "undefined") {
     });
   }, 60_000);
   // Unref so the interval does not keep a test process alive.
-  if (typeof (webhookDispatcherInterval as unknown as { unref?: () => void }).unref === "function") {
+  if (
+    typeof (webhookDispatcherInterval as unknown as { unref?: () => void }).unref === "function"
+  ) {
     (webhookDispatcherInterval as unknown as { unref: () => void }).unref();
   }
 

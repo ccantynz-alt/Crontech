@@ -2,15 +2,12 @@
 // Manages provisioning, suspension, deletion, and health checks for
 // per-tenant Neon PostgreSQL databases.
 
-import { eq } from "drizzle-orm";
 import { neon } from "@neondatabase/serverless";
+import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/neon-http";
 import { db } from "./client";
+import { createTenantProject, deleteTenantProject as deleteNeonProject } from "./neon-provisioning";
 import { tenantProjects } from "./schema";
-import {
-  createTenantProject,
-  deleteTenantProject as deleteNeonProject,
-} from "./neon-provisioning";
 
 export type TenantProject = typeof tenantProjects.$inferSelect;
 
@@ -108,8 +105,7 @@ export async function provisionTenantDB(
       })
       .where(eq(tenantProjects.id, id));
 
-    const message =
-      error instanceof Error ? error.message : "Unknown provisioning error";
+    const message = error instanceof Error ? error.message : "Unknown provisioning error";
     throw new Error(`Failed to provision tenant database: ${message}`);
   }
 }
@@ -174,18 +170,14 @@ export async function deleteTenantDB(userId: string): Promise<void> {
   }
 
   // Remove the local record
-  await db
-    .delete(tenantProjects)
-    .where(eq(tenantProjects.id, project.id));
+  await db.delete(tenantProjects).where(eq(tenantProjects.id, project.id));
 }
 
 /**
  * Get a Drizzle client connected to a specific tenant's Neon database.
  * Returns null if the tenant has no active database.
  */
-export async function getTenantClient(
-  userId: string,
-): Promise<DrizzleClient | null> {
+export async function getTenantClient(userId: string): Promise<DrizzleClient | null> {
   const project = await db.query.tenantProjects.findFirst({
     where: eq(tenantProjects.userId, userId),
   });
@@ -241,9 +233,7 @@ export async function checkTenantHealth(
 /**
  * Get tenant project info for a user (without sensitive connection string).
  */
-export async function getTenantProjectInfo(
-  userId: string,
-): Promise<TenantProject | null> {
+export async function getTenantProjectInfo(userId: string): Promise<TenantProject | null> {
   const project = await db.query.tenantProjects.findFirst({
     where: eq(tenantProjects.userId, userId),
   });

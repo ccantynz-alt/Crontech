@@ -55,8 +55,7 @@ describe("docs/security — three-article series", () => {
   });
 
   test("polite tone — no competitor names in security articles", () => {
-    const fromCodes = (...codes: number[]): string =>
-      String.fromCharCode(...codes);
+    const fromCodes = (...codes: number[]): string => String.fromCharCode(...codes);
     const banned = [
       ` ${fromCodes(118, 101, 114, 99, 101, 108)} `, // vercel
       ` ${fromCodes(110, 101, 116, 108, 105, 102, 121)} `, // netlify
@@ -64,10 +63,7 @@ describe("docs/security — three-article series", () => {
       ` ${fromCodes(114, 101, 110, 100, 101, 114)} `, // render
     ];
     for (const { file } of ARTICLES) {
-      const src = readFileSync(
-        resolve(SECURITY_DIR, file),
-        "utf-8",
-      ).toLowerCase();
+      const src = readFileSync(resolve(SECURITY_DIR, file), "utf-8").toLowerCase();
       for (const name of banned) {
         expect(src).not.toContain(name);
       }
@@ -75,10 +71,7 @@ describe("docs/security — three-article series", () => {
   });
 
   test("authentication article cites the real apps/api/src/auth implementation", () => {
-    const src = readFileSync(
-      resolve(SECURITY_DIR, "authentication.tsx"),
-      "utf-8",
-    );
+    const src = readFileSync(resolve(SECURITY_DIR, "authentication.tsx"), "utf-8");
     // Each of the three providers must be anchored to a real file.
     expect(src).toContain("apps/api/src/auth/webauthn.ts");
     expect(src).toContain("apps/api/src/auth/google-oauth.ts");
@@ -89,10 +82,7 @@ describe("docs/security — three-article series", () => {
   });
 
   test("audit-and-compliance reflects CLAUDE.md §5A honestly", () => {
-    const src = readFileSync(
-      resolve(SECURITY_DIR, "audit-and-compliance.tsx"),
-      "utf-8",
-    );
+    const src = readFileSync(resolve(SECURITY_DIR, "audit-and-compliance.tsx"), "utf-8");
     // The article must name the compliance primitives from §5A and
     // be honest about the SOC 2 status.
     expect(src).toContain("SHA-256");

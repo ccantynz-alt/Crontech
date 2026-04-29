@@ -9,10 +9,10 @@
 // multi-step tool-call loop (parse tool call → execute → feed result
 // back → resume generation). Deferred to Phase B so Phase A can ship.
 
-import { streamText, type ModelMessage } from "ai";
-import { getModelForTier, getDefaultModel, type AIProviderEnv } from "../providers";
-import { allTools } from "../tools";
+import { type ModelMessage, streamText } from "ai";
 import type { ComputeTier } from "../compute-tier";
+import { type AIProviderEnv, getDefaultModel, getModelForTier } from "../providers";
+import { allTools } from "../tools";
 
 // ── Agent Types ──────────────────────────────────────────────────────
 
@@ -106,9 +106,7 @@ export class AgentOrchestrator {
     state.messages.push({ role: "user", content: userMessage });
 
     const tier = agent.computeTier ?? "cloud";
-    const model = this.providerEnv
-      ? getModelForTier(tier, this.providerEnv)
-      : getDefaultModel();
+    const model = this.providerEnv ? getModelForTier(tier, this.providerEnv) : getDefaultModel();
 
     // Execute with tool calling
     const result = await streamText({
@@ -166,7 +164,8 @@ export const SITE_BUILDER_AGENT: AgentDefinition = {
   id: "site-builder",
   name: "Site Builder",
   description: "Builds websites by composing UI components from the validated catalog",
-  systemPrompt: `You are a website builder AI. You compose UI layouts using validated components: Button, Input, Card, Stack, Text, Modal, Badge, Alert, Avatar, Tabs, Select, Textarea, Spinner, Tooltip, Separator. Use tools to generate and validate components.`,
+  systemPrompt:
+    "You are a website builder AI. You compose UI layouts using validated components: Button, Input, Card, Stack, Text, Modal, Badge, Alert, Avatar, Tabs, Select, Textarea, Spinner, Tooltip, Separator. Use tools to generate and validate components.",
   computeTier: "cloud",
   maxSteps: 10,
 };
@@ -184,7 +183,8 @@ export const CONTENT_WRITER_AGENT: AgentDefinition = {
   id: "content-writer",
   name: "Content Writer",
   description: "Writes and edits website content, copy, and documentation",
-  systemPrompt: `You are a content writing AI. Generate compelling website copy, headlines, descriptions, and documentation. Use searchContent to find existing content for context. Write in a clear, professional tone appropriate for the target audience.`,
+  systemPrompt:
+    "You are a content writing AI. Generate compelling website copy, headlines, descriptions, and documentation. Use searchContent to find existing content for context. Write in a clear, professional tone appropriate for the target audience.",
   computeTier: "edge",
   maxSteps: 5,
 };

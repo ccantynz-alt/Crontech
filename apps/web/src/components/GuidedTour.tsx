@@ -109,7 +109,7 @@ export function GuidedTour(props: GuidedTourProps): ReturnType<typeof Show> {
             background: "rgba(0,0,0,0.5)",
           }}
           role="button"
-          tabindex="0"
+          tabIndex={0}
           aria-label="Dismiss guided tour"
           onClick={skip}
           onKeyDown={(e) => {
@@ -228,7 +228,11 @@ export function GuidedTour(props: GuidedTourProps): ReturnType<typeof Show> {
             </div>
           </div>
         </div>
-        <style>{`@keyframes btf-pulse { 0%,100% { box-shadow: 0 0 0 9999px rgba(0,0,0,0.5), 0 0 24px rgba(99,102,241,0.6);} 50% { box-shadow: 0 0 0 9999px rgba(0,0,0,0.5), 0 0 36px rgba(99,102,241,0.95);} }`}</style>
+        <style>
+          {
+            "@keyframes btf-pulse { 0%,100% { box-shadow: 0 0 0 9999px rgba(0,0,0,0.5), 0 0 24px rgba(99,102,241,0.6);} 50% { box-shadow: 0 0 0 9999px rgba(0,0,0,0.5), 0 0 36px rgba(99,102,241,0.95);} }"
+          }
+        </style>
       </div>
     </Show>
   );

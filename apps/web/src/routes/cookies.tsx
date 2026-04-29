@@ -7,8 +7,8 @@
  * rendered public copy.
  */
 
-import { SEOHead } from "../components/SEOHead";
 import LegalPage, { type LegalSection } from "../components/LegalPage";
+import { SEOHead } from "../components/SEOHead";
 
 const sections: LegalSection[] = [
   {
@@ -17,8 +17,7 @@ const sections: LegalSection[] = [
     blocks: [
       {
         type: "p",
-        text:
-          "Cookies are small text files stored on your device by the websites you visit. They let sites remember you between visits (sign-in state, preferences, analytics).",
+        text: "Cookies are small text files stored on your device by the websites you visit. They let sites remember you between visits (sign-in state, preferences, analytics).",
       },
     ],
   },
@@ -48,14 +47,12 @@ const sections: LegalSection[] = [
       { type: "p", text: "**Analytics** (consent required):" },
       {
         type: "p",
-        text:
-          "We use first-party, IP-anonymised analytics to understand aggregate traffic patterns. No cross-site tracking and no data sold to third parties.",
+        text: "We use first-party, IP-anonymised analytics to understand aggregate traffic patterns. No cross-site tracking and no data sold to third parties.",
       },
       { type: "p", text: "**Marketing:**" },
       {
         type: "p",
-        text:
-          "We do not currently set marketing or retargeting cookies on this site.",
+        text: "We do not currently set marketing or retargeting cookies on this site.",
       },
     ],
   },
@@ -65,8 +62,7 @@ const sections: LegalSection[] = [
     blocks: [
       {
         type: "p",
-        text:
-          "These cookies are set by third parties we embed for essential functionality:",
+        text: "These cookies are set by third parties we embed for essential functionality:",
       },
       {
         type: "table",
@@ -78,8 +74,7 @@ const sections: LegalSection[] = [
       },
       {
         type: "p",
-        text:
-          "These third parties process data under their own policies. We only embed them where necessary for the service to function.",
+        text: "These third parties process data under their own policies. We only embed them where necessary for the service to function.",
       },
     ],
   },
@@ -104,8 +99,7 @@ const sections: LegalSection[] = [
     blocks: [
       {
         type: "p",
-        text:
-          "We respect the browser Do Not Track (DNT) signal. When DNT is on, we do not set analytics cookies.",
+        text: "We respect the browser Do Not Track (DNT) signal. When DNT is on, we do not set analytics cookies.",
       },
     ],
   },
@@ -115,8 +109,7 @@ const sections: LegalSection[] = [
     blocks: [
       {
         type: "p",
-        text:
-          "We may update this policy. Material changes are announced via the consent banner's re-prompt and a notice at the \"Last updated\" date above.",
+        text: 'We may update this policy. Material changes are announced via the consent banner\'s re-prompt and a notice at the "Last updated" date above.',
       },
     ],
   },
@@ -135,12 +128,7 @@ export default function Cookies() {
         description="How Crontech uses cookies. First-party analytics, no cross-site tracking, no data sold."
         path="/cookies"
       />
-      <LegalPage
-        title="Cookie Policy"
-        version="1.0"
-        updated="2026-04-22"
-        sections={sections}
-      />
+      <LegalPage title="Cookie Policy" version="1.0" updated="2026-04-22" sections={sections} />
     </>
   );
 }
